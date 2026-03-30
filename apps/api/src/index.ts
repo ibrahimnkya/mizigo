@@ -2,10 +2,6 @@ import express from "express";
 import cors from "cors";
 import cargoRouter from "./routes/cargo";
 import authRouter from "./routes/auth";
-import rolesRouter from "./routes/roles";
-import permissionsRouter from "./routes/permissions";
-import organizationsRouter from "./routes/organizations";
-import stationsRouter from "./routes/stations";
 import { requestContext } from "./middleware/request-context";
 import { globalErrorHandler, notFoundHandler } from "./middleware/error-handler";
 import { sendSuccess } from "./lib/api-response";
@@ -36,10 +32,6 @@ app.get(`${API_PREFIX}/health`, (_req, res) => {
 
 app.use(`${API_PREFIX}/cargo`, cargoRouter);
 app.use(`${API_PREFIX}/auth`, authRouter);
-app.use(`${API_PREFIX}/roles`, rolesRouter);
-app.use(`${API_PREFIX}/permissions`, permissionsRouter);
-app.use(`${API_PREFIX}/organizations`, organizationsRouter);
-app.use(`${API_PREFIX}/stations`, stationsRouter);
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
