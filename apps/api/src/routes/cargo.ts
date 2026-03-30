@@ -1,94 +1,141 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "@repo/database";
 import { sendError, sendSuccess } from "../lib/api-response";
+import { hashPassword } from "../lib/security";
+import { logAudit } from "../lib/audit";
+
+type CargoMeta = {
+  paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+  deliveryOtpHash?: string;
+  deliveryOtpExpiresAt?: string;
+  senderName?: string;
+  senderPhone?: string;
+  packageName?: string;
+  declaredValue?: number;
+  condition?: string;
+  urgency?: string;
+  dispatch?: {
+    trainId: string;
+    dispatchedAt: string;
+  };
+};
 
 const router: Router = Router();
 
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    const payload = req.body;
+const computePrice = (input: {
+  weight: number;
+  declaredValue: number;
+  urgency: string;
+  cargoType: string;
+  packageSize: string;
+}) => {
+  const base = 1000;
+  const weightPrice = input.weight * 500;
+  const valueSurcharge = input.declaredValue * 0.01;
+  const urgencyMultiplier = input.urgency === "EXPRESS" ? 1.3 : input.urgency === "MGR" ? 1.15 : 1;
+  const cargoTypeMultiplier = input.cargoType === "FRAGILE_GOODS" ? 1.2 : 1;
+  const packageSizeMultiplier = input.packageSize === "SIZE_3" ? 1.4 : input.packageSize === "SIZE_2" ? 1.2 : 1;
 
-    if (!payload.fromAddress || !payload.toAddress || !payload.serviceType || !payload.cargoType || !payload.cargoSize || !payload.receiverName || !payload.receiverPhone || !payload.pickupType) {
-      return sendError(res, "VALIDATION_ERROR", "Missing required fields", 400);
+  return Math.round((base + weightPrice + valueSurcharge) * urgencyMultiplier * cargoTypeMultiplier * packageSizeMultiplier);
+};
+
+const createDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const readCargoMeta = (jsonValue: unknown): CargoMeta => {
+  if (jsonValue && typeof jsonValue === "object" && !Array.isArray(jsonValue)) {
+    return jsonValue as CargoMeta;
+  }
+  return {};
+};
+
+// New flow: Receive cargo and return calculated price with PENDING paymentStatus.
+router.post("/receive", async (req: Request, res: Response) => {
+  try {
+    const {
+      receivingStation,
+      destinationStation,
+      packageName,
+      declaredValue,
+      weight,
+      condition,
+      cargoType,
+      urgency,
+      packageSize,
+      cargoDescription,
+      senderName,
+      senderPhone,
+      receiverName,
+      receiverPhone,
+    } = req.body;
+
+    if (!receivingStation || !destinationStation || !packageName || declaredValue === undefined || weight === undefined || !condition || !cargoType || !urgency || !packageSize || !senderName || !senderPhone || !receiverName || !receiverPhone) {
+      return sendError(res, "VALIDATION_ERROR", "Missing required fields for receive operation", 400);
     }
+
+    const amount = computePrice({
+      weight: Number(weight),
+      declaredValue: Number(declaredValue),
+      urgency: String(urgency),
+      cargoType: String(cargoType),
+      packageSize: String(packageSize),
+    });
+
+    const deliveryOtp = createDeliveryOtp();
+    const otpExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
     const cargo = await prisma.cargoRequest.create({
       data: {
-        userId: payload.userId || null,
-        fromAddress: payload.fromAddress,
-        toAddress: payload.toAddress,
-        serviceType: payload.serviceType,
-        peopleNeeded: payload.peopleNeeded || 0,
-        cargoType: payload.cargoType,
-        cargoSize: payload.cargoSize,
-        receiverName: payload.receiverName,
-        receiverPhone: payload.receiverPhone,
-        receiverPays: payload.receiverPays || false,
-        additionalServices: payload.additionalServices || null,
-        pickupType: payload.pickupType,
-        wagonType: payload.wagonType || "STANDARD",
+        fromAddress: String(receivingStation),
+        toAddress: String(destinationStation),
+        serviceType: String(packageName),
+        cargoType: String(cargoType),
+        cargoSize: String(packageSize),
+        weight: Number(weight),
+        condition: String(condition),
+        urgency: String(urgency),
+        receiverName: String(receiverName),
+        receiverPhone: String(receiverPhone),
+        pickupType: "STATION_DROP",
+        specialInstructions: cargoDescription || null,
+        amount,
         status: "PENDING",
+        additionalServices: {
+          packageName,
+          declaredValue: Number(declaredValue),
+          senderName,
+          senderPhone,
+          paymentStatus: "PENDING",
+          deliveryOtpHash: hashPassword(deliveryOtp),
+          deliveryOtpExpiresAt: otpExpiresAt.toISOString(),
+        } as CargoMeta,
       },
     });
-    return sendSuccess(res, cargo, 201);
-  } catch (error: any) {
-    console.error("Error creating cargo request", error);
-    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
-  }
-});
 
-router.get("/space-check", async (_req: Request, res: Response) => {
-  try {
-    return sendSuccess(res, { hasSpace: true, availableCapacity: 100 });
-  } catch (error: any) {
-    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
-  }
-});
+    await logAudit({
+      userId: req.user?.id,
+      action: "CREATE",
+      resource: "cargo.receive",
+      details: { cargoId: cargo.id, amount },
+    });
 
-router.patch("/:id/adjudicate", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status, adminId, amount, rejectionReason } = req.body;
-
-    if (!status || !["APPROVED", "REJECTED"].includes(status)) {
-      return sendError(res, "VALIDATION_ERROR", "Invalid status, must be APPROVED or REJECTED", 400);
-    }
-    if (status === "APPROVED" && amount === undefined) {
-      return sendError(res, "VALIDATION_ERROR", "Amount required for approval", 400);
-    }
-    if (status === "REJECTED" && !rejectionReason) {
-      return sendError(res, "VALIDATION_ERROR", "Rejection reason required for rejection", 400);
-    }
-
-    const cargo = await prisma.cargoRequest.update({
-      where: { id },
-      data: {
-        status,
-        approvedById: adminId || null,
-        amount: status === "APPROVED" ? Number(amount) : null,
-        rejectionReason: status === "REJECTED" ? String(rejectionReason) : null,
+    return sendSuccess(
+      res,
+      {
+        cargo,
+        pricing: {
+          currency: "TZS",
+          amount,
+        },
+        deliveryOtp,
       },
-    });
-    return sendSuccess(res, cargo);
+      201,
+    );
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
 });
 
-router.get("/:id/status", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const cargo = await prisma.cargoRequest.findUnique({
-      where: { id },
-      select: { id: true, status: true },
-    });
-    if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
-    return sendSuccess(res, cargo);
-  } catch (error: any) {
-    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
-  }
-});
-
+// Confirm payment and move cargo from PENDING -> RECEIVED.
 router.post("/:id/pay", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -101,9 +148,11 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
     const cargo = await prisma.cargoRequest.findUnique({ where: { id } });
     if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
 
+    const existingMeta = readCargoMeta(cargo.additionalServices);
+
     const [payment, updatedCargo] = await prisma.$transaction([
       prisma.payment.upsert({
-        where: { cargoId: id as string },
+        where: { cargoId: id },
         update: {
           userId,
           amount: Number(amount),
@@ -113,7 +162,7 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
           paidAt: new Date(),
         },
         create: {
-          cargoId: id as string,
+          cargoId: id,
           userId,
           amount: Number(amount),
           status: "SUCCESS",
@@ -124,9 +173,22 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
       }),
       prisma.cargoRequest.update({
         where: { id },
-        data: { status: "PAID" },
+        data: {
+          status: "RECEIVED",
+          additionalServices: {
+            ...existingMeta,
+            paymentStatus: "PAID",
+          },
+        },
       }),
     ]);
+
+    await logAudit({
+      userId: req.user?.id,
+      action: "UPDATE",
+      resource: "cargo.payment",
+      details: { cargoId: id, paymentId: payment.id },
+    });
 
     return sendSuccess(res, { payment, cargo: updatedCargo });
   } catch (error: any) {
@@ -134,7 +196,132 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/:id/track", async (req: Request, res: Response) => {
+// Dispatch cargo: select cargo + train, then set IN_TRANSIT.
+router.post("/send", async (req: Request, res: Response) => {
+  try {
+    const { cargoId, trainId } = req.body;
+    if (!cargoId || !trainId) {
+      return sendError(res, "VALIDATION_ERROR", "cargoId and trainId are required", 400);
+    }
+
+    const cargo = await prisma.cargoRequest.findUnique({ where: { id: String(cargoId) } });
+    if (!cargo) {
+      return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
+    }
+
+    if (!["RECEIVED", "AT_WAREHOUSE"].includes(cargo.status)) {
+      return sendError(res, "CONFLICT", "Cargo must be RECEIVED/AT_WAREHOUSE before dispatch", 409);
+    }
+
+    const existingMeta = readCargoMeta(cargo.additionalServices);
+
+    const updatedCargo = await prisma.cargoRequest.update({
+      where: { id: cargo.id },
+      data: {
+        status: "IN_TRANSIT",
+        additionalServices: {
+          ...existingMeta,
+          dispatch: {
+            trainId: String(trainId),
+            dispatchedAt: new Date().toISOString(),
+          },
+        },
+      },
+    });
+
+    await logAudit({
+      userId: req.user?.id,
+      action: "UPDATE",
+      resource: "cargo.dispatch",
+      details: { cargoId, trainId },
+    });
+
+    return sendSuccess(res, updatedCargo);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.post("/:id/verify-delivery-otp", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { otp } = req.body;
+    if (!otp) {
+      return sendError(res, "VALIDATION_ERROR", "otp is required", 400);
+    }
+
+    const cargo = await prisma.cargoRequest.findUnique({ where: { id } });
+    if (!cargo) {
+      return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
+    }
+
+    const meta = readCargoMeta(cargo.additionalServices);
+    if (!meta.deliveryOtpHash || !meta.deliveryOtpExpiresAt) {
+      return sendError(res, "CONFLICT", "Delivery OTP not set for this cargo", 409);
+    }
+
+    const isExpired = new Date(meta.deliveryOtpExpiresAt).getTime() < Date.now();
+    if (isExpired) {
+      return sendError(res, "UNAUTHORIZED", "Delivery OTP expired", 401);
+    }
+
+    const validOtp = hashPassword(String(otp)) === meta.deliveryOtpHash;
+    if (!validOtp) {
+      return sendError(res, "UNAUTHORIZED", "Invalid delivery OTP", 401);
+    }
+
+    const updatedCargo = await prisma.cargoRequest.update({
+      where: { id },
+      data: {
+        status: "COMPLETED",
+      },
+    });
+
+    await logAudit({
+      userId: req.user?.id,
+      action: "UPDATE",
+      resource: "cargo.delivery",
+      details: { cargoId: id },
+    });
+
+    return sendSuccess(res, updatedCargo);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// UX helper endpoint: allows the 3-step flow to enter tracking ID, show card, then deliver.
+router.post("/deliver", async (req: Request, res: Response) => {
+  try {
+    const { cargoId, otp } = req.body;
+    if (!cargoId || !otp) {
+      return sendError(res, "VALIDATION_ERROR", "cargoId and otp are required", 400);
+    }
+
+    const cargo = await prisma.cargoRequest.findUnique({ where: { id: String(cargoId) } });
+    if (!cargo) {
+      return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
+    }
+
+    const meta = readCargoMeta(cargo.additionalServices);
+    const validOtp = !!meta.deliveryOtpHash && hashPassword(String(otp)) === meta.deliveryOtpHash;
+
+    if (!validOtp) {
+      return sendError(res, "UNAUTHORIZED", "Invalid delivery OTP", 401);
+    }
+
+    const updatedCargo = await prisma.cargoRequest.update({
+      where: { id: cargo.id },
+      data: { status: "COMPLETED" },
+    });
+
+    return sendSuccess(res, updatedCargo);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.get("/track/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const cargo = await prisma.cargoRequest.findUnique({
@@ -144,10 +331,13 @@ router.get("/:id/track", async (req: Request, res: Response) => {
         status: true,
         fromAddress: true,
         toAddress: true,
+        amount: true,
         createdAt: true,
         updatedAt: true,
+        additionalServices: true,
       },
     });
+
     if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
     return sendSuccess(res, cargo);
   } catch (error: any) {
@@ -166,6 +356,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         approvedBy: { select: { id: true, name: true, email: true } },
       },
     });
+
     if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
     return sendSuccess(res, cargo);
   } catch (error: any) {
