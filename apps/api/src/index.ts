@@ -8,6 +8,8 @@ import organizationsRouter from "./routes/organizations";
 import stationsRouter from "./routes/stations";
 import adminsRouter from "./routes/admins";
 import operatorsRouter from "./routes/operators";
+import reportsRouter from "./routes/reports";
+import auditLogsRouter from "./routes/audit-logs";
 import { requestContext } from "./middleware/request-context";
 import { globalErrorHandler, notFoundHandler } from "./middleware/error-handler";
 import { sendSuccess } from "./lib/api-response";
@@ -44,6 +46,8 @@ app.use(`${API_PREFIX}/organizations`, organizationsRouter);
 app.use(`${API_PREFIX}/stations`, stationsRouter);
 app.use(`${API_PREFIX}/admins`, adminsRouter);
 app.use(`${API_PREFIX}/operators`, operatorsRouter);
+app.use(`${API_PREFIX}/reports`, reportsRouter);
+app.use(`${API_PREFIX}/audit-logs`, auditLogsRouter);
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
