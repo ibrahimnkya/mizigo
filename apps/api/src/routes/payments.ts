@@ -5,6 +5,7 @@ import { sendError, sendSuccess } from "../lib/api-response";
 import { authenticate } from "../middleware/auth";
 import { requireTenantContext } from "../middleware/tenant-scope";
 import { logAudit } from "../lib/audit";
+import { rateLimit } from "../middleware/rate-limit";
 
 const router: Router = Router();
 
@@ -88,7 +89,7 @@ router.post("/bulk-status", authenticate, requireTenantContext, async (req: Requ
   }
 });
 
-router.post("/callback", async (req: Request, res: Response) => {
+router.post("/callback", rateLimit({ windowMs: 60 * 1000, maxRequests: 120, keyPrefix: "payments-callback" }), async (req: Request, res: Response) => {
   try {
     const signature = req.headers["x-callback-signature"];
     if (!signature || typeof signature !== "string") {

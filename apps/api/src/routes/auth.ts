@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendError, sendSuccess } from "../lib/api-response";
 import { authenticate } from "../middleware/auth";
+import { rateLimit } from "../middleware/rate-limit";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "mizigo_super_secret_key_123";
@@ -41,7 +42,7 @@ const buildUserClaims = async (userId: string) => {
   };
 };
 
-router.post("/send-otp", async (req: Request, res: Response) => {
+router.post("/send-otp", rateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 5, keyPrefix: "auth-send-otp" }), async (req: Request, res: Response) => {
   try {
     const { phone, email } = req.body;
 
@@ -49,8 +50,8 @@ router.post("/send-otp", async (req: Request, res: Response) => {
       return sendError(res, "VALIDATION_ERROR", "Phone or email is required", 400);
     }
 
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     await prisma.passwordReset.create({
       data: {
@@ -69,7 +70,7 @@ router.post("/send-otp", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", rateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 10, keyPrefix: "auth-register" }), async (req: Request, res: Response) => {
   try {
     const { phone, email, otp, firstName, lastName, password } = req.body;
 
@@ -148,7 +149,7 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", rateLimit({ windowMs: 15 * 60 * 1000, maxRequests: 10, keyPrefix: "auth-login" }), async (req: Request, res: Response) => {
   try {
     const { phone, email, password } = req.body;
 
