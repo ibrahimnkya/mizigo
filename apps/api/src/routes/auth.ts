@@ -3,42 +3,12 @@ import { prisma } from "@repo/database";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendError, sendSuccess } from "../lib/api-response";
-import { authenticate } from "../middleware/auth";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "mizigo_super_secret_key_123";
 
 const hashPassword = (password: string) => {
   return crypto.createHash("sha256").update(password).digest("hex");
-};
-
-const buildUserClaims = async (userId: string) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      role: {
-        include: {
-          permissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user) return null;
-
-  const permissions = user.role?.permissions.map((rp) => rp.permission.name) ?? [];
-  return {
-    id: user.id,
-    name: user.name,
-    role: user.role?.name || user.roleId || "USER",
-    permissions,
-    organizationId: user.organizationId ?? null,
-    stationId: user.stationId ?? null,
-  };
 };
 
 router.post("/send-otp", async (req: Request, res: Response) => {
@@ -121,12 +91,7 @@ router.post("/register", async (req: Request, res: Response) => {
       },
     });
 
-    const claims = await buildUserClaims(user.id);
-    if (!claims) {
-      return sendError(res, "NOT_FOUND", "User not found after registration", 404);
-    }
-
-    const token = jwt.sign(claims, JWT_SECRET, { expiresIn: "30d" });
+    const token = jwt.sign({ id: user.id, name: user.name, role: user.roleId }, JWT_SECRET, { expiresIn: "30d" });
 
     return sendSuccess(
       res,
@@ -135,10 +100,6 @@ router.post("/register", async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: claims.role,
-        permissions: claims.permissions,
-        organizationId: claims.organizationId,
-        stationId: claims.stationId,
         token,
       },
       201,
@@ -170,61 +131,14 @@ router.post("/login", async (req: Request, res: Response) => {
       return sendError(res, "UNAUTHORIZED", "Invalid credentials", 401);
     }
 
-    const claims = await buildUserClaims(user.id);
-    if (!claims) {
-      return sendError(res, "NOT_FOUND", "User not found", 404);
-    }
-
-    const token = jwt.sign(claims, JWT_SECRET, { expiresIn: "30d" });
+    const token = jwt.sign({ id: user.id, name: user.name, role: user.roleId }, JWT_SECRET, { expiresIn: "30d" });
 
     return sendSuccess(res, {
       id: user.id,
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: claims.role,
-      permissions: claims.permissions,
-      organizationId: claims.organizationId,
-      stationId: claims.stationId,
       token,
-    });
-  } catch (error: any) {
-    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
-  }
-});
-
-router.get("/me", authenticate, async (req: Request, res: Response) => {
-  try {
-    if (!req.user) {
-      return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: {
-        role: {
-          include: {
-            permissions: {
-              include: { permission: true },
-            },
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      return sendError(res, "NOT_FOUND", "User not found", 404);
-    }
-
-    return sendSuccess(res, {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role?.name || user.roleId || "USER",
-      permissions: user.role?.permissions.map((rp) => rp.permission.name) ?? [],
-      organizationId: user.organizationId ?? null,
-      stationId: user.stationId ?? null,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
