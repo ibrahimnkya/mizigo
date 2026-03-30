@@ -10,6 +10,7 @@ import adminsRouter from "./routes/admins";
 import operatorsRouter from "./routes/operators";
 import reportsRouter from "./routes/reports";
 import auditLogsRouter from "./routes/audit-logs";
+import paymentsRouter from "./routes/payments";
 import { requestContext } from "./middleware/request-context";
 import { globalErrorHandler, notFoundHandler } from "./middleware/error-handler";
 import { sendSuccess } from "./lib/api-response";
@@ -48,6 +49,7 @@ app.use(`${API_PREFIX}/admins`, adminsRouter);
 app.use(`${API_PREFIX}/operators`, operatorsRouter);
 app.use(`${API_PREFIX}/reports`, reportsRouter);
 app.use(`${API_PREFIX}/audit-logs`, auditLogsRouter);
+app.use(`${API_PREFIX}/payments`, paymentsRouter);
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
