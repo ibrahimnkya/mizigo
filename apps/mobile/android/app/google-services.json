@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1095267715679",
+    "firebase_url": "https://ibr-a-a823f.firebaseio.com",
+    "project_id": "ibr-a-a823f",
+    "storage_bucket": "ibr-a-a823f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095267715679:android:bb0eca4b5c6fb9fbb569ea",
+        "android_client_info": {
+          "package_name": "com.mizigo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1095267715679-iojn0geu8atlf9u2kpbv9akm129qa83o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMcoOe7uwD4tQLDInRzWvWXmp_mGn60ec"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1095267715679-iojn0geu8atlf9u2kpbv9akm129qa83o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

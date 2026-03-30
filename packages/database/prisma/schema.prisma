@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  stations    Station[]
+  users       User[]
+}
+
+model User {
+  id               String         @id @default(cuid())
+  name             String
+  email            String         @unique
+  passwordHash     String?
+  loginCode        String?
+  isFirstLogin     Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  roleId           String?
+  phone            String?        @unique
+  fcmToken         String?
+  organizationId   String?
+  stationId        String?
+  approvedCargo    CargoRequest[] @relation("AdminApprovedCargo")
+  cargoRequests    CargoRequest[] @relation("UserCargoRequests")
+  approvedPayments Payment[]      @relation("AdminApprovedPayments")
+  role             Role?          @relation(fields: [roleId], references: [id])
+  organization     Organization?  @relation(fields: [organizationId], references: [id])
+  station          Station?       @relation("StationUsers", fields: [stationId], references: [id])
+  isActive         Boolean        @default(true)
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model CargoRequest {
+  id                 String      @id @default(cuid())
+  userId             String?
+  fromAddress        String
+  toAddress          String
+  serviceType        String
+  peopleNeeded       Int         @default(0)
+  cargoType          String
+  cargoSize          String
+  weight             Float       @default(0)
+  length             Float?
+  width              Float?
+  height             Float?
+  urgency            String      @default("Normal")
+  isFragile          Boolean     @default(false)
+  specialInstructions String?
+  condition          String?
+  receiverName       String
+  receiverPhone      String
+  receiverPays       Boolean     @default(false)
+  additionalServices Json?
+  pickupType         String
+  status             CargoStatus @default(PENDING)
+  reason             String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  approvedById       String?
+  amount             Float?
+  rejectionReason    String?
+  wagonType          String?     @default("STANDARD")
+  approvedBy         User?       @relation("AdminApprovedCargo", fields: [approvedById], references: [id])
+  user               User?       @relation("UserCargoRequests", fields: [userId], references: [id])
+  payment            Payment?
+}
+
+model Payment {
+  id                   String       @id @default(cuid())
+  cargoId              String       @unique
+  userId               String
+  approvedById         String?
+  amount               Float
+  status               String       @default("PENDING")
+  transactionReference String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  paidAt               DateTime?
+  paymentMethod        String?
+  receiptUrl           String?
+  approvedBy           User?        @relation("AdminApprovedPayments", fields: [approvedById], references: [id])
+  cargo                CargoRequest @relation(fields: [cargoId], references: [id])
+}
+
+model ServiceType {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  basePrice   Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PricingRule {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  type      String
+  value     Float
+  condition String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Station {
+  id             String        @id @default(cuid())
+  name           String        @unique
+  code           String        @unique
+  location       String?
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  users          User[]        @relation("StationUsers")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  details   Json?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum CargoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAYMENT_PENDING
+  PAID
+  RECEIVED
+  SENT
+  AT_WAREHOUSE
+  IN_TRANSIT
+  DELAYED
+  COMPLETED
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String?
+  phone     String?
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([phone])
+}
