@@ -11,6 +11,7 @@ declare global {
         sessionId?: string;
         organizationId?: string | null;
         stationId?: string | null;
+        isFirstLogin?: boolean;
         assignedStation?: { id: string; name: string; code: string } | null;
       };
     }

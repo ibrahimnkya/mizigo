@@ -120,8 +120,7 @@ class AuthProvider extends ChangeNotifier {
         }
       }
 
-      // In a real app, call ApiService.sendOtp(phone)
-      await Future.delayed(const Duration(seconds: 1));
+      await ApiService.sendOperatorOtp(phone);
       
       _resendAttempts++;
       _lastResendAt = now;
@@ -131,7 +130,10 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setInt('otp_last_resend_ts', now.millisecondsSinceEpoch);
       
       return true;
-    } catch (e) {
+    } on ApiException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (_) {
       _error = "Failed to send OTP. Please try again.";
       return false;
     } finally {
@@ -146,31 +148,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // In a real app, call ApiService.verifyOtp(phone, code)
-      await Future.delayed(const Duration(seconds: 1));
-      
-      if (code == "123456") {
-        // Mock successful login for specific code
-        // Normally the verify API would return user data/token
-        final mockData = {
-          'token': 'mock_operator_token',
-          'user': {
-            'id': 'op_1',
-            'name': 'Operator Mike',
-            'email': 'mike@mizigo.com',
-            'phone': phone,
-            'role': 'OPERATOR',
-            'avatar_url': null,
-          }
-        };
-        await _saveSession(mockData);
-        _status = AuthStatus.authenticated;
-        return true;
-      } else {
-        _error = "Invalid OTP code. Please try again.";
-        return false;
-      }
-    } catch (e) {
+      final data = await ApiService.loginOperatorWithOtp(phone: phone, otp: code);
+      await _saveSession(data, fallbackPhone: phone);
+      _status = AuthStatus.authenticated;
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (_) {
       _error = "Verification failed.";
       return false;
     } finally {
@@ -184,10 +169,8 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final data = await ApiService.login(email, password);
-      await _saveSession(data);
-      _status = AuthStatus.authenticated;
-      return true;
+      await ApiService.login(email, password);
+      return false;
     } on ApiException catch (e) {
       _error = e.message;
       _status = AuthStatus.unauthenticated;
@@ -208,12 +191,10 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final data = await ApiService.register(
+      await ApiService.register(
         name: name, email: email, password: password, phone: phone,
       );
-      await _saveSession(data);
-      _status = AuthStatus.authenticated;
-      return true;
+      return false;
     } on ApiException catch (e) {
       _error = e.message;
       return false;
@@ -317,13 +298,31 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _saveSession(Map<String, dynamic> data) async {
-    final token = data['token'] as String?;
-    final userJson = data['user'] as Map<String, dynamic>?;
-    if (token != null) await ApiService.saveToken(token);
-    if (userJson != null) {
-      _user = UserModel.fromJson(userJson);
-      await _storage.write(key: 'user_data', value: jsonEncode(userJson));
+  Future<void> _saveSession(Map<String, dynamic> data, {String? fallbackPhone}) async {
+    final payload = (data['data'] is Map<String, dynamic>)
+        ? data['data'] as Map<String, dynamic>
+        : data;
+    final token = payload['token'] as String?;
+    final refreshToken = payload['refreshToken'] as String?;
+    final userJson = payload['user'] as Map<String, dynamic>?;
+    if (token != null && refreshToken != null) {
+      await ApiService.saveSessionTokens(token: token, refreshToken: refreshToken);
+    } else if (token != null) {
+      await ApiService.saveToken(token);
     }
+    final userPayload = userJson ??
+        {
+          'id': (payload['id'] ?? payload['userId'] ?? '').toString(),
+          'name': (payload['name'] ?? 'User').toString(),
+          'email': (payload['email'] ?? '').toString(),
+          'phone': payload['phone'] ?? fallbackPhone,
+          'role': (payload['role'] ?? '').toString(),
+          'station': payload['assignedStation'] is Map<String, dynamic>
+              ? (payload['assignedStation']['name'] ?? '').toString()
+              : null,
+        };
+
+    _user = UserModel.fromJson(userPayload);
+    await _storage.write(key: 'user_data', value: jsonEncode(userPayload));
   }
 }

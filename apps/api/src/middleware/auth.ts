@@ -12,6 +12,7 @@ type JwtPayload = {
   permissions?: string[];
   organizationId?: string | null;
   stationId?: string | null;
+  isFirstLogin?: boolean;
   assignedStation?: { id: string; name: string; code: string } | null;
 };
 
@@ -57,8 +58,24 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       sessionId: decoded.sessionId,
       organizationId: decoded.organizationId ?? null,
       stationId: decoded.stationId ?? null,
+      isFirstLogin: decoded.isFirstLogin ?? false,
       assignedStation: decoded.assignedStation ?? null,
     };
+
+    const allowedFirstLoginPaths = new Set([
+      "/change-otp",
+      "/operator/change-otp",
+      "/me",
+      "/admin/logout",
+    ]);
+    if (req.user.isFirstLogin && !allowedFirstLoginPaths.has(req.path)) {
+      return sendError(
+        res,
+        "FORBIDDEN",
+        "You must change your OTP on first login before accessing this endpoint",
+        403,
+      );
+    }
 
     return next();
   } catch {

@@ -11,15 +11,21 @@ router.use(authenticate, requireTenantContext);
 
 router.post("/", requirePermission("organizations:create"), async (req: Request, res: Response) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, supportUrl, commissionRate, commissionNotes } = req.body;
     if (!name) {
       return sendError(res, "VALIDATION_ERROR", "Organization name is required", 400);
+    }
+    if (commissionRate !== undefined && (Number(commissionRate) < 0 || Number(commissionRate) > 1)) {
+      return sendError(res, "VALIDATION_ERROR", "commissionRate must be between 0 and 1", 400);
     }
 
     const organization = await prisma.organization.create({
       data: {
         name,
         description: description || null,
+        supportUrl: supportUrl || null,
+        commissionRate: commissionRate === undefined ? null : Number(commissionRate),
+        commissionNotes: commissionNotes || null,
       },
     });
 
@@ -85,11 +91,18 @@ router.put("/:id", requirePermission("organizations:update"), async (req: Reques
       return sendError(res, "FORBIDDEN", "Cannot update this organization", 403);
     }
 
+    if (req.body.commissionRate !== undefined && (Number(req.body.commissionRate) < 0 || Number(req.body.commissionRate) > 1)) {
+      return sendError(res, "VALIDATION_ERROR", "commissionRate must be between 0 and 1", 400);
+    }
+
     const organization = await prisma.organization.update({
       where: { id },
       data: {
         name: req.body.name,
         description: req.body.description,
+        supportUrl: req.body.supportUrl,
+        commissionRate: req.body.commissionRate === undefined ? undefined : Number(req.body.commissionRate),
+        commissionNotes: req.body.commissionNotes,
         isActive: req.body.isActive,
       },
     });
