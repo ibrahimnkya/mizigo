@@ -1,18 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { prisma } from "@repo/database";
 import { sendError } from "../lib/api-response";
 
 type JwtPayload = {
-  id: string;
+  id?: string;
+  userId?: string;
   role: string;
+  typ?: "access" | "refresh";
+  sessionId?: string;
   permissions?: string[];
   organizationId?: string | null;
   stationId?: string | null;
+  assignedStation?: { id: string; name: string; code: string } | null;
 };
 
 const JWT_SECRET = process.env.JWT_SECRET || "mizigo_super_secret_key_123";
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return sendError(res, "UNAUTHORIZED", "No token provided", 401);
@@ -25,13 +30,34 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const resolvedUserId = decoded.userId ?? decoded.id;
+    if (!resolvedUserId) {
+      return sendError(res, "UNAUTHORIZED", "Token is not bound to a user", 401);
+    }
+    if (decoded.typ && decoded.typ !== "access") {
+      return sendError(res, "UNAUTHORIZED", "Invalid token type", 401);
+    }
+
+    if (!decoded.sessionId) {
+      return sendError(res, "UNAUTHORIZED", "Session is missing from token", 401);
+    }
+
+    const session = await prisma.authSession.findUnique({
+      where: { id: decoded.sessionId },
+      select: { id: true, userId: true, revokedAt: true, expiresAt: true },
+    });
+    if (!session || session.userId !== resolvedUserId || session.revokedAt || session.expiresAt <= new Date()) {
+      return sendError(res, "UNAUTHORIZED", "Session is invalid or expired", 401);
+    }
 
     req.user = {
-      id: decoded.id,
+      id: resolvedUserId,
       role: decoded.role,
       permissions: decoded.permissions || [],
+      sessionId: decoded.sessionId,
       organizationId: decoded.organizationId ?? null,
       stationId: decoded.stationId ?? null,
+      assignedStation: decoded.assignedStation ?? null,
     };
 
     return next();
@@ -57,3 +83,4 @@ export const requirePermission = (permission: string) => {
     return next();
   };
 };
+

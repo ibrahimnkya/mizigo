@@ -3,6 +3,7 @@ import { prisma } from "@repo/database";
 import { sendError, sendSuccess } from "../lib/api-response";
 import { hashPassword } from "../lib/security";
 import { logAudit } from "../lib/audit";
+import { sendCargoNotificationSms } from "../lib/sms";
 
 type CargoMeta = {
   paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -17,6 +18,10 @@ type CargoMeta = {
   dispatch?: {
     trainId: string;
     dispatchedAt: string;
+  };
+  notification?: {
+    sentTo: Array<"SENDER" | "RECEIVER">;
+    templateParams: string[];
   };
 };
 
@@ -40,6 +45,9 @@ const computePrice = (input: {
 };
 
 const createDeliveryOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+const normalizeStatus = (status: string) => {
+  return status;
+};
 
 const readCargoMeta = (jsonValue: unknown): CargoMeta => {
   if (jsonValue && typeof jsonValue === "object" && !Array.isArray(jsonValue)) {
@@ -48,7 +56,35 @@ const readCargoMeta = (jsonValue: unknown): CargoMeta => {
   return {};
 };
 
-// New flow: Receive cargo and return calculated price with PENDING paymentStatus.
+const formatCargoResponse = (cargo: any) => {
+  const meta = readCargoMeta(cargo.additionalServices);
+  return {
+    id: cargo.id,
+    trackingNumber: meta.trackingNumber || cargo.reason || cargo.id,
+    route: {
+      receivingStation: cargo.fromAddress,
+      destinationStation: cargo.toAddress,
+    },
+    cargoType: cargo.cargoType,
+    packageSize: cargo.cargoSize,
+    condition: cargo.condition,
+    urgency: cargo.urgency,
+    receiver: {
+      name: cargo.receiverName,
+      phone: cargo.receiverPhone,
+    },
+    sender: {
+      name: meta.senderName || null,
+      phone: meta.senderPhone || null,
+    },
+    paymentStatus: meta.paymentStatus || "PENDING",
+    status: normalizeStatus(cargo.status),
+    price: cargo.amount ?? null,
+    createdAt: cargo.createdAt,
+    updatedAt: cargo.updatedAt,
+  };
+};
+
 router.post("/receive", async (req: Request, res: Response) => {
   try {
     const {
@@ -83,8 +119,13 @@ router.post("/receive", async (req: Request, res: Response) => {
     const deliveryOtp = createDeliveryOtp();
     const otpExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
+    const trackingNumber = `MZG-${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}`;
+
     const cargo = await prisma.cargoRequest.create({
       data: {
+        organizationId: req.user?.organizationId ?? null,
+        userId: req.user?.id ?? null,
+        reason: trackingNumber,
         fromAddress: String(receivingStation),
         toAddress: String(destinationStation),
         serviceType: String(packageName),
@@ -107,6 +148,7 @@ router.post("/receive", async (req: Request, res: Response) => {
           paymentStatus: "PENDING",
           deliveryOtpHash: hashPassword(deliveryOtp),
           deliveryOtpExpiresAt: otpExpiresAt.toISOString(),
+          trackingNumber,
         } as CargoMeta,
       },
     });
@@ -118,14 +160,30 @@ router.post("/receive", async (req: Request, res: Response) => {
       details: { cargoId: cargo.id, amount },
     });
 
+    const smsRecipients: Array<"SENDER" | "RECEIVER"> = Array.isArray(req.body.notifyRecipients)
+      ? req.body.notifyRecipients
+      : ["RECEIVER"];
+
+    await sendCargoNotificationSms({
+      event: "RECEIVED",
+      trackingNumber,
+      receiverPhone: receiverPhone || null,
+      senderPhone: senderPhone || null,
+      organizationId: req.user?.organizationId ?? null,
+      recipients: smsRecipients,
+      helpdeskNumber: req.body.helpdeskNumber,
+      trackUrl: req.body.trackUrl,
+    }).catch(() => null);
+
     return sendSuccess(
       res,
       {
-        cargo,
+        cargo: formatCargoResponse(cargo),
         pricing: {
           currency: "TZS",
           amount,
         },
+        trackingNumber,
         deliveryOtp,
       },
       201,
@@ -135,7 +193,6 @@ router.post("/receive", async (req: Request, res: Response) => {
   }
 });
 
-// Confirm payment and move cargo from PENDING -> RECEIVED.
 router.post("/:id/pay", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -154,6 +211,7 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
       prisma.payment.upsert({
         where: { cargoId: id },
         update: {
+          organizationId: cargo.organizationId ?? req.user?.organizationId ?? null,
           userId,
           amount: Number(amount),
           status: "SUCCESS",
@@ -162,6 +220,7 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
           paidAt: new Date(),
         },
         create: {
+          organizationId: cargo.organizationId ?? req.user?.organizationId ?? null,
           cargoId: id,
           userId,
           amount: Number(amount),
@@ -190,13 +249,12 @@ router.post("/:id/pay", async (req: Request, res: Response) => {
       details: { cargoId: id, paymentId: payment.id },
     });
 
-    return sendSuccess(res, { payment, cargo: updatedCargo });
+    return sendSuccess(res, { payment, cargo: formatCargoResponse(updatedCargo) });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
 });
 
-// Dispatch cargo: select cargo + train, then set IN_TRANSIT.
 router.post("/send", async (req: Request, res: Response) => {
   try {
     const { cargoId, trainId } = req.body;
@@ -209,8 +267,8 @@ router.post("/send", async (req: Request, res: Response) => {
       return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
     }
 
-    if (!["RECEIVED", "AT_WAREHOUSE"].includes(cargo.status)) {
-      return sendError(res, "CONFLICT", "Cargo must be RECEIVED/AT_WAREHOUSE before dispatch", 409);
+    if (!["RECEIVED", "AT_STATION"].includes(cargo.status)) {
+      return sendError(res, "CONFLICT", "Cargo must be RECEIVED/AT_STATION before dispatch", 409);
     }
 
     const existingMeta = readCargoMeta(cargo.additionalServices);
@@ -236,7 +294,17 @@ router.post("/send", async (req: Request, res: Response) => {
       details: { cargoId, trainId },
     });
 
-    return sendSuccess(res, updatedCargo);
+    const dispatchMeta = readCargoMeta(updatedCargo.additionalServices);
+    await sendCargoNotificationSms({
+      event: "IN_TRANSIT",
+      trackingNumber: String(dispatchMeta.trackingNumber || updatedCargo.reason || updatedCargo.id),
+      receiverPhone: updatedCargo.receiverPhone,
+      senderPhone: dispatchMeta.senderPhone || null,
+      organizationId: updatedCargo.organizationId,
+      recipients: ["RECEIVER", "SENDER"],
+    }).catch(() => null);
+
+    return sendSuccess(res, formatCargoResponse(updatedCargo));
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
@@ -273,7 +341,7 @@ router.post("/:id/verify-delivery-otp", async (req: Request, res: Response) => {
     const updatedCargo = await prisma.cargoRequest.update({
       where: { id },
       data: {
-        status: "COMPLETED",
+        status: "DELIVERED",
       },
     });
 
@@ -284,13 +352,21 @@ router.post("/:id/verify-delivery-otp", async (req: Request, res: Response) => {
       details: { cargoId: id },
     });
 
-    return sendSuccess(res, updatedCargo);
+    await sendCargoNotificationSms({
+      event: "DELIVERED",
+      trackingNumber: String(meta.trackingNumber || cargo.reason || cargo.id),
+      receiverPhone: cargo.receiverPhone,
+      senderPhone: meta.senderPhone || null,
+      organizationId: cargo.organizationId,
+      recipients: ["RECEIVER", "SENDER"],
+    }).catch(() => null);
+
+    return sendSuccess(res, formatCargoResponse(updatedCargo));
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
 });
 
-// UX helper endpoint: allows the 3-step flow to enter tracking ID, show card, then deliver.
 router.post("/deliver", async (req: Request, res: Response) => {
   try {
     const { cargoId, otp } = req.body;
@@ -312,20 +388,29 @@ router.post("/deliver", async (req: Request, res: Response) => {
 
     const updatedCargo = await prisma.cargoRequest.update({
       where: { id: cargo.id },
-      data: { status: "COMPLETED" },
+      data: { status: "DELIVERED" },
     });
 
-    return sendSuccess(res, updatedCargo);
+    await sendCargoNotificationSms({
+      event: "DELIVERED",
+      trackingNumber: String(meta.trackingNumber || cargo.reason || cargo.id),
+      receiverPhone: cargo.receiverPhone,
+      senderPhone: meta.senderPhone || null,
+      organizationId: cargo.organizationId,
+      recipients: ["RECEIVER", "SENDER"],
+    }).catch(() => null);
+
+    return sendSuccess(res, formatCargoResponse(updatedCargo));
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
 });
 
-router.get("/track/:id", async (req: Request, res: Response) => {
+router.get("/track/:trackingNumber", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { trackingNumber } = req.params;
     const cargo = await prisma.cargoRequest.findUnique({
-      where: { id },
+      where: { id: trackingNumber },
       select: {
         id: true,
         status: true,
@@ -338,8 +423,34 @@ router.get("/track/:id", async (req: Request, res: Response) => {
       },
     });
 
-    if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
-    return sendSuccess(res, cargo);
+    let byReason = cargo;
+    if (!byReason) {
+      byReason = await prisma.cargoRequest.findFirst({
+        where: { reason: trackingNumber },
+        select: {
+          id: true,
+          status: true,
+          fromAddress: true,
+          toAddress: true,
+          amount: true,
+          createdAt: true,
+          updatedAt: true,
+          additionalServices: true,
+          reason: true,
+        } as any,
+      }) as any;
+    }
+
+    if (!byReason) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
+    return sendSuccess(res, {
+      cargo: formatCargoResponse(byReason),
+      statusTimeline: [
+        { status: "PENDING", reached: true },
+        { status: "RECEIVED", reached: ["RECEIVED", "IN_TRANSIT", "DELIVERED"].includes(byReason.status) },
+        { status: "IN_TRANSIT", reached: ["IN_TRANSIT", "DELIVERED"].includes(byReason.status) },
+        { status: "DELIVERED", reached: byReason.status === "DELIVERED" },
+      ],
+    });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
@@ -358,10 +469,26 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
 
     if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
-    return sendSuccess(res, cargo);
+    return sendSuccess(res, formatCargoResponse(cargo));
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.get("/details/:trackingNumber", async (req: Request, res: Response) => {
+  try {
+    const { trackingNumber } = req.params;
+    const cargo = await prisma.cargoRequest.findFirst({
+      where: {
+        OR: [{ id: trackingNumber }, { reason: trackingNumber }],
+      },
+    });
+    if (!cargo) return sendError(res, "NOT_FOUND", "Cargo request not found", 404);
+    return sendSuccess(res, formatCargoResponse(cargo));
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
 });
 
 export default router;
+

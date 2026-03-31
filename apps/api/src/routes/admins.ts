@@ -21,9 +21,9 @@ const getAdminRoleId = async () => {
 
 router.post("/", requirePermission("admins:create"), async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, password, organizationId } = req.body;
-    if (!name || !email || !password) {
-      return sendError(res, "VALIDATION_ERROR", "name, email, and password are required", 400);
+    const { name, email, phone, otp, organizationId } = req.body;
+    if (!name || !email || !otp) {
+      return sendError(res, "VALIDATION_ERROR", "name, email, and otp are required", 400);
     }
 
     const roleId = await getAdminRoleId();
@@ -39,7 +39,8 @@ router.post("/", requirePermission("admins:create"), async (req: Request, res: R
         name,
         email,
         phone: phone || null,
-        passwordHash: hashPassword(password),
+        loginCode: hashPassword(String(otp)),
+        isFirstLogin: false,
         roleId,
         organizationId: targetOrganizationId || null,
       },

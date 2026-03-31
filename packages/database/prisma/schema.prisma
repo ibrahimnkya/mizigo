@@ -8,14 +8,17 @@ datasource db {
 }
 
 model Organization {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  stations    Station[]
-  users       User[]
+  id              String    @id @default(cuid())
+  name            String    @unique
+  description     String?
+  commissionRate  Float?
+  commissionNotes String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  stations        Station[]
+  users           User[]
 }
 
 model User {
@@ -35,10 +38,27 @@ model User {
   approvedCargo    CargoRequest[] @relation("AdminApprovedCargo")
   cargoRequests    CargoRequest[] @relation("UserCargoRequests")
   approvedPayments Payment[]      @relation("AdminApprovedPayments")
+  sessions         AuthSession[]
   role             Role?          @relation(fields: [roleId], references: [id])
   organization     Organization?  @relation(fields: [organizationId], references: [id])
   station          Station?       @relation("StationUsers", fields: [stationId], references: [id])
   isActive         Boolean        @default(true)
+  deletedAt        DateTime?
+}
+
+model AuthSession {
+  id               String   @id @default(cuid())
+  userId           String
+  deviceId         String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
 }
 
 model Role {
@@ -47,6 +67,7 @@ model Role {
   description String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
   permissions RolePermission[]
   users       User[]
 }
@@ -57,6 +78,7 @@ model Permission {
   description String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
   roles       RolePermission[]
 }
 
@@ -74,6 +96,7 @@ model RolePermission {
 
 model CargoRequest {
   id                 String      @id @default(cuid())
+  organizationId     String?
   userId             String?
   fromAddress        String
   toAddress          String
@@ -98,6 +121,7 @@ model CargoRequest {
   reason             String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
+  deletedAt          DateTime?
   approvedById       String?
   amount             Float?
   rejectionReason    String?
@@ -109,19 +133,35 @@ model CargoRequest {
 
 model Payment {
   id                   String       @id @default(cuid())
+  organizationId       String?
   cargoId              String       @unique
   userId               String
+  providerId           String?
   approvedById         String?
   amount               Float
   status               String       @default("PENDING")
   transactionReference String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
   paidAt               DateTime?
   paymentMethod        String?
   receiptUrl           String?
+  provider             PaymentProvider? @relation(fields: [providerId], references: [id])
   approvedBy           User?        @relation("AdminApprovedPayments", fields: [approvedById], references: [id])
   cargo                CargoRequest @relation(fields: [cargoId], references: [id])
+}
+
+model PaymentProvider {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  code        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  payments    Payment[]
 }
 
 model ServiceType {
@@ -143,6 +183,7 @@ model PricingRule {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model Station {
@@ -153,20 +194,44 @@ model Station {
   isActive       Boolean       @default(true)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
   users          User[]        @relation("StationUsers")
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  resource  String
-  details   Json?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  organizationId String?
+  userId         String?
+  action         String
+  resource       String
+  details        Json?
+  createdAt      DateTime @default(now())
 }
 
+model AppVersion {
+  id                  String   @id @default(cuid())
+  version             String
+  minSupportedVersion String
+  forceUpdate         Boolean  @default(false)
+  downloadUrl         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+}
+
+model Integration {
+  id             String   @id @default(cuid())
+  organizationId String?
+  type           String
+  name           String
+  config         Json?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+}
 model Notification {
   id        String   @id @default(cuid())
   userId    String
@@ -185,10 +250,11 @@ enum CargoStatus {
   PAID
   RECEIVED
   SENT
-  AT_WAREHOUSE
+  AT_STATION
   IN_TRANSIT
   DELAYED
-  COMPLETED
+  DELIVERED
+  CANCELED
 }
 
 model PasswordReset {

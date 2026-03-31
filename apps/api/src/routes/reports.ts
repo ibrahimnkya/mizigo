@@ -30,12 +30,12 @@ const buildCargoWhere = (req: Request) => {
 router.get("/cargo", async (req: Request, res: Response) => {
   try {
     const where = buildCargoWhere(req);
-    const [total, pending, received, inTransit, completed] = await Promise.all([
+    const [total, pending, received, inTransit, delivered] = await Promise.all([
       prisma.cargoRequest.count({ where }),
       prisma.cargoRequest.count({ where: { ...where, status: "PENDING" } }),
       prisma.cargoRequest.count({ where: { ...where, status: "RECEIVED" } }),
       prisma.cargoRequest.count({ where: { ...where, status: "IN_TRANSIT" } }),
-      prisma.cargoRequest.count({ where: { ...where, status: "COMPLETED" } }),
+      prisma.cargoRequest.count({ where: { ...where, status: "DELIVERED" } }),
     ]);
 
     return sendSuccess(res, {
@@ -44,7 +44,7 @@ router.get("/cargo", async (req: Request, res: Response) => {
         pending,
         received,
         inTransit,
-        completed,
+        delivered,
       },
     });
   } catch (error: any) {
@@ -111,4 +111,60 @@ router.get("/operators", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/admin/overview", async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
+    if (!["SUPER_ADMIN", "ADMIN"].includes(req.user.role)) {
+      return sendError(res, "FORBIDDEN", "Admin role required", 403);
+    }
+
+    const where = req.user.role === "SUPER_ADMIN" ? {} : { organizationId: req.user.organizationId || "" };
+    const [organizations, stations, operators, successfulPayments] = await Promise.all([
+      prisma.organization.count({ where: req.user.role === "SUPER_ADMIN" ? {} : { id: req.user.organizationId || "" } }),
+      prisma.station.count({ where }),
+      prisma.user.count({ where: req.user.role === "SUPER_ADMIN" ? {} : { organizationId: req.user.organizationId || "" } }),
+      prisma.payment.aggregate({ where: { ...where, status: "SUCCESS" }, _sum: { amount: true } }),
+    ]);
+
+    return sendSuccess(res, {
+      organizations,
+      stations,
+      users: operators,
+      revenue: successfulPayments._sum.amount || 0,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.get("/operator/overview", async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
+    if (!["SUPER_ADMIN", "OPERATOR", "STATION_OPERATOR"].includes(req.user.role)) {
+      return sendError(res, "FORBIDDEN", "Operator role required", 403);
+    }
+
+    const stationId = req.user.stationId || req.query.stationId;
+    if (!stationId) {
+      return sendError(res, "VALIDATION_ERROR", "stationId is required", 400);
+    }
+
+    const [atStation, inTransit, delivered] = await Promise.all([
+      prisma.cargoRequest.count({ where: { fromAddress: String(stationId), status: "RECEIVED" } }),
+      prisma.cargoRequest.count({ where: { fromAddress: String(stationId), status: "IN_TRANSIT" } }),
+      prisma.cargoRequest.count({ where: { fromAddress: String(stationId), status: "DELIVERED" } }),
+    ]);
+
+    return sendSuccess(res, {
+      stationId,
+      atStation,
+      inTransit,
+      delivered,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 export default router;
+

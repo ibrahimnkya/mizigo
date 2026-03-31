@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
+  | "DEPRECATED_ENDPOINT"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "NOT_FOUND"

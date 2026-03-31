@@ -21,9 +21,9 @@ const getOperatorRoleId = async () => {
 
 router.post("/", requirePermission("operators:create"), async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, password, stationId, organizationId } = req.body;
-    if (!name || !email || !password || !stationId) {
-      return sendError(res, "VALIDATION_ERROR", "name, email, password, and stationId are required", 400);
+    const { name, email, phone, otp, stationId, organizationId } = req.body;
+    if (!name || !email || !otp || !stationId) {
+      return sendError(res, "VALIDATION_ERROR", "name, email, otp, and stationId are required", 400);
     }
 
     const roleId = await getOperatorRoleId();
@@ -48,7 +48,8 @@ router.post("/", requirePermission("operators:create"), async (req: Request, res
         name,
         email,
         phone: phone || null,
-        passwordHash: hashPassword(password),
+        loginCode: hashPassword(String(otp)),
+        isFirstLogin: false,
         roleId,
         organizationId: targetOrganizationId || null,
         stationId,
