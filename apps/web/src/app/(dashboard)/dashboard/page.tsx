@@ -3,595 +3,432 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { ActionRequiredPanel } from "@/components/dashboard/quick-approve-panel";
 import { SuperAdminWidgets } from "@/components/dashboard/super-admin-widgets";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { StatCard, Panel } from "@/components/dashboard/dashboard-shell";
-import { PageHeader } from "@/components/layout/page-header";
+import { UnifiedDashboardContent } from "@/components/dashboard/unified-dashboard-content";
 import {
-    Clock,
-    CheckCircle2,
-    XCircle,
-    CreditCard,
-    LayoutGrid,
-    Activity,
-    Zap,
-    TrendingUp,
-    TrendingDown,
-    Truck,
-    FileText,
-    Users
+  Clock,
+  CheckCircle2,
+  XCircle,
+  CreditCard,
+  LayoutGrid,
+  Activity,
+  Zap,
+  TrendingUp,
+  TrendingDown,
+  Truck,
+  FileText,
+  Users,
+  Globe,
 } from "lucide-react";
 
-// ─── Quick Action Card ────────────────────────────────────────────────────────
-function QuickActionCard({
-    title,
-    description,
-    href,
-    icon: Icon,
-    color,
-}: {
-    title: string;
-    description: string;
-    href: string;
-    icon: React.ElementType;
-    color: string;
-}) {
-    return (
-        <a 
-            href={href}
-            className="group relative bg-white rounded-3xl border border-slate-100 p-6 flex flex-col gap-4 shadow-sm hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300 active:scale-[0.98] overflow-hidden"
-        >
-            <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-                style={{ backgroundColor: `${color}15` }}
-            >
-                <Icon size={20} style={{ color }} strokeWidth={2.5} />
-            </div>
-            
-            <div>
-                <h3 className="text-sm font-black text-slate-900 mb-1">{title}</h3>
-                <p className="text-[11px] text-slate-400 font-bold leading-none">{description}</p>
-            </div>
-
-            {/* Accent Corner Overlay */}
-            <div 
-                className="absolute top-0 right-0 w-16 h-16 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity"
-                style={{ 
-                    backgroundColor: color,
-                    clipPath: "polygon(100% 0, 0 0, 100% 100%)"
-                }}
-            />
-        </a>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 import { getStats } from "@/lib/stats";
 import { RefreshTrigger } from "@/components/utils/refresh-trigger";
 
-// ─────────────────────────────────────────────────────────────────────────────
-async function getDashboardData(user: { id: string, role: string }) {
-    return getStats(user);
-}
-
-type Trend = { value: string; up: boolean } | undefined;
-
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
+// ─── KPI Card (Registry Styled) ──────────────────────────────────────────────
 function KpiCard({
-    label,
-    value,
-    sub,
-    icon: Icon,
-    accent,
-    trend,
+  label,
+  value,
+  sub,
+  icon: Icon,
+  accent,
+  trend,
 }: {
-    label: string;
-    value: number;
-    sub: string;
-    icon: React.ElementType;
-    accent: string;
-    trend?: Trend;
+  label: string;
+  value: number;
+  sub?: string;
+  icon: React.ElementType;
+  accent: string;
+  trend?: { value: string; up: boolean };
 }) {
-    return (
-        <div className="relative group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200">
-            {/* Top row */}
-            <div className="flex items-start justify-between">
-                <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${accent}15` }}
-                >
-                    <Icon size={16} style={{ color: accent }} strokeWidth={2.5} />
-                </div>
-                {trend && (
-                    <span
-                        className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${trend.up
-                            ? "bg-emerald-50 text-emerald-600"
-                            : "bg-rose-50 text-rose-500"
-                            }`}
-                    >
-                        {trend.up ? (
-                            <TrendingUp size={9} strokeWidth={3} />
-                        ) : (
-                            <TrendingDown size={9} strokeWidth={3} />
-                        )}
-                        {trend.value}
-                    </span>
-                )}
-            </div>
-
-            {/* Value */}
-            <div>
-                <p className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none tabular-nums">
-                    {value.toLocaleString()}
-                </p>
-                <p className="text-[11px] font-semibold text-slate-400 mt-1.5 uppercase tracking-wider">
-                    {label}
-                </p>
-            </div>
-
-            {/* Bottom accent line */}
-            <div
-                className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                style={{ backgroundColor: accent }}
-            />
+  return (
+    <div className="relative group bg-white rounded-[10px] p-5 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300">
+      <div className="flex items-start justify-between">
+        <div
+          className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+          style={{ backgroundColor: `${accent}15` }}
+        >
+          <Icon size={16} style={{ color: accent }} strokeWidth={2.5} />
         </div>
-    );
+        {trend && (
+          <span
+            className={`inline-flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-full ${
+              trend.up
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-rose-50 text-rose-500"
+            }`}
+          >
+            {trend.value}
+          </span>
+        )}
+      </div>
+
+      <div>
+        <p className="text-2xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
+          {value.toLocaleString()}
+        </p>
+        <p className="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-widest opacity-60">
+          {label}
+        </p>
+      </div>
+
+      <div
+        className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ backgroundColor: accent }}
+      />
+    </div>
+  );
 }
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
 function SectionLabel({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 mb-4">
-            {children}
-        </p>
-    );
+  return (
+    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 mb-6">
+      {children}
+    </p>
+  );
 }
 
 // ─── Card Shell ────────────────────────────────────────────────────────────────
 function Card({
-    children,
-    className = "",
+  children,
+  className = "",
 }: {
-    children: React.ReactNode;
-    className?: string;
+  children: React.ReactNode;
+  className?: string;
 }) {
-    return (
-        <div
-            className={`bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${className}`}
-        >
-            {children}
-        </div>
-    );
+  return (
+    <div
+      className={`bg-white rounded-[10px] border border-slate-100 shadow-sm overflow-hidden ${className}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 // ─── Card Header ───────────────────────────────────────────────────────────────
 function CardHeader({
-    icon: Icon,
-    title,
-    iconColor = "#6366f1",
-    action,
-    badge,
+  icon: Icon,
+  title,
+  iconColor = "#6366f1",
+  action,
+  badge,
 }: {
-    icon: React.ElementType;
-    title: string;
-    iconColor?: string;
-    action?: React.ReactNode;
-    badge?: React.ReactNode;
+  icon: React.ElementType;
+  title: string;
+  iconColor?: string;
+  action?: React.ReactNode;
+  badge?: React.ReactNode;
 }) {
-    return (
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
-            <div className="flex items-center gap-2.5">
-                <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${iconColor}15` }}
-                >
-                    <Icon size={13} style={{ color: iconColor }} strokeWidth={2.5} />
-                </div>
-                <span className="text-sm font-bold text-slate-800">{title}</span>
-                {badge}
-            </div>
-            {action && (
-                <div className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer">
-                    {action}
-                </div>
-            )}
+  return (
+    <div className="flex items-center justify-between px-8 py-6 border-b border-slate-50">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-8 h-8 rounded-[10px] flex items-center justify-center shadow-sm"
+          style={{ backgroundColor: `${iconColor}15` }}
+        >
+          <Icon size={14} style={{ color: iconColor }} strokeWidth={2.5} />
         </div>
-    );
+        <span className="text-sm font-black text-slate-800 uppercase tracking-tight">
+          {title}
+        </span>
+        {badge}
+      </div>
+      {action && (
+        <div className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer">
+          {action}
+        </div>
+      )}
+    </div>
+  );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Dashboard Integration Logic ──────────────────────────────────────────────
+async function getDashboardData(user: { id: string; role: string }) {
+  return getStats(user);
+}
+
 export default async function Page({
-    searchParams,
+  searchParams,
 }: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const params = await searchParams;
-    const session = await auth();
-    const role = session?.user?.role || "USER";
-    const isSuperAdmin = role === "SUPER_ADMIN";
-    const isAdmin = role === "ADMIN";
-    const isOperator = role === "OPERATOR";
-    const isAgent = role === "AGENT";
+  const params = await searchParams;
+  const session = await auth();
+  if (!session?.user) return null;
 
-    const terminalFilter = (params.terminal as string) || "all";
-    const chartRange = (params.range as string) || "monthly";
+  const role = session.user.role;
+  const isSuperAdmin = role === "SUPER_ADMIN";
+  const isAdmin = role === "ADMIN";
+  const isOperator = role === "OPERATOR";
+  const isAgent = role === "AGENT";
 
-    const dashboardData = await getDashboardData(session.user) || {
-        chartData: [],
-        recentActivity: [],
-        totalRequests: 0,
-        pendingRequests: 0,
-        approvedRequests: 0,
-        rejectedRequests: 0,
-        received: 0,
-        delivered: 0,
-        sent: 0,
-        atWarehouse: 0,
-        paidCount: 0,
-        awaitingPaymentCount: 0,
-        pendingList: [],
-        superAdminStats: null,
-        adminPerformance: null,
-        trends: {},
-        volumeByStation: [],
-        topOperators: [],
-    };
+  const terminalFilter = (params.terminal as string) || "all";
+  const dashboardData = (await getDashboardData(session.user)) || {
+    chartData: [],
+    recentActivity: [],
+    totalRequests: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    rejectedRequests: 0,
+    received: 0,
+    delivered: 0,
+    sent: 0,
+    atWarehouse: 0,
+    paidCount: 0,
+    awaitingPaymentCount: 0,
+    pendingList: [],
+    superAdminStats: null,
+    adminPerformance: null,
+    trends: {},
+    volumeByStation: [],
+    topOperators: [],
+  };
 
-    const d = dashboardData;
-    const trends = (d.trends || {}) as Record<string, Trend>;
+  const d = dashboardData;
+  const userName = session.user.name || "Administrator";
+  const trends = (d.trends || {}) as any;
 
-    const kpis = isOperator ? [
-        {
-            label: "Received",
-            value: d.received || 0,
-            sub: "In processing",
-            icon: Zap,
-            accent: "#2563eb",
-        },
-        {
-            label: "Delivered",
-            value: d.delivered || 0,
-            sub: "Customer handover",
-            icon: CheckCircle2,
-            accent: "#10b981",
-        },
-        {
-            label: "Sent",
-            value: d.sent || 0,
-            sub: "En route",
-            icon: Truck,
-            accent: "#8b5cf6",
-        },
-        {
-            label: "At Warehouse",
-            value: d.atWarehouse || 0,
-            sub: "Stored",
-            icon: LayoutGrid,
-            accent: "#f59e0b",
-        },
-        {
-            label: "Total Volume",
-            value: (d.received || 0) + (d.delivered || 0) + (d.sent || 0) + (d.atWarehouse || 0),
-            sub: "All movements",
-            icon: Activity,
-            accent: "#6366f1",
-        },
-        {
-            label: "Pending Approvals",
-            value: d.pendingRequests,
-            sub: "Action required",
-            icon: Clock,
-            accent: "#f43f5e",
-        },
-    ] : [
-        {
-            label: "Total Requests",
-            value: d.totalRequests,
-            sub: "All time",
-            icon: LayoutGrid,
-            accent: "#6366f1",
-            trend: trends.totalRequests,
-        },
-        {
-            label: "Pending",
-            value: d.pendingRequests,
-            sub: "Awaiting action",
-            icon: Clock,
-            accent: "#f59e0b",
-            trend: trends.pendingRequests,
-        },
-        {
-            label: "Approved",
-            value: d.approvedRequests,
-            sub: "Processed",
-            icon: CheckCircle2,
-            accent: "#10b981",
-            trend: trends.approvedRequests,
-        },
-        {
-            label: "Rejected",
-            value: d.rejectedRequests,
-            sub: "Did not pass review",
-            icon: XCircle,
-            accent: "#f43f5e",
-            trend: trends.rejectedRequests,
-        },
-        {
-            label: "Paid",
-            value: d.paidCount,
-            sub: "Payments received",
-            icon: CreditCard,
-            accent: "#0ea5e9",
-            trend: trends.paidCount,
-        },
-        {
-            label: "Awaiting Payment",
-            value: d.awaitingPaymentCount,
-            sub: "Pending settlement",
-            icon: Activity,
-            accent: "#8b5cf6",
-            trend: trends.awaitingPaymentCount,
-        },
-    ];
+  // KPI Data Construction
+  const kpis = [
+    {
+      label: "Total Requests",
+      value: d.totalRequests,
+      icon: LayoutGrid,
+      accent: "#6366f1",
+      trend: trends.totalRequests,
+    },
+    {
+      label: "Pending Node",
+      value: d.pendingRequests,
+      icon: Clock,
+      accent: "#f59e0b",
+      trend: trends.pendingRequests,
+    },
+    {
+      label: "Approved System",
+      value: d.approvedRequests,
+      icon: CheckCircle2,
+      accent: "#10b981",
+      trend: trends.approvedRequests,
+    },
+    {
+      label: "Settled Paid",
+      value: d.paidCount,
+      icon: CreditCard,
+      accent: "#0ea5e9",
+      trend: trends.paidCount,
+    },
+    {
+      label: "Total Volume",
+      value: (d.received || 0) + (d.delivered || 0) + (d.sent || 0),
+      icon: Activity,
+      accent: "#8b5cf6",
+    },
+    {
+      label: "Security Trace",
+      value: d.rejectedRequests,
+      icon: XCircle,
+      accent: "#f43f5e",
+      trend: trends.rejectedRequests,
+    },
+  ];
 
-    const userName = session?.user?.name || "Operator";
-    const today = new Date().toLocaleDateString("en-GB", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-    });
+  return (
+    <div className="flex flex-col gap-2 p-2 min-h-screen bg-[#f8f9fb] animate-in fade-in duration-700">
+      <RefreshTrigger interval={30000} />
+      <div className="space-y-12 py-8 px-4 max-w-[1520px] mx-auto w-full">
+        {/* ── HEADER ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.3em] text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                <span className="w-1 h-1 rounded-full bg-indigo-500 animate-pulse" />
+                Operational Protocol Active
+              </span>
+            </div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+              {isSuperAdmin
+                ? "Control Center: Global Registry"
+                : "Operational Dashboard"}
+            </h1>
+            <p className="text-sm font-bold text-slate-400 tracking-tight opacity-70">
+              Welcome, {userName}. Authorized administrative session active.
+            </p>
+          </div>
 
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return "Good morning";
-        if (hour < 17) return "Good afternoon";
-        return "Good evening";
-    };
+          <div className="hidden lg:flex flex-col items-end pr-6 border-r border-slate-100">
+            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">
+              System Load
+            </span>
+            <span className="text-xl font-black text-slate-900 tabular-nums uppercase">
+              Operational
+            </span>
+          </div>
+        </div>
 
-    return (
-        <div className="min-h-screen bg-[#f8f9fb]">
-            <RefreshTrigger interval={30000} />
-            <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+        {/* ── 1. OPERATIONAL HERO: PURSUIT MODE ── */}
+        <UnifiedDashboardContent role={role} userName={userName} />
 
-                {/* ── HEADER ── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-full">
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                                Live
+        {/* ── 2. NETWORK INTELLIGENCE GRID ── */}
+        <section>
+          <SectionLabel>Global Network Intelligence Matrix</SectionLabel>
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+            {kpis.map((k) => (
+              <KpiCard key={k.label} {...k} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── 3. ANALYTICS & REGISTRY SEGMENT ── */}
+        <div className="grid gap-12 lg:grid-cols-12">
+          {/* LEFT PANEL: RECENT MANIFEST & APPROVALS */}
+          <div className="lg:col-span-8 space-y-12">
+            {/* RECENT MANIFEST */}
+            <div>
+              <SectionLabel>Real-Time Operations Manifest</SectionLabel>
+              <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.06)] overflow-hidden p-2">
+                <RecentActivity activities={d.recentActivity} />
+              </div>
+            </div>
+
+            {/* PENDING APPROVALS */}
+            {d.pendingList?.length > 0 && (
+              <ActionRequiredPanel requests={d.pendingList} role={role} />
+            )}
+
+            {/* PERFORMANCE CHART */}
+            {(isAdmin || isSuperAdmin) && (
+              <div>
+                <SectionLabel>Logistics Throughput Velocity</SectionLabel>
+                <Card className="rounded-[10px]">
+                  <CardHeader
+                    icon={Activity}
+                    title="Throughput Analytics"
+                    iconColor="#6366f1"
+                    action="Node Export"
+                  />
+                  <div className="p-8">
+                    <RevenueChart data={d.chartData} />
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT PANEL: NODE INSIGHTS */}
+          <div className="lg:col-span-4 space-y-12">
+            {/* TERMINAL OVERVIEW (SUPER ADMIN ONLY) */}
+            {isSuperAdmin && (
+              <div>
+                <SectionLabel>Global Node Performance</SectionLabel>
+                <Card className="rounded-[10px]">
+                  <CardHeader
+                    icon={Globe}
+                    title="Regional Terminal Nodes"
+                    iconColor="#6366f1"
+                  />
+                  <div className="p-6">
+                    <SuperAdminWidgets
+                      stats={d.superAdminStats}
+                      filter={terminalFilter}
+                    />
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* TOP STATIONS (ADMIN) */}
+            {(isAdmin || isSuperAdmin) && (
+              <div>
+                <SectionLabel>Station Volume Hierarchy</SectionLabel>
+                <Card className="rounded-[10px]">
+                  <CardHeader
+                    icon={LayoutGrid}
+                    title="Node Priority Matrix"
+                    iconColor="#2563eb"
+                  />
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {(d.volumeByStation || [])
+                        .slice(0, 5)
+                        .map((station: any, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between group cursor-default"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-[10px] bg-blue-50 flex items-center justify-center text-[10px] font-black text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                {i + 1}
+                              </div>
+                              <span className="text-xs font-bold text-slate-700 uppercase tracking-tighter tabular-nums">
+                                {station.name || "Node Terminal"}
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-black text-slate-900 tabular-nums">
+                              {station.volume} OPS
                             </span>
-                        </div>
-                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                            {isSuperAdmin ? "Operations Hub" : `${getGreeting()}, ${userName.split(" ")[0]}`}
-                        </h1>
-                        <p className="text-sm text-slate-400 font-medium mt-0.5">
-                            {isSuperAdmin && "Global oversight · terminals · financial performance"}
-                            {isAdmin && "Branch performance · your approvals · pending tasks"}
-                            {isOperator && "Daily operations · queue management · rapid approvals"}
-                            {isAgent && "Cargo reception · your submissions · transaction tracking"}
-                            {!['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'AGENT'].includes(role) && "Here's your operations snapshot for today"}
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        {/* Admin Performance */}
-                        {isAdmin && d.adminPerformance && (
-                            <div className="flex items-center divide-x divide-slate-100 bg-white border border-slate-100 rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.05)] overflow-hidden">
-                                <div className="px-4 py-3">
-                                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Approvals</p>
-                                    <p className="text-lg font-extrabold text-slate-900 leading-none mt-0.5">{d.adminPerformance.approvalCount}</p>
-                                </div>
-                                <div className="px-4 py-3">
-                                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">Success</p>
-                                    <p className="text-lg font-extrabold text-indigo-600 leading-none mt-0.5">{d.adminPerformance.completionRate}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Date */}
-                        <div className="hidden md:flex flex-col justify-center bg-slate-900 text-white px-5 py-3 rounded-xl shadow-[0_4px_12px_rgba(15,23,42,0.15)]">
-                            <p className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-slate-400">Today</p>
-                            <p className="text-xs font-bold mt-0.5 whitespace-nowrap">{today}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── SUPER ADMIN TERMINAL PANEL ── */}
-                {isSuperAdmin && (
-                    <div>
-                        <SectionLabel>Terminal Performance</SectionLabel>
-                        <Card>
-                            <CardHeader icon={LayoutGrid} title="Terminal Overview" />
-                            <div className="p-6">
-                                <SuperAdminWidgets stats={d.superAdminStats} filter={terminalFilter} />
-                            </div>
-                        </Card>
-                    </div>
-                )}
-
-                {/* ── KPI CARDS ── */}
-                <div>
-                    <SectionLabel>Key Metrics</SectionLabel>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-                        {kpis.map((k) => (
-                            <KpiCard key={k.label} {...k} />
+                          </div>
                         ))}
                     </div>
-                </div>
+                  </div>
+                </Card>
+              </div>
+            )}
 
-                {/* ── ANALYTICS GRID ── */}
-                <div className="flex flex-col gap-5">
-                    <div>
-                        <SectionLabel>Analytics</SectionLabel>
-                        <div className="grid gap-5 lg:grid-cols-12">
-                            {/* Left Column - Now taking more space or 12 cols if needed */}
-                            <div className="lg:col-span-12 flex flex-col gap-5">
-                                {/* Chart */}
-                                <Card>
-                                    <CardHeader
-                                        icon={Activity}
-                                        title="Operation Volume"
-                                        iconColor="#6366f1"
-                                        action="Export"
-                                    />
-                                    <div className="p-6">
-                                        <RevenueChart data={dashboardData.chartData} />
-                                    </div>
-                                </Card>
-
-                                 {isOperator && (
-                                     <div className="mb-8">
-                                         <SectionLabel>Operator Command Center</SectionLabel>
-                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                                             <QuickActionCard 
-                                                 title="Receive Cargo" 
-                                                 description="Process incoming parcel"
-                                                 href="/cargo/receive"
-                                                 icon={Zap}
-                                                 color="#2563eb"
-                                             />
-                                             <QuickActionCard 
-                                                 title="Send Cargo" 
-                                                 description="Dispatch to destination"
-                                                 href="/cargo/send"
-                                                 icon={Truck}
-                                                 color="#8b5cf6"
-                                             />
-                                             <QuickActionCard 
-                                                 title="Deliver Cargo" 
-                                                 description="Customer handover"
-                                                 href="/cargo/deliver"
-                                                 icon={CheckCircle2}
-                                                 color="#10b981"
-                                             />
-                                             <QuickActionCard 
-                                                 title="Track Cargo" 
-                                                 description="Real-time locator"
-                                                 href="/cargo/track"
-                                                 icon={Activity}
-                                                 color="#f59e0b"
-                                             />
-                                             <QuickActionCard 
-                                                 title="Get Reports" 
-                                                 description="Performance analytics"
-                                                 href="/reports"
-                                                 icon={FileText}
-                                                 color="#f43f5e"
-                                             />
-                                         </div>
-                                     </div>
-                                 )}
-
-                                 {d.pendingList?.length > 0 && (
-                                     <ActionRequiredPanel requests={d.pendingList} role={session.user.role} />
-                                 )}
-
-                                 {isAgent && (
-                                    <div className="bg-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
-                                        <div className="relative z-10">
-                                            <h3 className="text-xl font-black mb-2">New Cargo Reception?</h3>
-                                            <p className="text-indigo-100 text-sm mb-6 max-w-sm">Capture new cargo details and generate invoices instantly to keep operations moving fast.</p>
-                                            <a href="/cargo/receive" className="inline-flex items-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold text-sm hover:scale-105 transition-transform shadow-xl">
-                                                <Zap size={16} fill="currentColor" />
-                                                Receive Cargo Now
-                                            </a>
-                                        </div>
-                                        <div className="absolute -right-10 -bottom-10 opacity-20 transform rotate-12">
-                                            <Truck size={240} strokeWidth={1} />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {(isAdmin || isSuperAdmin) && (
-                                    <div className="grid gap-5 lg:grid-cols-2 mt-5">
-                                        {/* Top Stations */}
-                                        <Card>
-                                            <CardHeader icon={LayoutGrid} title="Top Stations" iconColor="#2563eb" />
-                                            <div className="p-6">
-                                                <div className="space-y-4">
-                                                    {(d.volumeByStation || []).slice(0, 5).map((station: any, i: number) => (
-                                                        <div key={i} className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-[10px] font-black text-blue-600">
-                                                                    {i + 1}
-                                                                </div>
-                                                                <span className="text-xs font-bold text-slate-700">{station.name || "Main Terminal"}</span>
-                                                            </div>
-                                                            <span className="text-xs font-black text-slate-900 tabular-nums">{station.volume} cmds</span>
-                                                        </div>
-                                                    ))}
-                                                    {(!d.volumeByStation || d.volumeByStation.length === 0) && (
-                                                        <p className="text-center py-4 text-xs text-slate-400 font-medium">No station data available yet</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Card>
-
-                                        {/* Top Operators */}
-                                        <Card>
-                                            <CardHeader icon={Users} title="Top Operators" iconColor="#10b981" />
-                                            <div className="p-6">
-                                                <div className="space-y-4">
-                                                    {(d.topOperators || []).slice(0, 5).map((op: any, i: number) => (
-                                                        <div key={i} className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-[10px] font-black text-emerald-600">
-                                                                    {i + 1}
-                                                                </div>
-                                                                <span className="text-xs font-bold text-slate-700">{op.name}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="h-1.5 w-16 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
-                                                                    <div 
-                                                                        className="h-full bg-emerald-400" 
-                                                                        style={{ width: `${Math.min(100, (op.volume / Math.max(1, (d.topOperators[0]?.volume || 1))) * 100)}%` }} 
-                                                                    />
-                                                                </div>
-                                                                <span className="text-xs font-black text-slate-900 tabular-nums">{op.volume} unit</span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {(!d.topOperators || d.topOperators.length === 0) && (
-                                                        <p className="text-center py-4 text-xs text-slate-400 font-medium">No operator data available yet</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </div>
-                                )}
+            {/* TOP OPERATORS (ADMIN) */}
+            {(isAdmin || isSuperAdmin) && (
+              <div>
+                <SectionLabel>Operational Excellence Grid</SectionLabel>
+                <Card className="rounded-[10px]">
+                  <CardHeader
+                    icon={Users}
+                    title="Top Execution Nodes"
+                    iconColor="#10b981"
+                  />
+                  <div className="p-6">
+                    <div className="space-y-5">
+                      {(d.topOperators || [])
+                        .slice(0, 5)
+                        .map((op: any, i: number) => (
+                          <div key={i} className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">
+                                {op.name}
+                              </span>
+                              <span className="text-[11px] font-black text-slate-900 tabular-nums">
+                                {op.volume} U/P
+                              </span>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Full Width Activity Feed */}
-                    {/* <div>
-                        <SectionLabel>Recent Activity</SectionLabel>
-                        <Card className="w-full">
-                            <CardHeader
-                                icon={Clock}
-                                title="System Logs"
-                                iconColor="#8b5cf6"
-                                action="View all history"
-                            />
-                            <div className="p-6">
-                                <RecentActivity activities={d.recentActivity} />
+                            <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-emerald-400 group-hover:bg-emerald-500 transition-all rounded-full"
+                                style={{
+                                  width: `${Math.min(100, (op.volume / Math.max(1, d.topOperators[0]?.volume || 1)) * 100)}%`,
+                                }}
+                              />
                             </div>
-                        </Card>
-                    </div> */}
-                </div>
-
-                {/* ── FOOTER ── */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 pb-4">
-                    <p className="text-[9px] text-slate-300 font-extrabold uppercase tracking-[0.22em]">
-                        Mizigo · v2.4
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">All systems operational</span>
+                          </div>
+                        ))}
                     </div>
-                </div>
-
-            </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
-    );
+
+        {/* ── FOOTER ── */}
+        <div className="flex items-center justify-between pt-8 border-t border-slate-100">
+          <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-[0.25em]">
+            Mizigo Protocol Hub · v2.4.0
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+              All System Nodes Operational
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

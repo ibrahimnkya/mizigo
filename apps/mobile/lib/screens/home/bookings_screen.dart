@@ -5,9 +5,10 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../models/cargo_model.dart';
-import '../../providers/cargo_provider.dart';
+import '../../models/parcel_model.dart';
+import '../../providers/parcel_provider.dart';
 import '../../widgets/home/premium_ui_components.dart';
+import 'recent_bookings_screen.dart'; // for BookingListCard
 
 class BookingsScreen extends StatefulWidget {
   final String? filter;
@@ -19,6 +20,12 @@ class BookingsScreen extends StatefulWidget {
 
 class _BookingsScreenState extends State<BookingsScreen> {
   late String _selectedFilter;
+  int _pageSize = 20;
+  bool _searchOpen = false;
+  final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
+  String _searchQuery = '';
+
   final List<String> _filters = [
     'All',
     'Today',
@@ -34,165 +41,314 @@ class _BookingsScreenState extends State<BookingsScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedFilter = widget.filter != null 
-        ? (widget.filter!.toLowerCase() == 'today' ? 'Today' : widget.filter!) 
+    _selectedFilter = widget.filter != null
+        ? (widget.filter!.toLowerCase() == 'today' ? 'Today' : widget.filter!)
         : 'All';
     if (!_filters.contains(_selectedFilter)) {
       _filters.add(_selectedFilter);
     }
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+        _pageSize = 20;
+      });
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CargoProvider>().fetchMyCargo();
+      context.read<ParcelProvider>().fetchMyParcels();
     });
   }
 
-  List<CargoModel> _applyFilter(List<CargoModel> all) {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _searchOpen = !_searchOpen;
+      if (!_searchOpen) {
+        _searchController.clear();
+        _searchQuery = '';
+      } else {
+        Future.delayed(const Duration(milliseconds: 80), () {
+          _searchFocus.requestFocus();
+        });
+      }
+    });
+  }
+
+  List<ParcelModel> _applyFilter(List<ParcelModel> all) {
     final now = DateTime.now();
-    return all.where((c) {
+    var list = all.where((c) {
       switch (_selectedFilter) {
         case 'Today':
           return c.createdAt.year == now.year &&
-                 c.createdAt.month == now.month &&
-                 c.createdAt.day == now.day;
+              c.createdAt.month == now.month &&
+              c.createdAt.day == now.day;
         case 'Last Week':
           return now.difference(c.createdAt).inDays <= 7;
         case 'Last 30 days':
           return now.difference(c.createdAt).inDays <= 30;
         case 'Received':
-          return c.status == CargoStatus.received;
+          return c.status == ParcelStatus.received;
         case 'Delivered':
-          return c.status == CargoStatus.delivered;
+          return c.status == ParcelStatus.delivered;
         case 'In Transit':
-          return c.status == CargoStatus.inTransit;
+          return c.status == ParcelStatus.inTransit;
         case 'At Station':
-          return c.status == CargoStatus.atStation;
+          return c.status == ParcelStatus.atStation;
         case 'Canceled':
-          return c.status == CargoStatus.canceled;
+          return c.status == ParcelStatus.canceled;
         default:
           return true;
       }
     }).toList();
+
+    // Apply search
+    if (_searchQuery.isNotEmpty) {
+      list = list.where((c) {
+        return c.id.toLowerCase().contains(_searchQuery) ||
+            c.parcelType.toLowerCase().contains(_searchQuery) ||
+            c.serviceType.toLowerCase().contains(_searchQuery) ||
+            c.fromAddress.toLowerCase().contains(_searchQuery) ||
+            c.toAddress.toLowerCase().contains(_searchQuery) ||
+            c.receiverName.toLowerCase().contains(_searchQuery) ||
+            c.receiverPhone.toLowerCase().contains(_searchQuery);
+      }).toList();
+    }
+
+    return list;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          'Bookings',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w700,
-            fontSize: 24,
-            color: theme.textTheme.headlineSmall?.color,
-          ),
-        ),
+        titleSpacing: 20,
+        title: _searchOpen
+            ? TextField(
+                controller: _searchController,
+                focusNode: _searchFocus,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search by ID, parcel, address…',
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                textInputAction: TextInputAction.search,
+              )
+            : Text(
+                'Bookings',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                  color: theme.textTheme.headlineSmall?.color,
+                ),
+              ),
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         actions: [
-          Consumer<CargoProvider>(
-            builder: (context, provider, _) {
-              if (provider.cargo.isEmpty) return const SizedBox.shrink();
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: theme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: theme.primaryColor.withValues(alpha: 0.2)),
-                ),
-                child: Text(
-                  '${provider.cargo.length} Orders',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: theme.primaryColor,
-                  ),
-                ),
-              );
-            },
-          ),
           IconButton(
-            onPressed: () => context.push('/bookings/recent'),
-            icon: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: theme.dividerColor, width: 1.5),
-              ),
-              child: Center(
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedHelpCircle,
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF1E293B),
-                  size: 20,
-                ),
-              ),
+            onPressed: _toggleSearch,
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: _searchOpen
+                  ? Icon(
+                      Icons.close_rounded,
+                      key: const ValueKey('close'),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      size: 22,
+                    )
+                  : Container(
+                      key: const ValueKey('search'),
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border:
+                            Border.all(color: theme.dividerColor, width: 1.5),
+                      ),
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
+                          size: 18,
+                        ),
+                      ),
+                    ),
             ),
           ),
           const Gap(4),
         ],
       ),
-      body: Consumer<CargoProvider>(
+      body: Consumer<ParcelProvider>(
         builder: (context, provider, _) {
+          final filtered = provider.loading || provider.error != null
+              ? <ParcelModel>[]
+              : _applyFilter(provider.parcels);
+          final paged = filtered.take(_pageSize).toList();
+          final hasMore = filtered.length > _pageSize;
+          final remaining = filtered.length - _pageSize;
+
           return Column(
             children: [
-              // ── Filters ──────────────────────────────────────────────
+              // ── Sub-header: pagination info + filters ─────────────
               Container(
                 color: theme.appBarTheme.backgroundColor,
-                padding: const EdgeInsets.only(bottom: 20, top: 4),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: _filters.map((filter) {
-                      final isSelected = _selectedFilter == filter;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: InkWell(
-                          onTap: () =>
-                              setState(() => _selectedFilter = filter),
-                          borderRadius: BorderRadius.circular(24),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? theme.primaryColor
-                                  : theme.cardColor,
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Text(
-                              filter,
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w600,
-                                color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF64748B),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Pagination / result count strip
+                    if (!provider.loading && provider.error == null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E3A5F)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                _searchQuery.isNotEmpty
+                                    ? '${filtered.length} result${filtered.length == 1 ? '' : 's'}'
+                                    : 'Showing ${paged.length} of ${provider.parcels.length}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF2563EB),
+                                ),
                               ),
                             ),
-                          ),
+                            if (_searchQuery.isNotEmpty) ...[
+                              const Gap(8),
+                              GestureDetector(
+                                onTap: () {
+                                  _searchController.clear();
+                                  _toggleSearch();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF1C1917)
+                                        : const Color(0xFFFFF7ED),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '"$_searchQuery"',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFFD97706),
+                                        ),
+                                      ),
+                                      const Gap(4),
+                                      const Icon(
+                                        Icons.close_rounded,
+                                        size: 12,
+                                        color: Color(0xFFD97706),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
+
+                    // Filter chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      child: Row(
+                        children: _filters.map((filter) {
+                          final isSelected = _selectedFilter == filter;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: InkWell(
+                              onTap: () => setState(() {
+                                _selectedFilter = filter;
+                                _pageSize = 20;
+                              }),
+                              borderRadius: BorderRadius.circular(24),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? theme.primaryColor
+                                      : theme.cardColor,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Text(
+                                  filter,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w600,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              // ── Content ──────────────────────────────────────────────
+              // ── List ─────────────────────────────────────────────────
               Expanded(
-                child: _buildContent(provider, theme),
+                child: _buildContent(
+                  provider: provider,
+                  theme: theme,
+                  isDark: isDark,
+                  filtered: filtered,
+                  paged: paged,
+                  hasMore: hasMore,
+                  remaining: remaining,
+                ),
               ),
             ],
           );
@@ -201,7 +357,15 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
   }
 
-  Widget _buildContent(CargoProvider provider, ThemeData theme) {
+  Widget _buildContent({
+    required ParcelProvider provider,
+    required ThemeData theme,
+    required bool isDark,
+    required List<ParcelModel> filtered,
+    required List<ParcelModel> paged,
+    required bool hasMore,
+    required int remaining,
+  }) {
     if (provider.loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -211,38 +375,53 @@ class _BookingsScreenState extends State<BookingsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cloud_off_rounded,
-                size: 56, color: Color(0xFF94A3B8)),
+            const Icon(
+              Icons.cloud_off_rounded,
+              size: 56,
+              color: Color(0xFF94A3B8),
+            ),
             const Gap(16),
-            Text('Could not load bookings',
-                style: GoogleFonts.outfit(
-                    fontSize: 18, fontWeight: FontWeight.w700,
-                    color: const Color(0xFF64748B))),
+            Text(
+              'Could not load bookings',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
+            ),
             const Gap(8),
-            Text(provider.error!,
-                style: GoogleFonts.inter(
-                    fontSize: 13, color: const Color(0xFF94A3B8)),
-                textAlign: TextAlign.center),
+            Text(
+              provider.error!,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: const Color(0xFF94A3B8),
+              ),
+              textAlign: TextAlign.center,
+            ),
             const Gap(20),
             ElevatedButton.icon(
-              onPressed: provider.fetchMyCargo,
+              onPressed: provider.fetchMyParcels,
               icon: const Icon(Icons.refresh_rounded),
-              label: Text('Retry',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+              label: Text(
+                'Retry',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+              ),
               style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12))),
+                backgroundColor: const Color(0xFF3B82F6),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
           ],
         ),
       );
     }
-
-    final filtered = _applyFilter(provider.cargo);
 
     if (_selectedFilter == 'Upcoming' && filtered.isEmpty) {
       return const _EmptyBookingsState();
@@ -253,29 +432,52 @@ class _BookingsScreenState extends State<BookingsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_rounded,
-                size: 64,
-                color: const Color(0xFF94A3B8).withValues(alpha: 0.5)),
+            Icon(
+              _searchQuery.isNotEmpty
+                  ? Icons.search_off_rounded
+                  : Icons.inbox_rounded,
+              size: 64,
+              color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
+            ),
             const Gap(16),
-            Text('No bookings found',
-                style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF64748B))),
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'No results for "$_searchQuery"'
+                  : 'No bookings found',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (_searchQuery.isNotEmpty) ...[
+              const Gap(8),
+              Text(
+                'Try a different search term or filter',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: const Color(0xFF94A3B8),
+                ),
+              ),
+            ],
           ],
         ),
       );
     }
 
-    // Group by month
-    final grouped = <String, List<CargoModel>>{};
-    for (final c in filtered) {
+    // Group paged results by month
+    final grouped = <String, List<ParcelModel>>{};
+    for (final c in paged) {
       final key = DateFormat('MMMM yyyy').format(c.createdAt);
       grouped.putIfAbsent(key, () => []).add(c);
     }
 
     return RefreshIndicator(
-      onRefresh: provider.fetchMyCargo,
+      onRefresh: () async {
+        setState(() => _pageSize = 20);
+        await provider.fetchMyParcels();
+      },
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
@@ -301,288 +503,65 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 ],
               ),
             ),
-            for (final cargo in entry.value)
+            for (final parcel in entry.value)
               Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _BookingCard(
-                  cargo: cargo,
+                padding: const EdgeInsets.only(bottom: 14),
+                child: BookingListCard(
+                  parcel: parcel,
+                  isDark: isDark,
                   onTap: () => context.push(
-                    '/bookings/recent/${cargo.id}',
-                    extra: cargo,
+                    '/bookings/recent/${parcel.id}',
+                    extra: parcel,
                   ),
                 ),
               ),
           ],
+
+          // ── Load More ────────────────────────────────────────────
+          if (hasMore)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: TextButton(
+                onPressed: () => setState(() => _pageSize += 20),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: isDark
+                          ? Colors.white12
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.expand_more_rounded,
+                      size: 18,
+                      color: Color(0xFF3B82F6),
+                    ),
+                    const Gap(6),
+                    Text(
+                      'Load more  ·  $remaining remaining',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF3B82F6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─── Booking Card (real data) ─────────────────────────────────────────────────
-
-class _BookingCard extends StatelessWidget {
-  final CargoModel cargo;
-  final VoidCallback onTap;
-
-  const _BookingCard({required this.cargo, required this.onTap});
-
-  Color _statusBg(bool isDark) {
-    return switch (cargo.status) {
-      CargoStatus.delivered =>
-        isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4),
-      CargoStatus.inTransit || CargoStatus.atStation =>
-        isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
-      CargoStatus.canceled =>
-        isDark ? const Color(0xFF3B0764) : const Color(0xFFFFF1F2),
-      CargoStatus.received =>
-        isDark ? const Color(0xFF1C1917) : const Color(0xFFF1F5F9),
-    };
-  }
-
-  Color _statusFg() {
-    return switch (cargo.status) {
-      CargoStatus.delivered => const Color(0xFF16A34A),
-      CargoStatus.inTransit || CargoStatus.atStation => const Color(0xFF2563EB),
-      CargoStatus.canceled => const Color(0xFFE11D48),
-      CargoStatus.received => const Color(0xFF64748B),
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                const ParcelIcon(),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            cargo.cargoType.isEmpty
-                                ? cargo.serviceType
-                                : cargo.cargoType,
-                            style: GoogleFonts.outfit(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: theme.textTheme.titleLarge?.color,
-                            ),
-                          ),
-                          const Gap(4),
-                          if (cargo.status == CargoStatus.inTransit)
-                            const HugeIcon(
-                              icon: HugeIcons.strokeRoundedFire,
-                              color: Color(0xFFEF4444),
-                              size: 16,
-                            ),
-                        ],
-                      ),
-                      Text(
-                        '#${cargo.id.toUpperCase().substring(0, cargo.id.length.clamp(0, 9))}',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: const Color(0xFF94A3B8),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _statusBg(isDark),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        cargo.status.displayLabel,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _statusFg(),
-                        ),
-                      ),
-                    ),
-                    const Gap(4),
-                    Text(
-                      DateFormat('d MMM • h:mm a').format(cargo.createdAt),
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: const Color(0xFF94A3B8),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Gap(20),
-            const DashedDivider(),
-            const Gap(20),
-
-            // Details
-            _buildRow(context, 'From', cargo.fromAddress),
-            const Gap(12),
-            _buildRow(context, 'To', cargo.toAddress),
-            const Gap(12),
-            _buildRow(context, 'Size', cargo.cargoSize.isEmpty ? '—' : cargo.cargoSize),
-            const Gap(12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Fee',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF94A3B8),
-                  ),
-                ),
-                Text(
-                  cargo.amount != null
-                      ? 'TZS ${NumberFormat('#,###').format(cargo.amount!.toInt())}'
-                      : cargo.receiverPays ? 'Receiver Pays' : '—',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: theme.textTheme.titleLarge?.color,
-                  ),
-                ),
-              ],
-            ),
-            const Gap(20),
-            const DashedDivider(),
-            const Gap(20),
-
-            // Actions
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    label: 'Share',
-                    icon: HugeIcons.strokeRoundedShare08,
-                    onTap: onTap,
-                  ),
-                ),
-                const Gap(16),
-                Expanded(
-                  child: _ActionButton(
-                    label: cargo.status == CargoStatus.received
-                        ? 'Cancel'
-                        : 'Details',
-                    icon: cargo.status == CargoStatus.received
-                        ? HugeIcons.strokeRoundedCancelCircle
-                        : HugeIcons.strokeRoundedInformationCircle,
-                    onTap: onTap,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRow(BuildContext context, String label, String value) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: const Color(0xFF94A3B8),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final dynamic icon;
-  final VoidCallback onTap;
-
-  const _ActionButton(
-      {required this.label, required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-                icon: icon,
-                color: Theme.of(context).primaryColor,
-                size: 18),
-            const Gap(8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// ─── Empty state ──────────────────────────────────────────────────────────────
 
 class _EmptyBookingsState extends StatelessWidget {
   const _EmptyBookingsState();
@@ -608,8 +587,11 @@ class _EmptyBookingsState extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFF3B82F6), width: 2),
                 ),
-                child: const Icon(Icons.inbox_rounded,
-                    size: 56, color: Color(0xFF3B82F6)),
+                child: const Icon(
+                  Icons.inbox_rounded,
+                  size: 56,
+                  color: Color(0xFF3B82F6),
+                ),
               ),
             ),
             const Gap(12),

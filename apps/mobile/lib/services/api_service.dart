@@ -8,11 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // Use 192.168.100.72 (Mac IP) for real Android devices on same network
-  // or 10.0.2.2 for Android emulators
-  static final String _baseUrl = Platform.isAndroid
-    ? 'http://192.168.100.72:3000/api/v1'
-    : 'http://localhost:3000/api/v1';
+  static const String _baseUrl = 'https://mizigo.akiliapp.co.tz/api/v1';
     
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static const String _tokenKey = 'jwt_token';
@@ -20,7 +16,7 @@ class ApiService {
   static const String _deviceIdKey = 'device_id';
   static const String _requestSigningSecret = String.fromEnvironment('REQUEST_SIGNING_SECRET', defaultValue: '');
   
-  // Set to false to use real API calls
+  // Set to true to use real API calls
   static const bool _useMocks = false;
 
   static Future<String?> get _token => _storage.read(key: _tokenKey);
@@ -49,6 +45,11 @@ class ApiService {
     Object? body,
     bool retryOnUnauthorized = true,
   }) async {
+    if (_useMocks) {
+      // In mock mode, don't attempt real network calls unless explicitly allowed.
+      // This prevents "No route to host" errors during demos.
+      return http.Response(jsonEncode({'message': 'Mocks enabled'}), 503);
+    }
     final request = http.Request(method, url);
     final mergedHeaders = Map<String, String>.from(headers ?? {});
     final bodyString = body == null ? '' : (body is String ? body : jsonEncode(body));
@@ -223,6 +224,16 @@ class ApiService {
     return _parseResponse(res);
   }
 
+  static Future<Map<String, dynamic>> checkPhone(String phone) async {
+    final normalized = _normalizePhone(phone);
+    final res = await http.post(
+      Uri.parse('$_baseUrl/auth/check-phone'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': normalized}),
+    );
+    return _parseResponse(res);
+  }
+
   static Future<Map<String, dynamic>> sendOperatorOtp(String phone) async {
     final normalized = _normalizePhone(phone);
     final res = await http.post(
@@ -297,13 +308,13 @@ class ApiService {
     return _parseResponse(res);
   }
 
-  // ─── CARGO ─────────────────────────────────────────────────────────
+  // ─── PARCEL ─────────────────────────────────────────────────────────
 
-  static Future<List<dynamic>> getCargo({String? status}) async {
+  static Future<List<dynamic>> getParcels({String? status}) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 600));
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
       List<dynamic> list = [];
       if (localData != null) {
         list = jsonDecode(localData) as List;
@@ -311,83 +322,160 @@ class ApiService {
         // Seed initial mock data with a variety of statuses
         list = [
           {
-            'id': 'cargo-at-station-001',
-            'trackingId': 'MZG-2024-STAT',
+            'id': 'AAA123',
+            'trackingNumber': 'TRC-AAA-123',
+            'status': 'Received',
+            'senderName': 'Ibrahim Nkya',
+            'receiverName': 'John Doe',
+            'fromAddress': 'Dar es Salaam',
+            'toAddress': 'Arusha Station',
+            'description': 'Industrial Equipment Spare Parts',
+            'price': '45000',
+            'createdAt': DateTime.now().toIso8601String(),
+            'updatedAt': DateTime.now().toIso8601String(),
+          },
+          // For Dispatch Screen (Status: Received)
+          {
+            'id': 'AAA201',
+            'trackingNumber': 'TRC-AAA-201',
+            'status': 'Received',
+            'senderName': 'Michael Chen',
+            'receiverName': 'Lucy Liu',
+            'fromAddress': 'Tanga Port',
+            'toAddress': 'Dar es Salaam',
+            'description': 'Electronic Components',
+            'price': '28000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA202',
+            'trackingNumber': 'TRC-AAA-202',
+            'status': 'Received',
+            'senderName': 'Sarah Juma',
+            'receiverName': 'Rajabu Ally',
+            'fromAddress': 'Kigoma',
+            'toAddress': 'Mwanza',
+            'description': 'Fresh Produce (Organic)',
+            'price': '12500',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA203',
+            'trackingNumber': 'TRC-AAA-203',
+            'status': 'Received',
+            'senderName': 'Robert Kim',
+            'receiverName': 'David Mwita',
+            'fromAddress': 'Arusha',
+            'toAddress': 'Dodoma',
+            'description': 'Books & Stationery',
+            'price': '15000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA204',
+            'trackingNumber': 'TRC-AAA-204',
+            'status': 'Received',
+            'senderName': 'Grace Mrema',
+            'receiverName': 'Benard Shayo',
+            'fromAddress': 'Dar es Salaam',
+            'toAddress': 'Tabora',
+            'description': 'Computer Hardware',
+            'price': '65000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA205',
+            'trackingNumber': 'TRC-AAA-205',
+            'status': 'Received',
+            'senderName': 'Ali Hassan',
+            'receiverName': 'Fatuma Salum',
+            'fromAddress': 'Zanzibar Port',
+            'toAddress': 'Dar es Salaam',
+            'description': 'Handcrafted Spices',
+            'price': '9500',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          // For Offload Screen (Status: Dispatched)
+          {
+            'id': 'AAA301',
+            'trackingNumber': 'TRC-AAA-301',
+            'status': 'Dispatched',
+            'senderName': 'Bakari Juma',
+            'receiverName': 'Sarah Kessy',
+            'fromAddress': 'Dar es Salaam',
+            'toAddress': 'Mwanza Port',
+            'description': 'Medical Supplies',
+            'price': '32000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA302',
+            'trackingNumber': 'TRC-AAA-302',
+            'status': 'Dispatched',
+            'senderName': 'Lilian Masawe',
+            'receiverName': 'Peter Mollel',
+            'fromAddress': 'Dodoma',
+            'toAddress': 'Dar es Salaam',
+            'description': 'Textile Materials',
+            'price': '18500',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA303',
+            'trackingNumber': 'TRC-AAA-303',
+            'status': 'Dispatched',
+            'senderName': 'Salum Ally',
+            'receiverName': 'Fatuma Rajabu',
+            'fromAddress': 'Tanga',
+            'toAddress': 'Kigoma',
+            'description': 'Agricultural Tools',
+            'price': '55000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA304',
+            'trackingNumber': 'TRC-AAA-304',
+            'status': 'Dispatched',
+            'senderName': 'Neema Shayo',
+            'receiverName': 'Hassan Mwinyi',
+            'fromAddress': 'Morogoro',
+            'toAddress': 'Mbeya',
+            'description': 'Solar Panels',
+            'price': '120000',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'AAA305',
+            'trackingNumber': 'TRC-AAA-305',
+            'status': 'Dispatched',
+            'senderName': 'Joel Mwita',
+            'receiverName': 'Alice Temu',
+            'fromAddress': 'Moshi',
+            'toAddress': 'Dar es Salaam',
+            'description': 'Coffee Beans (Samples)',
+            'price': '12500',
+            'createdAt': DateTime.now().toIso8601String(),
+          },
+          {
+            'id': 'parcel-at-station-001',
+            'trackingNumber': 'MZG-2024-STAT',
             'status': 'At Station',
             'fromAddress': 'Dar es Salaam',
             'toAddress': 'Arusha Bus Station',
             'serviceType': 'EXPRESS',
-            'cargoType': 'Electronics',
-            'cargoSize': 'SMALL',
+            'parcelType': 'Electronics',
+            'parcelSize': 'SMALL',
             'peopleNeeded': 0,
             'receiverName': 'Amina Salehe',
             'receiverPhone': '+255712345678',
             'receiverPays': false,
-            'additionalServices': [],
+            'additionalServices': {},
             'pickupType': 'STATION',
-            'wagonType': 'STANDARD',
             'createdAt': DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
             'updatedAt': DateTime.now().subtract(const Duration(hours: 4)).toIso8601String(),
           },
-          {
-            'id': 'cargo-received-002',
-            'trackingId': 'MZG-2024-RECV',
-            'status': 'Received',
-            'fromAddress': 'Mwanza',
-            'toAddress': 'Dodoma Central Bus',
-            'serviceType': 'STANDARD',
-            'cargoType': 'Documents',
-            'cargoSize': 'SMALL',
-            'peopleNeeded': 0,
-            'receiverName': 'John Mbeki',
-            'receiverPhone': '+255787654321',
-            'receiverPays': true,
-            'additionalServices': [],
-            'pickupType': 'STATION',
-            'wagonType': 'STANDARD',
-            'createdAt': DateTime.now().subtract(const Duration(hours: 6)).toIso8601String(),
-            'updatedAt': DateTime.now().subtract(const Duration(hours: 6)).toIso8601String(),
-          },
-          {
-            'id': 'cargo-transit-003',
-            'trackingId': 'MZG-2024-TRAN',
-            'status': 'In Transit',
-            'fromAddress': 'Arusha',
-            'toAddress': 'Kilimanjaro Airport',
-            'serviceType': 'EXPRESS',
-            'cargoType': 'Clothing',
-            'cargoSize': 'MEDIUM',
-            'peopleNeeded': 1,
-            'receiverName': 'Fatuma Juma',
-            'receiverPhone': '+255722111222',
-            'receiverPays': false,
-            'additionalServices': [],
-            'pickupType': 'DOOR',
-            'wagonType': 'STANDARD',
-            'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-            'updatedAt': DateTime.now().subtract(const Duration(hours: 12)).toIso8601String(),
-          },
-          {
-            'id': 'cargo-delivered-004',
-            'trackingId': 'MZG-2024-DLVD',
-            'status': 'Delivered',
-            'fromAddress': 'Dar es Salaam',
-            'toAddress': 'Morogoro',
-            'serviceType': 'STANDARD',
-            'cargoType': 'Food',
-            'cargoSize': 'LARGE',
-            'peopleNeeded': 2,
-            'receiverName': 'Peter Kimani',
-            'receiverPhone': '+255733444555',
-            'receiverPays': false,
-            'additionalServices': [],
-            'pickupType': 'STATION',
-            'wagonType': 'STANDARD',
-            'createdAt': DateTime.now().subtract(const Duration(days: 5)).toIso8601String(),
-            'updatedAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          },
         ];
-        await prefs.setString('mock_cargo', jsonEncode(list));
+        await prefs.setString('mock_parcel', jsonEncode(list));
       }
       if (status != null) {
         return list.where((item) => item['status'] == status).toList();
@@ -397,98 +485,97 @@ class ApiService {
     final query = status != null ? '?status=$status' : '';
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/cargo$query'),
+      url: Uri.parse('$_baseUrl/parcel$query'),
       headers: await _headers,
     );
     return jsonDecode(res.body) as List;
   }
 
-  static Future<Map<String, dynamic>> createCargo(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createParcel(Map<String, dynamic> data) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 800));
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
       List<dynamic> list = [];
       if (localData != null) {
         list = jsonDecode(localData) as List;
       }
       
       final newId = 'pk-${DateTime.now().millisecondsSinceEpoch}';
-      final newCargo = {
+      final newParcel = {
         ...data,
         'id': newId,
-        'trackingId': 'PK-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+        'trackingNumber': 'PK-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
         'status': 'Pending',
         'createdAt': DateTime.now().toIso8601String(),
-        'eta': 'Processing',
-        'emoji': '📦',
+        'updatedAt': DateTime.now().toIso8601String(),
       };
       
-      list.insert(0, newCargo);
-      await prefs.setString('mock_cargo', jsonEncode(list));
-      return newCargo;
+      list.insert(0, newParcel);
+      await prefs.setString('mock_parcel', jsonEncode(list));
+      return newParcel;
     }
     final res = await _sendWithAutoRefresh(
       method: 'POST',
-      url: Uri.parse('$_baseUrl/cargo'),
+      url: Uri.parse('$_baseUrl/parcel'),
       headers: await _headers,
       body: data,
     );
     return _parseResponse(res);
   }
 
-  static Future<Map<String, dynamic>> getCargoById(String id) async {
+  static Future<Map<String, dynamic>> getParcelById(String id) async {
     if (_useMocks) {
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
       if (localData != null) {
         final List<dynamic> list = jsonDecode(localData);
         final item = list.firstWhere((c) => c['id'] == id, orElse: () => null);
         if (item != null) return item;
       }
-      throw ApiException(message: 'Cargo not found', statusCode: 404);
+      throw ApiException(message: 'Parcel not found', statusCode: 404);
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/cargo/$id'),
+      url: Uri.parse('$_baseUrl/parcel/$id'),
       headers: await _headers,
     );
     return _parseResponse(res);
   }
 
-  static Future<Map<String, dynamic>> getCargoStatus(String id) async {
+  static Future<Map<String, dynamic>> getParcelStatus(String id) async {
     if (_useMocks) {
-      final cargo = await getCargoById(id);
+      final parcel = await getParcelById(id);
       return {
         'id': id,
-        'status': cargo['status'] ?? 'Pending',
+        'status': parcel['status'] ?? 'Pending',
         'updatedAt': DateTime.now().toIso8601String(),
       };
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/cargo/$id/status'),
+      url: Uri.parse('$_baseUrl/parcel/$id/status'),
       headers: await _headers,
     );
     return _parseResponse(res);
   }
 
-  static Future<Map<String, dynamic>> getCargoReceipt(String id) async {
+  static Future<Map<String, dynamic>> getParcelReceipt(String id) async {
     if (_useMocks) {
-      final cargo = await getCargoById(id);
+      final parcel = await getParcelById(id);
       return {
         'id': id,
-        'trackingId': cargo['trackingId'] ?? 'PK-MOCK',
-        'amount': cargo['price'] ?? '0',
+        'trackingNumber': parcel['trackingNumber'] ?? 'PK-MOCK',
+        'amount': parcel['price'] ?? '0',
         'paidAt': DateTime.now().toIso8601String(),
         'items': [
-          {'description': cargo['name'] ?? 'Package', 'amount': cargo['price']}
+          {'description': parcel['packageName'] ?? 'Parcel', 'amount': parcel['price']}
         ]
       };
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/cargo/$id/receipt'),
+      url: Uri.parse('$_baseUrl/parcel/$id/receipt'),
       headers: await _headers,
     );
     return _parseResponse(res);
@@ -496,74 +583,103 @@ class ApiService {
 
   // ─── OPERATOR ACTIONS ──────────────────────────────────────────────
 
-  static Future<Map<String, dynamic>> receiveCargo(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> receiveParcel(Map<String, dynamic> data) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 1000));
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
       List<dynamic> list = localData != null ? jsonDecode(localData) : [];
       
       final newItem = {
         ...data,
         'id': 'op-rec-${DateTime.now().millisecondsSinceEpoch}',
-        'trackingId': 'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-        'status': 'At Warehouse',
+        'trackingNumber': 'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
+        'status': 'Received',
         'createdAt': DateTime.now().toIso8601String(),
-        'emoji': '📥',
       };
       
       list.insert(0, newItem);
-      await prefs.setString('mock_cargo', jsonEncode(list));
+      await prefs.setString('mock_parcel', jsonEncode(list));
       return newItem;
     }
     final res = await _sendWithAutoRefresh(
       method: 'POST',
-      url: Uri.parse('$_baseUrl/operator/receive'),
+      url: Uri.parse('$_baseUrl/parcel/receive'),
       headers: await _headers,
       body: data,
     );
     return _parseResponse(res);
   }
 
-  static Future<Map<String, dynamic>> updateCargoStatus(String id, String status, {String? location}) async {
+  static Future<Map<String, dynamic>> updateParcelStatus(String id, String status, {String? location}) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 800));
+      
+      // Special case for demo parcels (AAA...)
+      if (id.toUpperCase().startsWith('AAA')) {
+        return {
+          'id': id.toUpperCase(),
+          'status': status,
+          'currentLocation': location ?? 'Processing',
+          'updatedAt': DateTime.now().toIso8601String(),
+        };
+      }
+
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
       if (localData != null) {
         List<dynamic> list = jsonDecode(localData);
         final index = list.indexWhere((c) => c['id'] == id);
         if (index != -1) {
           list[index]['status'] = status;
           if (location != null) list[index]['currentLocation'] = location;
-          await prefs.setString('mock_cargo', jsonEncode(list));
+          await prefs.setString('mock_parcel', jsonEncode(list));
           return list[index];
         }
       }
-      throw ApiException(message: 'Cargo not found', statusCode: 404);
+      throw ApiException(message: 'Parcel not found', statusCode: 404);
     }
     final res = await _sendWithAutoRefresh(
       method: 'PATCH',
-      url: Uri.parse('$_baseUrl/operator/cargo/$id/status'),
+      url: Uri.parse('$_baseUrl/parcel/$id/status'),
       headers: await _headers,
       body: {'status': status, 'location': location},
     );
     return _parseResponse(res);
   }
 
-  /// Operator delivers cargo using OTP verification.
-  static Future<Map<String, dynamic>> deliverCargo(String id, String otp) async {
+  /// Operator delivers parcel using OTP verification.
+  static Future<Map<String, dynamic>> deliverParcel(String id, String otp) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 800));
-      // For MVP, accept any 4-digit OTP
-      if (otp.length != 4) {
-        throw ApiException(message: 'Invalid OTP code', statusCode: 400);
+      
+      // Demo Special Cases:
+      final Map<String, String> otpMap = {
+        'AAA123': '1024',
+        'AAA124': '1024',
+        'AAA125': '1025',
+        'AAA126': '1026',
+        'AAA127': '1027',
+        'AAA128': '1028',
+      };
+
+      if (otpMap.containsKey(id.toUpperCase())) {
+        if (otpMap[id.toUpperCase()] == otp) {
+          return updateParcelStatus(id, 'Delivered');
+        } else {
+          throw ApiException(message: 'Incorrect handover code', statusCode: 400);
+        }
       }
-      return updateCargoStatus(id, 'Delivered');
+      
+      if (otp == '1024' || otp.length == 4) {
+        return updateParcelStatus(id, 'Delivered');
+      }
+      
+      throw ApiException(message: 'Invalid OTP code', statusCode: 400);
     }
     final res = await _sendWithAutoRefresh(
       method: 'POST',
-      url: Uri.parse('$_baseUrl/operator/cargo/$id/deliver'),
+      url: Uri.parse('$_baseUrl/parcel/$id/deliver'),
       headers: await _headers,
       body: {'otp': otp},
     );
@@ -574,73 +690,82 @@ class ApiService {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 600));
       return {
-        // All-time totals (used as fallback)
         'received': 42,
         'delivered': 34,
-        'sent': 67,
+        'dispatched': 67,
         'atWarehouse': 22,
-        // Per-period breakdown (used by KPI cards & stacked volume cards)
-        'daily': {
-          'received': 5,
-          'delivered': 3,
-          'sent': 8,
-          'atWarehouse': 2,
-        },
-        'weekly': {
-          'received': 18,
-          'delivered': 12,
-          'sent': 28,
-          'atWarehouse': 8,
-        },
-        'monthly': {
-          'received': 42,
-          'delivered': 34,
-          'sent': 67,
-          'atWarehouse': 22,
-        },
-        'last30': {
-          'received': 38,
-          'delivered': 30,
-          'sent': 58,
-          'atWarehouse': 19,
-        },
-        'last90': {
-          'received': 112,
-          'delivered': 98,
-          'sent': 176,
-          'atWarehouse': 47,
-        },
       };
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/operator/stats'),
+      url: Uri.parse('$_baseUrl/parcel/stats/operator'),
       headers: await _headers,
     );
     return _parseResponse(res);
   }
 
 
-  /// Search for cargo by tracking ID or cargo ID (operator use).
-  static Future<List<dynamic>> searchCargo(String query) async {
+  /// Search for parcel by tracking ID or parcel ID (operator use).
+  static Future<List<dynamic>> searchParcel(String query) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 700));
+      final searchId = query.trim().toUpperCase();
+
       final prefs = await SharedPreferences.getInstance();
-      final localData = prefs.getString('mock_cargo');
+      final localData = prefs.getString('mock_parcel');
+      List<dynamic> list = [];
       if (localData != null) {
-        final List<dynamic> list = jsonDecode(localData);
+        list = jsonDecode(localData);
+      }
+
+      // Check if specific AAA parcel exists in our registry
+      final match = list.firstWhere(
+        (c) {
+          final id = (c['id'] ?? '').toString().toUpperCase();
+          final trackingNumber = (c['trackingNumber'] ?? '').toString().toUpperCase();
+          return id == searchId || trackingNumber == searchId;
+        },
+        orElse: () => null,
+      );
+
+      if (match != null) {
+        return [match];
+      }
+
+      // Demo Special Case fallback: if it starts with AAA but isn't in registry yet
+      if (searchId.startsWith('AAA')) {
+        return [{
+          'id': searchId,
+          'trackingNumber': 'TRC-$searchId',
+          'senderName': 'TRC Logistics',
+          'senderPhone': '255712345678',
+          'receiverName': 'Demo Receiver',
+          'receiverPhone': '255787654321',
+          'fromAddress': 'Dar es Salaam',
+          'toAddress': 'Arusha Station',
+          'description': 'Demo Shipment Content',
+          'status': 'At Station',
+          'price': '45000',
+          'parcelType': 'General',
+          'parcelSize': 'MEDIUM',
+          'createdAt': DateTime.now().toIso8601String(),
+          'updatedAt': DateTime.now().toIso8601String(),
+        }];
+      }
+
+      if (list.isNotEmpty) {
         final lower = query.toLowerCase();
         return list.where((c) {
           final id = (c['id'] ?? '').toString().toLowerCase();
-          final trackingId = (c['trackingId'] ?? '').toString().toLowerCase();
-          return id.contains(lower) || trackingId.contains(lower);
+          final trackingNumber = (c['trackingNumber'] ?? '').toString().toLowerCase();
+          return id.contains(lower) || trackingNumber.contains(lower);
         }).toList();
       }
       return [];
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/operator/cargo/search?q=${Uri.encodeComponent(query)}'),
+      url: Uri.parse('$_baseUrl/parcel/search?q=${Uri.encodeComponent(query)}'),
       headers: await _headers,
     );
     final body = jsonDecode(res.body);
@@ -656,20 +781,19 @@ class ApiService {
   static Future<List<dynamic>> getPaymentChannels() async {
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/payment/channels'),
+      url: Uri.parse('$_baseUrl/payments/providers'),
       headers: await _headers,
     );
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      return jsonDecode(res.body) as List;
+      final body = jsonDecode(res.body);
+      if (body is Map && body['success'] == true) return body['data'] as List;
+      return body as List;
     }
     throw ApiException(message: 'Failed to load channels', statusCode: res.statusCode);
   }
 
-  /// Initiate an STK push via the MySafari payment gateway.
-  /// [provider] — uts_name of the channel (e.g. 'airtel', 'tigopesa')
-  /// [phone]    — subscriber MSISDN (e.g. '0754123456')
   static Future<Map<String, dynamic>> initiatePayment({
-    required String cargoId,
+    required String parcelId,
     required String provider,
     required String phone,
   }) async {
@@ -681,24 +805,22 @@ class ApiService {
         'amount': 35000.0,
         'provider': provider,
         'phone': phone,
-        'cargoId': cargoId,
+        'parcelId': parcelId,
       };
     }
     final res = await _sendWithAutoRefresh(
       method: 'POST',
-      url: Uri.parse('$_baseUrl/payment/initiate'),
+      url: Uri.parse('$_baseUrl/payments/initiate-push'),
       headers: await _headers,
       body: {
-        'cargoId': cargoId,
-        'provider': provider,
-        'phone': phone,
+        'parcelId': parcelId,
+        'paymentChannel': provider,
+        'phoneNumber': phone,
       },
     );
     return _parseResponse(res);
   }
 
-  /// Poll the status of a payment by its ID.
-  /// Returns { id, status, amount, provider, transactionReference, cargoStatus }
   static Future<Map<String, dynamic>> pollPaymentStatus(String paymentId) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 1000));
@@ -708,12 +830,12 @@ class ApiService {
         'amount': 35000.0,
         'provider': 'M-Pesa',
         'transactionReference': 'TXN${DateTime.now().millisecondsSinceEpoch}',
-        'cargoStatus': 'Paid',
+        'parcelStatus': 'Paid',
       };
     }
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/payment/status/$paymentId'),
+      url: Uri.parse('$_baseUrl/payments/status/$paymentId'),
       headers: await _headers,
     );
     return _parseResponse(res);
@@ -753,13 +875,6 @@ class ApiService {
           'lastActive': 'Active now',
           'isCurrent': true,
         },
-        {
-          'id': 's2',
-          'deviceName': 'Chrome on MacOS',
-          'location': 'Nairobi, KE',
-          'lastActive': '2 hours ago',
-          'isCurrent': false,
-        },
       ];
     }
     final res = await _sendWithAutoRefresh(
@@ -781,11 +896,10 @@ class ApiService {
     return jsonDecode(res.body) as List;
   }
 
-  /// Downloads the PDF receipt bytes for a paid cargo.
-  static Future<Uint8List> downloadReceiptPdf(String cargoId) async {
+  static Future<Uint8List> downloadReceiptPdf(String parcelId) async {
     final res = await _sendWithAutoRefresh(
       method: 'GET',
-      url: Uri.parse('$_baseUrl/cargo/$cargoId/receipt/pdf'),
+      url: Uri.parse('$_baseUrl/parcel/$parcelId/receipt/pdf'),
       headers: await _headers,
     );
     if (res.statusCode >= 200 && res.statusCode < 300) {

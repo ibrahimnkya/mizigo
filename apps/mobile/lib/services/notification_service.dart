@@ -20,7 +20,7 @@ class NotificationService {
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'mizigo_notifications',
     'Mizigo Notifications',
-    description: 'Cargo status updates and payment alerts from Mizigo.',
+    description: 'Parcel status updates and payment alerts from Mizigo.',
     importance: Importance.max,
     showBadge: true,
   );

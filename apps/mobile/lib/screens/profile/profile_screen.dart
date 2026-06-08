@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/common/danger_action_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -91,31 +92,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _confirmLogout(AuthProvider auth) async {
-    final confirmed = await showDialog<bool>(
+    await DangerActionBottomSheet.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Sign Out', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white)),
-        content: Text('Are you sure you want to sign out?', style: GoogleFonts.inter(color: Colors.white54, fontSize: 15)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.danger,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out of your account? You will need to log in again to access your data.',
+      confirmText: 'Sign Out',
+      cancelText: 'Cancel',
+      onConfirm: () async {
+        if (mounted) await auth.logout();
+      },
     );
-    if (confirmed == true && mounted) await auth.logout();
   }
 
   Widget _miniAvatar(String name, String? avatarUrl) {
@@ -123,9 +109,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       child = avatarUrl.startsWith('http')
           ? Image.network(avatarUrl, fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _miniInitial(name))
+              errorBuilder: (_, _, _) => _miniInitial(name))
           : Image.file(File(avatarUrl), fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _miniInitial(name));
+              errorBuilder: (_, _, _) => _miniInitial(name));
     } else {
       child = _miniInitial(name);
     }

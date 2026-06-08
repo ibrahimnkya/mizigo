@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/country_selector.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 // Removd local _Country model and _countries list
 
@@ -63,7 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => _isChecking = true);
+    setState(() {
+      _isChecking = true;
+      _isAvailable = null;
+      _foundName = null;
+    });
     _debounce = Timer(const Duration(milliseconds: 600), () async {
       final auth = context.read<AuthProvider>();
       // Use the normalized 9-digit sequence
@@ -80,9 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleNext() async {
+    if (_isAvailable != true) return;
+
     final auth = context.read<AuthProvider>();
-    
-    // Phone Flow
     String val = _phoneController.text.trim();
     if (val.startsWith('0')) val = val.substring(1);
     
@@ -92,12 +97,18 @@ class _LoginScreenState extends State<LoginScreen> {
     
     // Unfocus keyboard
     FocusScope.of(context).unfocus();
-
-    // Trigger OTP and immediately proceed as requested
-    auth.sendOtp(fullPhone);
     
+    final success = await auth.sendOtp(fullPhone);
     if (!mounted) return;
-    context.push('/verify', extra: fullPhone);
+    
+    if (success) {
+      context.push('/verify', extra: fullPhone);
+    } else {
+      MizigoToasts.showError(
+        context,
+        auth.error ?? 'Failed to send verification code',
+      );
+    }
   }
 
   void _showHelpModal() {
@@ -352,11 +363,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           final bool isValid = normalizedPhone.length == 9;
 
                           return FilledButton(
-                            onPressed: (auth.loading || !isValid) ? null : _handleNext,
+                            onPressed: (auth.loading || !isValid || _isAvailable != true) ? null : _handleNext,
                             style: FilledButton.styleFrom(
                               backgroundColor: const Color(0xFF3B82F6),
                               disabledBackgroundColor: const Color(0xFF3B82F6).withValues(alpha: 0.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               elevation: 0,
                             ),
                             child: auth.loading
@@ -369,13 +380,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: TextStyle(
                                         fontSize: 16, 
                                         fontWeight: FontWeight.bold,
-                                        color: (auth.loading || !isValid) ? Colors.white54 : Colors.white,
+                                        color: (auth.loading || !isValid || _isAvailable != true) ? Colors.white54 : Colors.white,
                                       ),
                                     ),
                                     const Gap(8),
                                     HugeIcon(
                                       icon: HugeIcons.strokeRoundedArrowRight01, 
-                                      color: (auth.loading || !isValid) ? Colors.white54 : Colors.white, 
+                                      color: (auth.loading || !isValid || _isAvailable != true) ? Colors.white54 : Colors.white, 
                                       size: 20
                                     ),
                                   ],

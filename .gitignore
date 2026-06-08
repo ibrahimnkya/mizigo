@@ -1,76 +1,190 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# =============================================================================
+# Mizigo monorepo — root .gitignore
+# Turborepo + pnpm · Next.js · Express API · Flutter · Prisma
+# Platform-specific rules also live under apps/mobile/**/.gitignore
+# =============================================================================
 
-# Dependencies
-node_modules
+# -----------------------------------------------------------------------------
+# Dependencies & package managers
+# -----------------------------------------------------------------------------
+node_modules/
 .pnp
 .pnp.js
+.pnpm-store/
+.pnpm-debug.log*
 
-# Local env files
+# -----------------------------------------------------------------------------
+# Environment & secrets (never commit credentials)
+# -----------------------------------------------------------------------------
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+!.env.*.example
 
-# Testing
-coverage
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+**/android/app/key.properties
+**/android/local.properties
 
-# Turbo
-.turbo
+# Firebase / GCP service account keys (use env vars instead)
+*-firebase-adminsdk-*.json
+firebase-adminsdk*.json
+service-account*.json
+serviceAccount*.json
 
-# Vercel
-.vercel
+# -----------------------------------------------------------------------------
+# Turborepo
+# -----------------------------------------------------------------------------
+.turbo/
 
-# Build Outputs
-.next/
+# -----------------------------------------------------------------------------
+# Build & compile outputs
+# -----------------------------------------------------------------------------
+dist/
+build/
 out/
-build
-dist
+.next/
+*.tsbuildinfo
 
-
-# Debug
+# -----------------------------------------------------------------------------
+# Logs & runtime artifacts
+# -----------------------------------------------------------------------------
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Misc
-.DS_Store
-*.pem
-.idea/
-.vscode/
+# -----------------------------------------------------------------------------
+# Testing & coverage
+# -----------------------------------------------------------------------------
+coverage
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
 
-# Flutter/Dart ignores
-**/doc/api/
+# -----------------------------------------------------------------------------
+# Linting & tooling caches
+# -----------------------------------------------------------------------------
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.swc/
+
+# -----------------------------------------------------------------------------
+# Next.js (apps/web)
+# -----------------------------------------------------------------------------
+next-env.d.ts
+.vercel/
+
+# -----------------------------------------------------------------------------
+# Prisma (packages/database) — keep schema & migrations tracked
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Flutter / Dart (apps/mobile)
+# -----------------------------------------------------------------------------
 **/.dart_tool/
 **/.flutter-plugins
 **/.flutter-plugins-dependencies
 **/.packages
 **/.pub-cache/
 **/.pub/
+**/doc/api/
+**/*.dart.js
+**/*.js_
+**/*.js.deps
+**/*.js.map
+
+# Flutter build outputs
 **/build/
 **/ios/Flutter/.last_build_id
-**/*.dart.js
+**/ios/Flutter/ephemeral/
+**/ios/Pods/
+**/.symlinks/
+**/DerivedData/
 
-# iOS ignores
+# Flutter generated / ephemeral
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_export_environment.sh
+**/Runner/GeneratedPluginRegistrant.*
+
+# Android
+**/.gradle/
+**/android/captures/
+**/*.apk
+**/*.aab
+**/android/**/workspace.xml
+
+# iOS / Xcode
 *.mode1v3
 *.mode2v3
 *.pbxuser
 *.perspectivev3
-xcuserdata/
-*.xccheckout
 *.moved-aside
-DerivedData
+*.xccheckout
+*.xcuserstate
 *.hmap
 *.ipa
-*.xcuserstate
-**/.symlinks/
+xcuserdata/
+**/.generated/
 
-# Android ignores
-**/android/app/key.properties
-**/android/**/*.apk
-**/android/**/*.aab
-**/android/local.properties
-**/android/captures/
-**/android/.gradle
-**/android/workspace.xml
-**/android/.idea/
+# Obfuscation / symbolication
+app.*.symbols
+app.*.map.json
+
+# -----------------------------------------------------------------------------
+# Archives & dumps (e.g. shipped web bundles)
+# -----------------------------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+dump.rdb
+
+# -----------------------------------------------------------------------------
+# OS & editor
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code — ignore user-specific; optionally commit shared settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Vim / merge artifacts
+*.swp
+*.swo
+*~
+*.orig
+
+# -----------------------------------------------------------------------------
+# Misc local tooling
+# -----------------------------------------------------------------------------
+.history/
+.atom/
+.buildlog/
+migrate_working_dir/
+.svn/

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/cargo_model.dart';
+import '../../models/parcel_model.dart';
 
 class ParcelCard extends StatelessWidget {
-  final CargoModel parcel;
+  final ParcelModel parcel;
   final VoidCallback onTap;
 
   const ParcelCard({

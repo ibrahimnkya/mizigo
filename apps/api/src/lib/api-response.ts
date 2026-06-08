@@ -7,6 +7,7 @@ export type ApiErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "PAYMENT_GATEWAY_ERROR"
   | "INTERNAL_SERVER_ERROR";
 
 export class ApiError extends Error {
@@ -14,7 +15,12 @@ export class ApiError extends Error {
   public readonly code: ApiErrorCode;
   public readonly details?: unknown;
 
-  constructor(statusCode: number, code: ApiErrorCode, message: string, details?: unknown) {
+  constructor(
+    statusCode: number,
+    code: ApiErrorCode,
+    message: string,
+    details?: unknown,
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
@@ -22,7 +28,12 @@ export class ApiError extends Error {
   }
 }
 
-export const sendSuccess = <T>(res: Response, data: T, statusCode = 200, meta: Record<string, unknown> = {}) => {
+export const sendSuccess = <T>(
+  res: Response,
+  data: T,
+  statusCode = 200,
+  meta: Record<string, unknown> = {},
+) => {
   return res.status(statusCode).json({
     success: true,
     data,

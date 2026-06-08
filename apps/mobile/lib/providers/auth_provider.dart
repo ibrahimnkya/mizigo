@@ -75,23 +75,21 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> checkPhoneNumberAvailability(String phone) async {
-    // Simulated check: In a real app, this would call ApiService.checkPhone(phone)
-    await Future.delayed(const Duration(milliseconds: 800));
-    
-    // For demo: any number of sufficient length is valid
-    final bool isValid = phone.length >= 9;
-    
-    if (isValid) {
+    try {
+      final response = await ApiService.checkPhone(phone);
+      final payload = (response['data'] is Map<String, dynamic>)
+          ? response['data'] as Map<String, dynamic>
+          : response;
       return {
-        'available': true,
-        'name': phone.contains('712345678') ? 'Jackson' : 'Operator',
+        'available': payload['available'] as bool? ?? false,
+        'name': payload['name'] as String?,
+      };
+    } catch (_) {
+      return {
+        'available': false,
+        'name': null,
       };
     }
-    
-    return {
-      'available': false,
-      'name': null,
-    };
   }
 
   Future<bool> sendOtp(String phone) async {

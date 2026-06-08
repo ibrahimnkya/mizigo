@@ -1,223 +1,295 @@
-import { cn } from "@repo/ui/utils";
-import { CreditCard, Package, ArrowRight, TrendingUp, Search, Calendar, Download } from "lucide-react";
+"use client";
 
-import { prisma } from "@repo/database";
-import { auth } from "@/auth";
+import { cn } from "@/lib/utils";
+import {
+  CreditCard,
+  TrendingUp,
+  Zap,
+  Activity,
+  Database,
+  Info,
+  Wallet,
+  CheckCircle2,
+  FileText,
+  ArrowUpRight,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api/client";
+import { DataTable } from "@/components/shared/data-table";
+import { format } from "date-fns";
 
-async function getPayments(status?: string | string[]) {
-    const session = await auth();
-    if (!session?.user) return [];
+export function PaymentList({
+  status,
+  tab = "overview",
+}: {
+  status?: string | string[];
+  tab?: string;
+}) {
+  const { data: payments, isLoading } = useQuery({
+    queryKey: ["payments", status],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (status) {
+        if (Array.isArray(status)) {
+          status.forEach((s) => params.append("status", s));
+        } else {
+          params.append("status", status);
+        }
+      }
+      const { data } = await api.get(`/payments?${params.toString()}`);
+      return data.data || [];
+    },
+  });
 
-    const role = session.user.role;
-    const isSuperAdmin = role === 'SUPER_ADMIN';
-    const isOperator  = role === 'OPERATOR';
-    const userId = session.user.id;
+  const rawPayments = Array.isArray(payments) ? payments : [];
 
-    let where: any = {};
+  const totalPaid = rawPayments.filter((p: any) => p.status === "SUCCESS");
+  const totalPending = rawPayments.filter((p: any) => p.status === "PENDING");
 
-    // Status filter — supports single value or array
-    if (status) {
-        where.status = Array.isArray(status) ? { in: status } : status;
-    }
+  const totalPaidAmount = totalPaid.reduce(
+    (acc: number, p: any) => acc + p.amount,
+    0,
+  );
+  const totalPendingAmount = totalPending.reduce(
+    (acc: number, p: any) => acc + p.amount,
+    0,
+  );
 
-    // RBAC scoping
-    if (isSuperAdmin || isOperator) {
-        // Full visibility — no extra filter
-    } else {
-        // Agents / regular users only see their own payments
-        where.userId = userId;
-    }
+  const successRate = rawPayments.length
+    ? ((totalPaid.length / rawPayments.length) * 100).toFixed(1) + "%"
+    : "0%";
 
-    try {
-        const payments = await prisma.payment.findMany({
-            where,
-            include: { cargo: true },
-            orderBy: { createdAt: 'desc' }
-        });
-        return payments;
-    } catch (error) {
-        console.error('Error fetching payments:', error);
-        return [];
-    }
-}
+  const formatAmount = (amt: number) => {
+    if (amt >= 1000000) return `TZS ${(amt / 1000000).toFixed(1)}M`;
+    if (amt >= 1000) return `TZS ${(amt / 1000).toFixed(1)}K`;
+    return `TZS ${amt}`;
+  };
 
-const STATUS_META: Record<string, { dot: string; className: string; label: string }> = {
-    SUCCESS:   { dot: "bg-emerald-500", className: "bg-emerald-50 text-emerald-700 border-emerald-200/60",   label: "Success" },
-    PAID:      { dot: "bg-emerald-500", className: "bg-emerald-50 text-emerald-700 border-emerald-200/60",   label: "Paid" },
-    PENDING:   { dot: "bg-amber-400",   className: "bg-amber-50 text-amber-700 border-amber-200/60",         label: "Pending" },
-    FAILED:    { dot: "bg-rose-500",    className: "bg-rose-50 text-rose-700 border-rose-200/60",            label: "Failed" },
-    REFUNDED:  { dot: "bg-slate-400",   className: "bg-slate-50 text-slate-600 border-slate-200/60",         label: "Refunded" },
-    SIMULATED: { dot: "bg-violet-400",  className: "bg-violet-50 text-violet-700 border-violet-200/60",      label: "Simulated" },
-}
-
-function StatusBadge({ status }: { status: string }) {
-    const meta = STATUS_META[status] ?? { dot: "bg-slate-400", className: "bg-slate-50 text-slate-500 border-slate-200", label: status }
-    return (
-        <span className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black border uppercase tracking-widest", meta.className)}>
-            <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", meta.dot)} />
-            {meta.label}
-        </span>
-    )
-}
-
-export async function PaymentList({ status }: { status?: string | string[] }) {
-    let payments: any[] = []
-    try {
-        payments = await getPayments(status)
-    } catch (e) {
-        console.error("Failed to fetch payments", e)
-    }
-
-    return (
-        <div className="flex flex-col gap-8 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-[2.5rem] my-8 border border-slate-100/50 relative overflow-hidden">
-            {/* Background Decoration */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-50/20 rounded-full blur-3xl -mr-64 -mt-64 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-50/30 rounded-full blur-3xl -ml-48 -mb-48 pointer-events-none" />
-            
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100 relative z-10">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <CreditCard className="w-6 h-6 text-emerald-600" strokeWidth={3} />
-                        Financial Ledger
-                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[12px] font-bold rounded-full border border-emerald-100 uppercase tracking-widest">
-                            {payments.length} Transactions
-                        </span>
-                    </h1>
-                    <p className="text-slate-500 font-medium text-[14px] mt-1">Real-time monitoring of all cargo-related financial activities</p>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Live Feed
-                    </span>
-                    <button className="flex items-center gap-2.5 px-6 h-12 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 text-[12px] font-black uppercase tracking-widest border-none">
-                        <Download size={16} strokeWidth={2.5} />
-                        Export Data
-                    </button>
-                </div>
-            </div>
-
-            {/* Toolbar Section */}
-            <div className="flex flex-col gap-4 bg-slate-50/50 p-5 rounded-[2rem] border border-slate-100 shadow-sm relative z-10">
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="relative group min-w-[320px] flex-1">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-                        <input 
-                            type="text"
-                            placeholder="Search by reference, cargo ID, or method..."
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-slate-700 font-bold text-[14px] shadow-sm placeholder:text-slate-300"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
-                        <Calendar size={14} className="text-slate-400" />
-                        <span className="text-[12px] font-black text-slate-700 uppercase tracking-tight">Filtering by: Last 30 Days</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Table Area */}
-            <div className="relative z-10 overflow-hidden bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-100/50 flex-1">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] w-[220px]">Reference</th>
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Asset Details</th>
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Volume (TZS)</th>
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Method</th>
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Network Status</th>
-                                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Synchronization</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {payments.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="py-32 text-center">
-                                        <div className="flex flex-col items-center gap-6">
-                                            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-sm">
-                                                <CreditCard size={32} strokeWidth={1.5} className="text-slate-300" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-xl font-black text-slate-900">Void Transaction History</p>
-                                                <p className="text-[14px] text-slate-400 font-bold">Awaiting initial financial handshake from the network.</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                payments.map((payment: any) => (
-                                    <tr key={payment.id} className="group hover:bg-blue-50/30 transition-all duration-300">
-                                        {/* Reference */}
-                                        <td className="py-5 px-6 whitespace-nowrap">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                <span className="font-mono text-[11px] font-black text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                                                    {payment.transactionReference || `#${payment.id.slice(0, 8).toUpperCase()}`}
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                        {/* Cargo Details */}
-                                        <td className="py-5 px-6">
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2 text-[14px] font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                    <Package size={14} className="text-slate-300 shrink-0" />
-                                                    {payment.cargo?.cargoType || "Logistics Asset"}
-                                                </div>
-                                                {payment.cargo?.fromAddress && (
-                                                    <div className="flex items-center gap-2 text-[11px] text-slate-400 font-black uppercase tracking-widest pl-5">
-                                                        <span>{payment.cargo.fromAddress.split(',')[0]}</span>
-                                                        <ArrowRight size={10} className="text-slate-200" strokeWidth={3} />
-                                                        <span>{payment.cargo.toAddress.split(',')[0]}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-
-                                        {/* Amount */}
-                                        <td className="py-5 px-6 whitespace-nowrap">
-                                            <span className="text-[15px] font-black text-slate-900 tabular-nums">
-                                                {payment.amount.toLocaleString()}
-                                            </span>
-                                        </td>
-
-                                        {/* Method */}
-                                        <td className="py-5 px-6 whitespace-nowrap">
-                                            {payment.paymentMethod ? (
-                                                <span className="text-[11px] font-black text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 uppercase tracking-widest">
-                                                    {payment.paymentMethod}
-                                                </span>
-                                            ) : (
-                                                <span className="text-slate-200 text-[11px] font-black">—</span>
-                                            )}
-                                        </td>
-
-                                        {/* Status */}
-                                        <td className="py-5 px-6 whitespace-nowrap">
-                                            <StatusBadge status={payment.status} />
-                                        </td>
-
-                                        {/* Date */}
-                                        <td className="py-5 px-6 text-right whitespace-nowrap">
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className="text-[14px] font-black text-slate-900 tabular-nums">
-                                                    {new Date(payment.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                                                </span>
-                                                <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest tabular-nums">
-                                                    {new Date(payment.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  const columns = [
+    {
+      header: "Transaction",
+      accessor: (pay: any) => (
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg",
+              pay.status === "SUCCESS"
+                ? "bg-slate-900"
+                : "bg-slate-200 grayscale",
+            )}
+          >
+            <FileText className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-slate-900 text-[14px] uppercase">
+              #
+              {pay.parcel?.id?.slice(-8).toUpperCase() ||
+                pay.transactionReference?.slice(-8).toUpperCase() ||
+                "---"}
+            </span>
+            <span className="text-[10px] text-slate-400 uppercase mt-1">
+              Reference
+            </span>
+          </div>
         </div>
-    )
+      ),
+    },
+    {
+      header: "Reference ID",
+      accessor: (pay: any) => (
+        <span className="text-[12px] font-bold text-blue-600">
+          {pay.transactionReference?.slice(0, 10) || "PENDING"}
+        </span>
+      ),
+    },
+    {
+      header: "Status",
+      accessor: (pay: any) => {
+        const isSuccess = pay.status === "SUCCESS" || pay.status === "PAID";
+        return (
+          <div
+            className={cn(
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border",
+              isSuccess
+                ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+                : "bg-amber-50 border-amber-100 text-amber-600",
+            )}
+          >
+            <Zap
+              className={cn(
+                "w-3 h-3",
+                isSuccess ? "fill-emerald-600" : "fill-amber-500",
+              )}
+            />
+            <span className="text-[10px] font-bold uppercase">
+              {isSuccess ? "Paid" : "Pending"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Amount",
+      accessor: (pay: any) => (
+        <div className="flex items-center gap-1 text-slate-900">
+          <Wallet className="w-4 h-4 text-slate-400" />
+          <span className="text-[14px] font-black">
+            TSh {pay.amount.toLocaleString()}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: "Date",
+      accessor: (pay: any) => (
+        <div className="flex flex-col text-right pr-4">
+          <span className="text-[12px] font-bold text-slate-900">
+            {format(new Date(pay.createdAt || Date.now()), "HH:mm")}
+          </span>
+          <span className="text-[10px] text-slate-400 uppercase">
+            {format(new Date(pay.createdAt || Date.now()), "MMM dd, yyyy")}
+          </span>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-12 py-4 animate-in fade-in duration-700">
+      {/* Stats Overview Tab */}
+      {tab.toLowerCase() === "overview" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                label: "Total Paid",
+                count: formatAmount(totalPaidAmount),
+                icon: CheckCircle2,
+                color: "text-emerald-600",
+                bg: "bg-emerald-50",
+              },
+              {
+                label: "Pending Payments",
+                count: formatAmount(totalPendingAmount),
+                icon: ArrowUpRight,
+                color: "text-blue-600",
+                bg: "bg-blue-50",
+              },
+              {
+                label: "Success Rate",
+                count: successRate,
+                icon: TrendingUp,
+                color: "text-indigo-600",
+                bg: "bg-indigo-50",
+              },
+              {
+                label: "Total Transactions",
+                count: rawPayments.length,
+                icon: Activity,
+                color: "text-slate-600",
+                bg: "bg-slate-50",
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={cn("p-2.5 rounded-[10px]", stat.bg)}>
+                    <stat.icon className={cn("w-5 h-5", stat.color)} />
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    {stat.label}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-slate-900 tabular-nums">
+                    {stat.count}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* How It Works Section */}
+            <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[400px]">
+              <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
+
+              <div className="relative z-10">
+                <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
+                  <Wallet className="h-6 w-6 text-blue-400" strokeWidth={2.5} />
+                </div>
+                <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">
+                  Payment Flow
+                </h3>
+                <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80 mb-6">
+                  Payments are processed through integrated gateways in
+                  real-time. Successful transactions automatically update parcel
+                  statuses.
+                </p>
+              </div>
+
+              <div className="relative z-10 space-y-3">
+                <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                      Total Verified
+                    </span>
+                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
+                      Paid Volume
+                    </span>
+                  </div>
+                  <span className="text-[14px] font-black text-emerald-400 tabular-nums">
+                    {formatAmount(totalPaidAmount)}
+                  </span>
+                </div>
+                <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                      Pending
+                    </span>
+                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
+                      Awaiting
+                    </span>
+                  </div>
+                  <span className="text-[14px] font-black text-amber-400 tabular-nums">
+                    {formatAmount(totalPendingAmount)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Placeholder for Graphs or other analytical tools */}
+            <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                <TrendingUp className="w-8 h-8 text-blue-500" />
+              </div>
+              <h4 className="text-[16px] font-black text-slate-900 mb-2">
+                Revenue Activity Graph
+              </h4>
+              <p className="text-[13px] text-slate-400 max-w-md">
+                Detailed graphical analysis of payment inflows, transaction
+                volumes, and revenue trends will be populated here as
+                transactions occur.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Table Tab */}
+      {tab.toLowerCase() === "all" && (
+        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
+          <DataTable
+            title="Payments"
+            data={rawPayments}
+            columns={columns}
+            isLoading={isLoading}
+            hideInternalSearch={true}
+          />
+        </div>
+      )}
+    </div>
+  );
 }

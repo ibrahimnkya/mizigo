@@ -7,229 +7,245 @@ import 'package:provider/provider.dart';
 import '../../providers/printer_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/operation_model.dart';
+import '../../widgets/common/shimmer_utils.dart';
 
-class OperationsHubScreen extends StatelessWidget {
+class OperationsHubScreen extends StatefulWidget {
   const OperationsHubScreen({super.key});
+
+  @override
+  State<OperationsHubScreen> createState() => _OperationsHubScreenState();
+}
+
+class _OperationsHubScreenState extends State<OperationsHubScreen> {
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.cBlackMain,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Operations',
-                          style: GoogleFonts.outfit(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Gap(4),
-                        Text(
-                          'Manage your daily cargo workflows',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: const Color(0xFF94A3B8),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        // Printer Status Icon — comes first
-                        Consumer<PrinterProvider>(
-                          builder: (context, printer, _) => GestureDetector(
-                            onTap: () => context.push('/profile/printer-settings'),
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E293B),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        child: ShimmerLoading(
+          isLoading: _loading,
+          child: _loading 
+            ? const _HubSkeleton()
+            : CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Operations',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  const HugeIcon(
-                                    icon: HugeIcons.strokeRoundedPrinter,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  Positioned(
-                                    right: 10,
-                                    top: 10,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: printer.isConnected
-                                            ? const Color(0xFF10B981)
-                                            : printer.isLoading
-                                                ? const Color(0xFFF59E0B)
-                                                : const Color(0xFFEF4444),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
-                                      ),
+                              const Gap(4),
+                              Text(
+                                'Manage your daily parcel workflows',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: const Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Consumer<PrinterProvider>(
+                                builder: (context, printer, _) => GestureDetector(
+                                  onTap: () => context.push('/profile/printer-settings'),
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E293B),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                                    ),
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        const HugeIcon(
+                                          icon: HugeIcons.strokeRoundedPrinter,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        Positioned(
+                                          right: 10,
+                                          top: 10,
+                                          child: Container(
+                                            width: 8,
+                                            height: 8,
+                                            decoration: BoxDecoration(
+                                              color: printer.isConnected
+                                                  ? const Color(0xFF10B981)
+                                                  : printer.isLoading
+                                                      ? const Color(0xFFF59E0B)
+                                                      : const Color(0xFFEF4444),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                        const Gap(8),
-                        // Help Icon — same circular style as home screen
-                        GestureDetector(
-                          onTap: () => _showHubHelp(context),
-                          child: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                            ),
-                            child: const Center(
-                              child: HugeIcon(
-                                icon: HugeIcons.strokeRoundedHelpCircle,
-                                color: Colors.white,
-                                size: 20,
+                              const Gap(8),
+                              GestureDetector(
+                                onTap: () => _showHubHelp(context),
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1E293B),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                                  ),
+                                  child: const Center(
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedHelpCircle,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
 
-            // Main Actions Grid
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.85,
-                ),
-                delegate: SliverChildListDelegate([
-                  _hubCard(
-                    context,
-                    title: 'Receive Cargo',
-                    subtitle: 'Register incoming parcels',
-                    icon: HugeIcons.strokeRoundedPackageReceive,
-                    color: const Color(0xFF3B82F6),
-                    onTap: () => context.push('/receive-cargo'),
-                  ),
-                  _hubCard(
-                    context,
-                    title: 'Send to Station',
-                    subtitle: 'Dispatch to next hub',
-                    icon: HugeIcons.strokeRoundedSpeedTrain02,
-                    color: const Color(0xFFF59E0B),
-                    onTap: () => context.push('/send-cargo'),
-                  ),
-                  _hubCard(
-                    context,
-                    title: 'Deliver',
-                    subtitle: 'Hand over to customer',
-                    icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-                    color: const Color(0xFF10B981),
-                    onTap: () => context.push('/deliver-cargo'),
-                  ),
-                  _hubCard(
-                    context,
-                    title: 'Quick Scan',
-                    subtitle: 'Scan tracking code',
-                    icon: HugeIcons.strokeRoundedQrCode01,
-                    color: const Color(0xFF6366F1),
-                    onTap: () => context.push('/scanner', extra: ParcelOperation.view),
-                  ),
-                ]),
-              ),
-            ),
-
-            // Secondary Actions / Stats Placeholder
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: GestureDetector(
-                  onTap: () => context.push('/bookings', extra: {'filter': 'today'}),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                        const Color(0xFF06B6D4).withValues(alpha: 0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.85,
+                      ),
+                      delegate: SliverChildListDelegate([
+                        _hubCard(
+                          context,
+                          title: 'Receive Parcel',
+                          subtitle: 'Register incoming items',
+                          icon: HugeIcons.strokeRoundedPackageReceive,
                           color: const Color(0xFF3B82F6),
-                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => context.push('/receive-parcel'),
                         ),
-                        child: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedChartBarLine,
-                          color: Colors.white,
-                          size: 24,
+                        _hubCard(
+                          context,
+                          title: 'Dispatch Parcel',
+                          subtitle: 'Send to next terminal',
+                          icon: HugeIcons.strokeRoundedSpeedTrain02,
+                          color: const Color(0xFFF59E0B),
+                          onTap: () => context.push('/send-parcel'),
                         ),
-                      ),
-                      const Gap(16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Daily Performance',
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              'You have processed 12 parcels today',
-                              style: GoogleFonts.inter(
-                                color: const Color(0xFF94A3B8),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
+                        _hubCard(
+                          context,
+                          title: 'Offload Parcel',
+                          subtitle: 'Mark as arrived at station',
+                          icon: HugeIcons.strokeRoundedPackageReceive,
+                          color: const Color(0xFF6366F1),
+                          onTap: () => context.push('/offload-parcel'),
                         ),
-                      ),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white24),
-                    ],
+                        _hubCard(
+                          context,
+                          title: 'Deliver Parcel',
+                          subtitle: 'Hand over to customer',
+                          icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                          color: const Color(0xFF10B981),
+                          onTap: () => context.push('/deliver-parcel'),
+                        ),
+                      ]),
+                    ),
                   ),
-                ),
-                ),
+
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: GestureDetector(
+                        onTap: () => context.push('/bookings', extra: {'filter': 'today'}),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                                const Color(0xFF06B6D4).withValues(alpha: 0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF3B82F6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedChartBarLine,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const Gap(16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Overall Performance',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      'You have processed 120 parcels overall',
+                                      style: GoogleFonts.inter(
+                                        color: const Color(0xFF94A3B8),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded, color: Colors.white24),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
         ),
       ),
     );
@@ -312,7 +328,7 @@ class OperationsHubScreen extends StatelessWidget {
             ),
             const Gap(8),
             Text(
-              'Learn how to manage cargo efficiently.',
+              'Learn how to manage parcel efficiently.',
               style: GoogleFonts.inter(color: Colors.white38, fontSize: 14),
             ),
             const Gap(32),
@@ -320,13 +336,13 @@ class OperationsHubScreen extends StatelessWidget {
               child: ListView(
                 children: [
                   _helpItem(
-                    'Receiving Cargo',
+                    'Receiving Parcel',
                     'Scan or enter Tracking ID to register incoming parcels to your station.',
                     HugeIcons.strokeRoundedPackageReceive,
                   ),
                   _helpItem(
-                    'Delivering Cargo',
-                    'Verify the receiver and mark the cargo as delivered to complete the journey.',
+                    'Delivering Parcel',
+                    'Verify the receiver and mark the parcel as delivered to complete the journey.',
                     HugeIcons.strokeRoundedDeliveryTruck01,
                   ),
                   _helpItem(
@@ -395,6 +411,54 @@ class OperationsHubScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _HubSkeleton extends StatelessWidget {
+  const _HubSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(24.0),
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BoxSkeleton(width: 180, height: 40),
+                const Gap(8),
+                const BoxSkeleton(width: 220, height: 16),
+              ],
+            ),
+            Row(
+              children: [
+                const CircleSkeleton(size: 48),
+                const Gap(8),
+                const CircleSkeleton(size: 48),
+              ],
+            ),
+          ],
+        ),
+        const Gap(32),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.85,
+          children: List.generate(4, (index) => const BoxSkeleton(borderRadius: 24)),
+        ),
+        const Gap(32),
+        const BoxSkeleton(width: 180, height: 22),
+        const Gap(16),
+        const BoxSkeleton(height: 100, borderRadius: 24),
+      ],
     );
   }
 }

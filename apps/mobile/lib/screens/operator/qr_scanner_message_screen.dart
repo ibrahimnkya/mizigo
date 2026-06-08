@@ -18,7 +18,7 @@ class QrScannerMessageScreen extends StatelessWidget {
     final scannerProvider = context.watch<ScannerProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final operation = scannerProvider.currentOperation;
-    final cargo = scannerProvider.scannedCargo;
+    final parcel = scannerProvider.scannedParcel;
     final error = scannerProvider.error;
 
     return Scaffold(
@@ -74,7 +74,7 @@ class QrScannerMessageScreen extends StatelessWidget {
               const Gap(48),
 
               // Detail Card (if success)
-              if (success && cargo != null)
+              if (success && parcel != null)
                 NeoContainer(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -82,21 +82,21 @@ class QrScannerMessageScreen extends StatelessWidget {
                       _buildDetailRow(
                         isDark, 
                         'Tracking ID', 
-                        cargo.id, 
+                        parcel.id, 
                         HugeIcons.strokeRoundedQrCode
                       ),
                       const Divider(height: 32),
                       _buildDetailRow(
                         isDark, 
                         'Receiver', 
-                        cargo.receiverName, 
+                        parcel.receiverName, 
                         HugeIcons.strokeRoundedUser
                       ),
                       const Divider(height: 32),
                       _buildDetailRow(
                         isDark, 
                         'Destination', 
-                        cargo.toAddress, 
+                        parcel.toAddress, 
                         HugeIcons.strokeRoundedLocation01
                       ),
                     ],

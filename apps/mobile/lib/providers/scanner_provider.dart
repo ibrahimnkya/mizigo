@@ -1,22 +1,22 @@
 import 'package:flutter/foundation.dart';
-import '../models/cargo_model.dart';
+import '../models/parcel_model.dart';
 import '../models/operation_model.dart';
 import '../services/api_service.dart';
 
 class ScannerProvider extends ChangeNotifier {
   bool _loading = false;
   String? _error;
-  CargoModel? _scannedCargo;
+  ParcelModel? _scannedParcel;
   ParcelOperation? _currentOperation;
 
   bool get loading => _loading;
   String? get error => _error;
-  CargoModel? get scannedCargo => _scannedCargo;
+  ParcelModel? get scannedParcel => _scannedParcel;
   ParcelOperation? get currentOperation => _currentOperation;
 
   void setOperation(ParcelOperation operation) {
     _currentOperation = operation;
-    _scannedCargo = null;
+    _scannedParcel = null;
     _error = null;
     notifyListeners();
   }
@@ -24,20 +24,20 @@ class ScannerProvider extends ChangeNotifier {
   Future<bool> processCode(String code) async {
     _loading = true;
     _error = null;
-    _scannedCargo = null;
+    _scannedParcel = null;
     notifyListeners();
 
     try {
-      // 1. Search for cargo
-      final results = await ApiService.searchCargo(code);
+      // 1. Search for parcel
+      final results = await ApiService.searchParcel(code);
       if (results.isEmpty) {
-        _error = 'No cargo found with this ID or Tracking number.';
+        _error = 'No parcel found with this ID or Tracking number.';
         return false;
       }
 
       // 2. Take the first match
-      final cargo = CargoModel.fromJson(results.first);
-      _scannedCargo = cargo;
+      final parcel = ParcelModel.fromJson(results.first);
+      _scannedParcel = parcel;
 
       // 3. Perform operation-specific logic if needed
       // For now, we just fetch it. The actual state change (Dispatch/Offload/Deliver)
@@ -63,10 +63,10 @@ class ScannerProvider extends ChangeNotifier {
       }
 
       if (newStatus != null) {
-        await ApiService.updateCargoStatus(cargo.id, newStatus);
-        // Refresh scanned cargo with new status
-        final updatedJson = await ApiService.getCargoById(cargo.id);
-        _scannedCargo = CargoModel.fromJson(updatedJson);
+        await ApiService.updateParcelStatus(parcel.id, newStatus);
+        // Refresh scanned parcel with new status
+        final updatedJson = await ApiService.getParcelById(parcel.id);
+        _scannedParcel = ParcelModel.fromJson(updatedJson);
       }
 
       return true;
@@ -83,7 +83,7 @@ class ScannerProvider extends ChangeNotifier {
   }
 
   void reset() {
-    _scannedCargo = null;
+    _scannedParcel = null;
     _error = null;
     _loading = false;
     notifyListeners();

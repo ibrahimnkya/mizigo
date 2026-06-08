@@ -3,41 +3,42 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import '../../models/cargo_model.dart';
-import '../../providers/cargo_provider.dart';
+import '../../models/parcel_model.dart';
+import '../../providers/parcel_provider.dart';
 import '../../widgets/home/premium_ui_components.dart';
+import '../../widgets/common/shimmer_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
-Color _statusBg(CargoStatus status, bool isDark) {
+Color _statusBg(ParcelStatus status, bool isDark) {
   return switch (status) {
-    CargoStatus.delivered =>
+    ParcelStatus.delivered =>
       isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4),
-    CargoStatus.inTransit || CargoStatus.atStation =>
+    ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded =>
       isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
-    CargoStatus.canceled =>
+    ParcelStatus.canceled =>
       isDark ? const Color(0xFF3B0764) : const Color(0xFFFFF1F2),
-    CargoStatus.received =>
+    ParcelStatus.received =>
       isDark ? const Color(0xFF1C1917) : const Color(0xFFF8FAFC),
   };
 }
 
-Color _statusFg(CargoStatus status) {
+Color _statusFg(ParcelStatus status) {
   return switch (status) {
-    CargoStatus.delivered => const Color(0xFF16A34A),
-    CargoStatus.inTransit || CargoStatus.atStation => const Color(0xFF2563EB),
-    CargoStatus.canceled => const Color(0xFFE11D48),
-    CargoStatus.received => const Color(0xFF64748B),
+    ParcelStatus.delivered => const Color(0xFF16A34A),
+    ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFF2563EB),
+    ParcelStatus.canceled => const Color(0xFFE11D48),
+    ParcelStatus.received => const Color(0xFF64748B),
   };
 }
 
-String _statusLabel(CargoStatus status) => status.displayLabel;
+String _statusLabel(ParcelStatus status) => status.displayLabel;
 
 // ─── Recent Bookings Screen ──────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
       duration: const Duration(milliseconds: 600),
     )..forward();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CargoProvider>().fetchMyCargo();
+      context.read<ParcelProvider>().fetchMyParcels();
     });
   }
 
@@ -73,14 +74,14 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
     super.dispose();
   }
 
-  List<CargoModel> _applyFilter(List<CargoModel> all) {
+  List<ParcelModel> _applyFilter(List<ParcelModel> all) {
     if (_filter == 'All') return all;
     return all.where((c) {
-      if (_filter == 'Received') return c.status == CargoStatus.received;
-      if (_filter == 'Delivered') return c.status == CargoStatus.delivered;
-      if (_filter == 'In Transit') return c.status == CargoStatus.inTransit;
-      if (_filter == 'At Station') return c.status == CargoStatus.atStation;
-      if (_filter == 'Canceled') return c.status == CargoStatus.canceled;
+      if (_filter == 'Received') return c.status == ParcelStatus.received;
+      if (_filter == 'Delivered') return c.status == ParcelStatus.delivered;
+      if (_filter == 'In Transit') return c.status == ParcelStatus.inTransit;
+      if (_filter == 'At Station') return c.status == ParcelStatus.atStation;
+      if (_filter == 'Canceled') return c.status == ParcelStatus.canceled;
       return true;
     }).toList();
   }
@@ -112,9 +113,9 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
         ),
         centerTitle: false,
         actions: [
-          Consumer<CargoProvider>(
+          Consumer<ParcelProvider>(
             builder: (context, provider, _) {
-              if (provider.cargo.isEmpty) return const SizedBox.shrink();
+              if (provider.parcels.isEmpty) return const SizedBox.shrink();
               return Container(
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -124,7 +125,7 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
                   border: Border.all(color: theme.primaryColor.withValues(alpha: 0.2)),
                 ),
                 child: Text(
-                  '${provider.cargo.length} Orders',
+                  '${provider.parcels.length} Orders',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -136,16 +137,19 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
           ),
         ],
       ),
-      body: Consumer<CargoProvider>(
+      body: Consumer<ParcelProvider>(
         builder: (context, provider, _) {
-          if (provider.loading) {
-            return const Center(child: CircularProgressIndicator());
+          if (provider.loading && provider.parcels.isEmpty) {
+            return ShimmerLoading(
+              isLoading: true,
+              child: const ListSkeleton(height: 140, padding: 20),
+            );
           }
           if (provider.error != null) {
-            return _buildError(provider.error!, () => provider.fetchMyCargo());
+            return _buildError(provider.error!, () => provider.fetchMyParcels());
           }
 
-          final all = provider.cargo.take(20).toList();
+          final all = provider.parcels.take(20).toList();
           final filtered = _applyFilter(all);
 
           return Column(
@@ -221,22 +225,22 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
                 child: filtered.isEmpty
                     ? _buildEmpty()
                     : RefreshIndicator(
-                        onRefresh: () => provider.fetchMyCargo(),
+                        onRefresh: () => provider.fetchMyParcels(),
                         child: ListView.builder(
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
-                            final cargo = filtered[index];
+                            final parcel = filtered[index];
                             return _buildStaggered(
                               index,
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 14),
-                                child: _BookingListCard(
-                                  cargo: cargo,
+                                child: BookingListCard(
+                                  parcel: parcel,
                                   isDark: isDark,
                                   onTap: () => context.push(
-                                    '/bookings/recent/${cargo.id}',
-                                    extra: cargo,
+                                    '/bookings/recent/${parcel.id}',
+                                    extra: parcel,
                                   ),
                                 ),
                               ),
@@ -323,13 +327,13 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
 
 // ─── Booking List Card (Confirm-Order minimized style) ───────────────────────
 
-class _BookingListCard extends StatelessWidget {
-  final CargoModel cargo;
+class BookingListCard extends StatelessWidget {
+  final ParcelModel parcel;
   final bool isDark;
   final VoidCallback onTap;
 
-  const _BookingListCard(
-      {required this.cargo, required this.isDark, required this.onTap});
+  const BookingListCard(
+      {required this.parcel, required this.isDark, required this.onTap});
 
   String _short(String addr) {
     final parts = addr.split(',');
@@ -338,7 +342,7 @@ class _BookingListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fgColor = _statusFg(cargo.status);
+    final fgColor = _statusFg(parcel.status);
 
     return GestureDetector(
       onTap: onTap,
@@ -356,7 +360,7 @@ class _BookingListCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // ── Header: icon · cargo type / id · status badge ──
+            // ── Header: icon · parcel type / id · status badge ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Row(
@@ -366,7 +370,7 @@ class _BookingListCard extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _statusBg(cargo.status, isDark),
+                      color: _statusBg(parcel.status, isDark),
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -382,7 +386,7 @@ class _BookingListCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          cargo.cargoType.isEmpty ? cargo.serviceType : cargo.cargoType,
+                          parcel.parcelType.isEmpty ? parcel.serviceType : parcel.parcelType,
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -390,7 +394,7 @@ class _BookingListCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '#${cargo.id.toUpperCase().substring(0, cargo.id.length.clamp(0, 8))}',
+                          '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -407,11 +411,11 @@ class _BookingListCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: _statusBg(cargo.status, isDark),
+                          color: _statusBg(parcel.status, isDark),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _statusLabel(cargo.status),
+                          _statusLabel(parcel.status),
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -421,7 +425,7 @@ class _BookingListCard extends StatelessWidget {
                       ),
                       const Gap(4),
                       Text(
-                        cargo.serviceType,
+                        parcel.serviceType,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
@@ -457,7 +461,7 @@ class _BookingListCard extends StatelessWidget {
                             gradient: LinearGradient(
                               colors: [
                                 const Color(0xFF3B82F6),
-                                cargo.status == CargoStatus.canceled
+                                parcel.status == ParcelStatus.canceled
                                     ? const Color(0xFFE11D48)
                                     : const Color(0xFF10B981),
                               ],
@@ -472,7 +476,7 @@ class _BookingListCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: isDark ? const Color(0xFF1E293B) : Colors.white,
                           border: Border.all(
-                            color: cargo.status == CargoStatus.canceled
+                            color: parcel.status == ParcelStatus.canceled
                                 ? const Color(0xFFE11D48)
                                 : const Color(0xFF10B981),
                             width: 4,
@@ -491,7 +495,7 @@ class _BookingListCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              DateFormat('HH:mm').format(cargo.createdAt),
+                              intl.DateFormat('HH:mm').format(parcel.createdAt),
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -499,7 +503,7 @@ class _BookingListCard extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              _short(cargo.fromAddress),
+                              _short(parcel.fromAddress),
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -512,7 +516,7 @@ class _BookingListCard extends StatelessWidget {
                         ),
                       ),
                       // Price pill
-                      if (cargo.amount != null)
+                      if (parcel.amount != null)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
@@ -523,7 +527,7 @@ class _BookingListCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'TZS ${NumberFormat('#,###').format(cargo.amount!.toInt())}',
+                            'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -536,7 +540,7 @@ class _BookingListCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              DateFormat('d MMM').format(cargo.createdAt),
+                              intl.DateFormat('d MMM').format(parcel.createdAt),
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -544,7 +548,7 @@ class _BookingListCard extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              _short(cargo.toAddress),
+                              _short(parcel.toAddress),
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -582,14 +586,14 @@ class _BookingListCard extends StatelessWidget {
                       color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
                   const Gap(6),
                   Text(
-                    cargo.receiverName,
+                    parcel.receiverName,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: isDark ? Colors.white54 : const Color(0xFF64748B),
                     ),
                   ),
-                  if (cargo.receiverPays) ...[
+                  if (parcel.receiverPays) ...[
                     const Gap(6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -634,8 +638,8 @@ class _BookingListCard extends StatelessWidget {
 // ─── Booking Detail Screen ────────────────────────────────────────────────────
 
 class BookingDetailScreen extends StatelessWidget {
-  final CargoModel cargo;
-  const BookingDetailScreen({super.key, required this.cargo});
+  final ParcelModel parcel;
+  const BookingDetailScreen({super.key, required this.parcel});
 
   @override
   Widget build(BuildContext context) {
@@ -687,13 +691,13 @@ class BookingDetailScreen extends StatelessWidget {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: _statusBg(cargo.status, isDark),
+                            color: _statusBg(parcel.status, isDark),
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: Center(
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedPackage,
-                              color: _statusFg(cargo.status),
+                              color: _statusFg(parcel.status),
                               size: 32,
                             ),
                           ),
@@ -705,9 +709,9 @@ class BookingDetailScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                cargo.cargoType.isEmpty
-                                    ? cargo.serviceType
-                                    : cargo.cargoType,
+                                parcel.parcelType.isEmpty
+                                    ? parcel.serviceType
+                                    : parcel.parcelType,
                                 style: GoogleFonts.outfit(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
@@ -715,7 +719,7 @@ class BookingDetailScreen extends StatelessWidget {
                               ),
                               const Gap(4),
                               Text(
-                                '#${cargo.id.toUpperCase().substring(0, cargo.id.length.clamp(0, 10))}',
+                                '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 10))}',
                                 style: GoogleFonts.inter(
                                     fontSize: 13,
                                     color: const Color(0xFF94A3B8)),
@@ -725,15 +729,15 @@ class BookingDetailScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _statusBg(cargo.status, isDark),
+                                  color: _statusBg(parcel.status, isDark),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  _statusLabel(cargo.status),
+                                  _statusLabel(parcel.status),
                                   style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
-                                      color: _statusFg(cargo.status)),
+                                      color: _statusFg(parcel.status)),
                                 ),
                               ),
                             ],
@@ -789,9 +793,9 @@ class BookingDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _RouteLabel('From', cargo.fromAddress, theme),
+                                _RouteLabel('From', parcel.fromAddress, theme),
                                 const Gap(16),
-                                _RouteLabel('To', cargo.toAddress, theme),
+                                _RouteLabel('To', parcel.toAddress, theme),
                               ],
                             ),
                           ),
@@ -810,20 +814,20 @@ class BookingDetailScreen extends StatelessWidget {
                     children: [
                       _sectionTitle('Shipment Details', isDark),
                       const Gap(12),
-                      _DetailRow('Cargo Type', cargo.cargoType, theme),
-                      _DetailRow('Package Size', cargo.cargoSize, theme),
-                      _DetailRow('Service', cargo.serviceType, theme),
-                      _DetailRow('Pickup Type', cargo.pickupType, theme),
-                      _DetailRow('Receiver', cargo.receiverName, theme),
-                      _DetailRow('Receiver Phone', cargo.receiverPhone, theme),
+                      _DetailRow('Parcel Type', parcel.parcelType, theme),
+                      _DetailRow('Package Size', parcel.parcelSize, theme),
+                      _DetailRow('Service', parcel.serviceType, theme),
+                      _DetailRow('Pickup Type', parcel.pickupType, theme),
+                      _DetailRow('Receiver', parcel.receiverName, theme),
+                      _DetailRow('Receiver Phone', parcel.receiverPhone, theme),
                       _DetailRow(
                           'Payment By',
-                          cargo.receiverPays ? 'Receiver' : 'Sender',
+                          parcel.receiverPays ? 'Receiver' : 'Sender',
                           theme),
                       _DetailRow(
                           'Booked',
-                          DateFormat('d MMM yyyy · HH:mm')
-                              .format(cargo.createdAt),
+                          intl.DateFormat('d MMM yyyy · HH:mm')
+                              .format(parcel.createdAt),
                           theme),
                     ],
                   ),
@@ -831,7 +835,7 @@ class BookingDetailScreen extends StatelessWidget {
                 const Gap(16),
 
                 // Payment Summary
-                if (cargo.amount != null)
+                if (parcel.amount != null)
                   _InfoCard(
                     isDark: isDark,
                     child: Column(
@@ -839,20 +843,20 @@ class BookingDetailScreen extends StatelessWidget {
                       children: [
                         _sectionTitle('Payment', isDark),
                         const Gap(12),
-                        if (cargo.payment != null) ...[
+                        if (parcel.payment != null) ...[
                           _DetailRow(
                               'Method',
-                              cargo.payment!.paymentMethod ?? '—',
+                              parcel.payment!.paymentMethod ?? '—',
                               theme),
                           _DetailRow(
                               'Transaction',
-                              cargo.payment!.transactionReference ?? 'Pending',
+                              parcel.payment!.transactionReference ?? 'Pending',
                               theme),
                           _DetailRow(
                               'Paid On',
-                              cargo.payment!.paidAt != null
-                                  ? DateFormat('d MMM yyyy')
-                                      .format(cargo.payment!.paidAt!)
+                              parcel.payment!.paidAt != null
+                                  ? intl.DateFormat('d MMM yyyy')
+                                      .format(parcel.payment!.paidAt!)
                                   : '—',
                               theme),
                           const Gap(8),
@@ -868,7 +872,7 @@ class BookingDetailScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                     color: const Color(0xFF64748B))),
                             Text(
-                                'TZS ${NumberFormat('#,###').format(cargo.amount!.toInt())}',
+                                'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
                                 style: GoogleFonts.outfit(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
@@ -880,7 +884,7 @@ class BookingDetailScreen extends StatelessWidget {
                     ),
                   ),
 
-                if (cargo.amount != null) const Gap(16),
+                if (parcel.amount != null) const Gap(16),
 
                 // Timeline
                 _InfoCard(
@@ -892,32 +896,32 @@ class BookingDetailScreen extends StatelessWidget {
                       const Gap(16),
                       _TimelineEntry(
                           label: 'Received',
-                          time: DateFormat('d MMM · HH:mm')
-                              .format(cargo.createdAt),
+                          time: intl.DateFormat('d MMM · HH:mm')
+                              .format(parcel.createdAt),
                           done: true,
                           theme: theme),
                       _TimelineEntry(
                           label: 'In Transit',
-                          time: DateFormat('d MMM').format(cargo.updatedAt),
-                          done: cargo.status != CargoStatus.received &&
-                              cargo.status != CargoStatus.canceled,
+                          time: intl.DateFormat('d MMM').format(parcel.updatedAt),
+                          done: parcel.status != ParcelStatus.received &&
+                              parcel.status != ParcelStatus.canceled,
                           theme: theme),
                       _TimelineEntry(
                           label: 'At Station',
-                          time: DateFormat('d MMM').format(cargo.updatedAt),
-                          done: cargo.status == CargoStatus.atStation ||
-                              cargo.status == CargoStatus.delivered,
+                          time: intl.DateFormat('d MMM').format(parcel.updatedAt),
+                          done: parcel.status == ParcelStatus.atStation ||
+                              parcel.status == ParcelStatus.delivered,
                           theme: theme),
                       _TimelineEntry(
-                          label: cargo.status == CargoStatus.canceled
+                          label: parcel.status == ParcelStatus.canceled
                               ? 'Canceled'
                               : 'Delivered',
-                          time: cargo.status == CargoStatus.delivered
-                              ? DateFormat('d MMM').format(cargo.updatedAt)
+                          time: parcel.status == ParcelStatus.delivered
+                              ? intl.DateFormat('d MMM').format(parcel.updatedAt)
                               : 'Pending',
-                          done: cargo.status == CargoStatus.delivered,
+                          done: parcel.status == ParcelStatus.delivered,
                           isLast: true,
-                          isFailed: cargo.status == CargoStatus.canceled,
+                          isFailed: parcel.status == ParcelStatus.canceled,
                           theme: theme),
                     ],
                   ),
@@ -940,7 +944,7 @@ class BookingDetailScreen extends StatelessWidget {
                     Expanded(
                       child: _ActionChip(
                         label: 'Share Info',
-                        icon: HugeIcons.strokeRoundedShare08,
+                        icon: HugeIcons.strokeRoundedUser,
                         onTap: () => _shareBooking(context),
                         isDark: isDark,
                       ),
@@ -950,7 +954,7 @@ class BookingDetailScreen extends StatelessWidget {
                           label: 'Receipt',
                           icon: HugeIcons.strokeRoundedInvoice01,
                           onTap: () =>
-                              context.push('/cargo/${cargo.id}/receipt'),
+                              context.push('/parcel/${parcel.id}/receipt'),
                           isDark: isDark,
                           isPrimary: true,
                         ),
@@ -959,8 +963,8 @@ class BookingDetailScreen extends StatelessWidget {
                 ),
 
                 // If receiver pays and booking is received, show an info note
-                if (cargo.receiverPays &&
-                    cargo.status == CargoStatus.received) ...[
+                if (parcel.receiverPays &&
+                    parcel.status == ParcelStatus.received) ...[
                   const Gap(16),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -979,7 +983,7 @@ class BookingDetailScreen extends StatelessWidget {
                         const Gap(12),
                         Expanded(
                           child: Text(
-                            'The receiver (${cargo.receiverName}) will receive a payment request for this shipment.',
+                            'The receiver (${parcel.receiverName}) will receive a payment request for this shipment.',
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               color: const Color(0xFFD97706),
@@ -1018,7 +1022,7 @@ class BookingDetailScreen extends StatelessWidget {
                     pw.Text('Mizigo Booking Receipt',
                         style: pw.TextStyle(
                             fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                    pw.Text('#${cargo.id.toUpperCase().substring(0, 8)}',
+                    pw.Text('#${parcel.id.toUpperCase().substring(0, 8)}',
                         style: const pw.TextStyle(fontSize: 16)),
                   ],
                 ),
@@ -1028,19 +1032,19 @@ class BookingDetailScreen extends StatelessWidget {
                   style: pw.TextStyle(
                       fontSize: 18, fontWeight: pw.FontWeight.bold)),
               pw.Divider(),
-              _pdfRow('From:', cargo.fromAddress),
-              _pdfRow('To:', cargo.toAddress),
-              _pdfRow('Service:', cargo.serviceType),
-              _pdfRow('Cargo Size:', cargo.cargoSize),
-              _pdfRow('Cargo Type:',
-                  cargo.cargoType.isEmpty ? 'General' : cargo.cargoType),
-              _pdfRow('Receiver:', cargo.receiverName),
-              _pdfRow('Receiver Phone:', cargo.receiverPhone),
-              _pdfRow('Payment By:', cargo.receiverPays ? 'Receiver' : 'Sender'),
-              _pdfRow('Status:', cargo.status.displayLabel),
-              _pdfRow('Date:', DateFormat('d MMM yyyy HH:mm').format(cargo.createdAt)),
+              _pdfRow('From:', parcel.fromAddress),
+              _pdfRow('To:', parcel.toAddress),
+              _pdfRow('Service:', parcel.serviceType),
+              _pdfRow('Parcel Size:', parcel.parcelSize),
+              _pdfRow('Parcel Type:',
+                  parcel.parcelType.isEmpty ? 'General' : parcel.parcelType),
+              _pdfRow('Receiver:', parcel.receiverName),
+              _pdfRow('Receiver Phone:', parcel.receiverPhone),
+              _pdfRow('Payment By:', parcel.receiverPays ? 'Receiver' : 'Sender'),
+              _pdfRow('Status:', parcel.status.displayLabel),
+              _pdfRow('Date:', intl.DateFormat('d MMM yyyy HH:mm').format(parcel.createdAt)),
               pw.SizedBox(height: 20),
-              if (cargo.amount != null)
+              if (parcel.amount != null)
                 pw.Container(
                   alignment: pw.Alignment.centerRight,
                   child: pw.Column(
@@ -1050,7 +1054,7 @@ class BookingDetailScreen extends StatelessWidget {
                           style: pw.TextStyle(
                               fontSize: 14, fontWeight: pw.FontWeight.bold)),
                       pw.Text(
-                          'TZS ${NumberFormat('#,###').format(cargo.amount!.toInt())}',
+                          'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
                           style: pw.TextStyle(
                               fontSize: 20,
                               fontWeight: pw.FontWeight.bold,
@@ -1072,7 +1076,7 @@ class BookingDetailScreen extends StatelessWidget {
     );
 
     await Printing.sharePdf(
-        bytes: await pdf.save(), filename: 'mizigo_receipt_${cargo.id}.pdf');
+        bytes: await pdf.save(), filename: 'mizigo_receipt_${parcel.id}.pdf');
   }
 
   pw.Widget _pdfRow(String label, String value) {
@@ -1092,14 +1096,14 @@ class BookingDetailScreen extends StatelessWidget {
     final msg = '''
 📦 Mizigo Booking Confirmation
 ━━━━━━━━━━━━━━━━━━━━
-Order: #${cargo.id.toUpperCase().substring(0, cargo.id.length.clamp(0, 8))}
-Type: ${cargo.cargoType.isEmpty ? cargo.serviceType : cargo.cargoType}
-From: ${cargo.fromAddress}
-To: ${cargo.toAddress}
-Receiver: ${cargo.receiverName} (${cargo.receiverPhone})
-Payment: ${cargo.receiverPays ? 'Handled by Receiver' : 'Paid by Sender'}
-Status: ${_statusLabel(cargo.status)}
-Date: ${DateFormat('d MMM yyyy').format(cargo.createdAt)}
+Order: #${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}
+Type: ${parcel.parcelType.isEmpty ? parcel.serviceType : parcel.parcelType}
+From: ${parcel.fromAddress}
+To: ${parcel.toAddress}
+Receiver: ${parcel.receiverName} (${parcel.receiverPhone})
+Payment: ${parcel.receiverPays ? 'Handled by Receiver' : 'Paid by Sender'}
+Status: ${_statusLabel(parcel.status)}
+Date: ${intl.DateFormat('d MMM yyyy').format(parcel.createdAt)}
 ━━━━━━━━━━━━━━━━━━━━
 Powered by Mizigo Logistics''';
 

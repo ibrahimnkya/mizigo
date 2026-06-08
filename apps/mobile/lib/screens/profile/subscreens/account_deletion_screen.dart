@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../../../theme/app_theme.dart';
+import '../../../widgets/common/danger_action_sheet.dart';
 
 class AccountDeletionScreen extends StatefulWidget {
   const AccountDeletionScreen({super.key});
@@ -210,31 +211,17 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
   }
 
   void _processDeletion() {
-    showDialog(
+    DangerActionBottomSheet.show(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Last Step', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: Colors.white)),
-        content: Text(
-          'To ensure security, please confirm that you wish to delete account @xxxx. This cannot be reversed.',
-          style: GoogleFonts.inter(color: Colors.white60),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white38)),
-          ),
-          TextButton(
-            onPressed: () {
-              // Final logic would go here
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: Text('Confirm Deletion', style: GoogleFonts.inter(color: AppTheme.danger, fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
+      title: 'Final Confirmation',
+      message:
+          'This is irreversible. Your account and all associated data will be permanently deleted after 30 days. There is no way to undo this action.',
+      confirmText: 'Delete My Account',
+      cancelText: 'Cancel',
+      onConfirm: () {
+        // Final deletion logic goes here
+        Navigator.pop(context);
+      },
     );
   }
 }

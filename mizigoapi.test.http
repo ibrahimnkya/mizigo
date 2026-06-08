@@ -1,0 +1,378 @@
+# TRC SGR PORTAL - Parcel API v1.0
+# Tanzania Railways Corporation
+# Generated: May 2026
+# ============================================================
+# VARIABLES - Update these before running requests
+# ============================================================
+
+@host = https://dev.trc.co.tz/ecargo_sgr
+@clientRef = XCNT202606830874
+@xServiceName = SETL_SERVICE
+@xHeaderService = ANONYMOUS_SERVICE
+@xTimestamp = {{$timestamp}}
+@xSignature = YOUR_BASE64_SIGNATURE_HERE
+
+# Public Key for Signature Verification:
+# MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpNs5Vm1uwxrA0EEwbCACylnqzwf4kJaENxn/vbklopzyTxZjnv0eSumA7oytlwzHwQuadMS44zx0dc2xno+jNrGDYRf8Cd5iN0V1xPRhwOJeyhQhuiziw57YuUhu70gEGklb2SAFxM3DWtzecJnR17lrsCYwZ8q/0cXjbTCQUYQIDAQAB
+
+# ============================================================
+# 4.1 SGR STATIONS - Fetch all SGR stations
+# ============================================================
+
+### GET SGR Stations
+GET {{host}}/sec/trc/sgrparcel/v1/fetch/sgr-stations
+accept: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+# Expected response:
+# {
+#   "code": "SUCCESS",
+#   "message": "Stations retrieved successfully",
+#   "data": [ { "id": "...", "name": "Dar es Salaam", "code": "DSM", ... } ],
+#   "timestamp": "..."
+# }
+
+
+# ============================================================
+# 4.2 PARCEL TARIFF - Fetch available parcel tariffs
+# ============================================================
+
+### GET Parcel Tariffs
+GET {{host}}/sec/trc/sgrparcel/v1/fetch/parcel-tariffs
+accept: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+# Expected response:
+# {
+#   "code": "SUCCESS",
+#   "message": "Parcel tariffs retrieved successfully",
+#   "data": [ { "id": "...", "name": "ENVELOP", "minimumCharge": 10000, ... } ],
+#   "timestamp": "..."
+# }
+
+
+# ============================================================
+# 4.3 TARIFF CALCULATION - Calculate parcel charges
+# Input: origin, destination, parcel category, weight
+# ============================================================
+
+### POST Calculate Tariff (DSM → Dodoma, 0.1kg, OTHER PARCEL)
+POST {{host}}/sec/trc/sgr-parcel/get/parcelcost
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "{{clientRef}}",
+  "data": {
+    "originStation": {
+      "id": "01KPWEWYACW1NRAFBTTGFRSKYS",
+      "name": "DSM"
+    },
+    "destinationStation": {
+      "id": "01KPWEWYBDHMSDJKHNQYKJBV4M",
+      "name": "Dom"
+    },
+    "weightInKg": 0.1,
+    "tariffId": {
+      "id": "01KQ7PKRBC4B4K4Q68S1X783BE",
+      "name": "Mizigo mingine"
+    },
+    "declaration": {
+      "itemName": "SIMU",
+      "currency": "TZS",
+      "declaredPrice": 9000000
+    }
+  }
+}
+
+# Expected response fields:
+# parcelCharge, taxedAmount, totalCharge, distanceInKm, currency
+
+
+# ============================================================
+# 4.4 PARCEL BOOKING - Create a parcel and get parcelRef
+# Pre-requisite: Tariff must be pre-calculated
+# ============================================================
+
+### POST Book Parcel (DSM → Morogoro, Envelope)
+POST {{host}}/sec/trc/sgrparcel/manage/parcel-booking
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "XCNT202604AF83AE",
+  "data": {
+    "sourceRef": "C12345",
+    "senderName": "Jane Doe",
+    "senderAddress": "DSM",
+    "senderPhoneNumber": "255715155193",
+    "senderEmail": null,
+    "sameAsSender": true,
+    "parcelName": "Bahasha",
+    "parcelDescription": "Bahasha Kubwa",
+    "totalItems": 1,
+    "declaredWeightInKg": 0,
+    "declaredLengthInCm": 0,
+    "declaredWidthInCm": 0,
+    "declaredHeightInCm": 0,
+    "declaredCubicVolume": 0,
+    "originStation": {
+      "id": "01KPWEWYACW1NRAFBTTGFRSKYS",
+      "name": "Dar es Salaam"
+    },
+    "destinationStation": {
+      "id": "01KPWEWYAXQKQE805RXDFP5327",
+      "name": "Morogoro"
+    },
+    "tariff": {
+      "id": "01KQEWDZ9QYQGG1QW9QTYWHY0A",
+      "name": "TIKTOK TARIFF"
+    },
+    "declaration": {
+      "itemName": "Bahasha",
+      "currency": "TZS",
+      "declaredPrice": 150000
+    }
+  }
+}
+
+# Expected response: parcelRef (e.g. "TRC202661E1514F84"), status: "NEW"
+
+
+# ============================================================
+# 4.5 CONFIRM PARCEL BOOKING
+# Pre-requisite: parcelRef from booking step
+# Effect: Issues parcel number + triggers GePG control number request
+# ============================================================
+
+### POST Confirm Parcel Booking
+POST {{host}}/sec/trc/sgrparcel/confirm/parcel-booking
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "XCNT202604AF83AE",
+  "data": {
+    "sourceRef": "C12345",
+    "parcelRef": "TRC202661E1514F84"
+  }
+}
+
+# Expected response: parcelNumber (e.g. "SPN-2026DSM-0000001"),
+# status: "CONFIRMED_AND_PENDING_PAYMENT"
+
+
+# ============================================================
+# 4.6 BOOKING CANCELLATION
+# Pre-requisite: parcelRef must exist; parcel must NOT be accepted yet
+# ============================================================
+
+### POST Cancel Parcel Booking
+POST {{host}}/sec/trc/sgrparcel/cancel/parcel-booking
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "{{clientRef}}",
+  "data": {
+    "sourceRef": "C12345",
+    "parcelRef": "TRC202661E1514F84",
+    "cancellationReason": "Customer requested cancellation"
+  }
+}
+
+# Expected response: cancellationStatus, bookingCancelledDate
+
+
+# ============================================================
+# 4.7 PARCEL DISPATCH - Dispatch parcel from station
+# Pre-requisite: parcel must have parcel number, be accepted & paid
+# ============================================================
+
+### POST Dispatch Parcel
+POST {{host}}/sec/trc/sgrparcel/dispatch/parcel
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "{{clientRef}}",
+  "data": {
+    "sourceRef": "C12345",
+    "parcelNumber": "SPN-2026DSM-0000001",
+    "dispatchDate": "2026-05-14T08:00:00",
+    "carryingTrain": "SGR-001",
+    "dispatchingStation": {
+      "id": "01KPWEWYACW1NRAFBTTGFRSKYS",
+      "name": "Dar es Salaam"
+    }
+  }
+}
+
+# Expected response: dispatchNumber, status: "SUCCESS"
+
+
+# ============================================================
+# 4.8 PARCEL DELIVERY - Record delivery at destination station
+# Pre-requisite: parcel must have parcel number, be accepted,
+#                paid, and dispatched
+# ============================================================
+
+### POST Deliver Parcel
+POST {{host}}/sec/trc/sgrparcel/deliver/parcel
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "{{clientRef}}",
+  "data": {
+    "sourceRef": "C12345",
+    "parcelNumber": "SPN-2026DSM-0000001",
+    "deliveredDate": "2026-05-14T14:00:00",
+    "deliveredStation": {
+      "id": "01KPWEWYAXQKQE805RXDFP5327",
+      "name": "Morogoro"
+    },
+    "deliveryCondition": "GoodCondition",
+    "deliveryConditionDescription": "Parcel delivered in good condition"
+  }
+}
+
+# Expected response: deliveryRef, status: "SUCCESS"
+
+
+# ============================================================
+# 4.9 PARCEL HANDOVER (PICK-UP) - Hand parcel to recipient
+# Pre-requisite: parcel must have parcel number, be paid,
+#                and accepted on delivery
+# ============================================================
+
+### POST Pick-Up Parcel
+POST {{host}}/sec/trc/sgr-parcel/pick-up/parcel
+accept: application/json
+Content-Type: application/json
+X-Service-Name: {{xServiceName}}
+X-Header-Service: {{xHeaderService}}
+X-Timestamp: {{xTimestamp}}
+X-Signature: {{xSignature}}
+clientRef: {{clientRef}}
+
+{
+  "clientRef": "{{clientRef}}",
+  "data": {
+    "sourceRef": "C12345",
+    "parcelNumber": "SPN-2026DSM-0000001",
+    "pickedUpPersonName": "Jane Doe",
+    "pickedUpPersonIdentityType": "NATIONAL_ID",
+    "pickedUpPersonIdentityNumber": "12345678901234567890",
+    "pickedUpDate": "2026-05-14T15:00:00"
+  }
+}
+
+# Expected response: pickUpRef, status: "SUCCESS"
+
+
+# ============================================================
+# 5.1 CALLBACK - Control Number Response (External System Endpoint)
+# This is received BY your system FROM TRC SGR Portal (async)
+# Method: POST to your registered callback URL
+# ============================================================
+
+# Sample payload your callback URL should expect:
+# {
+#   "trackRef": "string",
+#   "sourceRef": "string",
+#   "remoteRef": "string",
+#   "billRef": "string",
+#   "parcelRef": "TRC202661E1514F84",
+#   "customerName": "Jane Doe",
+#   "customerPhone": "255715155193",
+#   "invoiceNumber": "string",
+#   "controlNumber": "string",
+#   "currency": "TZS",
+#   "billedAmount": 22602.9,
+#   "paymentDueDate": "string"
+# }
+#
+# Your system must respond synchronously with:
+# {
+#   "remoteRef": "string",
+#   "trackRef": "string",
+#   "sourceRef": "string",
+#   "status": "SUCCESS"
+# }
+
+
+# ============================================================
+# 5.2 CALLBACK - Payment Settlement Notification (External System Endpoint)
+# This is received BY your system FROM TRC SGR Portal (async)
+# Method: POST to your registered callback URL
+# ============================================================
+
+# Sample payload your callback URL should expect:
+# {
+#   "trackRef": "string",
+#   "sourceRef": "string",
+#   "remoteRef": "string",
+#   "billRef": "string",
+#   "parcelNumber": "SPN-2026DSM-0000001",
+#   "invoiceNumber": "string",
+#   "receiptNumber": "string",
+#   "paymentRef": "string",
+#   "controlNumber": "string",
+#   "currency": "TZS",
+#   "billedAmount": 22602.9,
+#   "paidAmount": 22602.9,
+#   "transactionDate": "2026-05-14T12:00:00",
+#   "paymentStatus": "FULL_PAID",
+#   "pspName": "M-Pesa",
+#   "pspTransId": "string",
+#   "usdPayChannel": "MOBILE_MONEY",
+#   "payerPhoneNumber": "255715155193",
+#   "payerName": "Jane Doe"
+# }
+#
+# Your system must respond synchronously with:
+# {
+#   "remoteRef": "string",
+#   "trackRef": "string",
+#   "sourceRef": "string",
+#   "status": "SUCCESS"
+# }

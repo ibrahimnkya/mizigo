@@ -15,16 +15,16 @@ export default function AdminLogsPage() {
                     <p className="text-sm text-slate-400 font-medium mt-0.5">Detailed tracking of operator actions and data modifications.</p>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
                     <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-50">
-                        <div className="w-7 h-7 bg-indigo-50 rounded-lg flex items-center justify-center">
+                        <div className="w-7 h-7 bg-indigo-50 rounded-[10px] flex items-center justify-center">
                             <ListTodo size={13} className="text-indigo-500" strokeWidth={2.5} />
                         </div>
                         <span className="text-[14px] font-extrabold text-slate-800">Operation Logs</span>
                     </div>
 
                     <div className="flex flex-col items-center justify-center py-28 gap-4 text-slate-300">
-                        <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center">
+                        <div className="w-14 h-14 bg-slate-50 rounded-[10px] flex items-center justify-center">
                             <Clock size={24} strokeWidth={1.5} className="text-slate-200" />
                         </div>
                         <div className="text-center">

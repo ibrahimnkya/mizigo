@@ -8,6 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -27,17 +28,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
   int _secondsLeft = _countdownSeconds;
   Timer? _timer;
 
+  // ── Temporarily visible digit state ──────────────────────────────────────
+  int? _visibleIndex;
+  Timer? _obscureTimer;
+
   @override
   void initState() {
     super.initState();
     _startCountdown();
     
-    // Listen for PIN completion (6 digits)
-    _pinController.addListener(() {
-      if (_pinController.text.length == 6) {
-        _verify();
-      }
-    });
+    _pinController.addListener(_onPinChanged);
     
     // Auto-focus the field
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,9 +48,33 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _obscureTimer?.cancel();
     _pinController.dispose();
     _pinFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onPinChanged() {
+    final text = _pinController.text;
+    if (text.isNotEmpty) {
+      final newIndex = text.length - 1;
+      _obscureTimer?.cancel();
+      setState(() {
+        _visibleIndex = newIndex;
+      });
+      _obscureTimer = Timer(const Duration(seconds: 1), () {
+        if (mounted) {
+          setState(() {
+            _visibleIndex = null;
+          });
+        }
+      });
+    } else {
+      _obscureTimer?.cancel();
+      setState(() {
+        _visibleIndex = null;
+      });
+    }
   }
 
   void _startCountdown() {
@@ -78,38 +102,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
       _pinController.clear();
       _pinFocusNode.requestFocus();
       _startCountdown();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Verification code resent to ${widget.phoneNumber}'),
-          backgroundColor: const Color(0xFF3B82F6),
-        ),
+      MizigoToasts.showSuccess(
+        context,
+        'Verification code resent to ${widget.phoneNumber}',
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Failed to resend code'),
-          backgroundColor: Colors.redAccent,
-        ),
+      MizigoToasts.showError(
+        context,
+        auth.error ?? 'Failed to resend code',
       );
     }
   }
 
-  Future<void> _forgotOtp() async {
-    final auth = context.read<AuthProvider>();
-    // Re-triggering sendOtp is effectively "Forgot OTP" as it triggers a new SMS
-    final ok = await auth.sendOtp(widget.phoneNumber);
-    
-    if (!mounted) return;
-    if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('A new OTP has been triggered via SMS.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error ?? 'Failed to trigger new OTP')),
-      );
-    }
-  }
+
 
   void _verify() async {
     final auth = context.read<AuthProvider>();
@@ -123,11 +128,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
           // Success! Go to Home
           context.go('/home');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(auth.error ?? 'Verification failed'),
-              backgroundColor: Colors.redAccent,
-            ),
+          MizigoToasts.showError(
+            context,
+            auth.error ?? 'Verification failed',
           );
           _pinController.clear();
           _pinFocusNode.requestFocus();
@@ -317,7 +320,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: List.generate(6, (index) {
                               final hasDigit = _pinController.text.length > index;
-                              final digit = hasDigit ? _pinController.text[index] : '';
+                              String digit = '';
+                              if (hasDigit) {
+                                if (index == _visibleIndex) {
+                                  digit = _pinController.text[index];
+                                } else {
+                                  digit = '•';
+                                }
+                              }
                               final isFocused = _pinFocusNode.hasFocus && _pinController.text.length == index;
                               
                               return Container(
@@ -325,11 +335,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                 height: 56,
                                 margin: const EdgeInsets.symmetric(horizontal: 4),
                                 decoration: BoxDecoration(
-                                  color: theme.cardColor.withValues(alpha: 0.1),
+                                  color: isFocused 
+                                      ? theme.primaryColor.withValues(alpha: 0.1)
+                                      : theme.cardColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: theme.dividerColor,
-                                    width: 1,
+                                    color: isFocused ? theme.primaryColor : theme.dividerColor,
+                                    width: isFocused ? 1.5 : 1,
                                   ),
                                 ),
                                 child: Center(
@@ -359,21 +371,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                     ),
 
-                    if (auth.error != null) ...[
-                      const Gap(32),
-                      Text(
-                        auth.error!,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
-                          color: Colors.redAccent,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Gap(8),
-                    ] else ...[
-                      const Gap(40),
-                    ],
+                    const Gap(40),
                   ],
                 ),
               ),
@@ -398,7 +396,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             style: FilledButton.styleFrom(
                               backgroundColor: AppTheme.cPrimary,
                               disabledBackgroundColor: AppTheme.cPrimary.withValues(alpha: 0.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               elevation: 0,
                             ),
                             child: auth.loading

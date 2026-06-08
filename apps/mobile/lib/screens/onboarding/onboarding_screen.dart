@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../splash/splash_screen.dart'; // No longer need to reuse CustomLogoShape as it was removed
+// No longer need to reuse CustomLogoShape as it was removed
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -25,7 +25,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     OnboardingData(
       title: 'Track live from pickup to delivery',
-      description: 'Follow your cargo in real time with clear milestones, ETA updates and route visibility.',
+      description: 'Follow your parcel in real time with clear milestones, ETA updates and route visibility.',
       icon: Icons.navigation_outlined,
       iconColor: const Color(0xFFEF4444), // red-ish pin
       isDarkBackground: true,

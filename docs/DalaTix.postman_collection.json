@@ -1,0 +1,1449 @@
+{
+  "info": {
+    "_postman_id": "e8421db9-8568-4045-9c30-713397e8951e",
+    "name": "DalaTix",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12107409",
+    "_collection_link": "https://go.postman.co/collection/12107409-e8421db9-8568-4045-9c30-713397e8951e?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Company",
+      "item": [
+        {
+          "name": "Get Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies?paginate=true&name=&is_active=true",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "is_active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company Commission",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/commission",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "commission"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Dalatix Transport Ltd\",\n    \"address\": \"123 Main Street, Dar es Salaam\",\n    \"phone_number\": \"+255712345678\",\n    \"email\": \"theodoryfg@gmail.com\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Dalatix Transport Ltd\",\n    \"address\": \"123 Main Street, Dar es Salaam\",\n    \"phone_number\": \"255712345678\",\n    \"email\": \"contact@dalatix.com\",\n    \"website_url\": \"https://dalatix.com\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create/Update Commission",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"percent\": 100, // \"amount\": 1000\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/commission",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "commission"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Devices",
+      "item": [
+        {
+          "name": "Get Devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices?paginate=true&name=&status=true",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Device",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Device",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A-Alpha\",\n  \"serial_number\": \"SN1234567890\",\n  \"type\": \"mounted\",\n  \"status\": \"active\",\n  \"vehicle_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Device",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A-Alpha\",\n  \"serial_number\": \"SN1234567890\",\n  \"type\": \"mounted\",\n  \"status\": \"active\",\n  \"vehicle_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create/Register Device",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A3\",\n  \"serial_number\": \"FABC08B93A2ABD4F\",\n  \"type\": \"mounted\",\n  \"status\": \"active\",\n  \"vehicle_id\": 1,\n  \"fcm_token\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"first_name\": \"Theodory\",\n    \"last_name\": \"Faustine\",\n    \"email\": \"theodoryfg@gmail.com\",\n    \"phone_number\": \"255676819063\",\n    \"id_number\": \"A1234567\",\n    \"is_active\": true,\n    \"use_float\": true,\n    \"company_id\": 1,\n    \"type\": \"Admin\",\n    \"role\": 1\n}\n\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/3",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/9",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "9"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"first_name\": \"Moza\",\n    \"last_name\": \"Doe\",\n    \"email\": \"johndoe@example.com\",\n    \"phone_number\": \"255676819060\",\n    \"id_number\": \"A1234567\",\n    \"password\": \"Dala@2025\",\n    \"is_active\": true,\n    \"use_float\": true,\n    \"company_id\": 1,\n    \"type\": \"Admin\",\n    \"fcm_token\": null,\n    \"role\": null,\n    \"float_balance\": 100.0,\n    \"float_type\": \"individual\",\n    \"main_agent_id\": null\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"ibra@example.com\",\n    \"password\": \"Dala@2025\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/login",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login via OTP",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"255612299258\",\n    \"otp\": \"9702\",\n    \"is_mobile\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/login",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log out",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"255612299258\",\n    \"otp\": \"9702\",\n    \"is_mobile\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/logout",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Routes",
+      "item": [
+        {
+          "name": "Get Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/routes?paginate=true&name=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "routes"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/by_date_range?start_date=2025-05-03&end_date=2025-06-02&vehicle_id=&status=&paginate=true&company_id=6",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "by_date_range"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-05-03"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-06-02"
+                },
+                {
+                  "key": "vehicle_id",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "booking_number",
+                  "value": "102340815078",
+                  "disabled": true
+                },
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "company_id",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report",
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/stats?company_id=6&start_date=17-04-2025&end_date=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "6"
+                },
+                {
+                  "key": "start_date",
+                  "value": "17-04-2025"
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Agents Performance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/agents_perfomance_report?company_id=1&start_date=&end_date=&agent_id=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "agents_perfomance_report"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "start_date",
+                  "value": ""
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                },
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sales Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/sales-summary?company_id=1&start_date=&end_date=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "sales-summary"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "start_date",
+                  "value": ""
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Roles & Permissions",
+      "item": [
+        {
+          "name": "Get Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/permissions?paginate=true&name=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "permissions"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles?paginate=true&name=&guard_name=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "guard_name",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/5",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Permissions to Role",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [1,2,3,4,5,6,7,8,9]\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/18/assign_permissions",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "18",
+                "assign_permissions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Get Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles?company_id=1&status=&name=&paginte=&conductor_id=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "paginte",
+                  "value": ""
+                },
+                {
+                  "key": "conductor_id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marcopolo G7 - Mzani Mmoja\",\n  \"registration_number\": \"T 112 FAA\",\n  \"company_id\": 1,\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marcopolo G7 - Mbappe\",\n  \"registration_number\": \"T 113 FAA\",\n  \"company_id\": 1,\n  \"is_active\": true\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Problems",
+      "item": [
+        {
+          "name": "Create Problem",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"description\": \"The application crashes when I try to submit the form.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Beneficiaries",
+      "item": [
+        {
+          "name": "Get Beneficiaries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries?companyId=6",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries"
+              ],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "6"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Beneficiaries",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"LATRA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries/3",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Beneficiary",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries/5",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Beneficiaries To Company",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 6,\n  \"beneficiaries\": [\n    {\n      \"beneficiary_id\": 3,\n      \"percent\": 5 // \"amount\" : 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/beneficiaries/attach",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "beneficiaries",
+                "attach"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Beneficiary",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Device\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Company Distribution",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/6/beneficiaries/distribution?start_date=2025-05-27&end_date=2025-06-02",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "6",
+                "beneficiaries",
+                "distribution"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-05-27"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-06-02"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company Beneficiaries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/beneficiaries",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "beneficiaries"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Providers",
+      "item": [
+        {
+          "name": "Get Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers?name=&category=&paginate=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "category",
+                  "value": ""
+                },
+                {
+                  "key": "paginate",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Provider",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Provider",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Airtel\",\n  \"category\": \"mobile\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Provider",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Provider",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vodacom\",\n  \"category\": \"mobile\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "478|IeVCRimZX2rOVMhBqRbVaPH0fPt9VqFNpBwlB2TUfc53b847",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

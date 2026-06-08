@@ -1,0 +1,2176 @@
+{
+  "info": {
+    "_postman_id": "913965c0-d636-4d0b-9fd9-0c8ae173fddd",
+    "name": "Mizigo API",
+    "description": "Postman collection for Mizigo API routes under /api/v1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12107409",
+    "_collection_link": "https://go.postman.co/collection/12107409-913965c0-d636-4d0b-9fd9-0c8ae173fddd?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "if (body?.data?.refreshToken) pm.collectionVariables.set('refreshToken', body.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@mizigo.com\",\n  \"otp\": \"123456\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/admin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "admin",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "if (body?.data?.refreshToken) pm.collectionVariables.set('refreshToken', body.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/admin/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "admin",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generic Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "if (body?.data?.refreshToken) pm.collectionVariables.set('refreshToken', body.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/admin/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "admin",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operator Reset OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"255700000001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/operator/reset-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "operator",
+                "reset-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operator Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "if (body?.data?.refreshToken) pm.collectionVariables.set('refreshToken', body.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"255700000001\",\n  \"otp\": \"123456\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/operator/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "operator",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operator Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "if (body?.data?.refreshToken) pm.collectionVariables.set('refreshToken', body.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/operator/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "operator",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operator Change OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newOtp\": \"654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/operator/change-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "operator",
+                "change-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change OTP (Any Authenticated User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newOtp\": \"654321\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/change-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "change-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cargo",
+      "item": [
+        {
+          "name": "Receive Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receivingStation\": \"DAR\",\n  \"destinationStation\": \"MWZ\",\n  \"packageName\": \"Parcel\",\n  \"declaredValue\": 100000,\n  \"weight\": 5,\n  \"condition\": \"BRAND_NEW\",\n  \"cargoType\": \"PARCEL\",\n  \"urgency\": \"STANDARD\",\n  \"packageSize\": \"SIZE_1\",\n  \"senderName\": \"Sender Name\",\n  \"senderPhone\": \"0711111111\",\n  \"receiverName\": \"Receiver Name\",\n  \"receiverPhone\": \"0722222222\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/receive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "receive"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pay Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{adminId}}\",\n  \"amount\": 12500,\n  \"paymentMethod\": \"M-PESA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/{{cargoId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "{{cargoId}}",
+                "pay"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargoId\": \"{{cargoId}}\",\n  \"trainId\": \"TRAIN-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Delivery OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/{{cargoId}}/verify-delivery-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "{{cargoId}}",
+                "verify-delivery-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deliver Cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargoId\": \"{{cargoId}}\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/deliver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "deliver"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Cargo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/track/{{trackingNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "track",
+                "{{trackingNumber}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cargo By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/{{cargoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "{{cargoId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cargo Details By Tracking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/cargo/details/{{trackingNumber}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "cargo",
+                "details",
+                "{{trackingNumber}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Initiate Push Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargoId\": \"{{cargoId}}\",\n  \"paymentChannel\": \"Tigo\",\n  \"phoneNumber\": \"07XXXXXXXX\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/payments/initiate-push",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "payments",
+                "initiate-push"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Providers (External)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/payments/providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "payments",
+                "providers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/payments/wallet/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "payments",
+                "wallet",
+                "balance"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cargoId\": \"{{cargoId}}\",\n  \"transactionId\": \"TX-123456\",\n  \"status\": \"SUCCESS\",\n  \"amount\": 15000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/payments/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "payments",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Cargo Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/reports/cargo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "reports",
+                "cargo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stations Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/reports/stations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "reports",
+                "stations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operators Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/reports/operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "reports",
+                "operators"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/reports/admin/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "reports",
+                "admin",
+                "overview"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Operator Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/reports/operator/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "reports",
+                "operator",
+                "overview"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Organizations",
+      "item": [
+        {
+          "name": "Create Organization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Logistics\",\n  \"description\": \"Org description\",\n  \"supportUrl\": \"mizigo.co.tz/support\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/organizations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "organizations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Organizations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/organizations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "organizations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Organization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/organizations/{{organizationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "organizations",
+                "{{organizationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Organization",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Logistics Updated\",\n  \"supportUrl\": \"acme.example/support\",\n  \"commissionRate\": 0.01,\n  \"commissionNotes\": \"One percent for every transaction\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/organizations/{{organizationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "organizations",
+                "{{organizationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Organization",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/organizations/{{organizationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "organizations",
+                "{{organizationId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stations",
+      "item": [
+        {
+          "name": "Create Station",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dar Station\",\n  \"code\": \"DAR\",\n  \"location\": \"Dar es Salaam\",\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/stations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "stations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Stations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/stations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "stations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Station",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dar Station Updated\",\n  \"code\": \"DAR\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/stations/{{stationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "stations",
+                "{{stationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Station",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/stations/{{stationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "stations",
+                "{{stationId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admins",
+      "item": [
+        {
+          "name": "Create Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin A\",\n  \"email\": \"admina@example.com\",\n  \"phone\": \"255712000000\",\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Super Admin B\",\n  \"email\": \"superadminb@example.com\",\n  \"phone\": \"255713000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins/super-admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins",
+                "super-admins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Admin",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin A Updated\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Admin OTP SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins/{{adminId}}/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins",
+                "{{adminId}}",
+                "resend-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admins/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admins",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Operators",
+      "item": [
+        {
+          "name": "Create Operator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Operator A\",\n  \"email\": \"operatora@example.com\",\n  \"phone\": \"255713000000\",\n  \"stationId\": \"{{stationId}}\",\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "operators"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Operators",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/operators",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "operators"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Operator",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Operator A Updated\",\n  \"stationId\": \"{{stationId}}\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/operators/{{operatorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "operators",
+                "{{operatorId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Operator OTP SMS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/operators/{{operatorId}}/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "operators",
+                "{{operatorId}}",
+                "resend-otp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Operator",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/operators/{{operatorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "operators",
+                "{{operatorId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Roles & Permissions",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"CUSTOM_ROLE\",\n  \"description\": \"Custom role\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Role Permissions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionIds\": [\"{{permissionId}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/roles/{{roleId}}/assign-permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "roles",
+                "{{roleId}}",
+                "assign-permissions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "permissions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"custom:permission\",\n  \"description\": \"custom\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "permissions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/audit-logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "audit-logs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pricing",
+      "item": [
+        {
+          "name": "Create Pricing Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Express Rule\",\n  \"type\": \"MULTIPLIER\",\n  \"value\": 1.25,\n  \"condition\": \"urgency=EXPRESS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/pricing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "pricing"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Pricing Rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/pricing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "pricing"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Pricing Rule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": 1.30,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/pricing/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "pricing",
+                "{{roleId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "App Versions",
+      "item": [
+        {
+          "name": "Create App Version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"1.2.0\",\n  \"minSupportedVersion\": \"1.0.0\",\n  \"forceUpdate\": false,\n  \"downloadUrl\": \"https://example.com/app\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/app-versions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "app-versions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List App Versions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/app-versions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "app-versions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Latest App Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/app-versions/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "app-versions",
+                "latest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Update",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/app-versions/check-update?currentVersion=1.0.0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "app-versions",
+                "check-update"
+              ],
+              "query": [
+                {
+                  "key": "currentVersion",
+                  "value": "1.0.0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get App Version By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/app-versions/{{appVersionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "app-versions",
+                "{{appVersionId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Integrations",
+      "item": [
+        {
+          "name": "Create Integration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"SMS_GATEWAY\",\n  \"name\": \"Main SMS\",\n  \"config\": {\"apiId\": \"x\", \"apiPassword\": \"y\"},\n  \"isActive\": true,\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/integrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "integrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Integrations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/integrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "integrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Gateway URL",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"baseUrl\": \"https://sandbox.mysafari.co.tz\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/integrations/payment-gateway/url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "integrations",
+                "payment-gateway",
+                "url"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Finance",
+      "item": [
+        {
+          "name": "Finance Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/finance/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "finance",
+                "summary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finance Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/finance/transactions?page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "finance",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finance Commissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/finance/commissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "finance",
+                "commissions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SMS Config",
+      "item": [
+        {
+          "name": "Create SMS Config",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apiId\": \"API_ID\",\n  \"apiPassword\": \"API_PASSWORD\",\n  \"defaultSenderId\": \"MIZIGO\",\n  \"apiUrl\": \"https://api.sprintsmsservice.com/api/SendSMS\",\n  \"organizationId\": \"{{organizationId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/sms-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "sms-config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List SMS Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/sms-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "sms-config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update SMS Config",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apiId\": \"API_ID\",\n  \"apiPassword\": \"API_PASSWORD\",\n  \"defaultSenderId\": \"MIZIGO\",\n  \"apiUrl\": \"https://api.sprintsmsservice.com/api/SendSMS\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/sms-config/{{smsConfigId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "sms-config",
+                "{{smsConfigId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Sender",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedSenderId\": \"MIZIGO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/sms-config/{{smsConfigId}}/approve-sender",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "sms-config",
+                "{{smsConfigId}}",
+                "approve-sender"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Sender ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedSenderId\": \"MIZIGOEXP\",\n  \"note\": \"Need branded sender ID for org SMS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/sms-config/{{smsConfigId}}/request-sender-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "sms-config",
+                "{{smsConfigId}}",
+                "request-sender-id"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Platform",
+      "item": [
+        {
+          "name": "Platform Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admin/platform/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admin",
+                "platform",
+                "overview"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Platform Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admin/platform/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admin",
+                "platform",
+                "settings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Platform Setting",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"PLATFORM_SUPPORT_URL\",\n  \"value\": \"https://mizigo.com/support\",\n  \"description\": \"Main support URL for the platform\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/{{apiPrefix}}/admin/platform/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "{{apiPrefix}}",
+                "admin",
+                "platform",
+                "settings"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const secret = pm.collectionVariables.get('requestSigningSecret');",
+          "if (!secret) return;",
+          "",
+          "const method = (pm.request.method || 'GET').toUpperCase();",
+          "const signable = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);",
+          "if (!signable) return;",
+          "",
+          "const pathWithQuery = pm.request.url.getPathWithQuery();",
+          "if (pathWithQuery.startsWith('/api/v1/auth/') || pathWithQuery === '/api/v1/payments/callback') return;",
+          "",
+          "const stableStringify = (value) => {",
+          "  if (value === null || value === undefined) return '';",
+          "  if (Array.isArray(value)) return `[${value.map((v) => stableStringify(v)).join(',')}]`;",
+          "  if (typeof value === 'object') {",
+          "    const keys = Object.keys(value).sort();",
+          "    return `{${keys.map((k) => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',')}}`;",
+          "  }",
+          "  return JSON.stringify(value);",
+          "};",
+          "",
+          "let canonicalBody = '';",
+          "if (pm.request.body && pm.request.body.mode === 'raw') {",
+          "  const raw = pm.request.body.raw || '';",
+          "  try {",
+          "    canonicalBody = stableStringify(JSON.parse(raw));",
+          "  } catch (e) {",
+          "    canonicalBody = raw;",
+          "  }",
+          "}",
+          "",
+          "const bodyHash = CryptoJS.SHA256(canonicalBody).toString();",
+          "const timestamp = Date.now().toString();",
+          "const nonce = `${Date.now()}-${Math.floor(Math.random() * 1000000000)}`;",
+          "const payload = `${method}\\n${pathWithQuery}\\n${timestamp}\\n${nonce}\\n${bodyHash}`;",
+          "const signature = CryptoJS.HmacSHA256(payload, secret).toString();",
+          "",
+          "pm.request.headers.upsert({ key: 'x-signature', value: signature });",
+          "pm.request.headers.upsert({ key: 'x-signature-timestamp', value: timestamp });",
+          "pm.request.headers.upsert({ key: 'x-signature-nonce', value: nonce });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "apiPrefix",
+      "value": "api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "deviceId",
+      "value": "web-localhost-001"
+    },
+    {
+      "key": "cargoId",
+      "value": ""
+    },
+    {
+      "key": "trackingNumber",
+      "value": ""
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    },
+    {
+      "key": "providerId",
+      "value": ""
+    },
+    {
+      "key": "organizationId",
+      "value": ""
+    },
+    {
+      "key": "stationId",
+      "value": ""
+    },
+    {
+      "key": "adminId",
+      "value": ""
+    },
+    {
+      "key": "operatorId",
+      "value": ""
+    },
+    {
+      "key": "roleId",
+      "value": ""
+    },
+    {
+      "key": "permissionId",
+      "value": ""
+    },
+    {
+      "key": "integrationId",
+      "value": ""
+    },
+    {
+      "key": "smsConfigId",
+      "value": ""
+    },
+    {
+      "key": "appVersionId",
+      "value": ""
+    },
+    {
+      "key": "requestSigningSecret",
+      "value": ""
+    }
+  ]
+}

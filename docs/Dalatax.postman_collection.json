@@ -1,0 +1,3173 @@
+{
+  "info": {
+    "_postman_id": "2a4abc58-bf3c-4a2d-88ba-e01c521a8a1f",
+    "name": "Dalatax",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12107409",
+    "_collection_link": "https://go.postman.co/collection/12107409-2a4abc58-bf3c-4a2d-88ba-e01c521a8a1f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Get Companies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies?paginate=true&name=&is_active=true",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "is_active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Commission Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/commission",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "commission"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Dalatix Transport Ltd\",\n    \"address\": \"123 Main Street, Dar es Salaam\",\n    \"phone_number\": \"+255712345678\",\n    \"email\": \"theodoryfg@gmail.com\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Dalatix Transport Ltd\",\n    \"address\": \"123 Main Street, Dar es Salaam\",\n    \"phone_number\": \"255712345678\",\n    \"email\": \"contact@dalatix.com\",\n    \"website_url\": \"https://dalatix.com\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create  Or Update Comission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"percent\": 100,\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/commission",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "commission"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Devices",
+      "item": [
+        {
+          "name": "Get Devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices?paginate=true&name=&status=active&serial_number=FABC08B93A2ABD4F",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "serial_number",
+                  "value": "FABC08B93A2ABD4F"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Device",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Device",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A-Alpha\",\n  \"serial_number\": \"SN1234567890\",\n  \"type\": \"mounted\",\n  \"status\": \"active\",\n  \"vehicle_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Device",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"POS Terminal A1\",\n  \"serial_number\": \"SN1234567890\",\n  \"type\": \"mounted\",\n  \"status\": \"active\",\n  \"vehicle_id\": 1,\n  \"fcm_token\": null\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/devices",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "devices"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Roles And Permissions",
+      "item": [
+        {
+          "name": "Get Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles?paginate=true&name=&guard_name=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "guard_name",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/permissions?paginate=true&name=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "permissions"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New jkj\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Permissions To Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissions\": [1,2,3,4]\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/roles/1/assign_permissions",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "1",
+                "assign_permissions"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"first_name\": \"Theodory\",\n    \"last_name\": \"Faustine\",\n    \"email\": \"theodoryfg@gmail.com\",\n    \"phone_number\": \"255676819063\",\n    \"id_number\": \"A1234567\",\n    \"is_active\": true,\n    \"use_float\": true,\n    \"company_id\": 1,\n    \"type\": \"Admin\",\n    \"role\": 1\n}\n\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"johndoe@example.com\",\n    \"phone_number\": \"255676819063\",\n    \"id_number\": \"A1234567\",\n    \"password\": \"Dala@2025\",\n    \"is_active\": true,\n    \"use_float\": true,\n    \"company_id\": 1,\n    \"type\": \"Admin\",\n    \"fcm_token\": null,\n    \"role\": null,\n    \"float_balance\": 100.0,\n    \"float_type\": \"individual\",\n    \"main_agent_id\": null\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/users",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "App Versions",
+      "item": [
+        {
+          "name": "Get App Versions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/app_versions?paginate=true&app=&status=true",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "app_versions"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "app",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get App Versions",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{dalatax_base_url}}/api/app_versions",
+                  "host": [
+                    "{{dalatax_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "app_versions"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "localhost:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.2.27"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Sat, 12 Apr 2025 08:49:25 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"App versions fetched successfully.\",\n    \"data\": {\n        \"current_page\": 1,\n        \"data\": [\n            {\n                \"id\": 2,\n                \"app\": \"agent\",\n                \"version\": \"1.0.0\",\n                \"status\": true,\n                \"created_at\": \"2025-04-12T08:48:46.000000Z\",\n                \"updated_at\": \"2025-04-12T08:48:46.000000Z\"\n            },\n            {\n                \"id\": 1,\n                \"app\": \"android\",\n                \"version\": \"1.0.0\",\n                \"status\": true,\n                \"created_at\": \"2025-04-12T08:44:15.000000Z\",\n                \"updated_at\": \"2025-04-12T08:44:15.000000Z\"\n            }\n        ],\n        \"first_page_url\": \"http://localhost:8000/api/app_versions?page=1\",\n        \"from\": 1,\n        \"last_page\": 1,\n        \"last_page_url\": \"http://localhost:8000/api/app_versions?page=1\",\n        \"links\": [\n            {\n                \"url\": null,\n                \"label\": \"&laquo; Previous\",\n                \"active\": false\n            },\n            {\n                \"url\": \"http://localhost:8000/api/app_versions?page=1\",\n                \"label\": \"1\",\n                \"active\": true\n            },\n            {\n                \"url\": null,\n                \"label\": \"Next &raquo;\",\n                \"active\": false\n            }\n        ],\n        \"next_page_url\": null,\n        \"path\": \"http://localhost:8000/api/app_versions\",\n        \"per_page\": 10,\n        \"prev_page_url\": null,\n        \"to\": 2,\n        \"total\": 2\n    },\n    \"code\": 200\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get App Version",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/app_versions/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "app_versions",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Latest App Version",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/latest_app_version?app_type=agent",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "latest_app_version"
+              ],
+              "query": [
+                {
+                  "key": "app_type",
+                  "value": "agent"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update App Version",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app\": \"conductor\", //agent,conductor,mounted_device\n  \"version\": \"1.0.0\",\n  \"status\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/app_versions/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "app_versions",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete App Version",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/app_versions/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "app_versions",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create App Version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app\": \"agent\", //agent,conductor,mounted_device\n  \"version\": \"1.0.0\",\n  \"status\": true\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/app_versions",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "app_versions"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Create User",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"app\": \"agent\", //agent,conductor,mounted_device\n  \"version\": \"1.0.0\",\n  \"status\": true\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{dalatax_base_url}}/api/app_versions",
+                  "host": [
+                    "{{dalatax_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "app_versions"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "localhost:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.2.27"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Sat, 12 Apr 2025 08:48:46 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"App version created successfully.\",\n    \"data\": {\n        \"app\": \"agent\",\n        \"version\": \"1.0.0\",\n        \"status\": true,\n        \"updated_at\": \"2025-04-12T08:48:46.000000Z\",\n        \"created_at\": \"2025-04-12T08:48:46.000000Z\",\n        \"id\": 2\n    },\n    \"code\": 201\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Get Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles?company_id=1&status=&name=&paginte=&conductor_id=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "paginte",
+                  "value": ""
+                },
+                {
+                  "key": "conductor_id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marcopolo G7 - Mzani Mmoja\",\n  \"registration_number\": \"T 112 FAA\",\n  \"company_id\": 1,\n  \"is_active\": true\n  \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marcopolo G7 - Mbappe\",\n  \"registration_number\": \"T 113 FAA\",\n  \"company_id\": 1,\n  \"is_active\": true\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/vehicles",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "vehicles"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bus Stops",
+      "item": [
+        {
+          "name": "Get Bus Stops",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops?paginate=true&name=&code=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "code",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bus Stop",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Bus Stop",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pasiansi\",\n  \"code\": \"CS005\",\n  \"latitude\": 34.052236,\n  \"longitude\": -118.243683\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops/5",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Bus Stop",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops/5",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Bus Stop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pasiansi\",\n  \"code\": \"CS005\",\n  \"latitude\": 34.052235,\n  \"longitude\": -118.243683\n}\n\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Beneficieries",
+      "item": [
+        {
+          "name": "Get Beneficieries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company Beneficieries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/1/beneficiaries",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "1",
+                "beneficiaries"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Beneficiery",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"LATRA\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Beneficiary",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Beneficiery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"LATRA\"\n}\n\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/beneficiaries",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "beneficiaries"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Beneficiaries To Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 6,\n  \"beneficiaries\": [\n    {\n      \"beneficiary_id\": 3,\n      \"percent\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/beneficiaries/attach",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "beneficiaries",
+                "attach"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Company Distribution",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": 1,\n  \"beneficiaries\": [\n    {\n      \"beneficiary_id\": 3,\n      \"percent\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/companies/6/beneficiaries/distribution?start_date=2025-05-27&end_date=2025-06-02",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "6",
+                "beneficiaries",
+                "distribution"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-05-27"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-06-02"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Routes",
+      "item": [
+        {
+          "name": "Get Routes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/routes?paginate=true&name=&is_active=true",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "routes"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "is_active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Route",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bus_stops/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bus_stops",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Route",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nata Stand Kuu\",\n  \"code\": \"CS003\",\n  \"latitude\": 34.052235,\n  \"longitude\": -118.243683\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/routes/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "routes",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Route",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/routes/2",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "routes",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_point_id\": 1,\n  \"end_point_id\": 4,\n  \"name\": \"Downtown to Airport\",\n  \"distance\": 15.5,\n  \"is_active\": true,\n  \"estimated_journey_hours\": 0.75,\n  \"fare\": 500\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/routes",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "routes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Providers",
+      "item": [
+        {
+          "name": "Get Providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers?name=&category=&paginate=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "category",
+                  "value": ""
+                },
+                {
+                  "key": "paginate",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Provider",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Airtel\",\n  \"category\": \"mobile\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Provider",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vodacom\",\n  \"category\": \"mobile\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/providers",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "providers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"255676819063\",\n    \"password\": \"Dala@2025\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/login",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/logout",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Via OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"identifier\": \"255676819063\", // OR \"+255712345678\"\n    \"otp\": \"9292\",\n    \"is_mobile\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/login",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Agent",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"start_point_id\": 1,\n    \"end_point_id\": 3,\n    \"fare\": 1000,\n    \"type\": \"Adult\",\n    \"has_percel\": true,\n    \"percel_fare\": 500,\n    \"number_of_passengers\": 1\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/stats?from_date=2025-04-02&to_date=2025-04-07",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "from_date",
+                  "value": "2025-04-02"
+                },
+                {
+                  "key": "to_date",
+                  "value": "2025-04-07",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/agent/stats?paginate=true&user_id=2&from_date=2025-04-01&to_date=2025-05-30",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "agent",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "user_id",
+                  "value": "2"
+                },
+                {
+                  "key": "from_date",
+                  "value": "2025-04-01"
+                },
+                {
+                  "key": "to_date",
+                  "value": "2025-05-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Conductor",
+      "item": [
+        {
+          "name": "Manifest",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/user/2/manifest",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "user",
+                "2",
+                "manifest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Conductor Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/conductor/logs?paginate=true&user_id=2&vehicle_id=&clock_in_at=2025-04-13&clock_out_at=&start_date=&end_date=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "conductor",
+                "logs"
+              ],
+              "query": [
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "user_id",
+                  "value": "2"
+                },
+                {
+                  "key": "vehicle_id",
+                  "value": ""
+                },
+                {
+                  "key": "clock_in_at",
+                  "value": "2025-04-13"
+                },
+                {
+                  "key": "clock_out_at",
+                  "value": ""
+                },
+                {
+                  "key": "start_date",
+                  "value": ""
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clean Manifest",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/user/2/clean_up_manifest",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "user",
+                "2",
+                "clean_up_manifest"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clock In/Out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 2,\n  \"serial_number\": \"SN1234567890\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/conductor/clock",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "conductor",
+                "clock"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mounted Device",
+      "item": []
+    },
+    {
+      "name": "Generic",
+      "item": [
+        {
+          "name": "Scan In",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"scan_in\",\n    \"vehicle_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/scan/102507342651",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "scan",
+                "102507342651"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Master Scanner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"booking_number\": \"102177195609\",\n    \"vehicle_id\": 3\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/scan",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "scan"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scan Out",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"scan_out\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/scan/102507342651",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "scan",
+                "102507342651"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Ticket",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/verify/102507342651",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "verify",
+                "102507342651"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Push",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone_number\": \"0625313162\",\n    \"float_account\": \"101215560153\",\n    \"channel\": \"Halopesa\",\n    \"amount\": 100\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/payment/push",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "push"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Callback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"SUCCESS\",\n    \"user\": null,\n    \"password\": null,\n    \"clientId\": null,\n    \"transactionstatus\": \"success\",\n    \"operator\": \"Halopesa\",\n    \"reference\": \"250617gITkRClWe\",\n    \"externalreference\": \"250617gITkRClWe\",\n    \"utilityref\": \"202506171229531598\",\n    \"amount\": \"100\",\n    \"transid\": \"250617gITkRClWe\",\n    \"msisdn\": \"255625313162\",\n    \"mnoreference\": \"250617gITkRClWe\",\n    \"submerchantAcc\": null,\n    \"additionalProperties\": {\n        \"paymentReference\": \"202506171229531598\",\n        \"gateway_payment\": \"true\",\n        \"callback_url\": \"https:\\/\\/dalatix.mysafari.co.tz\\/api\\/payment\\/callback\",\n        \"float_account\": \"101215560153\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/payment/callback",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "callback"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/payments?status=&reference=&msisdn=&channel=&float_account=&paginate=true&start_date=2025-06-20&end_date=2025-06-25",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "reference",
+                  "value": ""
+                },
+                {
+                  "key": "msisdn",
+                  "value": ""
+                },
+                {
+                  "key": "channel",
+                  "value": ""
+                },
+                {
+                  "key": "float_account",
+                  "value": ""
+                },
+                {
+                  "key": "paginate",
+                  "value": "true"
+                },
+                {
+                  "key": "start_date",
+                  "value": "2025-06-20"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-06-25"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/verify_payment_status/202507021105042263",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "verify_payment_status",
+                "202507021105042263"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Problems",
+      "item": [
+        {
+          "name": "create problem",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"description\": \"The application crashes when I try to submit the form.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Problems",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Problem",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"assignee_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems/1/assign",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems",
+                "1",
+                "assign"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"resolved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems/1/update_status",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems",
+                "1",
+                "update_status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assignee Problems",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/assignee_problems",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "assignee_problems"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Problem",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/problems/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "problems",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/by_date_range?start_date=2025-05-22&end_date=2025-05-22&vehicle_id=&status=&booking_number=&paginate=false",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "by_date_range"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-05-22"
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-05-22"
+                },
+                {
+                  "key": "vehicle_id",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "booking_number",
+                  "value": ""
+                },
+                {
+                  "key": "paginate",
+                  "value": "false"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"active\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/1/status",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "1",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-04-01",
+                  "disabled": true
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-04-12",
+                  "disabled": true
+                },
+                {
+                  "key": "vehicle_id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/bookings/1",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "start_date",
+                  "value": "2025-04-01",
+                  "disabled": true
+                },
+                {
+                  "key": "end_date",
+                  "value": "2025-04-12",
+                  "disabled": true
+                },
+                {
+                  "key": "vehicle_id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report",
+      "item": [
+        {
+          "name": "Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/stats?company_id=1&start_date=2025-05-14&end_date=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "start_date",
+                  "value": "2025-05-14"
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Agents Perfomance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/agents_perfomance_report?company_id=1&start_date=2025-05-14&end_date=&agent_id=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "agents_perfomance_report"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": "1"
+                },
+                {
+                  "key": "start_date",
+                  "value": "2025-05-14"
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                },
+                {
+                  "key": "agent_id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sales Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{dalatax_base_url}}/api/reports/sales-summary?company_id=&start_date=&end_date=",
+              "host": [
+                "{{dalatax_base_url}}"
+              ],
+              "path": [
+                "api",
+                "reports",
+                "sales-summary"
+              ],
+              "query": [
+                {
+                  "key": "company_id",
+                  "value": ""
+                },
+                {
+                  "key": "start_date",
+                  "value": ""
+                },
+                {
+                  "key": "end_date",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "596|MGjKW7ikaay9eYBnD2fe1hjm1qIguChd09UeeEZk3f59ba90",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "dalatax_base_url",
+      "value": "localhost:8000"
+    }
+  ]
+}

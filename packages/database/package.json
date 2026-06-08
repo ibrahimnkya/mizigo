@@ -10,12 +10,16 @@
     "generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "5.22.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "prisma": "5.22.0",
     "tsx": "^4.21.0",
     "typescript": "5.9.2"

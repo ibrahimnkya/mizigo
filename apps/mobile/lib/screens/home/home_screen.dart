@@ -6,22 +6,20 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/printer_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/cargo_provider.dart';
+import '../../providers/parcel_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/home/user_board.dart';
 import '../../widgets/home/summary_board.dart';
 import '../../widgets/home/parcel_card.dart';
-import '../../widgets/common/neo_container.dart';
 import '../../widgets/common/section_header.dart';
 import '../../models/operation_model.dart';
+import '../../widgets/common/shimmer_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
@@ -30,24 +28,21 @@ class _HomeScreenState extends State<HomeScreen> {
       _refreshData();
     });
   }
-
   Future<void> _refreshData() async {
-    final cargo = context.read<CargoProvider>();
+    final parcel = context.read<ParcelProvider>();
     final auth = context.read<AuthProvider>();
-    
-    await cargo.fetchMyCargo();
+
+    await parcel.fetchMyParcels();
     if (auth.user?.role?.toUpperCase() == 'OPERATOR') {
-      await cargo.fetchOperatorStats();
+      await parcel.fetchOperatorStats();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final cargo = context.watch<CargoProvider>();
+    final parcel = context.watch<ParcelProvider>();
     final printer = context.watch<PrinterProvider>();
     final isOperator = auth.user?.role?.toUpperCase() == 'OPERATOR';
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -70,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPrinterTap: () => context.push('/profile/printer-settings'),
                   ),
                 ),
-
                 // 2. Search & Scanner Row
                 SliverToBoxAdapter(
                   child: Padding(
@@ -84,20 +78,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-
                 // 3. Command Center / Stats (Operator Only)
                 if (isOperator)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.only(top: 16),
-                      child: SummaryBoard(
-                        received: cargo.operatorStats['received'] ?? 0,
-                        inTransit: cargo.operatorStats['in_transit'] ?? 0,
-                        delivered: cargo.operatorStats['delivered'] ?? 0,
+                      child: ShimmerLoading(
+                        isLoading: parcel.loading && parcel.operatorStats.isEmpty,
+                        child: parcel.loading && parcel.operatorStats.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                child: const BoxSkeleton(height: 120, borderRadius: 24),
+                              )
+                            : SummaryBoard(
+                                received: parcel.operatorStats['received'] ?? 0,
+                                inTransit: parcel.operatorStats['in_transit'] ?? 0,
+                                delivered: parcel.operatorStats['delivered'] ?? 0,
+                              ),
                       ),
                     ),
                   ),
-
                 // 4. Operational Actions Grid (Operator Only)
                 if (isOperator) ...[
                   const SliverToBoxAdapter(
@@ -115,18 +115,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       delegate: SliverChildListDelegate([
                         _actionCard(
                           label: 'Receive',
-                          imagePath: 'assets/images/3d/receive.png',
-                          onTap: () => context.push('/receive-cargo'),
+                          imagePath: 'assets/images/3d_receive.png',
+                          onTap: () => context.push('/receive-parcel'),
                         ),
                         _actionCard(
                           label: 'Send',
-                          imagePath: 'assets/images/3d/send.png',
+                          imagePath: 'assets/images/3d_send.png',
                           onTap: () => context.push('/scanner', extra: ParcelOperation.dispatch),
                         ),
                         _actionCard(
-                          label: 'Reports',
-                          imagePath: 'assets/images/3d/reports.png',
-                          onTap: () => context.push('/operator-reports'),
+                          label: 'Deliver',
+                          imagePath: 'assets/images/3d_deliver.png',
+                          onTap: () => context.push('/deliver-parcel'),
                         ),
                       ]),
                     ),
@@ -165,7 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
-
                 // 5. Recent Bookings Header
                 SliverToBoxAdapter(
                   child: SectionHeader(
@@ -174,24 +173,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     onAction: () => context.push('/bookings/recent'),
                   ),
                 ),
-
                 // 6. Recent Bookings List
-                if (cargo.loading && cargo.cargo.isEmpty)
-                  const SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: CircularProgressIndicator(),
+                if (parcel.loading && parcel.parcels.isEmpty)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => ShimmerLoading(
+                        isLoading: true,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          child: const BoxSkeleton(height: 100, borderRadius: 20),
+                        ),
                       ),
+                      childCount: 3,
                     ),
                   )
-                else if (cargo.cargo.isEmpty)
+                else if (parcel.parcels.isEmpty)
                   SliverToBoxAdapter(child: _buildEmptyState())
                 else
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final booking = cargo.cargo[index];
+                        final booking = parcel.parcels[index];
                         return ParcelCard(
                           parcel: booking,
                           onTap: () => context.push(
@@ -200,10 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
-                      childCount: cargo.cargo.length > 3 ? 3 : cargo.cargo.length,
+                      childCount: parcel.parcels.length > 3 ? 3 : parcel.parcels.length,
                     ),
                   ),
-
                 // Bottom Padding
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
               ],
@@ -213,12 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _buildSearchField() {
     return TextField(
       style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
-        hintText: 'Search tracking ID, phone...',
+        hintText: 'enter Parcel number',
         hintStyle: GoogleFonts.inter(color: const Color(0xFF64748B)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -242,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _buildScannerButton() {
     return InkWell(
       onTap: () => context.push('/scanner', extra: ParcelOperation.view),
@@ -271,7 +270,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _actionCard({
     required String label,
     required String imagePath,
@@ -310,7 +308,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _quickAction({required String label, required dynamic icon, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
@@ -333,7 +330,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
   Widget _buildEmptyState() {
     return Padding(
       padding: const EdgeInsets.all(40.0),

@@ -71,7 +71,7 @@ class TermsConditionsScreen extends StatelessWidget {
                   ),
                   _buildSection(
                     'Operational Integrity',
-                    'Operators must accurately register cargo, handle payments as per policy, and ensure that all logistics data entered is truthful and verifiable.',
+                    'Operators must accurately register parcel, handle payments as per policy, and ensure that all logistics data entered is truthful and verifiable.',
                   ),
                   _buildSection(
                     'Intellectual Property',

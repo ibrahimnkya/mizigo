@@ -10,7 +10,15 @@ router.use(authenticate, requireTenantContext);
 
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { userId, action, resource, dateFrom, dateTo, page = "1", limit = "20" } = req.query;
+    const {
+      userId,
+      action,
+      resource,
+      dateFrom,
+      dateTo,
+      page = "1",
+      limit = "20",
+    } = req.query;
 
     const where: any = {};
     if (userId) where.userId = String(userId);
@@ -24,8 +32,18 @@ router.get("/", async (req: Request, res: Response) => {
 
     if (req.user?.role !== "SUPER_ADMIN" && req.user?.organizationId) {
       where.OR = [
-        { details: { path: ["organizationId"], equals: req.user.organizationId } },
-        { details: { path: ["targetOrganizationId"], equals: req.user.organizationId } },
+        {
+          details: {
+            path: ["organizationId"],
+            equals: req.user.organizationId,
+          },
+        },
+        {
+          details: {
+            path: ["targetOrganizationId"],
+            equals: req.user.organizationId,
+          },
+        },
       ];
     }
 

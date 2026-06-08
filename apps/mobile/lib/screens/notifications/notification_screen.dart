@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
-import '../../providers/cargo_provider.dart';
+import '../../providers/parcel_provider.dart';
+import '../../widgets/common/shimmer_utils.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -25,7 +26,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Future<void> _load() async {
     try {
-      final data = await context.read<CargoProvider>().getNotifications();
+      final data = await context.read<ParcelProvider>().getNotifications();
       if (mounted) {
         setState(() {
           _notifications = data;
@@ -54,7 +55,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? ShimmerLoading(
+              isLoading: true,
+              child: const ListSkeleton(height: 80, padding: 16),
+            )
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: AppTheme.danger)))
               : _notifications.isEmpty
@@ -76,7 +80,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           const Gap(16),
           const Text('No notifications yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppTheme.textPrimary)),
           const Gap(4),
-          const Text("You'll be notified when your cargo status changes.", style: TextStyle(color: AppTheme.textMuted, fontSize: 13), textAlign: TextAlign.center),
+          const Text("You'll be notified when your parcel status changes.", style: TextStyle(color: AppTheme.textMuted, fontSize: 13), textAlign: TextAlign.center),
         ],
       ),
     );

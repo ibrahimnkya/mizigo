@@ -5,15 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/cargo_model.dart';
+import '../../models/parcel_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/neo_container.dart';
 
 
 class OperatorScannedDetailsScreen extends StatefulWidget {
-  final CargoModel cargo;
+  final ParcelModel parcel;
 
-  const OperatorScannedDetailsScreen({super.key, required this.cargo});
+  const OperatorScannedDetailsScreen({super.key, required this.parcel});
 
   @override
   State<OperatorScannedDetailsScreen> createState() =>
@@ -22,44 +22,168 @@ class OperatorScannedDetailsScreen extends StatefulWidget {
 
 class _OperatorScannedDetailsScreenState
     extends State<OperatorScannedDetailsScreen> {
-  late CargoModel cargo;
+  late ParcelModel parcel;
   bool _isLoading = false;
+
+  Future<void> _showDispatchDialog() async {
+    String? selectedTrain;
+    String? selectedGuard;
+    final List<String> mockTrains = ['SGR Express 01', 'Cargo Liner 402', 'LRT Shuttle 09'];
+    final List<String> mockGuards = ['Juma Kapuya', 'Sarah Mwasame', 'Bakari Jenge'];
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text('Dispatch Assignment', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDialogDropdown(
+                hint: 'Select Train',
+                value: selectedTrain,
+                items: mockTrains,
+                onChanged: (val) => setDialogState(() => selectedTrain = val),
+              ),
+              const Gap(16),
+              _buildDialogDropdown(
+                hint: 'Select Guard',
+                value: selectedGuard,
+                items: mockGuards,
+                onChanged: (val) => setDialogState(() => selectedGuard = val),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+            ),
+            ElevatedButton(
+              onPressed: (selectedTrain == null || selectedGuard == null) 
+                ? null 
+                : () => Navigator.pop(context, {'train': selectedTrain!, 'guard': selectedGuard!}),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6)),
+              child: const Text('Dispatch'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      await _updateStatus('In Transit', 
+        location: 'Loaded on ${result['train']} (Guard: ${result['guard']})');
+    }
+  }
+
+  Widget _buildDialogDropdown({
+    required String hint,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(hint, style: const TextStyle(color: Colors.white38, fontSize: 14)),
+          dropdownColor: const Color(0xFF0F172A),
+          isExpanded: true,
+          items: items.map((c) => DropdownMenuItem(
+            value: c,
+            child: Text(c, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          )).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    cargo = widget.cargo;
+    parcel = widget.parcel;
   }
 
-  Future<void> _updateStatus(String newStatus) async {
+  Future<void> _showOffloadDialog() async {
+    String? selectedClerk;
+    final List<String> mockClerks = ['Kassim Majaliwa', 'Neema Shayo', 'Said Mwema'];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Assign Clerk', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Select the destination clerk who will receive this parcel.', 
+              style: GoogleFonts.inter(color: Colors.white60, fontSize: 13)),
+            const Gap(20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedClerk,
+                  hint: const Text('Select Clerk', style: TextStyle(color: Colors.white38)),
+                  dropdownColor: const Color(0xFF0F172A),
+                  isExpanded: true,
+                  items: mockClerks.map((c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(c, style: const TextStyle(color: Colors.white)),
+                  )).toList(),
+                  onChanged: (val) => Navigator.pop(context, val),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      await _updateStatus('Offloaded', location: 'Received by Clerk: $result');
+    }
+  }
+
+  Future<void> _updateStatus(String newStatus, {String? location}) async {
     setState(() => _isLoading = true);
     try {
-      await ApiService.updateCargoStatus(cargo.id, newStatus);
-      final updatedJson = await ApiService.getCargoById(cargo.id);
+      await ApiService.updateParcelStatus(parcel.id, newStatus, location: location);
+      final updatedJson = await ApiService.getParcelById(parcel.id);
       setState(() {
-        cargo = CargoModel.fromJson(updatedJson);
+        parcel = ParcelModel.fromJson(updatedJson);
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Cargo updated to $newStatus'),
-            backgroundColor: Colors.green,
+            content: Text('Parcel updated to $newStatus'),
+            backgroundColor: const Color(0xFF10B981),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update status: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -172,16 +296,14 @@ class _OperatorScannedDetailsScreenState
                     child: ElevatedButton(
                       onPressed: () {
                         final otp = otpControllers.map((c) => c.text).join();
-                        if (otp.length == 4) {
-                          // OTP validation: In production, verify server-side.
-                          // For MVP we accept any 4-digit code.
+                        if (otp == '1024') {
                           verified = true;
                           Navigator.pop(sheetCtx);
                         } else {
                           ScaffoldMessenger.of(ctx).showSnackBar(
                             const SnackBar(
-                              content: Text('Enter the full 4-digit code'),
-                              backgroundColor: Colors.orange,
+                              content: Text('Invalid verification code. Use 1024 for demo.'),
+                              backgroundColor: Colors.redAccent,
                             ),
                           );
                         }
@@ -213,16 +335,16 @@ class _OperatorScannedDetailsScreenState
       final otp = otpControllers.map((c) => c.text).join();
       setState(() => _isLoading = true);
       try {
-        await ApiService.deliverCargo(cargo.id, otp);
-        final updatedJson = await ApiService.getCargoById(cargo.id);
+        await ApiService.deliverParcel(parcel.id, otp);
+        final updatedJson = await ApiService.getParcelById(parcel.id);
         setState(() {
-          cargo = CargoModel.fromJson(updatedJson);
+          parcel = ParcelModel.fromJson(updatedJson);
           _isLoading = false;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Cargo marked as Delivered ✓'),
+              content: Text('Parcel marked as Delivered ✓'),
               backgroundColor: Color(0xFF10B981),
             ),
           );
@@ -238,19 +360,19 @@ class _OperatorScannedDetailsScreenState
     }
   }
 
-  Future<void> _cancelCargo() async {
+  Future<void> _cancelParcel() async {
     final reasonController = TextEditingController();
     final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          title: Text('Cancel Cargo', style: GoogleFonts.outfit()),
+          title: Text('Cancel Parcel', style: GoogleFonts.outfit()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Are you sure you want to cancel this cargo?',
+                'Are you sure you want to cancel this parcel?',
                 style: GoogleFonts.inter(),
               ),
               const Gap(16),
@@ -292,7 +414,7 @@ class _OperatorScannedDetailsScreenState
 
   void _printReceipt() {
     // Navigating back to the receipt screen or showing dialog
-    context.push('/cargo/${cargo.id}/receipt');
+    context.push('/parcel/${parcel.id}/receipt');
   }
 
   Widget _buildTimelineEntry({
@@ -386,35 +508,35 @@ class _OperatorScannedDetailsScreenState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Status color logic matching recent_bookings_screen
-    final Color statusBg = switch (cargo.status) {
-      CargoStatus.delivered =>
+    final Color statusBg = switch (parcel.status) {
+      ParcelStatus.delivered =>
         isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4),
-      CargoStatus.inTransit || CargoStatus.atStation =>
+      ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded =>
         isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
-      CargoStatus.canceled =>
+      ParcelStatus.canceled =>
         isDark ? const Color(0xFF3B0764) : const Color(0xFFFFF1F2),
-      CargoStatus.received =>
+      ParcelStatus.received =>
         isDark ? const Color(0xFF1C1917) : const Color(0xFFF8FAFC),
     };
 
-    final Color statusFg = switch (cargo.status) {
-      CargoStatus.delivered => const Color(0xFF16A34A),
-      CargoStatus.inTransit || CargoStatus.atStation => const Color(0xFF2563EB),
-      CargoStatus.canceled => const Color(0xFFE11D48),
-      CargoStatus.received => const Color(0xFF64748B),
+    final Color statusFg = switch (parcel.status) {
+      ParcelStatus.delivered => const Color(0xFF16A34A),
+      ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFF2563EB),
+      ParcelStatus.canceled => const Color(0xFFE11D48),
+      ParcelStatus.received => const Color(0xFF64748B),
     };
 
     // Determine available CTAs based on status
-    final canDispatch = cargo.status == CargoStatus.received;
-    final canDeliver = cargo.status == CargoStatus.inTransit || cargo.status == CargoStatus.atStation;
-    final canCancel = cargo.status == CargoStatus.received;
+    final canDispatch = parcel.status == ParcelStatus.received;
+    final canOffload = parcel.status == ParcelStatus.inTransit || parcel.status == ParcelStatus.dispatched;
+    final canDeliver = parcel.status == ParcelStatus.atStation;
+    final canCancel = parcel.status == ParcelStatus.received;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Cargo Details',
+          'Parcel Details',
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -425,7 +547,7 @@ class _OperatorScannedDetailsScreenState
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'cancel') {
-                  _cancelCargo();
+                  _cancelParcel();
                 }
               },
               itemBuilder: (context) => [
@@ -439,7 +561,7 @@ class _OperatorScannedDetailsScreenState
                         size: 20,
                       ),
                       const Gap(8),
-                      Text('Cancel Cargo', style: GoogleFonts.inter(color: Colors.red)),
+                      Text('Cancel Parcel', style: GoogleFonts.inter(color: Colors.red)),
                     ],
                   ),
                 ),
@@ -467,7 +589,7 @@ class _OperatorScannedDetailsScreenState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '#${cargo.id.toUpperCase().length > 8 ? cargo.id.toUpperCase().substring(0, 8) : cargo.id.toUpperCase()}',
+                              '#${parcel.id.toUpperCase().length > 8 ? parcel.id.toUpperCase().substring(0, 8) : parcel.id.toUpperCase()}',
                               style: GoogleFonts.outfit(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -484,7 +606,7 @@ class _OperatorScannedDetailsScreenState
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                cargo.status.name.toUpperCase(),
+                                parcel.status.name.toUpperCase(),
                                 style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -513,7 +635,7 @@ class _OperatorScannedDetailsScreenState
                                   ),
                                   const Gap(4),
                                   Text(
-                                    cargo.fromAddress,
+                                    parcel.fromAddress,
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
@@ -537,7 +659,7 @@ class _OperatorScannedDetailsScreenState
                                   ),
                                   const Gap(4),
                                   Text(
-                                    cargo.receiverName,
+                                    parcel.receiverName,
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
@@ -568,11 +690,24 @@ class _OperatorScannedDetailsScreenState
                         if (canDispatch)
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () => _updateStatus('In Transit'),
+                              onPressed: _showDispatchDialog,
                               icon: const HugeIcon(icon: HugeIcons.strokeRoundedDeliveryTruck01, color: Colors.white, size: 20),
                               label: const Text('Dispatch', style: TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF3B82F6),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        if (canOffload)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: _showOffloadDialog,
+                              icon: const HugeIcon(icon: HugeIcons.strokeRoundedPackage01, color: Colors.white, size: 20),
+                              label: const Text('Offload', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF59E0B),
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
@@ -591,7 +726,7 @@ class _OperatorScannedDetailsScreenState
                               ),
                             ),
                           ),
-                        if (canDispatch || canDeliver) const Gap(12),
+                        if (canDispatch || canOffload || canDeliver) const Gap(12),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _printReceipt,
@@ -609,7 +744,7 @@ class _OperatorScannedDetailsScreenState
                   ],
 
                   Text(
-                    'Cargo Timeline',
+                    'Parcel Timeline',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -622,27 +757,27 @@ class _OperatorScannedDetailsScreenState
                       children: [
                         _buildTimelineEntry(
                           label: 'Received',
-                          time: DateFormat('d MMM · HH:mm').format(cargo.createdAt),
+                          time: DateFormat('d MMM · HH:mm').format(parcel.createdAt),
                           done: true,
                         ),
                         _buildTimelineEntry(
                           label: 'In Transit',
-                          time: DateFormat('d MMM').format(cargo.updatedAt),
-                          done: cargo.status != CargoStatus.received && cargo.status != CargoStatus.canceled,
+                          time: DateFormat('d MMM').format(parcel.updatedAt),
+                          done: parcel.status != ParcelStatus.received && parcel.status != ParcelStatus.canceled,
                         ),
                         _buildTimelineEntry(
                           label: 'At Station',
-                          time: DateFormat('d MMM').format(cargo.updatedAt),
-                          done: cargo.status == CargoStatus.atStation || cargo.status == CargoStatus.delivered,
+                          time: DateFormat('d MMM').format(parcel.updatedAt),
+                          done: parcel.status == ParcelStatus.atStation || parcel.status == ParcelStatus.delivered,
                         ),
                         _buildTimelineEntry(
-                          label: cargo.status == CargoStatus.canceled ? 'Canceled' : 'Delivered',
-                          time: cargo.status == CargoStatus.delivered || cargo.status == CargoStatus.canceled
-                              ? DateFormat('d MMM').format(cargo.updatedAt)
+                          label: parcel.status == ParcelStatus.canceled ? 'Canceled' : 'Delivered',
+                          time: parcel.status == ParcelStatus.delivered || parcel.status == ParcelStatus.canceled
+                              ? DateFormat('d MMM').format(parcel.updatedAt)
                               : 'Pending',
-                          done: cargo.status == CargoStatus.delivered,
+                          done: parcel.status == ParcelStatus.delivered,
                           isLast: true,
-                          isFailed: cargo.status == CargoStatus.canceled,
+                          isFailed: parcel.status == ParcelStatus.canceled,
                         ),
                       ],
                     ),

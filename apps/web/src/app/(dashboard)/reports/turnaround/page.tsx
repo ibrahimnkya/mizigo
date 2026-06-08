@@ -1,147 +1,147 @@
-import { SpeedChart } from "@/components/dashboard/speed-chart";
-import { Timer, Zap } from "lucide-react";
-import { StatPill, ChartCard } from "@/components/dashboard/reports-shared";
-import { prisma } from "@repo/database";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
 
-async function getSpeedData() {
-    const session = await auth();
-    if (!session?.user) return null;
+import { useQuery } from "@tanstack/react-query";
+import { Timer, Activity, ArrowUpRight, Zap } from "lucide-react";
+import api from "@/lib/api/client";
+import { DataTable } from "@/components/shared/data-table";
+import { cn } from "@/lib/utils";
+import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { useState, useMemo } from "react";
 
-    const userRole = session.user.role;
-    if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') return null;
+export default function TurnaroundReportPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ["reports", "turnaround"],
+    queryFn: async () => {
+      const res = await api.get("/reports/turnaround");
+      return res.data.data || res.data;
+    },
+  });
 
-    const isAdmin = userRole === 'ADMIN';
-    const userId = session.user.id;
-    const where: any = isAdmin ? { approvedById: userId } : {};
+  const trends = reportData?.speedTrend || [];
 
-    // Fetch approved requests to calculate speed
-    const approvedRequests = await prisma.cargoRequest.findMany({
-        where: {
-            ...where,
-            status: 'APPROVED'
-        },
-        select: {
-            createdAt: true,
-            updatedAt: true
-        }
-    });
+  const filteredData = trends.filter((v: any) =>
+    v.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-    const totalApproved = approvedRequests.length;
+  const pdfData = useMemo(
+    () =>
+      filteredData.map((v: any) => ({
+        date: v.name,
+        speed: `${v.speed} MINS`,
+        efficiency: `${Math.max(0, 100 - (v.speed / 1440) * 100).toFixed(0)}%`,
+      })),
+    [filteredData],
+  );
 
-    // Calculate Average Time (in minutes)
-    const totalTimeMs = approvedRequests.reduce((acc, r) => {
-        return acc + (r.updatedAt.getTime() - r.createdAt.getTime());
-    }, 0);
+  const pdfColumns = [
+    { header: "Reporting Date", key: "date" },
+    { header: "Average Speed", key: "speed" },
+    { header: "Efficiency Rating", key: "efficiency" },
+  ];
 
-    const avgTimeMins = totalApproved > 0 ? Math.round(totalTimeMs / (totalApproved * 1000 * 60)) : 0;
-
-    // SLA Compliance (< 2 hours = 120 mins)
-    const compliantCount = approvedRequests.filter(r => {
-        const diffMins = (r.updatedAt.getTime() - r.createdAt.getTime()) / (1000 * 60);
-        return diffMins <= 120;
-    }).length;
-
-    const completionRate = totalApproved > 0 ? Math.round((compliantCount / totalApproved) * 100) : 0;
-
-    // Speed Trend (Last 7 days)
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }).reverse();
-
-    const speedTrend = await Promise.all(last7Days.map(async (date) => {
-        const nextDay = new Date(date);
-        nextDay.setDate(date.getDate() + 1);
-
-        const dayRequests = await prisma.cargoRequest.findMany({
-            where: {
-                ...where,
-                status: 'APPROVED',
-                updatedAt: { gte: date, lt: nextDay }
-            },
-            select: { createdAt: true, updatedAt: true }
-        });
-
-        const dayAvgMs = dayRequests.length > 0
-            ? dayRequests.reduce((acc, r) => acc + (r.updatedAt.getTime() - r.createdAt.getTime()), 0) / dayRequests.length
-            : 0;
-
-        return {
-            name: date.toLocaleDateString('en-US', { weekday: 'short' }),
-            speed: Math.round(dayAvgMs / (1000 * 60))
-        };
-    }));
-
-    // Trend calculation (Current week vs last week avg speed)
-    const sevenDaysAgo = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(new Date().getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    const currentWeekApps = approvedRequests.filter(r => r.updatedAt >= sevenDaysAgo);
-    const prevWeekApps = approvedRequests.filter(r => r.updatedAt >= fourteenDaysAgo && r.updatedAt < sevenDaysAgo);
-
-    const getAvg = (apps: any[]) => apps.length === 0 ? 0 : apps.reduce((acc, r) => acc + (r.updatedAt.getTime() - r.createdAt.getTime()), 0) / apps.length;
-
-    const currentAvg = getAvg(currentWeekApps);
-    const prevAvg = getAvg(prevWeekApps);
-
-    const perfGap = prevAvg === 0 ? 0 : ((currentAvg - prevAvg) / prevAvg) * 100;
-
-    return {
-        performance: {
-            avgTime: `${avgTimeMins}m`,
-            completionRate: `${completionRate}%`
-        },
-        speedTrend,
-        trends: {
-            performance: {
-                value: `${perfGap >= 0 ? '+' : '-'}${Math.abs(perfGap).toFixed(1)}%`,
-                up: perfGap <= 0 // Lower time is better (up = improvement)
-            }
-        }
-    };
-}
-
-export default async function TurnaroundReportPage() {
-    const data = await getSpeedData();
-
-    if (!data) {
-        redirect("/login");
-    }
-
-    return (
-        <div className="min-h-screen bg-[#f8f9fb]">
-            <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
-
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                            Performance
-                        </span>
-                    </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Approval Speeds</h1>
-                    <p className="text-sm text-slate-400 font-medium mt-0.5">Monitor operational efficiency and turnaround times.</p>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <StatPill
-                        label="Avg. Response"
-                        value={data.performance.avgTime}
-                        sub={`${data.trends.performance.value} performance shift`}
-                        icon={Timer}
-                        accent="#10b981"
-                        subUp={data.trends.performance.up}
-                    />
-                    <StatPill label="Completion Rate" value={data.performance.completionRate} sub="Goal: >95%" icon={Zap} accent="#f59e0b" />
-                </div>
-
-                <ChartCard title="Response Time Trends" icon={Timer} accent="#f59e0b">
-                    <SpeedChart data={data.speedTrend} />
-                </ChartCard>
-            </div>
+  const columns = [
+    {
+      header: "Date",
+      accessor: (item: any) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center">
+            <Activity className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">
+              {item.name}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Reporting Date
+            </span>
+          </div>
         </div>
-    )
+      ),
+    },
+    {
+      header: "Average Time",
+      accessor: (item: any) => (
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "px-3 py-1.5 rounded-[10px] border text-[12px] font-black tracking-tighter shadow-sm",
+              item.speed < 120
+                ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                : item.speed < 240
+                  ? "bg-blue-50 text-blue-600 border-blue-100"
+                  : "bg-rose-50 text-rose-600 border-rose-100",
+            )}
+          >
+            {item.speed} MINS
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Efficiency",
+      accessor: (item: any) => {
+        const efficiency = Math.max(0, 100 - (item.speed / 1440) * 100);
+        return (
+          <div className="flex flex-col gap-2 w-full max-w-[150px]">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-slate-400 uppercase">
+                {efficiency.toFixed(0)}% Optimal
+              </span>
+            </div>
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-1000",
+                  efficiency > 80
+                    ? "bg-emerald-500"
+                    : efficiency > 50
+                      ? "bg-blue-500"
+                      : "bg-rose-500",
+                )}
+                style={{ width: `${efficiency}%` }}
+              />
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Actions",
+      accessor: (item: any) => (
+        <div className="flex items-center justify-end pr-4">
+          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
+            View Logs <ArrowUpRight size={12} strokeWidth={3} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
+      <div className="max-w-[1520px] mx-auto">
+        <ReportPageHeader
+          title="Turnaround Intelligence"
+          subtitle="Monitoring operational velocity and node throughput"
+          icon={Timer}
+          onSearch={setSearchQuery}
+          pdfData={pdfData}
+          pdfColumns={pdfColumns}
+        />
+
+        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+          <DataTable
+            title="Delivery Speed List"
+            columns={columns}
+            data={filteredData}
+            isLoading={isLoading}
+            searchKey="name"
+            searchPlaceholder="Search dates..."
+            hideInternalSearch
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

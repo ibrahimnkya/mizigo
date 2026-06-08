@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
-import '../../theme/app_theme.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 // ─── Password rule model ──────────────────────────────────────────────────────
 
@@ -215,14 +215,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         context.go('/home');
       }
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Registration failed'),
-          backgroundColor: AppTheme.danger,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
+      MizigoToasts.showError(
+        context,
+        auth.error ?? 'Registration failed',
       );
     }
   }
@@ -268,7 +263,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final auth = context.watch<AuthProvider>();
     // final mq = MediaQuery.of(context);
     // final isKeyboardOpen = mq.viewInsets.bottom > 0;
@@ -541,18 +535,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   );
 }
 
-  Widget _label(String text) {
-    final theme = Theme.of(context);
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: theme.textTheme.bodySmall?.color ?? const Color(0xFF475569),
-        letterSpacing: 0.2,
-      ),
-    );
-  }
 }
 
 // ─── Password Rules Widget ────────────────────────────────────────────────────

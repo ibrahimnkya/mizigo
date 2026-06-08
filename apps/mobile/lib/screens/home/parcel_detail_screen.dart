@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import 'track_screen.dart';
 import 'live_track_screen.dart';
 import '../../widgets/home/premium_ui_components.dart';
+import '../../widgets/common/export_action_sheet.dart';
 
 class ParcelDetailScreen extends StatelessWidget {
   final ShipmentData shipment;
@@ -135,7 +136,15 @@ class ParcelDetailScreen extends StatelessWidget {
                             children: [
                               _ActionBtn(
                                 icon: HugeIcons.strokeRoundedShare01,
-                                onTap: () => _generateAndSharePdf(context, s),
+                                onTap: () => ExportBottomSheet.show(
+                                  context: context,
+                                  title: 'Export Parcel Details',
+                                  subtitle: 'Download a copy of this parcel as a PDF document.',
+                                  availableFormats: const ['PDF'],
+                                  actionButtonText: 'Generate & Share',
+                                  includeDateRange: false,
+                                  onExport: (format, _) => _generateAndSharePdf(context, s),
+                                ),
                               ),
                               const Gap(16),
                               _ActionBtn(

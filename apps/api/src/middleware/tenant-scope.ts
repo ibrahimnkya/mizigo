@@ -3,7 +3,11 @@ import { sendError } from "../lib/api-response";
 
 const isSuperAdmin = (role?: string) => role === "SUPER_ADMIN";
 
-export const requireTenantContext = (req: Request, res: Response, next: NextFunction) => {
+export const requireTenantContext = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   if (!req.user) {
     return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
   }
@@ -13,13 +17,22 @@ export const requireTenantContext = (req: Request, res: Response, next: NextFunc
   }
 
   if (!req.user.organizationId) {
-    return sendError(res, "FORBIDDEN", "Missing organization scope for authenticated user", 403);
+    return sendError(
+      res,
+      "FORBIDDEN",
+      "Missing organization scope for authenticated user",
+      403,
+    );
   }
 
   return next();
 };
 
-export const requireStationContext = (req: Request, res: Response, next: NextFunction) => {
+export const requireStationContext = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   if (!req.user) {
     return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
   }
@@ -29,7 +42,12 @@ export const requireStationContext = (req: Request, res: Response, next: NextFun
   }
 
   if (!req.user.organizationId || !req.user.stationId) {
-    return sendError(res, "FORBIDDEN", "Missing station scope for authenticated user", 403);
+    return sendError(
+      res,
+      "FORBIDDEN",
+      "Missing station scope for authenticated user",
+      403,
+    );
   }
 
   return next();

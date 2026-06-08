@@ -66,21 +66,22 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
     await controller?.pauseCamera();
     
     if (!mounted) return;
-    final success = await context.read<ScannerProvider>().processCode(code);
-    
-    if (mounted) {
-      if (success) {
-        if (widget.operation == ParcelOperation.view) {
-           final cargo = context.read<ScannerProvider>().scannedCargo;
-           if (cargo != null) {
-              context.pushReplacement('/operator/scanned-details', extra: cargo);
-           }
+
+    if (widget.operation == ParcelOperation.view) {
+      final success = await context.read<ScannerProvider>().processCode(code);
+      if (mounted) {
+        if (success) {
+          final parcel = context.read<ScannerProvider>().scannedParcel;
+          if (parcel != null) {
+            context.pushReplacement('/operator/scanned-details', extra: parcel);
+          }
         } else {
-           context.pushReplacement('/scanner/message', extra: {'success': true});
+          context.pushReplacement('/scanner/message', extra: {'success': false});
         }
-      } else {
-        context.pushReplacement('/scanner/message', extra: {'success': false});
       }
+    } else {
+      // For Dispatch, Offload, Deliver: Just return the code to the calling screen
+      context.pop(code);
     }
   }
 
@@ -224,7 +225,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Enter Tracking ID',
+                    hintText: 'enter Parcel number',
                     hintStyle: GoogleFonts.inter(
                       color: const Color(0xFF64748B),
                     ),

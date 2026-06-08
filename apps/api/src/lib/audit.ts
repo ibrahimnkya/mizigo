@@ -7,7 +7,12 @@ type AuditInput = {
   details?: Record<string, unknown>;
 };
 
-export const logAudit = async ({ userId, action, resource, details }: AuditInput) => {
+export const logAudit = async ({
+  userId,
+  action,
+  resource,
+  details,
+}: AuditInput) => {
   await prisma.auditLog.create({
     data: {
       userId: userId ?? null,

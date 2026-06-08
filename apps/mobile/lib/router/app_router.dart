@@ -1,4 +1,3 @@
-import 'dart:ui';
 import '../theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -16,18 +15,19 @@ import '../screens/home/live_track_screen.dart';
 import '../screens/home/parcel_detail_screen.dart';
 import '../screens/home/bookings_screen.dart';
 import '../screens/home/recent_bookings_screen.dart';
-import '../models/cargo_model.dart';
-import '../screens/cargo/send_cargo_screen.dart';
-import '../screens/cargo/cargo_status_screen.dart';
-import '../screens/operator/send_cargo_to_station_screen.dart';
-import '../screens/operator/deliver_cargo_screen.dart';
+import '../models/parcel_model.dart';
+import '../screens/parcel/send_parcel_screen.dart';
+import '../screens/parcel/parcel_status_screen.dart';
+import '../screens/operator/send_parcel_to_station_screen.dart';
+import '../screens/operator/offload_parcel_screen.dart';
+import '../screens/operator/deliver_parcel_screen.dart';
 import '../screens/operator/operator_reports_screen.dart';
 import '../screens/operator/qr_scanner_screen.dart';
 import '../screens/operator/operator_scanned_details_screen.dart';
-import '../screens/operator/receive_cargo/operator_package_details_screen.dart';
-import '../screens/operator/receive_cargo/operator_receiver_screen.dart';
-import '../screens/operator/receive_cargo/operator_payment_screen.dart';
-import '../screens/operator/receive_cargo/operator_success_screen.dart';
+import '../screens/operator/receive_parcel/operator_package_details_screen.dart';
+import '../screens/operator/receive_parcel/operator_receiver_screen.dart';
+import '../screens/operator/receive_parcel/operator_payment_screen.dart';
+import '../screens/operator/receive_parcel/operator_success_screen.dart';
 import '../screens/operator/qr_scanner_message_screen.dart';
 import '../screens/operator/operations_hub_screen.dart';
 import '../models/operation_model.dart';
@@ -49,22 +49,22 @@ import '../screens/profile/subscreens/add_place_screen.dart';
 import '../screens/profile/subscreens/payment_methods_screen.dart';
 import '../screens/profile/subscreens/add_payment_method_screen.dart';
 import '../screens/profile/subscreens/legal_document_screen.dart';
-import '../screens/cargo/rates_calculator_screen.dart';
-import '../screens/cargo/delivery_speed_screen.dart';
-import '../screens/cargo/schedule_pickup_screen.dart';
-import '../screens/cargo/send_package_screen.dart';
-import '../screens/cargo/package_details_screen.dart';
-import '../screens/cargo/receiver_screen.dart';
-import '../screens/cargo/confirm_order_screen.dart';
-import '../screens/cargo/location_search_screen.dart';
-import '../screens/cargo/location_confirm_map_screen.dart';
+import '../screens/parcel/rates_calculator_screen.dart';
+import '../screens/parcel/delivery_speed_screen.dart';
+import '../screens/parcel/schedule_pickup_screen.dart';
+import '../screens/parcel/send_package_screen.dart';
+import '../screens/parcel/package_details_screen.dart';
+import '../screens/parcel/receiver_screen.dart';
+import '../screens/parcel/confirm_order_screen.dart';
+import '../screens/parcel/location_search_screen.dart';
+import '../screens/parcel/location_confirm_map_screen.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/verification_screen.dart';
 import '../screens/auth/profile_setup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
-import '../screens/cargo/availability_checker_screen.dart';
+import '../screens/parcel/availability_checker_screen.dart';
 import '../screens/operator/efficiency_screen.dart';
 import '../screens/profile/subscreens/account_deletion_screen.dart';
 
@@ -97,7 +97,7 @@ GoRouter createRouter(AuthProvider authProvider) {
 
       if (status == AuthStatus.unauthenticated) {
         if (isLoggingIn || isRegistering || isWelcome || isVerifying || isForgotMw) return null;
-        return '/welcome';
+        return '/login';
       }
 
       if (status == AuthStatus.authenticated) {
@@ -235,28 +235,28 @@ GoRouter createRouter(AuthProvider authProvider) {
         },
       ),
 
-      // Cargo flow
-      GoRoute(path: '/cargo/send', builder: (_, _) => const SendCargoScreen()),
+      // Parcel flow
+      GoRoute(path: '/parcel/send', builder: (_, _) => const SendParcelScreen()),
       GoRoute(
-        path: '/cargo/:id/status',
+        path: '/parcel/:id/status',
         builder: (_, state) =>
-            CargoStatusScreen(cargoId: state.pathParameters['id']!),
+            ParcelStatusScreen(parcelId: state.pathParameters['id']!),
       ),
       GoRoute(
-        path: '/cargo/:id/payment',
+        path: '/parcel/:id/payment',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return PaymentScreen(
-            cargoId: state.pathParameters['id']!,
+            parcelId: state.pathParameters['id']!,
             initialAmount: extra?['amount'] as double?,
             isOverlay: false,
           );
         },
       ),
       GoRoute(
-        path: '/cargo/:id/receipt',
+        path: '/parcel/:id/receipt',
         builder: (_, state) =>
-            ReceiptScreen(cargoId: state.pathParameters['id']!),
+            ReceiptScreen(parcelId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/notifications',
@@ -309,11 +309,11 @@ GoRouter createRouter(AuthProvider authProvider) {
             delivery: data['delivery'] ?? '',
             vehicle: data['vehicle'] ?? '',
             basePrice: data['price'] as int? ?? 0,
-            cargoDescription: data['cargoDescription'] ?? '',
+            parcelDescription: data['parcelDescription'] ?? '',
             packageName: data['packageName'] ?? '',
             packageValue: data['packageValue'] ?? '',
             condition: data['condition'] ?? '',
-            cargoType: data['cargoType'] ?? '',
+            parcelType: data['parcelType'] ?? '',
             urgency: data['urgency'] ?? '',
             packageSize: data['packageSize'] ?? '',
           );
@@ -331,11 +331,11 @@ GoRouter createRouter(AuthProvider authProvider) {
             receiverPhone: data['receiverPhone'] ?? '',
             total: data['total'] as int? ?? 0,
             receiverPays: data['receiverPays'] as bool? ?? false,
-            cargoDescription: data['cargoDescription'] ?? '',
+            parcelDescription: data['parcelDescription'] ?? '',
             packageName: data['packageName'] ?? '',
             packageValue: data['packageValue'] ?? '',
             condition: data['condition'] ?? '',
-            cargoType: data['cargoType'] ?? '',
+            parcelType: data['parcelType'] ?? '',
             urgency: data['urgency'] ?? '',
             packageSize: data['packageSize'] ?? '',
           );
@@ -374,12 +374,12 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/bookings/recent/:id',
         builder: (_, state) {
-          final cargo = state.extra as CargoModel?;
-          if (cargo == null) {
-            // Redirect to list if no cargo data was passed
+          final parcel = state.extra as ParcelModel?;
+          if (parcel == null) {
+            // Redirect to list if no parcel data was passed
             return const RecentBookingsScreen();
           }
-          return BookingDetailScreen(cargo: cargo);
+          return BookingDetailScreen(parcel: parcel);
         },
       ),
 
@@ -401,7 +401,7 @@ GoRouter createRouter(AuthProvider authProvider) {
 
         // Operator Specific Routes
         GoRoute(
-          path: '/receive-cargo', // Fallback backwards compat proxy
+          path: '/receive-parcel', // Fallback backwards compat proxy
           builder: (context, state) => const OperatorPackageDetailsScreen(),
         ),
         GoRoute(
@@ -430,12 +430,16 @@ GoRouter createRouter(AuthProvider authProvider) {
           },
         ),
         GoRoute(
-          path: '/send-cargo',
-          builder: (context, state) => const SendCargoToStationScreen(),
+          path: '/send-parcel',
+          builder: (context, state) => const SendParcelToStationScreen(),
         ),
         GoRoute(
-          path: '/deliver-cargo',
-          builder: (context, state) => const DeliverCargoScreen(),
+          path: '/offload-parcel',
+          builder: (context, state) => const OffloadParcelScreen(),
+        ),
+        GoRoute(
+          path: '/deliver-parcel',
+          builder: (context, state) => const DeliverParcelScreen(),
         ),
         GoRoute(
           path: '/operator-reports',
@@ -490,8 +494,8 @@ GoRouter createRouter(AuthProvider authProvider) {
         GoRoute(
           path: '/operator/scanned-details',
           builder: (context, state) {
-            final cargo = state.extra as CargoModel;
-            return OperatorScannedDetailsScreen(cargo: cargo);
+            final parcel = state.extra as ParcelModel;
+            return OperatorScannedDetailsScreen(parcel: parcel);
           },
         ),
       ],
@@ -565,8 +569,6 @@ class MainScaffold extends StatelessWidget {
     final isOperator = auth.user?.role?.toUpperCase() == 'OPERATOR';
     final tabs = _getTabs(isOperator);
     final currentIndex = navigationShell.currentIndex;
-
-    final theme = Theme.of(context);
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(

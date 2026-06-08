@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../providers/printer_provider.dart';
 import '../../../theme/app_theme.dart';
-import '../../../widgets/common/neo_container.dart';
 import '../../../widgets/common/wheel_rotate.dart';
 
 class PrinterConfigurationScreen extends StatefulWidget {

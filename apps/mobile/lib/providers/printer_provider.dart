@@ -176,7 +176,7 @@ class PrinterProvider extends ChangeNotifier {
       bytes += generator.feed(1);
       bytes += generator.text('MIZIGO LOGISTICS', 
         styles: const PosStyles(align: PosAlign.center, bold: true, height: PosTextSize.size2, width: PosTextSize.size2));
-      bytes += generator.text('Reliable Cargo Tracking', 
+      bytes += generator.text('Reliable Parcel Tracking', 
         styles: const PosStyles(align: PosAlign.center));
       bytes += generator.feed(1);
       

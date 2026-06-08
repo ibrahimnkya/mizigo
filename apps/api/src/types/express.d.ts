@@ -9,6 +9,7 @@ declare global {
         role: string;
         permissions: string[];
         sessionId?: string;
+        deviceId?: string;
         organizationId?: string | null;
         stationId?: string | null;
         isFirstLogin?: boolean;

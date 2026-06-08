@@ -1,175 +1,136 @@
-import { RevenueChart } from "@/components/dashboard/revenue-chart";
-import { TrendingUp as Trend, DollarSign, Wallet, CreditCard, Activity, BarChart3, ArrowUpRight, TrendingDown } from "lucide-react";
-import { ChartCard } from "@/components/dashboard/reports-shared";
-import { prisma } from "@repo/database";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+"use client";
 
-async function getRevenueData() {
-    const session = await auth();
-    if (!session?.user) return null;
+import { useQuery } from "@tanstack/react-query";
+import {
+  TrendingUp,
+  DollarSign,
+  Wallet,
+  CreditCard,
+  Activity,
+  ArrowUpRight,
+} from "lucide-react";
+import api from "@/lib/api/client";
+import { DataTable } from "@/components/shared/data-table";
+import { cn } from "@/lib/utils";
+import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { useState, useMemo } from "react";
 
-    const userRole = session.user.role;
-    if (userRole !== 'SUPER_ADMIN') return null;
+export default function RevenueReportPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ["reports", "revenue"],
+    queryFn: async () => {
+      const res = await api.get("/reports/revenue");
+      return res.data.data || res.data;
+    },
+  });
 
-    const isAdmin = userRole === 'ADMIN';
-    const userId = session.user.id;
-    const where: any = isAdmin ? { approvedById: userId } : {};
+  const ledgerData = reportData?.chartData || [];
 
-    // Get payments (joined with cargoRequest for access control)
-    const payments = await (prisma as any).payment.findMany({
-        where: {
-            status: 'SUCCESS',
-            ...(isAdmin ? {
-                cargoRequest: {
-                    approvedById: userId
-                }
-            } : {})
-        }
-    });
+  const filteredData = ledgerData.filter((v: any) =>
+    v.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-    const totalRevenue = payments.reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-    const netProfit = totalRevenue * 0.92; // 92% after estimated operational costs/fees
-    const avgTransaction = payments.length > 0 ? totalRevenue / payments.length : 0;
+  const pdfData = useMemo(
+    () =>
+      filteredData.map((v: any) => ({
+        period: v.name,
+        revenue: new Intl.NumberFormat("en-TZ", {
+          style: "currency",
+          currency: "TZS",
+        }).format(v.total || 0),
+        status: "Verified",
+      })),
+    [filteredData],
+  );
 
-    // Trends (This month vs last month)
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const pdfColumns = [
+    { header: "Reporting Period", key: "period" },
+    { header: "Revenue Collected", key: "revenue" },
+    { header: "Verification Status", key: "status" },
+  ];
 
-    const thisMonthRevenue = payments.filter((p: any) => p.createdAt >= startOfMonth)
-        .reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-    const lastMonthRevenue = payments.filter((p: any) => p.createdAt >= startOfLastMonth && p.createdAt < startOfMonth)
-        .reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-
-    const growthRate = lastMonthRevenue === 0 ? (thisMonthRevenue > 0 ? 100 : 0) : ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
-
-    const revenueByServiceRaw = await prisma.cargoRequest.groupBy({
-        by: ['cargoType'],
-        where: {
-            ...where,
-            payment: {
-                status: 'SUCCESS'
-            }
-        },
-        _sum: {
-            amount: true
-        }
-    });
-
-    const revenueByService = revenueByServiceRaw.map((s: any) => ({
-        name: s.cargoType || 'General',
-        amount: s._sum?.amount || 0
-    })).sort((a: any, b: any) => b.amount - a.amount);
-
-    // Build monthly chart data (last 6 months)
-    const monthlyMap: Record<string, number> = {};
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const key = d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-        monthlyMap[key] = 0;
-    }
-    payments.forEach((p: any) => {
-        const d = new Date(p.createdAt);
-        const key = d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-        if (key in monthlyMap) monthlyMap[key] = (monthlyMap[key] ?? 0) + (p.amount || 0);
-    });
-    const chartData = Object.entries(monthlyMap).map(([name, total]) => ({ name, total }));
-
-    return {
-        stats: [
-            { label: "Gross Revenue", value: `TZS ${totalRevenue.toLocaleString()}`, icon: DollarSign, accent: "#10b981", trend: { value: `${growthRate >= 0 ? '+' : ''}${growthRate.toFixed(1)}%`, up: growthRate >= 0 } },
-            { label: "Net Profit", value: `TZS ${Math.round(netProfit).toLocaleString()}`, icon: Wallet, accent: "#3b82f6" },
-            { label: "Avg. Transaction", value: `TZS ${Math.round(avgTransaction).toLocaleString()}`, icon: CreditCard, accent: "#6366f1" },
-            { label: "Growth Rate", value: `${growthRate.toFixed(1)}%`, icon: Trend, accent: "#8b5cf6", trend: { value: `${growthRate >= 0 ? '+' : ''}${growthRate.toFixed(1)}%`, up: growthRate >= 0 } },
-        ],
-        revenueByService,
-        chartData
-    };
-}
-
-export default async function RevenueReportPage() {
-    const data = await getRevenueData();
-
-    if (!data) {
-        redirect("/login");
-    }
-
-    return (
-        <div className="min-h-screen bg-[#f8f9fb]">
-            <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
-
-                {/* Header */}
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                            Financial
-                        </span>
-                    </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Revenue Analytics</h1>
-                    <p className="text-sm text-slate-400 font-medium mt-0.5">In-depth financial analysis and monthly projections across all terminals.</p>
-                </div>
-
-                {/* KPI row */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {data.stats.map((s) => (
-                        <div
-                            key={s.label}
-                            className="relative group bg-white rounded-2xl border border-slate-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col gap-3"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${s.accent}15` }}>
-                                    <s.icon size={16} style={{ color: s.accent }} strokeWidth={2.5} />
-                                </div>
-                                {s.trend && (
-                                    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.trend.up ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}>
-                                        {s.trend.up ? <ArrowUpRight size={9} /> : <TrendingDown size={9} />}
-                                        {s.trend.value}
-                                    </span>
-                                )}
-                            </div>
-                            <div>
-                                <p className="text-xl font-extrabold text-slate-900 tracking-tight tabular-nums">{s.value}</p>
-                                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-1">{s.label}</p>
-                            </div>
-                            <div className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" style={{ backgroundColor: s.accent }} />
-                        </div>
-                    ))}
-                </div>
-
-                {/* Main chart */}
-                <ChartCard title="Revenue Trends" icon={Activity} accent="#10b981">
-                    <div className="h-[400px]">
-                        <RevenueChart data={data.chartData} />
-                    </div>
-                </ChartCard>
-
-                {/* Secondary panels */}
-                <div className="grid gap-5 lg:grid-cols-2">
-                    <ChartCard title="Revenue by Service" icon={Trend} accent="#6366f1">
-                        <div className="p-4 space-y-4">
-                            {data.revenueByService.map((item: { name: string; amount: number }) => (
-                                <div key={item.name} className="flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-slate-600">{item.name}</span>
-                                    <span className="text-sm font-extrabold text-slate-900">TZS {item.amount.toLocaleString()}</span>
-                                </div>
-                            ))}
-                            {data.revenueByService.length === 0 && (
-                                <div className="text-center py-10 text-slate-400 text-sm">No revenue data found</div>
-                            )}
-                        </div>
-                    </ChartCard>
-                    <ChartCard title="Performance Status" icon={Activity} accent="#8b5cf6">
-                        <div className="h-[280px] flex flex-col items-center justify-center gap-3 text-slate-300">
-                            <BarChart3 size={32} strokeWidth={1.5} />
-                            <div className="text-center">
-                                <p className="text-sm font-semibold text-slate-400">Analysis active</p>
-                                <p className="text-[12px] text-slate-300 mt-0.5">Tracking real-time throughput</p>
-                            </div>
-                        </div>
-                    </ChartCard>
-                </div>
-            </div>
+  const columns = [
+    {
+      header: "Reporting Period",
+      accessor: (item: any) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center">
+            <DollarSign className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">
+              {item.name}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Fiscal Cycle
+            </span>
+          </div>
         </div>
-    )
+      ),
+    },
+    {
+      header: "Revenue",
+      accessor: (item: any) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1 text-emerald-600">
+            <TrendingUp className="w-4 h-4" strokeWidth={3} />
+            <span className="text-[14px] font-black tracking-tighter">
+              {new Intl.NumberFormat("en-TZ", {
+                style: "currency",
+                currency: "TZS",
+                maximumSignificantDigits: 3,
+              }).format(item.total || 0)}
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Audit Status",
+      accessor: (item: any) => (
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm">
+          <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+          Verified
+        </div>
+      ),
+    },
+    {
+      header: "Actions",
+      accessor: (item: any) => (
+        <div className="flex items-center justify-end pr-4">
+          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
+            Details <ArrowUpRight size={12} strokeWidth={3} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
+      <div className="max-w-[1520px] mx-auto">
+        <ReportPageHeader
+          title="Revenue Overview"
+          subtitle="Earnings, collections, and financial intelligence"
+          icon={TrendingUp}
+          onSearch={setSearchQuery}
+          pdfData={pdfData}
+          pdfColumns={pdfColumns}
+        />
+
+        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+          <DataTable
+            title="Revenue List"
+            columns={columns}
+            data={filteredData}
+            isLoading={isLoading}
+            searchKey="name"
+            searchPlaceholder="Search periods..."
+            hideInternalSearch
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

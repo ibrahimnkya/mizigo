@@ -1,0 +1,387 @@
+{
+  "info": {
+    "_postman_id": "c4f6a848-afa1-4a0b-9849-64ea40988a2b",
+    "name": "Staride Corporate",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12107409",
+    "_collection_link": "https://go.postman.co/collection/12107409-c4f6a848-afa1-4a0b-9849-64ea40988a2b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Corporate Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\":\"crdb@akiliapp.co.tz\",\n    \"password\":\"123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Corporate Register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_name\": \"Hashtech Ltd\",\n  \"company_email\": \"ibrankya@hashtech.co.tz\",\n  \"company_phone\": \"255745763600\",\n  \"tin_number\": \"123456780\",\n  \"vat_number\": \"VAT06\",\n  \"admin_full_name\": \"Mwalimu Doe\",\n  \"admin_email\": \"ibrankya@hashtech.co.tz\",\n  \"admin_phone\": \"255745763600\",\n  \"country_phone_code\": \"+255 Tanzania\",\n  \"wallet_currency_code\": \"TZS\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Corporate Verify",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"corporateId\": \"6308554719d63a750039bcdc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Corporate Reject",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"corporateId\": \"6308554719d63a750039bcdc\",\n  \"rejectionReason\": \"Incomplete documentation provided\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-reject"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Corporate Send Credentials",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"corporateId\": \"689b555f18ffef567f3bff60\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-send-credentials",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-send-credentials"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Verified Companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-verified",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-verified"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Pending Verified Companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-pending-verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-pending-verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Rejected Verified Companies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-rejected",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-rejected"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Ops Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ops-profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "ops-profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-users?page=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Users Copy",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/corporate-users?page=1&limit=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "corporate-users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Requests",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-request"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate Future Requests",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-future-request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-future-request"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Schedule Corporate Ride",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/corporate-future-request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-future-request"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Corporate History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/corporate-history",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "corporate-history"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MmJhZDhjYmRlNDgzODk0ZGRmNTBiZGEiLCJlbWFpbCI6ImNyZGJAYWtpbGlhcHAuY28udHoiLCJjb21wYW55X25hbWUiOiIiLCJjb3VudHJ5X2lkIjoiNjJiMmYwNWQyMjc4MzdjZTg3NzkwZjI1IiwiY291bnRyeV9waG9uZV9jb2RlIjoiKzI1NSIsImlzX2FwcHJvdmVkIjoxLCJpc19reWNfdmVyaWZpZWQiOjAsImlhdCI6MTc1Njg5ODExNiwiZXhwIjoxNzU2OTg0NTE2fQ.Y8aNACRfYtPOeNydr9Bb1Alv2gXp_PnBWZuCzbecnVU",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

@@ -17,7 +17,13 @@ export const globalErrorHandler = (
   _next: NextFunction,
 ) => {
   if (error instanceof ApiError) {
-    return sendError(res, error.code, error.message, error.statusCode, error.details);
+    return sendError(
+      res,
+      error.code,
+      error.message,
+      error.statusCode,
+      error.details,
+    );
   }
 
   console.error("Unhandled API error", {

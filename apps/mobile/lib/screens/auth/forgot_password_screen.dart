@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
@@ -323,14 +324,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       });
       _startCountdown();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Failed to send reset code'),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
+      MizigoToasts.showError(
+        context,
+        auth.error ?? 'Failed to send reset code',
       );
     }
   }
@@ -382,14 +378,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (success) {
       setState(() => _resetDone = true);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.error ?? 'Failed to reset password'),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
+      MizigoToasts.showError(
+        context,
+        auth.error ?? 'Failed to reset password',
       );
     }
   }

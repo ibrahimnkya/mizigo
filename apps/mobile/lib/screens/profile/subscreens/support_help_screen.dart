@@ -84,7 +84,7 @@ class SupportHelpScreen extends StatelessWidget {
                   const Gap(16),
                   _buildTopicItem(
                     icon: HugeIcons.strokeRoundedPackageReceive,
-                    title: 'How to receive cargo?',
+                    title: 'How to receive parcel?',
                     onTap: () {},
                   ),
                   _buildTopicItem(

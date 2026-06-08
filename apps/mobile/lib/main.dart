@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'providers/auth_provider.dart';
-import 'providers/cargo_provider.dart';
+import 'providers/parcel_provider.dart';
 import 'providers/payment_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/printer_provider.dart';
@@ -31,7 +31,7 @@ class MizigoApp extends StatefulWidget {
 
 class _MizigoAppState extends State<MizigoApp> {
   late final AuthProvider _authProvider;
-  late final CargoProvider _cargoProvider;
+  late final ParcelProvider _parcelProvider;
   late final PaymentProvider _paymentProvider;
   late final ThemeProvider _themeProvider;
   late final PrinterProvider _printerProvider;
@@ -41,7 +41,7 @@ class _MizigoAppState extends State<MizigoApp> {
   void initState() {
     super.initState();
     _authProvider = AuthProvider();
-    _cargoProvider = CargoProvider();
+    _parcelProvider = ParcelProvider();
     _paymentProvider = PaymentProvider();
     _themeProvider = ThemeProvider();
     _printerProvider = PrinterProvider();
@@ -53,7 +53,7 @@ class _MizigoAppState extends State<MizigoApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _authProvider),
-        ChangeNotifierProvider.value(value: _cargoProvider),
+        ChangeNotifierProvider.value(value: _parcelProvider),
         ChangeNotifierProvider.value(value: _paymentProvider),
         ChangeNotifierProvider.value(value: _themeProvider),
         ChangeNotifierProvider.value(value: _printerProvider),

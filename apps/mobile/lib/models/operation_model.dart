@@ -8,19 +8,19 @@ enum ParcelOperation {
 extension ParcelOperationExtension on ParcelOperation {
   String get displayLabel {
     switch (this) {
-      case ParcelOperation.dispatch: return 'Dispatch Cargo';
-      case ParcelOperation.offload: return 'Offload Cargo';
-      case ParcelOperation.deliver: return 'Deliver Cargo';
-      case ParcelOperation.view: return 'Track Cargo';
+      case ParcelOperation.dispatch: return 'Dispatch Parcel';
+      case ParcelOperation.offload: return 'Offload Parcel';
+      case ParcelOperation.deliver: return 'Deliver Parcel';
+      case ParcelOperation.view: return 'Track Parcel';
     }
   }
 
   String get successMessage {
     switch (this) {
-      case ParcelOperation.dispatch: return 'Cargo dispatched successfully';
-      case ParcelOperation.offload: return 'Cargo offloaded successfully';
-      case ParcelOperation.deliver: return 'Cargo delivered successfully';
-      case ParcelOperation.view: return 'Cargo found';
+      case ParcelOperation.dispatch: return 'Parcel dispatched successfully';
+      case ParcelOperation.offload: return 'Parcel offloaded successfully';
+      case ParcelOperation.deliver: return 'Parcel delivered successfully';
+      case ParcelOperation.view: return 'Parcel found';
     }
   }
 }

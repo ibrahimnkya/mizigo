@@ -1,0 +1,213 @@
+import { Router, Request, Response } from "express";
+import { prisma } from "@repo/database";
+import { sendError, sendSuccess } from "../lib/api-response";
+import { authenticate, requirePermission } from "../middleware/auth";
+
+const router: Router = Router();
+
+// GET /api/v1/users - List users with optional role filtering (Org scoped for non-Super Admin)
+router.get("/", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { role: roleFilter } = req.query;
+    const currentUserRole = req.user?.role;
+
+    let whereClause: any = {
+      isActive: true,
+      deletedAt: null,
+    };
+
+    if (currentUserRole !== "SUPER_ADMIN") {
+      whereClause.organizationId = req.user?.organizationId ?? undefined;
+    }
+
+    if (roleFilter === "ADMIN") {
+      const adminRoles = await prisma.role.findMany({
+        where: { name: { in: ["ADMIN", "ORG_ADMIN"] } },
+      });
+      whereClause.roleId = { in: adminRoles.map((r) => r.id) };
+    } else if (roleFilter === "OPERATOR") {
+      const operatorRoles = await prisma.role.findMany({
+        where: { name: { in: ["OPERATOR", "STATION_OPERATOR"] } },
+      });
+      whereClause.roleId = { in: operatorRoles.map((r) => r.id) };
+    } else if (roleFilter) {
+      const specificRole = await prisma.role.findFirst({
+        where: { name: String(roleFilter) },
+      });
+      if (specificRole) {
+        whereClause.roleId = specificRole.id;
+      } else {
+        whereClause.roleId = "non-existent";
+      }
+    }
+
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      include: {
+        role: { select: { name: true } },
+        organization: { select: { name: true } },
+        station: { select: { name: true, code: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return sendSuccess(res, users);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// GET /api/v1/users/global - List all users in the system (Super Admin only)
+router.get("/global", authenticate, async (req: Request, res: Response) => {
+  try {
+    if (req.user?.role !== "SUPER_ADMIN") {
+      return sendError(
+        res,
+        "FORBIDDEN",
+        "Only super admin can access global directory",
+        403,
+      );
+    }
+
+    const users = await prisma.user.findMany({
+      where: { deletedAt: null },
+      include: {
+        role: true,
+        organization: true,
+        station: {
+          select: { name: true, code: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return sendSuccess(res, users);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// GET /api/v1/users/roles - List available roles
+router.get("/roles", authenticate, async (req: Request, res: Response) => {
+  try {
+    const roles = await prisma.role.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true, description: true },
+    });
+    return sendSuccess(res, roles);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// GET /api/v1/users/:id/parcels - Retrieve parcels handled by a user
+router.get(
+  "/:id/parcels",
+  authenticate,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: { role: true },
+      });
+
+      if (!user || user.deletedAt) {
+        return sendError(res, "NOT_FOUND", "User not found", 404);
+      }
+
+      const roleName = user.role?.name;
+      const isTrainGuard = roleName === "TRAIN_GUARD";
+      const isClerk = roleName === "CLERK";
+
+      let whereClause: any;
+      if (isTrainGuard) {
+        whereClause = {
+          OR: [{ dispatcherId: id }, { offloaderId: id }],
+        };
+      } else if (isClerk) {
+        whereClause = {
+          OR: [{ userId: id }, { dispatcherId: id }, { delivererId: id }],
+        };
+      } else {
+        whereClause = {
+          OR: [
+            { userId: id },
+            { dispatcherId: id },
+            { offloaderId: id },
+            { delivererId: id },
+          ],
+        };
+      }
+
+      const parcels = await prisma.parcel.findMany({
+        where: whereClause,
+        include: {
+          origin: { select: { name: true, code: true } },
+          destination: { select: { name: true, code: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      });
+
+      return sendSuccess(res, parcels);
+    } catch (error: any) {
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  },
+);
+
+// GET /api/v1/users/:id - Get detailed user profile with performance stats
+router.get("/:id", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { role: true, organization: true, station: true },
+    });
+
+    if (!user || user.deletedAt) {
+      return sendError(res, "NOT_FOUND", "User not found", 404);
+    }
+
+    const dispatched = await prisma.parcel.count({
+      where: { dispatcherId: id },
+    });
+    const offloaded = await prisma.parcel.count({ where: { offloaderId: id } });
+    const delivered = await prisma.parcel.count({ where: { delivererId: id } });
+    const created = await prisma.parcel.count({ where: { userId: id } });
+
+    let stats;
+    if (user.role?.name === "TRAIN_GUARD") {
+      stats = {
+        dispatched,
+        offloaded,
+        totalHandled: dispatched + offloaded,
+      };
+    } else if (user.role?.name === "CLERK") {
+      stats = {
+        created,
+        dispatched,
+        delivered,
+        totalHandled: created + dispatched + delivered,
+      };
+    } else {
+      stats = {
+        created,
+        dispatched,
+        offloaded,
+        delivered,
+        totalHandled: created + dispatched + offloaded + delivered,
+      };
+    }
+
+    return sendSuccess(res, {
+      ...user,
+      stats,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+export default router;

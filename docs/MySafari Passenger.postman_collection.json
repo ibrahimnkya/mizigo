@@ -1,0 +1,1216 @@
+{
+  "info": {
+    "_postman_id": "2f5151ef-bd03-43f7-bdba-cba46b57c381",
+    "name": "MySafari Passenger",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12107409",
+    "_collection_link": "https://go.postman.co/collection/12107409-2f5151ef-bd03-43f7-bdba-cba46b57c381?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Deleteable",
+      "item": [
+        {
+          "name": "Get Journey Types",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://mysafari.co.tz/api/passenger/journey-types",
+              "protocol": "https",
+              "host": [
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "passenger",
+                "journey-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get list of ID types",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://mysafari.co.tz/api/passenger/id-types",
+              "protocol": "https",
+              "host": [
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "passenger",
+                "id-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Age Group List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "7551813|5UuNnDECXP8txmlsSBVAcLpzTjHjO71Tm1wSrowz",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://sandbox.mysafari.co.tz/api/passenger/age-groups",
+              "protocol": "https",
+              "host": [
+                "sandbox",
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "passenger",
+                "age-groups"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "push notification",
+      "item": [
+        {
+          "name": "Send Notificaton",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "ya29.c.b0Aaekm1JdjQCWj9qIAdbPJE2GcK25Iuqrz3kXWmL7RuLYZK8pNz-AXnxJ3JEvQzGwHllbPcF3swQ6Bc_qX3CQhkAKMWmjicJzwusmYZOuhtzYVGmO29P4uWv72VV5mJodnlkLCi2Z0XVNU8FywbzisqdLBihk8sNSuTdHn4RYH7uv-gSKevbzLT0G6mDZFPbdzS4sc96NSmO5_61vRd8BPe7mwvP6twu7yPiqciV500fPt_JemKj5H-b5nf9JRFuiWyF_pcMg-be7d7UdQ4t2JpvknMzfvmnHxgrn8qtxcSRs6JC0SJjraSoTzXR_z8dNDgAN9A4GI5_Pp89GAYheUHZDMQE355Poll02fcvnQSus8f3iu1aJpUdrS5upjzaZ8Zlk2R2lWBsVfbad0j0xSjaSOcaOFqhbieeV2hFz37oVWrk4Jw3xeXsgmgXypeUpiv7aoXktYzYaZSZiZvJ3zagkVyXe1l7pucInqqJtJj1JkWocjWdbhUfxyoSf9t1VX6fxcbf_3bquX2BRBRI_rO26tlmj4uFJUXdxUZjn8-cc23t2ndbqiVUz4ponYqh1zBbecf3rg4MieR0dj3fu0J2cluFz_uM_uSIYzjeyJda96qVFxMoghp6jsqM_Oea62jO6f14fF89WFVjIXzQ91g8er2bidW9xuBWsIXQzbaOcBhVc3c3l8yr55BMQ2W4mYWJi-qn8fYVjWpiFez0z8Uaab95hFBSje3JuO1zr_wmWf3lMUM4Rc3hVmvhx6OetsbJvpRVdYhFsYaphVRVI1i8JOha_fW0hrFy21qUXkQs0cWBlWtuvj2IVB7VYvx4Ol-xUWR0V8dsUvd8v0f8efjUrlwRtpJzSgkaQ4WlRRcU_RJoSX83dIJp-B8J7Ziid7e8t1o7mQda74us2emUgpgr9656Z71eeMetB380jUzXhyQFb1mzvIW87kQySj7ie5fkOsrnxq3v0_F5BkoI5Xk0smwIWq4RUd0_F2QgvB9q3emgdpVvMv9-",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"message\": {\r\n        \"token\": \"fhgxRjDhRICWb0_zSMCDVc:APA91bGLzpnbinzGVIfrYMW8CSSBHrKKRX_vmcTit3yE8KnPMogUhGN6azs1lPqTzRgl7l5RDW0Wa0RXcVXccbaZgawDmsKcnNjIffq3Y04n4FTkcJpArwCd4xQ3WDV1XmLe4SYHngF_\",\r\n        \"data\": {\r\n            \"notification_type\": \"TICKET_CANCELLED\", //TICKET_PAID, \"TICKET_CANCELLED\" ,\"UPCOMING_TRIP\" ,\"TRIP_FINISHED\"\r\n            \"title_en\": \"Your ticket has been canceled successfully!\",\r\n            \"title_sw\": \"Tikiti yako imeuzwa kwa mafanikio!\",\r\n            \"booking_id\": \"204823\"\r\n        }\r\n    }\r\n}"
+            },
+            "url": {
+              "raw": "https://fcm.googleapis.com/v1/projects/mysafari-passenger-app/messages:send",
+              "protocol": "https",
+              "host": [
+                "fcm",
+                "googleapis",
+                "com"
+              ],
+              "path": [
+                "v1",
+                "projects",
+                "mysafari-passenger-app",
+                "messages:send"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Get Mobile Money payment options",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mysafarI}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://mysafari.co.tz/api/mobile-money-channels",
+              "protocol": "https",
+              "host": [
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "mobile-money-channels"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout MNO (Pay using mobile money)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "7570505|XnhVJDnmREFDQ5L9SJzrh90TbgEbJ8xT0WvUaeKP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "phone_number",
+                  "value": "0715333300",
+                  "type": "text"
+                },
+                {
+                  "key": "provider",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "booking_number",
+                  "value": "902386016818",
+                  "type": "text"
+                },
+                {
+                  "key": "additionalProperties",
+                  "value": "902386016818",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://mysafari.co.tz/api/checkout/mno",
+              "protocol": "https",
+              "host": [
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "checkout",
+                "mno"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "reservations",
+      "item": [
+        {
+          "name": "Save Reservation",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mysafarI}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "journey_id",
+                  "value": "305597",
+                  "type": "text"
+                },
+                {
+                  "key": "is_personal",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "company_name",
+                  "value": "Usangi",
+                  "type": "text"
+                },
+                {
+                  "key": "tin",
+                  "value": "345345453",
+                  "type": "text"
+                },
+                {
+                  "key": "vrn",
+                  "value": "",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://mysafari.co.tz/api/save-reservation",
+              "protocol": "https",
+              "host": [
+                "mysafari",
+                "co",
+                "tz"
+              ],
+              "path": [
+                "api",
+                "save-reservation"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sign In",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "phone_number",
+              "value": "255745001216",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/sign-in",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "sign-in"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "phone_number",
+              "value": "255745001216",
+              "type": "text"
+            },
+            {
+              "key": "otp",
+              "value": "3482",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/verify-otp",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "verify-otp"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Resend OTP",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "phone_number",
+              "value": "255745520855",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/resend-otp",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "resend-otp"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Passenger registration",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": " John",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "jjmogha@gmail.com",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "phone_number",
+              "value": "255714266877",
+              "type": "text"
+            },
+            {
+              "key": "age_group_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "john",
+              "type": "text"
+            },
+            {
+              "key": "id_number",
+              "value": "12312313",
+              "type": "text"
+            },
+            {
+              "key": "gender",
+              "value": "Male",
+              "type": "text"
+            },
+            {
+              "key": "identification_type_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "profile_picture",
+              "type": "file",
+              "value": null
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/register",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get list of Adverts",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/adverts",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "adverts"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get list of Regions (Origins)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/regions",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "regions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Rate vehicle",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "vehicle_id",
+              "value": "145",
+              "type": "text"
+            },
+            {
+              "key": "rating",
+              "value": "4.5",
+              "type": "text"
+            },
+            {
+              "key": "comment",
+              "value": "Best bus ever seen",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/rate-vehicle",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "rate-vehicle"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search trips",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "from",
+              "value": "1",
+              "description": "Origin  id (Moshi Town)",
+              "type": "text"
+            },
+            {
+              "key": "to",
+              "value": "3",
+              "description": "Destination id (Moshi)",
+              "type": "text"
+            },
+            {
+              "key": "journey_type_id",
+              "value": "1",
+              "description": "Id of the journey type",
+              "type": "text"
+            },
+            {
+              "key": "trip_date",
+              "value": "2023-06-04",
+              "description": "Trip date for  journey and must be greater then the current date",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://live.mysafari.co.tz/api/passenger/search-trips",
+          "protocol": "https",
+          "host": [
+            "live",
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "search-trips"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update profile",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "Joshua John",
+              "type": "text"
+            },
+            {
+              "key": "email",
+              "value": "joshua@gmail.com",
+              "type": "text"
+            },
+            {
+              "key": "gender",
+              "value": "Male",
+              "type": "text"
+            },
+            {
+              "key": "profile_picture",
+              "type": "file",
+              "value": null
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/update-profile",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "update-profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Passenger trips statistic",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/trips-statistic",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "trips-statistic"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get list of success passenger trips",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7579815|cBuYYDpy42QRZYBzbyRayb6GhYZ3rZmfYrI37aDk",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "parent_number",
+              "value": "255715333300",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/trips",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "trips"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change password",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7541627|OZDFSYfqeGPVZtBEwpO1cOgvuvUVFRUteInb7f2S",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "current_password",
+              "value": "joshua",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "123456",
+              "type": "text"
+            },
+            {
+              "key": "password_confirmation",
+              "value": "123456",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/change-password",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "change-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send Feedback from passenger",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7551813|5UuNnDECXP8txmlsSBVAcLpzTjHjO71Tm1wSrowz",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "message",
+              "value": "This is the feedback",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/save-feedback",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "save-feedback"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Passenger setting",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7552982|vR11U653HkQ4ZXv2YvezPhihABG8Ll49XjLbfYd9",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/settings",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "settings"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update FCM Token",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7552982|vR11U653HkQ4ZXv2YvezPhihABG8Ll49XjLbfYd9",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "fcm_token",
+              "value": "asdafafadadasdas",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/update-token",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "update-token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Show Trip",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{mysafarI}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/search-trips/305512",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "search-trips",
+            "305512"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Book a Ticket",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{mysafarI}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n   \"bookings\":[\n       {\n                \"name\": \"joshua\",\n                \"age_group_id\": 1,\n                \"seat_number\":\"11\",\n                \"pick_point_id\":1,\n                \"drop_point_id\":2,\n                \"gender\": \"M\",\n                \"email\": \"\",\n                \"identification_type_id\": 1,\n                \"journey_type_id\":1,\n                \"id_number\": \"124592348234\",\n                \"phone_number\":255745520855,\n                \"journey_id\":305512,\n                 \"fare\":40000\n},\n{\n                \"name\": \"joshua\",\n                \"age_group_id\": 1,\n                \"seat_number\":\"35\",\n                \"pick_point_id\":1,\n                \"drop_point_id\":2,\n                \"gender\": \"M\",\n                \"email\": \"\",\n                 \"journey_type_id\":1,\n                \"identification_type_id\": 1,\n                \"id_number\": \"123292348234\",\n                \"phone_number\":255745520853,\n                \"journey_id\":305512,\n                \"fare\":40000\n}\n        ]\n              \n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/book-ticket",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "book-ticket"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Like Insurer",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7558016|JhSHujStHyYXJeIWDAJoyJe5Eay71oXQfRQmjR8O",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "insurer_id",
+              "value": "1",
+              "type": "text"
+            },
+            {
+              "key": "passenger_id",
+              "value": "2",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "has_like",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/likes",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "likes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get list of  bus seats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": ""
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check Booking Payment Status",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7570505|XnhVJDnmREFDQ5L9SJzrh90TbgEbJ8xT0WvUaeKP",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"payment_status\": [\n        {\n            \"booking_number\": \"902386016818\"\n        }\n    ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/checkPaymentStatus",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "checkPaymentStatus"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Passenger trips",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "7578578|EOY23gjnvk3QkxsczpMpYgEpwnc7nTRJjtx4wqe8",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "parent_number",
+              "value": "255715333300",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://mysafari.co.tz/api/passenger/trips",
+          "protocol": "https",
+          "host": [
+            "mysafari",
+            "co",
+            "tz"
+          ],
+          "path": [
+            "api",
+            "passenger",
+            "trips"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "mysafarI",
+      "value": "7556448|r3h12HEYjIB2Yl5ZzNqAMhBrLLjzmJ5HBlLXYk5h"
+    }
+  ]
+}

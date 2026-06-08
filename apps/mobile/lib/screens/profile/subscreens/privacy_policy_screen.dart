@@ -67,11 +67,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   ),
                   _buildSection(
                     'Data Collection',
-                    'We collect information necessary for cargo operations, including your name, contact details, station information, and operational logs to ensure accountability and service quality.',
+                    'We collect information necessary for parcel operations, including your name, contact details, station information, and operational logs to ensure accountability and service quality.',
                   ),
                   _buildSection(
                     'Bluetooth & Location',
-                    'The app requires Bluetooth and Location permissions specifically for connecting to thermal printers and identifying the station location for cargo registration. This data is not shared for marketing purposes.',
+                    'The app requires Bluetooth and Location permissions specifically for connecting to thermal printers and identifying the station location for parcel registration. This data is not shared for marketing purposes.',
                   ),
                   _buildSection(
                     'Data Security',

@@ -105,7 +105,7 @@ class TrackScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         title: Text(
-          'Track Cargo',
+          'Track Parcel',
           style: GoogleFonts.outfit(
             fontSize: 28,
             fontWeight: FontWeight.w600,
@@ -161,7 +161,7 @@ class TrackScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
-                hintText: 'Enter Tracking ID',
+                hintText: 'enter Parcel number',
                 hintStyle: GoogleFonts.inter(
                   color: const Color(0xFF64748B),
                 ),

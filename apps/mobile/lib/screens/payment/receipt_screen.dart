@@ -6,10 +6,11 @@ import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../services/api_service.dart';
+import '../../widgets/common/export_action_sheet.dart';
 
 class ReceiptScreen extends StatefulWidget {
-  final String cargoId;
-  const ReceiptScreen({super.key, required this.cargoId});
+  final String parcelId;
+  const ReceiptScreen({super.key, required this.parcelId});
 
   @override
   State<ReceiptScreen> createState() => _ReceiptScreenState();
@@ -19,7 +20,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   Map<String, dynamic>? _receipt;
   bool _loading = true;
   String? _error;
-  bool _pdfLoading = false;
 
   @override
   void initState() {
@@ -29,7 +29,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   Future<void> _fetchReceipt() async {
     try {
-      final data = await ApiService.getCargoReceipt(widget.cargoId);
+      final data = await ApiService.getParcelReceipt(widget.parcelId);
       setState(() {
         _receipt = data;
         _loading = false;
@@ -43,12 +43,11 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   }
 
   Future<void> _downloadAndSharePDF() async {
-    if (mounted) setState(() => _pdfLoading = true);
     try {
-      final pdfBytes = await ApiService.downloadReceiptPdf(widget.cargoId);
+      final pdfBytes = await ApiService.downloadReceiptPdf(widget.parcelId);
       await Printing.sharePdf(
         bytes: pdfBytes,
-        filename: 'mizigo_receipt_${widget.cargoId}.pdf',
+        filename: 'mizigo_receipt_${widget.parcelId}.pdf',
       );
     } catch (e) {
       if (mounted) {
@@ -56,8 +55,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           SnackBar(content: Text('Failed to download PDF: $e')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _pdfLoading = false);
     }
   }
 
@@ -269,10 +266,20 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(
-                    onPressed: _pdfLoading ? null : _downloadAndSharePDF,
-                    icon: _pdfLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const HugeIcon(icon: HugeIcons.strokeRoundedInvoice01, color: Color(0xFF4A43EC), size: 22),
+                    onPressed: () => ExportBottomSheet.show(
+                      context: context,
+                      title: 'Download Receipt',
+                      subtitle: 'Select a format to save or share your payment receipt.',
+                      availableFormats: const ['PDF'],
+                      actionButtonText: 'Download Receipt',
+                      includeDateRange: false,
+                      onExport: (format, _) => _downloadAndSharePDF(),
+                    ),
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedInvoice01,
+                      color: Color(0xFF4A43EC),
+                      size: 22,
+                    ),
                     label: Text(
                       'Download Receipt',
                       style: GoogleFonts.outfit(
