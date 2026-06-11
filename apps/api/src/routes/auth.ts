@@ -585,7 +585,51 @@ router.post(
       if (email) orConditions.push({ email });
 
       const user = await prisma.user.findFirst({ where: { OR: orConditions } });
-      if (!user || !user.loginCode || user.loginCode !== hashOtp(String(otp))) {
+      if (!user) {
+        return sendError(res, "UNAUTHORIZED", "Invalid or expired OTP", 401);
+      }
+
+      let otpIsValid = false;
+
+      // 1. Check permanent loginCode
+      if (user.loginCode && user.loginCode === hashOtp(String(otp))) {
+        otpIsValid = true;
+      }
+
+      // 2. Check temporary PasswordReset OTP
+      if (!otpIsValid) {
+        const orConditionsReset: any[] = [];
+        if (normalizedPhone) orConditionsReset.push({ phone: normalizedPhone });
+        if (phone && normalizedPhone !== phone) orConditionsReset.push({ phone });
+        if (email) orConditionsReset.push({ email });
+
+        const resetRecord = await prisma.passwordReset.findFirst({
+          where: {
+            OR: orConditionsReset,
+            code: String(otp),
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        if (resetRecord && resetRecord.expiresAt >= new Date()) {
+          otpIsValid = true;
+
+          // Consume the reset record
+          await prisma.passwordReset.delete({
+            where: { id: resetRecord.id },
+          });
+
+          // Mark user as needing to change password/OTP
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { isFirstLogin: true },
+          });
+        }
+      }
+
+      if (!otpIsValid) {
         return sendError(res, "UNAUTHORIZED", "Invalid or expired OTP", 401);
       }
 
