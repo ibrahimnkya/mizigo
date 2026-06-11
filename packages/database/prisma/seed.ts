@@ -189,27 +189,9 @@ async function main() {
     },
   });
 
-  // 6) Create Default Stations for TRC
-  const stations = [
-    {
-      name: "Dar es Salaam Central",
-      code: "DSM-01",
-      location: "Dar es Salaam",
-    },
-    { name: "Dodoma Main Terminal", code: "DOM-02", location: "Dodoma" },
-    { name: "Mwanza Port Station", code: "MWZ-03", location: "Mwanza" },
-  ];
-
-  for (const s of stations) {
-    await prisma.station.upsert({
-      where: { code: s.code },
-      update: { organizationId: trcOrg.id },
-      create: {
-        ...s,
-        organizationId: trcOrg.id,
-      },
-    });
-  }
+  // NOTE: Stations are NOT seeded here.
+  // They are fetched and synced automatically from the TRC SGR API
+  // the first time GET /stations is called at runtime.
 
   // 7) Create SUPER_ADMIN user (credentials via env; safe defaults).
   const email = process.env.SUPER_ADMIN_EMAIL || "superadmin@mizigo.com";
@@ -253,57 +235,57 @@ async function main() {
     },
   });
 
-  // 9) Create Clerks
-  const clerks = [
-    { email: "clerk1@trctest.com", name: "TRC Clerk One" },
-    { email: "clerk2@trctest.com", name: "TRC Clerk Two" },
-  ];
+  // // 9) Create Clerks
+  // const clerks = [
+  //   { email: "clerk1@trctest.com", name: "TRC Clerk One" },
+  //   { email: "clerk2@trctest.com", name: "TRC Clerk Two" },
+  // ];
 
-  for (const clerk of clerks) {
-    await prisma.user.upsert({
-      where: { email: clerk.email },
-      update: {
-        loginCode: sha256("123456"),
-        isFirstLogin: false,
-        organization: { connect: { id: trcOrg.id } },
-        role: { connect: { id: clerkRole.id } },
-      },
-      create: {
-        email: clerk.email,
-        name: clerk.name,
-        loginCode: sha256("123456"),
-        isFirstLogin: false,
-        organization: { connect: { id: trcOrg.id } },
-        role: { connect: { id: clerkRole.id } },
-      },
-    });
-  }
+  // for (const clerk of clerks) {
+  //   await prisma.user.upsert({
+  //     where: { email: clerk.email },
+  //     update: {
+  //       loginCode: sha256("123456"),
+  //       isFirstLogin: false,
+  //       organization: { connect: { id: trcOrg.id } },
+  //       role: { connect: { id: clerkRole.id } },
+  //     },
+  //     create: {
+  //       email: clerk.email,
+  //       name: clerk.name,
+  //       loginCode: sha256("123456"),
+  //       isFirstLogin: false,
+  //       organization: { connect: { id: trcOrg.id } },
+  //       role: { connect: { id: clerkRole.id } },
+  //     },
+  //   });
+  // }
 
-  // 10) Create Train Guards
-  const guards = [
-    { email: "guard1@trctest.com", name: "TRC Guard Alpha" },
-    { email: "guard2@trctest.com", name: "TRC Guard Beta" },
-  ];
+  // // 10) Create Train Guards
+  // const guards = [
+  //   { email: "guard1@trctest.com", name: "TRC Guard Alpha" },
+  //   { email: "guard2@trctest.com", name: "TRC Guard Beta" },
+  // ];
 
-  for (const guard of guards) {
-    await prisma.user.upsert({
-      where: { email: guard.email },
-      update: {
-        loginCode: sha256("123456"),
-        isFirstLogin: false,
-        organization: { connect: { id: trcOrg.id } },
-        role: { connect: { id: trainGuardRole.id } },
-      },
-      create: {
-        email: guard.email,
-        name: guard.name,
-        loginCode: sha256("123456"),
-        isFirstLogin: false,
-        organization: { connect: { id: trcOrg.id } },
-        role: { connect: { id: trainGuardRole.id } },
-      },
-    });
-  }
+  // for (const guard of guards) {
+  //   await prisma.user.upsert({
+  //     where: { email: guard.email },
+  //     update: {
+  //       loginCode: sha256("123456"),
+  //       isFirstLogin: false,
+  //       organization: { connect: { id: trcOrg.id } },
+  //       role: { connect: { id: trainGuardRole.id } },
+  //     },
+  //     create: {
+  //       email: guard.email,
+  //       name: guard.name,
+  //       loginCode: sha256("123456"),
+  //       isFirstLogin: false,
+  //       organization: { connect: { id: trcOrg.id } },
+  //       role: { connect: { id: trainGuardRole.id } },
+  //     },
+  //   });
+  // }
 
   console.log("✅ Seed complete. TRC Test environment ready.");
 }

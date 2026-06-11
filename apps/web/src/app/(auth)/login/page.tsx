@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
@@ -29,6 +29,20 @@ export default function LoginPage() {
 
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
+  const otpComplete = otp.join("").length === 6 && identifier.trim().length > 0;
+
+  // Auto-submit when all 6 digits are entered
+  useEffect(() => {
+    const filled = otp.join("");
+    if (filled.length === 6 && identifier.trim() && !loading) {
+      // Small delay so the last digit visually renders before submitting
+      const timer = setTimeout(() => {
+        formRef.current?.requestSubmit();
+      }, 120);
+      return () => clearTimeout(timer);
+    }
+  }, [otp, identifier, loading]);
 
   const handleOtpChange = (value: string, index: number) => {
     if (value && isNaN(Number(value))) return;
@@ -70,6 +84,7 @@ export default function LoginPage() {
       setOtp(newOtp);
       setPassword(pasteData);
       inputsRef.current[5]?.focus();
+      // Auto-submit on paste (effect will fire, but trigger immediately too)
     }
   };
 
@@ -247,7 +262,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleAuth} className="space-y-6">
+                <form ref={formRef} onSubmit={handleAuth} className="space-y-6">
                   {/* Identifier Input */}
                   <div className="space-y-2.5">
                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
@@ -307,11 +322,26 @@ export default function LoginPage() {
                             }
                             onKeyDown={(e) => handleOtpKeyDown(e, index)}
                             onPaste={handleOtpPaste}
-                            className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 rounded-xl transition-all outline-none text-slate-900"
+                            className={[
+                              "w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black rounded-xl transition-all outline-none",
+                              otpComplete
+                                ? "bg-emerald-50 border-emerald-400 ring-4 ring-emerald-500/10 text-emerald-700 scale-[1.04]"
+                                : "bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-slate-900",
+                            ].join(" ")}
                             required
                           />
                         ))}
                       </div>
+
+                      {/* Auto-verify hint */}
+                      {otpComplete && (
+                        <div className="flex items-center justify-center gap-1.5 animate-in fade-in duration-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">
+                            {loading ? "Signing in…" : "Verifying…"}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="flex justify-end pr-1">
                         <button

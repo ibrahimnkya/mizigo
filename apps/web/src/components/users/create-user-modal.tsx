@@ -71,7 +71,7 @@ const ROLE_PERMISSIONS: Record<string, { group: string; items: string[] }[]> = {
       group: "Organization",
       items: ["Manage org members", "View org reports", "Manage stations"],
     },
-    { group: "Users", items: ["Create operators", "View team members"] },
+    { group: "Users", items: ["Create staff", "View team members"] },
     {
       group: "Parcel",
       items: ["Approve/reject parcel", "View org parcel", "Export reports"],
@@ -158,7 +158,7 @@ const ROLE_DETAILS: Record<string, { icon: any; title: string; desc: string }> =
     },
     OPERATOR: {
       icon: Activity,
-      title: "Field Operator",
+      title: "Field Staff",
       desc: "General parcel transit operations, tracking updates, and barcode scanning",
     },
   };
@@ -176,6 +176,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     type: "success" | "error";
@@ -187,7 +188,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [selectedRole, setSelectedRole] = useState(
-    isAdmin ? "OPERATOR" : "ADMIN",
+    isAdmin ? "CLERK" : "ADMIN",
   );
   const [selectedOrganization, setSelectedOrganization] = useState<string>("");
   const [selectedStation, setSelectedStation] = useState<string>("");
@@ -220,7 +221,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
       setName("");
       setEmail("");
       setPhoneNumber("");
-      setSelectedRole(isAdmin ? "OPERATOR" : "ADMIN");
+      setSelectedRole(isAdmin ? "CLERK" : "ADMIN");
       setSelectedOrganization("");
       setSelectedStation("");
       setSelectedRoleId("");
@@ -288,7 +289,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
     const errors: Record<string, string> = {};
     if (isOperatorRole && !selectedStation) {
       errors.station =
-        "A branch station assignment is required for operator-level roles.";
+        "A branch station assignment is required for staff-level roles.";
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -320,9 +321,33 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
     }
   };
 
-  const handleNextToStep3 = () => {
-    if (validateStep2()) {
+  const handleNextToStep3 = async () => {
+    if (!validateStep2()) return;
+
+    setCheckingAvailability(true);
+    try {
+      const params = new URLSearchParams();
+      if (email) params.set("email", email);
+      if (phoneNumber) params.set("phone", phoneNumber);
+      const { data } = await api.get(`/users/check-availability?${params}`);
+      const { emailExists, phoneExists } = data.data ?? data;
+
+      const dupeErrors: Record<string, string> = {};
+      if (emailExists) dupeErrors.email = "This email address is already in use. Please use a different one.";
+      if (phoneExists) dupeErrors.phone = "This phone number is already registered. Please use a different one.";
+
+      if (Object.keys(dupeErrors).length > 0) {
+        setValidationErrors(dupeErrors);
+        return;
+      }
+
       setStep(3);
+    } catch (err) {
+      console.error("Availability check failed", err);
+      // Don't block the user if the check fails — just advance
+      setStep(3);
+    } finally {
+      setCheckingAvailability(false);
     }
   };
 
@@ -339,6 +364,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
           name,
           email,
           phone: phoneNumber,
+          initialOtp: generatedOTP,
         });
       } else if (selectedRole === "ADMIN") {
         response = await api.post("/admins", {
@@ -347,6 +373,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
           phone: phoneNumber,
           organizationId: selectedOrganization || undefined,
           roleId: selectedRoleId || undefined,
+          initialOtp: generatedOTP,
         });
       } else if (isOperatorRole) {
         response = await api.post("/operators", {
@@ -356,6 +383,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
           role: selectedRole,
           organizationId: selectedOrganization || undefined,
           stationId: selectedStation || undefined,
+          initialOtp: generatedOTP,
         });
       }
 
@@ -389,17 +417,10 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
   }
 
   const availableRoles = isSuperAdmin
-    ? [
-        "SUPER_ADMIN",
-        "ADMIN",
-        "STATION_MASTER",
-        "CLERK",
-        "TRAIN_GUARD",
-        "OPERATOR",
-      ]
+    ? ["SUPER_ADMIN", "ADMIN", "STATION_MASTER", "CLERK", "TRAIN_GUARD"]
     : isAdmin
-      ? ["ADMIN", "STATION_MASTER", "CLERK", "TRAIN_GUARD", "OPERATOR"]
-      : ["STATION_MASTER", "CLERK", "TRAIN_GUARD", "OPERATOR"];
+      ? ["ADMIN", "STATION_MASTER", "CLERK", "TRAIN_GUARD"]
+      : ["STATION_MASTER", "CLERK", "TRAIN_GUARD"];
 
   const roleColors: Record<string, string> = {
     SUPER_ADMIN: "bg-violet-500 text-violet-100 border-violet-600",
@@ -938,10 +959,20 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                 <Button
                   type="button"
                   onClick={step === 1 ? handleNextToStep2 : handleNextToStep3}
-                  className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-[0.98]"
+                  disabled={checkingAvailability}
+                  className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-[0.98] disabled:opacity-60"
                 >
-                  Continue
-                  <ArrowRight size={13} strokeWidth={3} />
+                  {checkingAvailability && step === 2 ? (
+                    <>
+                      <Loader2 size={13} strokeWidth={3} className="animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight size={13} strokeWidth={3} />
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Button

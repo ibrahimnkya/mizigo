@@ -35,6 +35,12 @@ export default async function ReportsPage() {
   const totalParcels = await prisma.parcel.count();
   const avgTasks = totalOperators > 0 ? totalParcels / totalOperators : 0;
 
+  // 2.1 Operator Rating (Average Station Rating)
+  const avgStationRating = await prisma.station.aggregate({
+    _avg: { rating: true },
+  });
+  const operatorRating = `${(avgStationRating._avg.rating || 5.0).toFixed(1)} ★`;
+
   // 3. Parcel Stats
   const inTransit = await prisma.parcel.count({
     where: { status: "IN_TRANSIT" },
@@ -50,12 +56,80 @@ export default async function ReportsPage() {
     where: { status: "PENDING" },
   });
 
+  // 4.1 Revenue Growth (Last 30 days vs previous 30 days)
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+  const currentPeriodRevenue = await prisma.payment.aggregate({
+    _sum: { amount: true },
+    where: {
+      status: "SUCCESS",
+      createdAt: { gte: thirtyDaysAgo },
+    },
+  });
+
+  const previousPeriodRevenue = await prisma.payment.aggregate({
+    _sum: { amount: true },
+    where: {
+      status: "SUCCESS",
+      createdAt: {
+        gte: sixtyDaysAgo,
+        lt: thirtyDaysAgo,
+      },
+    },
+  });
+
+  const currentRev = currentPeriodRevenue._sum.amount || 0;
+  const prevRev = previousPeriodRevenue._sum.amount || 0;
+  let growth = "+0%";
+  if (prevRev > 0) {
+    const pct = ((currentRev - prevRev) / prevRev) * 100;
+    growth = `${pct >= 0 ? "+" : ""}${pct.toFixed(0)}%`;
+  } else if (currentRev > 0) {
+    growth = "+100%";
+  }
+
   // 5. Org Stats
   const totalStaff = await prisma.user.count({ where: { isActive: true } });
   const efficiency = totalParcels > 0 ? (delivered / totalParcels) * 100 : 0;
 
   // 6. Turnaround Time
-  const avgTurnaround = "1.2 Days";
+  const deliveredParcelsList = await prisma.parcel.findMany({
+    where: { status: "DELIVERED" },
+    select: { createdAt: true, updatedAt: true },
+  });
+  let avgTurnaround = "0 Days";
+  let fastestTurnaround = "0h";
+  if (deliveredParcelsList.length > 0) {
+    let totalDuration = 0;
+    let minDuration = Infinity;
+    deliveredParcelsList.forEach((p) => {
+      const duration = p.updatedAt.getTime() - p.createdAt.getTime();
+      totalDuration += duration;
+      if (duration < minDuration) {
+        minDuration = duration;
+      }
+    });
+    const avgMs = totalDuration / deliveredParcelsList.length;
+    const avgDays = avgMs / (24 * 60 * 60 * 1000);
+    avgTurnaround = `${avgDays.toFixed(1)} Days`;
+
+    if (minDuration !== Infinity) {
+      const minHours = minDuration / (60 * 60 * 1000);
+      if (minHours < 24) {
+        fastestTurnaround = `${minHours.toFixed(0)}h`;
+      } else {
+        fastestTurnaround = `${(minHours / 24).toFixed(0)}d`;
+      }
+    }
+  }
+
+  // 6.1 Delay Rate
+  const totalDelayed = await prisma.parcel.count({
+    where: { status: "DELAYED" },
+  });
+  const delayRate = totalParcels > 0 ? ((totalDelayed / totalParcels) * 100).toFixed(1) + "%" : "0%";
 
   const reportCards = [
     {
@@ -87,7 +161,7 @@ export default async function ReportsPage() {
       titleColor: "text-slate-900",
     },
     {
-      title: "Operator Performance",
+      title: "Staff Performance",
       description: "Staff productivity, tasks handled, and ratings.",
       href: "/reports/operators",
       iconName: "Users",
@@ -107,7 +181,7 @@ export default async function ReportsPage() {
       snapshot: [
         { label: "Active", value: totalOperators.toString() },
         { label: "Avg Tasks", value: avgTasks.toFixed(0) },
-        { label: "Rating", value: "4.8 ★" },
+        { label: "Rating", value: operatorRating },
       ],
       titleColor: "text-slate-900",
     },
@@ -163,7 +237,7 @@ export default async function ReportsPage() {
           label: "Pending",
           value: `TSh ${((pendingRevenue._sum.amount || 0) / 1000).toFixed(1)}k`,
         },
-        { label: "Growth", value: "+12%" },
+        { label: "Growth", value: growth },
       ],
       titleColor: "text-slate-900",
     },
@@ -212,8 +286,8 @@ export default async function ReportsPage() {
       snapBorder: "border-slate-100",
       snapshot: [
         { label: "Avg Time", value: avgTurnaround },
-        { label: "Fastest", value: "4h" },
-        { label: "Delay Rate", value: "2.1%" },
+        { label: "Fastest", value: fastestTurnaround },
+        { label: "Delay Rate", value: delayRate },
       ],
       titleColor: "text-slate-900",
     },

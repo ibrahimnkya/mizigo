@@ -28,7 +28,7 @@ export const resolveSupportUrl = async (
   });
   if (systemConfig?.value) return systemConfig.value;
 
-  return process.env.PLATFORM_SUPPORT_URL || "mizigo.co.tz/support";
+  return process.env.PLATFORM_SUPPORT_URL || "mizigo.akiliapp.co.tz/support";
 };
 
 export const buildWelcomeOtpMessage = async (input: {
@@ -254,7 +254,7 @@ export const sendParcelNotificationSms = async (input: {
     process.env.DEFAULT_HELPDESK_NUMBER ||
     "+255000000000";
   const trackBaseUrl =
-    input.trackUrl || process.env.PUBLIC_URL || "https://mizigo.co.tz";
+    input.trackUrl || process.env.PUBLIC_URL || "https://mizigo.akiliapp.co.tz";
   const trackUrl = `${trackBaseUrl}/track/${input.trackingNumber}`;
 
   const message = `Parcel ${input.trackingNumber} is ${input.event}. Helpdesk: ${helpdesk}. Track: ${trackUrl}`;
@@ -317,7 +317,7 @@ export const sendParcelReceiptSms = async (input: {
 }) => {
   const orgName = input.orgName || "Mizigo";
   const helpdesk = input.helpdesk || "0736699593";
-  const website = input.website || "https://mizigo.co.tz";
+  const website = input.website || "https://mizigo.akiliapp.co.tz";
 
   const senderMsg = `Taarifa za Mzigo\n\nNamba ya Mzigo: ${input.trackingNumber}\nHali: UMEPOKELEWA\nSafari: ${input.originName} - ${input.destinationName}\nOfisi Ulipopokelewa: ${input.stationName}\nMtumaji: ${input.senderName}\nMpokeaji: ${input.receiverName}\nNamba ya Siri (OTP): ${input.otp}\nJina la Wakala: ${input.agentName}\nSimu ya Wakala: ${input.agentPhone}\n\nAsante kwa kutumia ${orgName}! Kwa msaada zaidi, tupigie: ${helpdesk}\n\n${website}`;
 

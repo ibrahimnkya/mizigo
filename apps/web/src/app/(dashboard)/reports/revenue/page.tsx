@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
-  DollarSign,
+  Coins,
   Wallet,
   CreditCard,
   Activity,
@@ -56,7 +56,7 @@ export default function RevenueReportPage() {
       accessor: (item: any) => (
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center">
-            <DollarSign className="h-5 w-5" />
+            <Coins className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
             <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">

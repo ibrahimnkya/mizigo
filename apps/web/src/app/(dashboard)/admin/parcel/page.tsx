@@ -4,6 +4,7 @@ import {
   useParcelList,
   useUpdateParcelStatus,
 } from "@/modules/parcel/use-parcel";
+import { useStations } from "@/modules/stations/use-stations";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import {
@@ -28,7 +29,9 @@ import Link from "next/link";
 export default function AdminParcelPage() {
   const [tab, setTab] = useState<"overview" | "table">("overview");
   const [filter, setFilter] = useState("ALL");
+  const [selectedStation, setSelectedStation] = useState("ALL");
   const { data: parcels, isLoading } = useParcelList();
+  const { data: stations } = useStations();
   const { mutate: updateStatus, isPending: isUpdating } =
     useUpdateParcelStatus();
 
@@ -210,9 +213,37 @@ export default function AdminParcelPage() {
   ];
 
   const filteredParcels = useMemo(() => {
-    if (filter === "ALL") return parcels;
-    return parcels?.filter((p: any) => p.status === filter);
-  }, [parcels, filter]);
+    let result = parcels || [];
+
+    // Filter by status
+    if (filter !== "ALL") {
+      result = result.filter((p: any) => p.status === filter);
+    }
+
+    // Filter by station
+    if (selectedStation !== "ALL") {
+      const station = stations?.find((s: any) => s.id === selectedStation);
+      if (station) {
+        const stationNameLower = station.name.toLowerCase();
+        const stationCodeLower = station.code.toLowerCase();
+        result = result.filter((p: any) => {
+          const fromAddr = String(p.route?.receivingStation || "").toLowerCase();
+          const toAddr = String(p.route?.destinationStation || "").toLowerCase();
+          
+          return (
+            fromAddr.includes(stationNameLower) ||
+            fromAddr.includes(stationCodeLower) ||
+            toAddr.includes(stationNameLower) ||
+            toAddr.includes(stationCodeLower) ||
+            p.fromAddress === station.id ||
+            p.toAddress === station.id
+          );
+        });
+      }
+    }
+
+    return result;
+  }, [parcels, filter, selectedStation, stations]);
 
   const today = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -386,21 +417,42 @@ export default function AdminParcelPage() {
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex bg-white border border-slate-100 rounded-[10px] p-1 shadow-sm w-fit">
-              {["ALL", "PENDING", "PAID", "DELIVERED"].map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={cn(
-                    "px-4 py-2 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all",
-                    filter === f
-                      ? "bg-slate-900 text-white shadow-lg"
-                      : "text-slate-400 hover:text-slate-600",
-                  )}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex bg-white border border-slate-100 rounded-[10px] p-1 shadow-sm w-fit">
+                {["ALL", "PENDING", "PAID", "DELIVERED"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={cn(
+                      "px-4 py-2 rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all",
+                      filter === f
+                        ? "bg-slate-900 text-white shadow-lg"
+                        : "text-slate-400 hover:text-slate-600",
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+
+              {/* Station Filter Dropdown */}
+              <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-[10px] p-1 px-3 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Station:
+                </span>
+                <select
+                  value={selectedStation}
+                  onChange={(e) => setSelectedStation(e.target.value)}
+                  className="bg-transparent text-[11px] font-black uppercase tracking-wider text-slate-700 outline-none border-none cursor-pointer py-1"
                 >
-                  {f}
-                </button>
-              ))}
+                  <option value="ALL">All Stations</option>
+                  {stations?.map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <DataTable
               title="Organization Manifest"

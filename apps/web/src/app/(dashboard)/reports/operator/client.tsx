@@ -111,7 +111,7 @@ const OperatorReportPDF = ({
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Operator Analytics</Text>
+          <Text style={styles.title}>Staff Analytics</Text>
           <Text style={styles.subtitle}>
             {stationName} • Resource Performance •{" "}
             {new Date(generatedAt).toLocaleDateString()}
@@ -209,12 +209,12 @@ export function OperatorReportClient({
               <Users size={24} strokeWidth={2.5} />
             </div>
             <h1 className="text-[32px] font-black text-slate-900 tracking-tight leading-none">
-              Operator Intelligence
+              Staff Intelligence
             </h1>
           </div>
           <p className="text-[15px] text-slate-500 font-bold">
             Performance telemetry for{" "}
-            <span className="text-blue-600">{stationName}</span> operators
+            <span className="text-blue-600">{stationName}</span> staffs
           </p>
         </div>
 

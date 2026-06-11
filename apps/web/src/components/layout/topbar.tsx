@@ -81,14 +81,13 @@ export function Topbar() {
                 <>
                   <span className="h-4 w-[1px] bg-slate-300 mx-1" />
                   <span className="text-blue-600 font-bold text-[10px] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-[10px] border border-blue-100">
-                    {user.station.name} Node
+                    {user.station.name}
                   </span>
                 </>
               )}
             </div>
             <span className="text-[11px] text-slate-500 font-medium leading-none mt-0.5">
-              {activeItem?.subtitle ||
-                `${user?.role?.replace("_", " ")} Command Center`}
+              {activeItem?.subtitle || `Mizigo`}
             </span>
           </div>
         </div>
@@ -144,7 +143,7 @@ export function Topbar() {
               <DropdownMenuLabel className="text-slate-900 flex items-center gap-3 p-3">
                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-bold text-[10px] uppercase tracking-[0.2em] text-slate-400">
-                  Active Account
+                  Signed In
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-100 mx-2" />
@@ -157,7 +156,7 @@ export function Topbar() {
                   <Lock className="h-4 w-4 text-slate-400" />
                 </div>
                 <span className="font-semibold text-xs uppercase tracking-wider">
-                  Lock Session
+                  Lock Screen
                 </span>
               </DropdownMenuItem>
 

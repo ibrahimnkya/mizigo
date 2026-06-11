@@ -77,15 +77,15 @@ interface ReportPageHeaderProps {
 
 const PRESETS = [
   {
-    label: "7D",
+    label: "7 Days",
     getValue: () => ({ from: subDays(new Date(), 7), to: new Date() }),
   },
   {
-    label: "30D",
+    label: "30 Days",
     getValue: () => ({ from: subDays(new Date(), 30), to: new Date() }),
   },
   {
-    label: "MTD",
+    label: "This Month",
     getValue: () => ({ from: startOfMonth(new Date()), to: new Date() }),
   },
 ];

@@ -11,16 +11,178 @@ import {
   CheckCircle2,
   FileText,
   Building,
-  DollarSign,
+  Coins,
   Scale,
   Zap,
+  TrendingDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/shared/data-table";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
+
+// --- Animated counter hook ---
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) {
+      setValue(0);
+      return;
+    }
+    const steps = 40;
+    const increment = target / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// --- Sparkline SVG ---
+function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
+  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
+  const points = basePoints.map((p, i) => {
+    const shift = Math.sin(seed + i) * 8;
+    return Math.max(10, Math.min(100, p + shift));
+  });
+  const h = 48, w = 120;
+  const max = Math.max(...points), min = Math.min(...points);
+  const coords: [number, number][] = points.map((p, i) => [
+    (i / (points.length - 1)) * w,
+    h - ((p - min) / (max - min)) * (h - 4) - 2,
+  ]);
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const fill = path + ` L${w},${h} L0,${h} Z`;
+  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// --- Helper to map text class to Hex ---
+const getSparkColor = (colorClass: string) => {
+  if (colorClass.includes("blue")) return "#3b82f6";
+  if (colorClass.includes("emerald")) return "#10b981";
+  if (colorClass.includes("indigo")) return "#6366f1";
+  if (colorClass.includes("amber")) return "#f59e0b";
+  if (colorClass.includes("orange")) return "#f97316";
+  if (colorClass.includes("violet")) return "#8b5cf6";
+  if (colorClass.includes("cyan")) return "#06b6d4";
+  if (colorClass.includes("rose")) return "#f43f5e";
+  return "#94a3b8";
+};
+
+// --- Custom FinanceCard Component ---
+interface FinanceCardProps {
+  label: string;
+  value: number | string;
+  isCurrency?: boolean;
+  isPercentage?: boolean;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  tag: string;
+  tagBg: string;
+  tagColor: string;
+  accentBar: string;
+  description: string;
+  seed: number;
+}
+
+function FinanceCard({
+  label,
+  value,
+  isCurrency,
+  isPercentage,
+  icon: Icon,
+  iconBg,
+  iconColor,
+  tag,
+  tagBg,
+  tagColor,
+  accentBar,
+  description,
+  seed,
+}: FinanceCardProps) {
+  const numericVal = typeof value === "number" ? value : null;
+  const counted = useCountUp(numericVal ?? 0, 1000);
+  const sparkColor = getSparkColor(iconColor);
+
+  let displayValue = "";
+  if (numericVal !== null) {
+    if (isCurrency) {
+      displayValue = `TSh ${counted.toLocaleString()}`;
+    } else if (isPercentage) {
+      displayValue = `${numericVal >= 0 ? "+" : ""}${counted.toFixed(1)}%`;
+    } else {
+      displayValue = counted.toLocaleString();
+    }
+  } else {
+    displayValue = String(value);
+  }
+
+  return (
+    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+      {/* Top Row */}
+      <div className="flex items-start justify-between">
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+          {tag}
+        </span>
+      </div>
+
+      {/* Main Content */}
+      <div className="mt-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Primary value */}
+          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
+            {displayValue}
+          </p>
+          
+          {/* Title & Description */}
+          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
+            {label}
+          </h3>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
+            {description}
+          </p>
+        </div>
+
+        {/* Sparkline */}
+        <div className="mt-4 space-y-3">
+          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+            <Sparkline color={sparkColor} seed={seed} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom accent glow */}
+      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
+    </div>
+  );
+}
 
 function FinanceSummaryPageInner() {
   const { data: session } = useSession();
@@ -54,180 +216,186 @@ function FinanceSummaryPageInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
-        <ReportPageHeader
-          title="Financial Registry"
-          subtitle="System-wide revenue, commissions and settlement reconciliation"
-          iconName="CreditCard"
-          hideBackArrow={true}
-          action={
-            <button className="h-10 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">
-              <FileText size={14} strokeWidth={2.5} />
-              Export Data
-            </button>
-          }
-          tabs={["Overview", "Earnings"]}
-          tabParamName="tab"
-          activeTab={tab}
-        />
+    <div className="h-full flex flex-col overflow-hidden bg-[#f8f9fb]">
+      <div className="max-w-[1520px] w-full mx-auto flex-1 flex flex-col gap-4 min-h-0">
+        <div className="flex-shrink-0 [&_>_div]:!mb-0">
+          <ReportPageHeader
+            title="Financial Overview"
+            subtitle="Track platform earnings, service fees, and payouts"
+            iconName="CreditCard"
+            hideBackArrow={true}
+            action={
+              <button className="h-10 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-900/10">
+                <FileText size={14} strokeWidth={2.5} />
+                Export Data
+              </button>
+            }
+            tabs={["Overview", "Earnings"]}
+            tabParamName="tab"
+            activeTab={tab}
+          />
+        </div>
 
-        <div className="mt-2 animate-in fade-in duration-700">
+        <div className="flex-1 min-h-0 animate-in fade-in duration-700">
           {tab.toLowerCase() === "overview" && (
-            <div className="space-y-10">
+            <div className="h-full flex flex-col gap-4 overflow-hidden">
               {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  {
-                    label: "Total Gross Revenue",
-                    count: `TSh ${new Intl.NumberFormat().format(summary?.totalRevenue || 0)}`,
-                    icon: DollarSign,
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-                  {
-                    label: "Platform Commission",
-                    count: `TSh ${new Intl.NumberFormat().format(summary?.platformCommission || 0)}`,
-                    icon: Zap,
-                    color: "text-amber-600",
-                    bg: "bg-amber-50",
-                  },
-                  {
-                    label: "Growth Indicator",
-                    count: "+12.4%",
-                    icon: TrendingUp,
-                    color: "text-emerald-600",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Security Status",
-                    count: "Validated",
-                    icon: ShieldCheck,
-                    color: "text-indigo-600",
-                    bg: "bg-indigo-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-6 bg-white border border-slate-100 rounded-[12px] shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300"
-                  >
-                    <div className="flex items-center justify-between mb-5">
-                      <div className={cn("p-2.5 rounded-xl", stat.bg)}>
-                        <stat.icon
-                          className={cn("w-5 h-5", stat.color)}
-                          strokeWidth={2.5}
-                        />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[28px] font-black text-slate-900 tabular-nums leading-none tracking-tight">
-                        {stat.count}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
+                <FinanceCard
+                  label="Total Revenue"
+                  value={summary?.totalRevenue || 0}
+                  isCurrency={true}
+                  icon={Coins}
+                  iconBg="bg-blue-50"
+                  iconColor="text-blue-600"
+                  tag="Earnings"
+                  tagBg="bg-blue-50"
+                  tagColor="text-blue-600"
+                  accentBar="bg-blue-500"
+                  description="Total gross amount collected on transit bookings"
+                  seed={12}
+                />
+                <FinanceCard
+                  label="Service Fees"
+                  value={summary?.platformCommission || 0}
+                  isCurrency={true}
+                  icon={Zap}
+                  iconBg="bg-amber-50"
+                  iconColor="text-amber-600"
+                  tag="Fees"
+                  tagBg="bg-amber-50"
+                  tagColor="text-amber-600"
+                  accentBar="bg-amber-500"
+                  description="Standard commission accrued to the platform"
+                  seed={34}
+                />
+                <FinanceCard
+                  label="Revenue Growth"
+                  value={summary?.revenueGrowth || 0}
+                  isPercentage={true}
+                  icon={(summary?.revenueGrowth || 0) >= 0 ? TrendingUp : TrendingDown}
+                  iconBg="bg-emerald-50"
+                  iconColor="text-emerald-600"
+                  tag="Growth"
+                  tagBg="bg-emerald-50"
+                  tagColor="text-emerald-600"
+                  accentBar="bg-emerald-500"
+                  description="Comparison of recent 30-day revenue cycle"
+                  seed={56}
+                />
+                <FinanceCard
+                  label="System Status"
+                  value="Active"
+                  icon={ShieldCheck}
+                  iconBg="bg-indigo-50"
+                  iconColor="text-indigo-600"
+                  tag="Status"
+                  tagBg="bg-indigo-50"
+                  tagColor="text-indigo-600"
+                  accentBar="bg-indigo-500"
+                  description="Current operational protocol health"
+                  seed={78}
+                />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
                 {/* Analytical Overview */}
-                <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-100 shadow-sm p-10 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-100 shadow-sm p-6 flex flex-col items-center justify-center text-center relative overflow-hidden h-full">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32" />
-                  <div className="w-20 h-20 rounded-[2rem] bg-blue-50 flex items-center justify-center mb-6 relative z-10 border border-blue-100">
+                  <div className="w-16 h-16 rounded-[1.5rem] bg-blue-50 flex items-center justify-center mb-4 relative z-10 border border-blue-100">
                     <Activity
-                      className="w-10 h-10 text-blue-600"
+                      className="w-8 h-8 text-blue-600"
                       strokeWidth={2.5}
                     />
                   </div>
-                  <h4 className="text-[18px] font-black text-slate-900 mb-2 relative z-10">
-                    Revenue Distribution
+                  <h4 className="text-[16px] font-black text-slate-900 mb-2 relative z-10">
+                    Revenue Breakdown
                   </h4>
-                  <p className="text-[13px] text-slate-400 max-w-md font-bold leading-relaxed relative z-10">
-                    Comprehensive analysis of financial flow across
-                    organizations will be visualized here as the settlement
-                    ledger expands.
+                  <p className="text-[12px] text-slate-400 max-w-md font-bold leading-relaxed relative z-10">
+                    Detailed charts showing your revenue and platform shares will appear here as transactions are completed.
                   </p>
                 </div>
 
-                <div className="space-y-6">
-                  {/* Financial Health */}
-                  <div className="bg-slate-900 rounded-[20px] p-8 text-white relative overflow-hidden shadow-2xl">
+                <div className="flex flex-col gap-4 h-full overflow-hidden">
+                  {/* Payout System */}
+                  <div className="bg-slate-900 rounded-[20px] p-5 text-white relative overflow-hidden shadow-2xl flex-1 flex flex-col justify-between">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <PieChart
-                      className="mb-6 text-blue-400 w-8 h-8"
-                      strokeWidth={2.5}
-                    />
-                    <h3 className="text-[20px] font-black mb-2 tracking-tight">
-                      System Liquidity
-                    </h3>
-                    <p className="text-slate-400 text-[12px] font-bold leading-relaxed opacity-70 mb-8">
-                      Real-time monitoring of clearing and settlement stability
-                      across the platform.
-                    </p>
+                    <div>
+                      <PieChart
+                        className="mb-4 text-blue-400 w-6 h-6"
+                        strokeWidth={2.5}
+                      />
+                      <h3 className="text-[16px] font-black mb-1 tracking-tight">
+                        Payout System
+                      </h3>
+                      <p className="text-slate-400 text-[11px] font-bold leading-relaxed opacity-70 mb-4">
+                        Real-time status of payments and platform payouts.
+                      </p>
+                    </div>
 
-                    <div className="space-y-4 text-[11px] font-black uppercase tracking-widest">
-                      <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                        <span className="text-slate-500">Node Status</span>
-                        <span className="text-emerald-400 flex items-center gap-2">
+                    <div className="space-y-3 text-[10px] font-black uppercase tracking-widest">
+                      <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/5">
+                        <span className="text-slate-500">System Status</span>
+                        <span className="text-emerald-400 flex items-center gap-1.5">
                           <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                           Operational
                         </span>
                       </div>
-                      <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
-                        <span className="text-slate-500">Clearance</span>
+                      <div className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/5">
+                        <span className="text-slate-500">Payout Success</span>
                         <span className="text-blue-400">99.9% Success</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Fees Summary */}
-                  <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-8 space-y-6">
-                    <h4 className="font-black text-slate-900 text-[14px] uppercase tracking-widest mb-2 flex items-center gap-3">
-                      <Scale className="w-4 h-4 text-slate-400" />
-                      Standard Tariffs
-                    </h4>
+                  <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-black text-slate-900 text-[12px] uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <Scale className="w-3.5 h-3.5 text-slate-400" />
+                        Standard Fees & Taxes
+                      </h4>
 
-                    <div className="space-y-4">
-                      {[
-                        {
-                          label: "Value Added Tax",
-                          value: "18%",
-                          desc: "Statutory VAT",
-                        },
-                        {
-                          label: "Insurance Levy",
-                          value: "2.5%",
-                          desc: "Goods in transit",
-                        },
-                        {
-                          label: "Platform Fee",
-                          value: "TSh 500",
-                          desc: "Flat processing",
-                        },
-                      ].map((fee, i) => (
-                        <div
-                          key={i}
-                          className="flex justify-between items-start group"
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-[12px] font-black text-slate-700">
-                              {fee.label}
-                            </span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-                              {fee.desc}
+                      <div className="space-y-3.5">
+                        {[
+                          {
+                            label: "VAT (Value Added Tax)",
+                            value: "18%",
+                            desc: "Standard sales tax",
+                          },
+                          {
+                            label: "Transit Insurance",
+                            value: "2.5%",
+                            desc: "Parcel cover",
+                          },
+                          {
+                            label: "Processing Fee",
+                            value: "TSh 500",
+                            desc: "Flat rate per transaction",
+                          },
+                        ].map((fee, i) => (
+                          <div
+                            key={i}
+                            className="flex justify-between items-start group"
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-[11px] font-black text-slate-700">
+                                {fee.label}
+                              </span>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">
+                                {fee.desc}
+                              </span>
+                            </div>
+                            <span className="font-black text-slate-900 text-xs">
+                              {fee.value}
                             </span>
                           </div>
-                          <span className="font-black text-slate-900 text-sm">
-                            {fee.value}
-                          </span>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
 
-                    <button className="w-full h-11 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 mt-4 border border-slate-100 hover:border-slate-900">
-                      Audit Settings
+                    <button className="w-full h-9 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 mt-3 border border-slate-100 hover:border-slate-900">
+                      View Fee Settings
                     </button>
                   </div>
                 </div>
@@ -236,13 +404,13 @@ function FinanceSummaryPageInner() {
           )}
 
           {tab.toLowerCase() === "earnings" && (
-            <div className="bg-white rounded-[20px] border border-slate-200/60 shadow-sm overflow-hidden p-1 animate-in slide-in-from-bottom-2 duration-500">
+            <div className="bg-white rounded-[20px] border border-slate-200/60 shadow-sm overflow-hidden p-1 animate-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
               <DataTable
-                title="Organization Revenue Registry"
+                title="Organization Earnings"
                 data={commissions || []}
                 columns={[
                   {
-                    header: "Organization / Entity",
+                    header: "Organization",
                     accessor: (comm: any) => (
                       <div className="flex items-center gap-4">
                         <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-900/10 border border-white/10 shrink-0">
@@ -253,14 +421,14 @@ function FinanceSummaryPageInner() {
                             {comm.organizationName}
                           </span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                            Registered Service Provider
+                            Registered Partner
                           </span>
                         </div>
                       </div>
                     ),
                   },
                   {
-                    header: "Gross Volume",
+                    header: "Gross Revenue",
                     accessor: (comm: any) => (
                       <div className="flex flex-col">
                         <span className="font-black text-slate-900 text-[14px] tabular-nums tracking-tighter">
@@ -274,7 +442,7 @@ function FinanceSummaryPageInner() {
                     ),
                   },
                   {
-                    header: "Service Rate",
+                    header: "Platform Fee Rate",
                     accessor: (comm: any) => (
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 text-[11px] font-black uppercase tracking-widest">
                         {(comm.commissionRate * 100).toFixed(1)}%
@@ -298,7 +466,7 @@ function FinanceSummaryPageInner() {
                     ),
                   },
                   {
-                    header: "Net Settlement",
+                    header: "Net Earnings",
                     accessor: (comm: any) => (
                       <div className="flex flex-col items-end pr-6">
                         <span className="text-emerald-600 font-black text-[16px] tabular-nums tracking-tighter">

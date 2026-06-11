@@ -51,3 +51,16 @@ export function useDeletePricingRule() {
     },
   });
 }
+
+export function usePricingTransactions(ruleId: string | null) {
+  return useQuery({
+    queryKey: ["pricing-transactions", ruleId],
+    queryFn: async () => {
+      if (!ruleId) return [];
+      const { data } = await api.get(`/pricing/${ruleId}/transactions`);
+      return data.data || [];
+    },
+    enabled: !!ruleId,
+  });
+}
+

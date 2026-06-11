@@ -20,7 +20,7 @@
 # ============================================================
 
 ### GET SGR Stations
-GET {{host}}/sec/trc/sgrparcel/v1/fetch/sgr-stations
+GET {{host}}/sec/trc/sgr-parcel/v1/fetch/sgr-stations
 accept: application/json
 X-Service-Name: {{xServiceName}}
 X-Header-Service: {{xHeaderService}}

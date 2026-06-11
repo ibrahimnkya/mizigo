@@ -17,6 +17,106 @@ async function getStatusCounts() {
 export default async function ParcelPage() {
   const stats = await getStatusCounts();
 
+  // 1. Received Parcels
+  const pendingCount = await prisma.parcel.count({
+    where: { status: "PENDING" },
+  });
+
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const currentPeriodReceived = await prisma.parcel.count({
+    where: {
+      status: "RECEIVED",
+      createdAt: { gte: sevenDaysAgo },
+    },
+  });
+
+  const previousPeriodReceived = await prisma.parcel.count({
+    where: {
+      status: "RECEIVED",
+      createdAt: {
+        gte: fourteenDaysAgo,
+        lt: sevenDaysAgo,
+      },
+    },
+  });
+
+  let receivedTrend = "+0%";
+  if (previousPeriodReceived > 0) {
+    const pct = ((currentPeriodReceived - previousPeriodReceived) / previousPeriodReceived) * 100;
+    receivedTrend = `${pct >= 0 ? "+" : ""}${pct.toFixed(0)}%`;
+  } else if (currentPeriodReceived > 0) {
+    receivedTrend = "+100%";
+  }
+
+  // 2. Dispatched Loads & Delivered Final
+  const inTransitCount = await prisma.parcel.count({
+    where: { status: "IN_TRANSIT" },
+  });
+
+  const deliveredParcelsList = await prisma.parcel.findMany({
+    where: { status: "DELIVERED" },
+    select: { createdAt: true, updatedAt: true },
+  });
+  let avgTransitHours = "4h";
+  let avgSpeedStr = "2.4d";
+  if (deliveredParcelsList.length > 0) {
+    let totalDuration = 0;
+    deliveredParcelsList.forEach((p) => {
+      totalDuration += p.updatedAt.getTime() - p.createdAt.getTime();
+    });
+    const avgMs = totalDuration / deliveredParcelsList.length;
+    const avgHours = avgMs / (60 * 60 * 1000);
+    avgTransitHours = avgHours < 24 ? `${avgHours.toFixed(0)}h` : `${(avgHours / 24).toFixed(1)}d`;
+    avgSpeedStr = `${(avgHours / 24).toFixed(1)}d`;
+  }
+
+  // 3. Offloaded Items
+  const totalParcelsCount = await prisma.parcel.count();
+  const totalLost = stats.LOST || 0;
+  const offloadEfficiencyVal = totalParcelsCount > 0 ? ((totalParcelsCount - totalLost) / totalParcelsCount) * 100 : 100;
+  const offloadEfficiency = `${offloadEfficiencyVal.toFixed(0)}%`;
+
+  const activeParcelsCount = await prisma.parcel.count({
+    where: {
+      status: {
+        in: ["RECEIVED", "DISPATCHED", "OFFLOADED", "AT_STATION", "IN_TRANSIT"],
+      },
+    },
+  });
+  const loadStatus = activeParcelsCount > 20 ? "High" : activeParcelsCount > 5 ? "Medium" : "Low";
+
+  // 4. Delivered Final Rating
+  const avgStationRating = await prisma.station.aggregate({
+    _avg: { rating: true },
+  });
+  const deliveredRatingVal = avgStationRating._avg.rating || 5.0;
+  const deliveredRating = `${deliveredRatingVal.toFixed(1)}/5`;
+
+  // 5. Cancelled Requests
+  const voidedCount = await prisma.payment.count({
+    where: {
+      status: { not: "SUCCESS" },
+      parcel: { status: "CANCELED" },
+    },
+  });
+  const cancelledCount = stats.CANCELED || 0;
+  const cancellationRate = totalParcelsCount > 0 ? ((cancelledCount / totalParcelsCount) * 100).toFixed(1) + "%" : "0%";
+
+  // 6. Lost Shipments
+  const criticalLost = await prisma.parcel.count({
+    where: {
+      status: "LOST",
+      OR: [
+        { urgency: "High" },
+        { isFragile: true },
+      ],
+    },
+  });
+  const recoveryStatus = (stats.LOST || 0) > 0 ? "Under Review" : "Clear";
+
   const parcelCards = [
     {
       title: "Received Parcels",
@@ -39,8 +139,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "Active", value: stats.RECEIVED || 0 },
-        { label: "Queue", value: "12" },
-        { label: "Trend", value: "+14%" },
+        { label: "Queue", value: pendingCount },
+        { label: "Trend", value: receivedTrend },
       ],
     },
     {
@@ -64,8 +164,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "In Transit", value: stats.DISPATCHED || 0 },
-        { label: "Active", value: "8" },
-        { label: "ETA", value: "Avg 4h" },
+        { label: "Active", value: inTransitCount },
+        { label: "ETA", value: avgTransitHours },
       ],
     },
     {
@@ -89,8 +189,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "Sorting", value: stats.OFFLOADED || 0 },
-        { label: "Efficiency", value: "98%" },
-        { label: "Load", value: "Normal" },
+        { label: "Efficiency", value: offloadEfficiency },
+        { label: "Load", value: loadStatus },
       ],
     },
     {
@@ -114,8 +214,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "Success", value: stats.DELIVERED || 0 },
-        { label: "Rating", value: "4.9/5" },
-        { label: "Speed", value: "2.4d" },
+        { label: "Rating", value: deliveredRating },
+        { label: "Speed", value: avgSpeedStr },
       ],
     },
     {
@@ -139,8 +239,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "Count", value: stats.CANCELED || 0 },
-        { label: "Voided", value: "4" },
-        { label: "Rate", value: "1.2%" },
+        { label: "Voided", value: voidedCount },
+        { label: "Rate", value: cancellationRate },
       ],
     },
     {
@@ -164,8 +264,8 @@ export default async function ParcelPage() {
       titleColor: "text-slate-900",
       snapshot: [
         { label: "Alerts", value: stats.LOST || 0 },
-        { label: "Critical", value: "2" },
-        { label: "Recovery", value: "In Progress" },
+        { label: "Critical", value: criticalLost },
+        { label: "Recovery", value: recoveryStatus },
       ],
     },
   ];

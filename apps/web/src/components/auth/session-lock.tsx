@@ -42,10 +42,21 @@ export function SessionLock() {
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
-    setPassword(newOtp.join(""));
+    const newPassword = newOtp.join("");
+    setPassword(newPassword);
 
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when last digit is filled
+    if (index === 5 && value) {
+      const fullOtp = [...otp];
+      fullOtp[5] = value.substring(value.length - 1);
+      const pin = fullOtp.join("");
+      if (pin.length === 6) {
+        setTimeout(() => autoSubmit(pin), 50);
+      }
     }
   };
 
@@ -135,8 +146,7 @@ export function SessionLock() {
     }
   }, [session, handleLock]);
 
-  const handleUnlock = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const autoSubmit = async (pin: string) => {
     setLoading(true);
     setError(null);
 
@@ -144,11 +154,11 @@ export function SessionLock() {
       const result = await signIn("credentials", {
         redirect: false,
         email: session?.user?.email,
-        otp: password,
+        otp: pin,
       });
 
       if (result?.error) {
-        setError("Incorrect password. Please try again.");
+        setError("Incorrect PIN. Please try again.");
         setOtp(Array(6).fill(""));
         setPassword("");
         setTimeout(() => inputsRef.current[0]?.focus(), 100);
@@ -158,10 +168,15 @@ export function SessionLock() {
         setOtp(Array(6).fill(""));
       }
     } catch (err) {
-      setError("Service temporarily unavailable.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await autoSubmit(password);
   };
 
   if (status !== "authenticated") return null;
@@ -187,14 +202,14 @@ export function SessionLock() {
 
           <div className="relative z-10">
             <DialogTitle className="text-[28px] font-black text-white tracking-tight leading-tight">
-              Session Locked
+              Screen Locked
             </DialogTitle>
             <DialogDescription className="text-slate-400 text-[12px] font-bold uppercase tracking-[0.25em] mt-3 flex items-center justify-center gap-2.5">
               <TimerReset
                 className="w-3.5 h-3.5 text-slate-400"
                 strokeWidth={3}
               />
-              Timed out due to inactivity
+              Enter your PIN to continue
             </DialogDescription>
           </div>
         </div>
@@ -219,7 +234,7 @@ export function SessionLock() {
             <div className="space-y-3">
               <div className="flex items-center justify-between ml-1">
                 <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  Enter Password
+                  Enter PIN
                 </label>
               </div>
               <div className="flex flex-col gap-3">
@@ -280,7 +295,7 @@ export function SessionLock() {
                 {loading ? (
                   <Loader2 className="w-6 h-6 animate-spin" strokeWidth={3} />
                 ) : (
-                  "Resume Session"
+                  "Unlock"
                 )}
               </Button>
 

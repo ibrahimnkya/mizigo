@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useUsers } from "@/modules/users/use-users";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -21,6 +21,149 @@ import { StaffDetailModal } from "@/components/users/staff-detail-modal";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
+
+// --- Animated counter hook ---
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) {
+      setValue(0);
+      return;
+    }
+    const steps = 40;
+    const increment = target / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// --- Sparkline SVG ---
+function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
+  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
+  const points = basePoints.map((p, i) => {
+    const shift = Math.sin(seed + i) * 8;
+    return Math.max(10, Math.min(100, p + shift));
+  });
+  const h = 48, w = 120;
+  const max = Math.max(...points), min = Math.min(...points);
+  const coords: [number, number][] = points.map((p, i) => [
+    (i / (points.length - 1)) * w,
+    h - ((p - min) / (max - min)) * (h - 4) - 2,
+  ]);
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const fill = path + ` L${w},${h} L0,${h} Z`;
+  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// --- Helper to map text class to Hex ---
+const getSparkColor = (colorClass: string) => {
+  if (colorClass.includes("blue")) return "#3b82f6";
+  if (colorClass.includes("emerald")) return "#10b981";
+  if (colorClass.includes("indigo")) return "#6366f1";
+  if (colorClass.includes("amber")) return "#f59e0b";
+  if (colorClass.includes("orange")) return "#f97316";
+  if (colorClass.includes("violet")) return "#8b5cf6";
+  if (colorClass.includes("cyan")) return "#06b6d4";
+  if (colorClass.includes("rose")) return "#f43f5e";
+  return "#94a3b8";
+};
+
+// --- Custom StaffCard Component ---
+interface StaffCardProps {
+  label: string;
+  value: number;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  tag: string;
+  tagBg: string;
+  tagColor: string;
+  accentBar: string;
+  description: string;
+  seed: number;
+}
+
+function StaffCard({
+  label,
+  value,
+  icon: Icon,
+  iconBg,
+  iconColor,
+  tag,
+  tagBg,
+  tagColor,
+  accentBar,
+  description,
+  seed,
+}: StaffCardProps) {
+  const counted = useCountUp(value, 1000);
+  const sparkColor = getSparkColor(iconColor);
+
+  return (
+    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+      {/* Top Row */}
+      <div className="flex items-start justify-between">
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+          {tag}
+        </span>
+      </div>
+
+      {/* Main Content */}
+      <div className="mt-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Primary value */}
+          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
+            {counted.toLocaleString()}
+          </p>
+          
+          {/* Title & Description */}
+          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
+            {label}
+          </h3>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
+            {description}
+          </p>
+        </div>
+
+        {/* Sparkline */}
+        <div className="mt-4 space-y-3">
+          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+            <Sparkline color={sparkColor} seed={seed} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom accent glow */}
+      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
+    </div>
+  );
+}
 
 function AdminUsersPageInner() {
   const { data: session } = useSession();
@@ -185,55 +328,58 @@ function AdminUsersPageInner() {
             <div className="space-y-6 animate-in fade-in duration-500">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  {
-                    label: "Total Staff",
-                    count: totalStaff,
-                    icon: Users,
-                    color: "text-indigo-500",
-                    bg: "bg-indigo-50",
-                  },
-                  {
-                    label: "Active Members",
-                    count: activeStaff,
-                    icon: UserCircle,
-                    color: "text-emerald-500",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Station Managers",
-                    count: stationManagers,
-                    icon: ShieldAlert,
-                    color: "text-amber-500",
-                    bg: "bg-amber-50",
-                  },
-                  {
-                    label: "Clerks & Guards",
-                    count: clerksAndGuards,
-                    icon: Train,
-                    color: "text-cyan-500",
-                    bg: "bg-cyan-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={cn("p-2.5 rounded-[10px]", stat.bg)}>
-                        <stat.icon className={cn("w-5 h-5", stat.color)} />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-slate-900 tabular-nums">
-                        {stat.count}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                <StaffCard
+                  label="Total Staff"
+                  value={totalStaff}
+                  icon={Users}
+                  iconBg="bg-indigo-50"
+                  iconColor="text-indigo-500"
+                  tag="Team"
+                  tagBg="bg-indigo-50"
+                  tagColor="text-indigo-600"
+                  accentBar="bg-indigo-500"
+                  description="Total registered personnel in organization directory"
+                  seed={19}
+                />
+                <StaffCard
+                  label="Active Members"
+                  value={activeStaff}
+                  icon={UserCircle}
+                  iconBg="bg-emerald-50"
+                  iconColor="text-emerald-500"
+                  tag="Active"
+                  tagBg="bg-emerald-50"
+                  tagColor="text-emerald-600"
+                  accentBar="bg-emerald-500"
+                  description="Staff accounts with active operational clearance"
+                  seed={37}
+                />
+                <StaffCard
+                  label="Station Managers"
+                  value={stationManagers}
+                  icon={ShieldAlert}
+                  iconBg="bg-amber-50"
+                  iconColor="text-amber-500"
+                  tag="Managers"
+                  tagBg="bg-amber-50"
+                  tagColor="text-amber-600"
+                  accentBar="bg-amber-500"
+                  description="Supervisors assigned to physically manage terminals"
+                  seed={55}
+                />
+                <StaffCard
+                  label="Clerks & Guards"
+                  value={clerksAndGuards}
+                  icon={Train}
+                  iconBg="bg-cyan-50"
+                  iconColor="text-cyan-500"
+                  tag="Staffs"
+                  tagBg="bg-cyan-50"
+                  tagColor="text-cyan-600"
+                  accentBar="bg-cyan-500"
+                  description="Transit guards and terminal booking clerks"
+                  seed={73}
+                />
               </div>
 
               {/* Description blocks */}
@@ -254,7 +400,7 @@ function AdminUsersPageInner() {
                     <p className="text-slate-400 text-[12.5px] font-bold leading-relaxed opacity-85">
                       Manage partner personnel, supervisors, and transit
                       operations workforce. Assign physical branch stations to
-                      enable operator access.
+                      enable staff access.
                     </p>
                   </div>
 
@@ -288,7 +434,7 @@ function AdminUsersPageInner() {
                   <p className="text-[13px] text-slate-400 max-w-md">
                     Individual agent activity metrics, cargo dispatch records,
                     and audit summaries will populate here in real time as
-                    operators log events.
+                    staff log events.
                   </p>
                 </div>
               </div>

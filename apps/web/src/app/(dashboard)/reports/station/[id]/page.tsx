@@ -11,13 +11,18 @@ function StationReportPageInner() {
   const id = params.id as string;
   const searchParams = useSearchParams();
   const timeframe = searchParams.get("timeframe") || "weekly";
+  const dateFrom = searchParams.get("dateFrom") || "";
+  const dateTo = searchParams.get("dateTo") || "";
 
   const { data: reportData, isLoading } = useQuery({
-    queryKey: ["reports", "station", id, timeframe],
+    queryKey: ["reports", "station", id, timeframe, dateFrom, dateTo],
     queryFn: async () => {
-      const res = await api.get(
-        `/reports/stations/${id}?timeframe=${timeframe}`,
-      );
+      let url = `/reports/stations/${id}?timeframe=${timeframe}`;
+      if (timeframe === "custom") {
+        if (dateFrom) url += `&dateFrom=${dateFrom}`;
+        if (dateTo) url += `&dateTo=${dateTo}`;
+      }
+      const res = await api.get(url);
       return res.data.data || res.data;
     },
   });

@@ -4,6 +4,7 @@ import { ActionRequiredPanel } from "@/components/dashboard/quick-approve-panel"
 import { SuperAdminWidgets } from "@/components/dashboard/super-admin-widgets";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { UnifiedDashboardContent } from "@/components/dashboard/unified-dashboard-content";
+import { KpiCard } from "@/components/dashboard/kpi-card";
 import {
   Clock,
   CheckCircle2,
@@ -22,61 +23,6 @@ import {
 
 import { getStats } from "@/lib/stats";
 import { RefreshTrigger } from "@/components/utils/refresh-trigger";
-
-// ─── KPI Card (Registry Styled) ──────────────────────────────────────────────
-function KpiCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  accent,
-  trend,
-}: {
-  label: string;
-  value: number;
-  sub?: string;
-  icon: React.ElementType;
-  accent: string;
-  trend?: { value: string; up: boolean };
-}) {
-  return (
-    <div className="relative group bg-white rounded-[10px] p-5 flex flex-col gap-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 transition-all duration-300">
-      <div className="flex items-start justify-between">
-        <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center"
-          style={{ backgroundColor: `${accent}15` }}
-        >
-          <Icon size={16} style={{ color: accent }} strokeWidth={2.5} />
-        </div>
-        {trend && (
-          <span
-            className={`inline-flex items-center gap-0.5 text-[10px] font-black px-2 py-0.5 rounded-full ${
-              trend.up
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-rose-50 text-rose-500"
-            }`}
-          >
-            {trend.value}
-          </span>
-        )}
-      </div>
-
-      <div>
-        <p className="text-2xl font-black text-slate-900 tracking-tight leading-none tabular-nums">
-          {value.toLocaleString()}
-        </p>
-        <p className="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-widest opacity-60">
-          {label}
-        </p>
-      </div>
-
-      <div
-        className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        style={{ backgroundColor: accent }}
-      />
-    </div>
-  );
-}
 
 // ─── Section Label ─────────────────────────────────────────────────────────────
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -192,41 +138,41 @@ export default async function Page({
     {
       label: "Total Requests",
       value: d.totalRequests,
-      icon: LayoutGrid,
+      iconName: "LayoutGrid",
       accent: "#6366f1",
       trend: trends.totalRequests,
     },
     {
       label: "Pending Node",
       value: d.pendingRequests,
-      icon: Clock,
+      iconName: "Clock",
       accent: "#f59e0b",
       trend: trends.pendingRequests,
     },
     {
       label: "Approved System",
       value: d.approvedRequests,
-      icon: CheckCircle2,
+      iconName: "CheckCircle2",
       accent: "#10b981",
       trend: trends.approvedRequests,
     },
     {
       label: "Settled Paid",
       value: d.paidCount,
-      icon: CreditCard,
+      iconName: "CreditCard",
       accent: "#0ea5e9",
       trend: trends.paidCount,
     },
     {
       label: "Total Volume",
       value: (d.received || 0) + (d.delivered || 0) + (d.sent || 0),
-      icon: Activity,
+      iconName: "Activity",
       accent: "#8b5cf6",
     },
     {
       label: "Security Trace",
       value: d.rejectedRequests,
-      icon: XCircle,
+      iconName: "XCircle",
       accent: "#f43f5e",
       trend: trends.rejectedRequests,
     },
@@ -272,8 +218,8 @@ export default async function Page({
         <section>
           <SectionLabel>Global Network Intelligence Matrix</SectionLabel>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
-            {kpis.map((k) => (
-              <KpiCard key={k.label} {...k} />
+            {kpis.map((k, i) => (
+              <KpiCard key={k.label} {...k} seed={i + 1} />
             ))}
           </div>
         </section>

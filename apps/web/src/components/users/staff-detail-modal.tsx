@@ -27,6 +27,8 @@ import {
   X,
   Edit3,
   CheckCircle2,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api/client";
@@ -61,6 +63,8 @@ interface StaffDetailModalProps {
 
 export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
   const [sendingOtp, setSendingOtp] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"overview" | "parcels">(
     "overview",
   );
@@ -153,6 +157,34 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
       });
     } finally {
       setSendingOtp(false);
+    }
+  };
+
+  const handleDeleteStaff = async () => {
+    if (!staff) return;
+    setDeleting(true);
+    setConfirmDelete(false);
+    try {
+      await api.delete(`/users/${staff.id}`);
+      setAlertModal({
+        isOpen: true,
+        type: "success",
+        title: "Staff Removed",
+        message: `${staff.name}'s account has been permanently removed from the system.`,
+      });
+    } catch (error: any) {
+      const msg =
+        error.response?.data?.error?.message ||
+        error.message ||
+        "Failed to delete staff member";
+      setAlertModal({
+        isOpen: true,
+        type: "error",
+        title: "Deletion Blocked",
+        message: msg,
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -511,7 +543,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                       <Button
                         onClick={handleResendOtp}
                         disabled={sendingOtp}
-                        className="w-full h-12 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 active:scale-95 transition-all shadow-sm"
+                        className="flex-1 h-12 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 active:scale-95 transition-all shadow-sm"
                       >
                         {sendingOtp ? (
                           <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -520,11 +552,37 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                         )}
                         <span>Reset Credential OTP</span>
                       </Button>
+
+                      {/* Delete — only enabled when totalHandled === 0 */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if ((staff.stats?.totalHandled ?? 1) > 0) {
+                            setAlertModal({
+                              isOpen: true,
+                              type: "error",
+                              title: "Deletion Blocked",
+                              message: `${staff.name} has ${staff.stats?.totalHandled} parcel operation(s) on record. Suspend the account instead.`,
+                            });
+                          } else {
+                            setConfirmDelete(true);
+                          }
+                        }}
+                        disabled={deleting}
+                        className="h-12 w-12 flex items-center justify-center rounded-xl border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-600 transition-all active:scale-95 shrink-0 disabled:opacity-50"
+                        title="Delete Staff"
+                      >
+                        {deleting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+                        )}
+                      </button>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-400 leading-relaxed pl-1">
                       Resetting credentials triggers a new random 6-digit OTP
-                      code dispatched via SMS. The user will be requested to
-                      update it on their next login session.
+                      code dispatched via SMS. Deletion is only permitted for
+                      staff with zero parcel activity.
                     </p>
                   </div>
                 </div>
@@ -636,7 +694,11 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
               </div>
               <Button
                 type="button"
-                onClick={() => setAlertModal(null)}
+                onClick={() => {
+                  const wasSuccess = alertModal.type === "success" && alertModal.title === "Staff Removed";
+                  setAlertModal(null);
+                  if (wasSuccess) onClose();
+                }}
                 className={cn(
                   "w-full h-10 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all",
                   alertModal.type === "success"
@@ -644,8 +706,45 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                     : "bg-slate-900 hover:bg-slate-800 text-white",
                 )}
               >
-                Continue
+                {alertModal.type === "success" && alertModal.title === "Staff Removed" ? "Close" : "Continue"}
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirm Dialog */}
+        {confirmDelete && (
+          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-2xl w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
+              <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                <AlertTriangle size={22} strokeWidth={2.5} />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-[13px] font-black uppercase tracking-wider text-slate-900 leading-tight">
+                  Confirm Deletion
+                </h4>
+                <p className="text-[10.5px] font-bold text-slate-400 leading-normal">
+                  You are about to permanently remove{" "}
+                  <span className="text-slate-700">{staff?.name}</span> from the
+                  system. This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3 w-full">
+                <Button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-[0.2em] transition-all"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleDeleteStaff}
+                  className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-black uppercase tracking-[0.2em] transition-all"
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -712,17 +811,101 @@ function StatBox({
   label: string;
   value: number;
 }) {
+  const colorName = bg.replace("bg-", "").replace("-50", "");
+  
+  const [counted, setCounted] = useState(0);
+  useEffect(() => {
+    if (!value) {
+      setCounted(0);
+      return;
+    }
+    const steps = 30;
+    const increment = value / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setCounted(value);
+        clearInterval(timer);
+      } else {
+        setCounted(Math.floor(current));
+      }
+    }, 800 / steps);
+    return () => clearInterval(timer);
+  }, [value]);
+
+  const colorMap: Record<string, { border: string; bg: string; text: string; bar: string }> = {
+    emerald: {
+      border: "border-emerald-100/80",
+      bg: "bg-emerald-50/50",
+      text: "text-emerald-600",
+      bar: "bg-emerald-500",
+    },
+    blue: {
+      border: "border-blue-100/80",
+      bg: "bg-blue-50/50",
+      text: "text-blue-600",
+      bar: "bg-blue-500",
+    },
+    indigo: {
+      border: "border-indigo-100/80",
+      bg: "bg-indigo-50/50",
+      text: "text-indigo-600",
+      bar: "bg-indigo-500",
+    },
+    cyan: {
+      border: "border-cyan-100/80",
+      bg: "bg-cyan-50/50",
+      text: "text-cyan-600",
+      bar: "bg-cyan-500",
+    },
+    rose: {
+      border: "border-rose-100/80",
+      bg: "bg-rose-50/50",
+      text: "text-rose-600",
+      bar: "bg-rose-500",
+    },
+    amber: {
+      border: "border-amber-100/80",
+      bg: "bg-amber-50/50",
+      text: "text-amber-600",
+      bar: "bg-amber-500",
+    },
+  };
+
+  const scheme = colorMap[colorName] || {
+    border: "border-slate-100",
+    bg: "bg-slate-50",
+    text: "text-slate-600",
+    bar: "bg-slate-500",
+  };
+
   return (
-    <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-[12px] bg-slate-50 shadow-sm">
-      <div className={cn("p-2.5 rounded-[10px] shrink-0", bg)}>{icon}</div>
-      <div className="flex flex-col overflow-hidden">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-          {label}
-        </span>
-        <span className="text-xl font-black text-slate-900 tabular-nums leading-none">
-          {value}
+    <div className="group relative flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white transition-all duration-300 hover:shadow-md hover:border-slate-200 overflow-hidden">
+      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm", bg)}>
+        {icon}
+      </div>
+
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">
+            {label}
+          </span>
+          <span className={cn(
+            "text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border",
+            scheme.bg,
+            scheme.border,
+            scheme.text
+          )}>
+            Activity
+          </span>
+        </div>
+        <span className={cn("text-2xl font-black mt-1.5 leading-none tabular-nums", scheme.text)}>
+          {counted.toLocaleString()}
         </span>
       </div>
+
+      <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-300", scheme.bar)} />
     </div>
   );
 }

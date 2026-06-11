@@ -61,7 +61,7 @@ export default function OperatorsReportPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center text-slate-400">
-          Loading operator intelligence...
+          Loading staff intelligence...
         </div>
       }
     >

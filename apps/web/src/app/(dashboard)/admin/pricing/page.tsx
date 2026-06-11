@@ -12,28 +12,184 @@ import {
   Globe,
 } from "lucide-react";
 
-import { PricingModal } from "@/components/admin/pricing-modal";
+import { PricingModal } from "@/components/admin/pricing-modal"; // create-only
 import { PricingActionMenu } from "@/components/admin/pricing-action-menu";
+import { PricingDetailSheet } from "@/components/admin/pricing-detail-sheet";
 import { usePricingRules } from "@/modules/pricing/use-pricing";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 
+// --- Animated counter hook ---
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) {
+      setValue(0);
+      return;
+    }
+    const steps = 40;
+    const increment = target / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// --- Sparkline SVG ---
+function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
+  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
+  const points = basePoints.map((p, i) => {
+    const shift = Math.sin(seed + i) * 8;
+    return Math.max(10, Math.min(100, p + shift));
+  });
+  const h = 48, w = 120;
+  const max = Math.max(...points), min = Math.min(...points);
+  const coords: [number, number][] = points.map((p, i) => [
+    (i / (points.length - 1)) * w,
+    h - ((p - min) / (max - min)) * (h - 4) - 2,
+  ]);
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const fill = path + ` L${w},${h} L0,${h} Z`;
+  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// --- Helper to map text class to Hex ---
+const getSparkColor = (colorClass: string) => {
+  if (colorClass.includes("blue")) return "#3b82f6";
+  if (colorClass.includes("emerald")) return "#10b981";
+  if (colorClass.includes("indigo")) return "#6366f1";
+  if (colorClass.includes("amber")) return "#f59e0b";
+  if (colorClass.includes("orange")) return "#f97316";
+  if (colorClass.includes("violet")) return "#8b5cf6";
+  if (colorClass.includes("cyan")) return "#06b6d4";
+  if (colorClass.includes("rose")) return "#f43f5e";
+  return "#94a3b8";
+};
+
+// --- Custom PricingCard Component ---
+interface PricingCardProps {
+  label: string;
+  value: number | string;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  tag: string;
+  tagBg: string;
+  tagColor: string;
+  accentBar: string;
+  description: string;
+  seed: number;
+}
+
+function PricingCard({
+  label,
+  value,
+  icon: Icon,
+  iconBg,
+  iconColor,
+  tag,
+  tagBg,
+  tagColor,
+  accentBar,
+  description,
+  seed,
+}: PricingCardProps) {
+  const valStr = String(value);
+  const numericVal = parseFloat(valStr.replace(/[^\d.]/g, ""));
+  const isNumeric = !isNaN(numericVal);
+  const counted = useCountUp(isNumeric ? numericVal : 0, 1000);
+  const sparkColor = getSparkColor(iconColor);
+
+  let displayValue = valStr;
+  if (isNumeric) {
+    if (valStr.includes("x")) {
+      displayValue = `${counted.toFixed(2)}x`;
+    } else if (valStr.includes("%")) {
+      displayValue = `+${counted.toFixed(1)}%`;
+    } else {
+      displayValue = counted.toLocaleString();
+    }
+  }
+
+  return (
+    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+      {/* Top Row */}
+      <div className="flex items-start justify-between">
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+          {tag}
+        </span>
+      </div>
+
+      {/* Main Content */}
+      <div className="mt-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Primary value */}
+          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
+            {displayValue}
+          </p>
+          
+          {/* Title & Description */}
+          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
+            {label}
+          </h3>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
+            {description}
+          </p>
+        </div>
+
+        {/* Sparkline */}
+        <div className="mt-4 space-y-3">
+          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+            <Sparkline color={sparkColor} seed={seed} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom accent glow */}
+      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
+    </div>
+  );
+}
+
 function PricingPageInner() {
   const { data: rules, isLoading } = usePricingRules();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRule, setSelectedRule] = useState<any>(null);
+  const [viewRule, setViewRule] = useState<any>(null);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
 
-  const handleEdit = (rule: any) => {
-    setSelectedRule(rule);
-    setIsModalOpen(true);
+  const handleView = (rule: any) => {
+    setViewRule(rule);
   };
 
   const handleCreate = () => {
-    setSelectedRule(null);
     setIsModalOpen(true);
   };
 
@@ -41,10 +197,10 @@ function PricingPageInner() {
     {
       header: "Rule Name",
       accessor: (rule: any) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg transition-all duration-300",
+              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg transition-all duration-300 shrink-0",
               rule.isActive
                 ? "bg-slate-900 shadow-slate-100"
                 : "bg-slate-200 shadow-transparent grayscale",
@@ -66,11 +222,11 @@ function PricingPageInner() {
               />
             )}
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
+          <div className="flex flex-col min-w-0">
+            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase truncate max-w-[220px]">
               {rule.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[220px]">
               {rule.condition || "All shipments"}
             </span>
           </div>
@@ -135,7 +291,7 @@ function PricingPageInner() {
       header: "Actions",
       accessor: (rule: any) => (
         <div className="flex items-center justify-end gap-2 pr-4">
-          <PricingActionMenu rule={rule} onEdit={handleEdit} />
+          <PricingActionMenu rule={rule} onView={handleView} />
         </div>
       ),
     },
@@ -159,7 +315,13 @@ function PricingPageInner() {
         <PricingModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          rule={selectedRule}
+          rule={null}
+        />
+
+        <PricingDetailSheet
+          open={!!viewRule}
+          onClose={() => setViewRule(null)}
+          rule={viewRule}
         />
 
         <ReportPageHeader
@@ -189,55 +351,58 @@ function PricingPageInner() {
           {tab.toLowerCase() === "overview" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  {
-                    label: "Active Rules",
-                    count: activeRules,
-                    icon: Calculator,
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-                  {
-                    label: "Base Price Multiplier",
-                    count: `${baseMultiplier}x`,
-                    icon: TrendingUp,
-                    color: "text-emerald-600",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Express Delivery Markup",
-                    count: `+${expressPremium}%`,
-                    icon: BadgePercent,
-                    color: "text-indigo-600",
-                    bg: "bg-indigo-50",
-                  },
-                  {
-                    label: "Global Coverage",
-                    count: "100%",
-                    icon: Globe,
-                    color: "text-slate-600",
-                    bg: "bg-slate-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={cn("p-2.5 rounded-[10px]", stat.bg)}>
-                        <stat.icon className={cn("w-5 h-5", stat.color)} />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-slate-900 tabular-nums">
-                        {stat.count}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                <PricingCard
+                  label="Active Rules"
+                  value={activeRules}
+                  icon={Calculator}
+                  iconBg="bg-blue-50"
+                  iconColor="text-blue-600"
+                  tag="System"
+                  tagBg="bg-blue-50"
+                  tagColor="text-blue-600"
+                  accentBar="bg-blue-500"
+                  description="Total custom pricing matrices currently in active deployment"
+                  seed={21}
+                />
+                <PricingCard
+                  label="Base Price Multiplier"
+                  value={`${baseMultiplier}x`}
+                  icon={TrendingUp}
+                  iconBg="bg-emerald-50"
+                  iconColor="text-emerald-600"
+                  tag="Multiplier"
+                  tagBg="bg-emerald-50"
+                  tagColor="text-emerald-600"
+                  accentBar="bg-emerald-500"
+                  description="Base rate coefficient applied to standard distance"
+                  seed={43}
+                />
+                <PricingCard
+                  label="Express Delivery Markup"
+                  value={`+${expressPremium}%`}
+                  icon={BadgePercent}
+                  iconBg="bg-indigo-50"
+                  iconColor="text-indigo-600"
+                  tag="Premium"
+                  tagBg="bg-indigo-50"
+                  tagColor="text-indigo-600"
+                  accentBar="bg-indigo-500"
+                  description="Percent surcharge automatically added for priority delivery"
+                  seed={65}
+                />
+                <PricingCard
+                  label="Global Coverage"
+                  value="100%"
+                  icon={Globe}
+                  iconBg="bg-slate-50"
+                  iconColor="text-slate-600"
+                  tag="Network"
+                  tagBg="bg-slate-50"
+                  tagColor="text-slate-600"
+                  accentBar="bg-slate-500"
+                  description="Status of operational coverage for pricing lookups"
+                  seed={87}
+                />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -319,6 +484,7 @@ function PricingPageInner() {
                 isLoading={isLoading}
                 hideActions={true}
                 hideInternalSearch={true}
+                onRowClick={handleView}
               />
             </div>
           )}

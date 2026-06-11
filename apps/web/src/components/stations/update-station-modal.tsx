@@ -204,7 +204,7 @@ export function UpdateStationModal({
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
-              <span>Parcels Log</span>
+              <span>Parcels Handled</span>
               <span className="bg-slate-200 text-slate-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full">
                 {stationDetail.metrics?.totalHandled || 0}
               </span>
@@ -411,7 +411,7 @@ export function UpdateStationModal({
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Handled Transit Log
+                    Parcels Handled
                   </h3>
                   <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
                     {stationDetail?.parcels?.length || 0} entries
@@ -631,17 +631,101 @@ function StatBox({
   label: string;
   value: number;
 }) {
+  const colorName = bg.replace("bg-", "").replace("-50", "");
+  
+  const [counted, setCounted] = useState(0);
+  useEffect(() => {
+    if (!value) {
+      setCounted(0);
+      return;
+    }
+    const steps = 30;
+    const increment = value / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setCounted(value);
+        clearInterval(timer);
+      } else {
+        setCounted(Math.floor(current));
+      }
+    }, 800 / steps);
+    return () => clearInterval(timer);
+  }, [value]);
+
+  const colorMap: Record<string, { border: string; bg: string; text: string; bar: string }> = {
+    emerald: {
+      border: "border-emerald-100/80",
+      bg: "bg-emerald-50/50",
+      text: "text-emerald-600",
+      bar: "bg-emerald-500",
+    },
+    blue: {
+      border: "border-blue-100/80",
+      bg: "bg-blue-50/50",
+      text: "text-blue-600",
+      bar: "bg-blue-500",
+    },
+    indigo: {
+      border: "border-indigo-100/80",
+      bg: "bg-indigo-50/50",
+      text: "text-indigo-600",
+      bar: "bg-indigo-500",
+    },
+    cyan: {
+      border: "border-cyan-100/80",
+      bg: "bg-cyan-50/50",
+      text: "text-cyan-600",
+      bar: "bg-cyan-500",
+    },
+    rose: {
+      border: "border-rose-100/80",
+      bg: "bg-rose-50/50",
+      text: "text-rose-600",
+      bar: "bg-rose-500",
+    },
+    amber: {
+      border: "border-amber-100/80",
+      bg: "bg-amber-50/50",
+      text: "text-amber-600",
+      bar: "bg-amber-500",
+    },
+  };
+
+  const scheme = colorMap[colorName] || {
+    border: "border-slate-100",
+    bg: "bg-slate-50",
+    text: "text-slate-600",
+    bar: "bg-slate-500",
+  };
+
   return (
-    <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-[12px] bg-slate-50 shadow-sm">
-      <div className={cn("p-2.5 rounded-[10px] shrink-0", bg)}>{icon}</div>
-      <div className="flex flex-col overflow-hidden text-left">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-          {label}
-        </span>
-        <span className="text-xl font-black text-slate-900 tabular-nums leading-none">
-          {value}
+    <div className="group relative flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white transition-all duration-300 hover:shadow-md hover:border-slate-200 overflow-hidden text-left">
+      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm", bg)}>
+        {icon}
+      </div>
+
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">
+            {label}
+          </span>
+          <span className={cn(
+            "text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border",
+            scheme.bg,
+            scheme.border,
+            scheme.text
+          )}>
+            Activity
+          </span>
+        </div>
+        <span className={cn("text-2xl font-black mt-1.5 leading-none tabular-nums", scheme.text)}>
+          {counted.toLocaleString()}
         </span>
       </div>
+
+      <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-300", scheme.bar)} />
     </div>
   );
 }

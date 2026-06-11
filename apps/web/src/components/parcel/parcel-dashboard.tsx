@@ -65,17 +65,171 @@ interface ParcelCardData {
   titleColor: string;
 }
 
+// --- Animated counter hook ---
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) return;
+    const steps = 40;
+    const increment = target / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// --- Sparkline SVG ---
+function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
+  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
+  const points = basePoints.map((p, i) => {
+    const shift = Math.sin(seed + i) * 8;
+    return Math.max(10, Math.min(100, p + shift));
+  });
+  const h = 48, w = 120;
+  const max = Math.max(...points), min = Math.min(...points);
+  const coords: [number, number][] = points.map((p, i) => [
+    (i / (points.length - 1)) * w,
+    h - ((p - min) / (max - min)) * (h - 4) - 2,
+  ]);
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const fill = path + ` L${w},${h} L0,${h} Z`;
+  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// --- Helper to parse numeric value ---
+const parseNumeric = (val: string | number): number | null => {
+  if (typeof val === "number") return val;
+  const cleaned = val.replace(/,/g, "").trim();
+  const parsed = Number(cleaned);
+  return isNaN(parsed) ? null : parsed;
+};
+
+// --- Helper to map iconColor / text class to Hex ---
+const getSparkColor = (colorClass: string) => {
+  if (colorClass.includes("blue")) return "#3b82f6";
+  if (colorClass.includes("emerald")) return "#10b981";
+  if (colorClass.includes("indigo")) return "#6366f1";
+  if (colorClass.includes("amber")) return "#f59e0b";
+  if (colorClass.includes("orange")) return "#f97316";
+  if (colorClass.includes("violet")) return "#8b5cf6";
+  if (colorClass.includes("cyan")) return "#06b6d4";
+  if (colorClass.includes("rose")) return "#f43f5e";
+  return "#94a3b8"; // default slate
+};
+
+// --- Custom ParcelCard Component ---
+function ParcelCard({ parcel, seed, delay = 0 }: { parcel: ParcelCardData; seed: number; delay?: number }) {
+  const Icon = ICON_MAP[parcel.iconName] || Package;
+  const primaryStat = parcel.snapshot[0];
+  const primaryValue = primaryStat ? primaryStat.value : "";
+  const numeric = parseNumeric(primaryValue);
+  const counted = useCountUp(numeric ?? 0, 1000);
+  const isNumeric = numeric !== null;
+
+  const sparkColor = getSparkColor(parcel.iconColor);
+  const secondaryStats = parcel.snapshot.slice(1);
+
+  return (
+    <div
+      className={cn(
+        "group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-lg hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer h-full relative"
+      )}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      {/* Top Row */}
+      <div className="flex items-start justify-between">
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110", parcel.iconBg, parcel.iconColor)}>
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", parcel.tagBg, parcel.tagColor)}>
+          {parcel.tag}
+        </span>
+      </div>
+
+      {/* Main Content */}
+      <div className="mt-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Primary value */}
+          <p className={cn("text-3xl font-black tracking-tight leading-none tabular-nums", parcel.iconColor)}>
+            {isNumeric ? counted.toLocaleString() : primaryValue}
+          </p>
+          
+          {/* Title & Description */}
+          <h3 className="text-[14px] font-black text-slate-800 tracking-tight mt-2.5 group-hover:text-blue-600 transition-colors">
+            {parcel.title}
+          </h3>
+          <p className="text-[11px] font-medium text-slate-400 mt-1 leading-normal line-clamp-2">
+            {parcel.description}
+          </p>
+        </div>
+
+        {/* Sparkline & Snapshot */}
+        <div className="mt-4 space-y-3">
+          {/* Sparkline */}
+          <div className="opacity-50 group-hover:opacity-100 transition-opacity duration-300">
+            <Sparkline color={sparkColor} seed={seed} />
+          </div>
+
+          {/* Secondary stats */}
+          {secondaryStats.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-50">
+              {secondaryStats.map((stat) => (
+                <div key={stat.label} className="flex flex-col">
+                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                  <span className="text-[11px] font-black text-slate-700 mt-0.5">{stat.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
+        <div className={cn("flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-widest transition-all group-hover:gap-2", parcel.ctaColor)}>
+          Review Items <ArrowUpRight size={11} strokeWidth={3} />
+        </div>
+        <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
+          <div className={cn("w-1.5 h-1.5 rounded-full opacity-20 group-hover:opacity-100 transition-all", parcel.accentBar)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const PRESETS = [
   {
-    label: "7D",
+    label: "7 Days",
     getValue: () => ({ from: subDays(new Date(), 7), to: new Date() }),
   },
   {
-    label: "30D",
+    label: "30 Days",
     getValue: () => ({ from: subDays(new Date(), 30), to: new Date() }),
   },
   {
-    label: "MTD",
+    label: "This Month",
     getValue: () => ({ from: startOfMonth(new Date()), to: new Date() }),
   },
 ];
@@ -252,92 +406,13 @@ export function ParcelDashboard({
         <div className="flex-1 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
           {filtered.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-6">
-              {filtered.map((parcel) => (
+              {filtered.map((parcel, i) => (
                 <Link
                   key={parcel.title}
                   href={parcel.href}
                   className="group animate-in fade-in zoom-in-95 duration-500"
                 >
-                  <div
-                    className={`relative bg-white rounded-[12px] border ${parcel.borderColor} px-6 py-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col`}
-                  >
-                    {(() => {
-                      const Icon = ICON_MAP[parcel.iconName] || Package;
-                      return (
-                        <>
-                          <Icon
-                            size={140}
-                            className="absolute -bottom-8 -right-8 text-slate-50 opacity-40 pointer-events-none group-hover:scale-110 group-hover:text-slate-100 transition-all duration-500"
-                            strokeWidth={0.5}
-                          />
-                          <div
-                            className={`absolute top-0 left-0 w-full h-[3px] ${parcel.accentBar} opacity-10 group-hover:opacity-40 transition-opacity`}
-                          />
-                          <div className="flex items-center justify-between relative z-10">
-                            <div
-                              className={`w-10 h-10 rounded-[10px] flex items-center justify-center ${parcel.iconBg} ${parcel.iconColor} flex-shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-current/5`}
-                            >
-                              <Icon size={18} strokeWidth={2.5} />
-                            </div>
-                            <span
-                              className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[8px] ${parcel.tagBg} ${parcel.tagColor} border border-current/10 shadow-sm`}
-                            >
-                              {parcel.tag}
-                            </span>
-                          </div>
-                        </>
-                      );
-                    })()}
-
-                    <div className="mt-6 relative z-10">
-                      <h3
-                        className={`text-[18px] font-black ${parcel.titleColor} mb-1 tracking-tight group-hover:text-blue-600 transition-colors`}
-                      >
-                        {parcel.title}
-                      </h3>
-                      <p
-                        className={`text-[12px] font-medium leading-relaxed ${parcel.descColor} line-clamp-2`}
-                      >
-                        {parcel.description}
-                      </p>
-                    </div>
-
-                    <div
-                      className={`grid grid-cols-3 gap-2 mt-6 pt-6 border-t ${parcel.snapBorder} relative z-10`}
-                    >
-                      {parcel.snapshot.map((snap) => (
-                        <div key={snap.label} className="flex flex-col gap-0.5">
-                          <p
-                            className={`text-[9px] font-black uppercase tracking-wider leading-none ${parcel.snapMuted}`}
-                          >
-                            {snap.label}
-                          </p>
-                          <p
-                            className={`text-[14px] font-black leading-none ${parcel.snapColor}`}
-                          >
-                            {snap.value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div
-                      className={`flex items-center justify-between pt-6 mt-4 border-t ${parcel.snapBorder} relative z-10`}
-                    >
-                      <div
-                        className={`flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest ${parcel.ctaColor} transition-all group-hover:gap-2.5`}
-                      >
-                        Review Items <ArrowUpRight size={12} strokeWidth={3} />
-                      </div>
-                      <div
-                        className={`w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:${parcel.iconBg} transition-colors`}
-                      >
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full ${parcel.accentBar} opacity-20 group-hover:opacity-100 group-hover:animate-pulse transition-all`}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <ParcelCard parcel={parcel} seed={i} delay={i * 60} />
                 </Link>
               ))}
             </div>

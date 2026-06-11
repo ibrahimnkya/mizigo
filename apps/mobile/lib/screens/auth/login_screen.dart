@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleNext() async {
     if (_isAvailable != true) return;
 
-    final auth = context.read<AuthProvider>();
+    // Phone Flow
     String val = _phoneController.text.trim();
     if (val.startsWith('0')) val = val.substring(1);
     
@@ -98,12 +98,15 @@ class _LoginScreenState extends State<LoginScreen> {
     // Unfocus keyboard
     FocusScope.of(context).unfocus();
     
+    final auth = context.read<AuthProvider>();
     final success = await auth.sendOtp(fullPhone);
+    
     if (!mounted) return;
     
     if (success) {
       context.push('/verify', extra: fullPhone);
     } else {
+      // Show error toast if OTP generation/dispatch failed
       MizigoToasts.showError(
         context,
         auth.error ?? 'Failed to send verification code',

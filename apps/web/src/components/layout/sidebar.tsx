@@ -54,61 +54,61 @@ export const sidebarItems: SidebarItem[] = [
   // --- STATION DESK ---
   {
     title: "Home",
-    subtitle: "Quick access and station summary",
+    subtitle: "Overview and quick access",
     icon: LayoutDashboard,
     href: "/operator",
     roles: ["OPERATOR"],
-    section: "Station Desk",
+    section: "My Station",
   },
   {
     title: "Parcel Management",
-    subtitle: "View and manage station parcels",
+    subtitle: "View and manage parcels",
     icon: Package,
     href: "/parcel",
     roles: ["OPERATOR"],
-    section: "Station Desk",
+    section: "My Station",
   },
   {
     title: "Reports",
-    subtitle: "View today's station performance",
+    subtitle: "View station performance",
     icon: BarChart3,
     href: "/operator/reports",
     roles: ["OPERATOR"],
-    section: "Station Desk",
+    section: "My Station",
   },
 
   // --- REPORTS SUITE ---
   {
     title: "Overview",
-    subtitle: "Overview of all activities",
+    subtitle: "Summary of all activities",
     icon: LayoutDashboard,
     href: "/reports/admin/overview",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Reports Suite",
+    section: "Reports",
   },
   {
     title: "Reports",
-    subtitle: "Deep dive into business metrics",
+    subtitle: "View detailed business reports",
     icon: BarChart3,
     href: "/reports",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Reports Suite",
+    section: "Reports",
   },
 
   // --- PARCEL MANAGEMENT ---
   {
     title: "All Shipments",
-    subtitle: "Unified view of all logistics",
+    subtitle: "View all parcels across stations",
     icon: Package,
     href: "/parcel",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Parcel Management",
+    section: "Parcels",
   },
 
   // --- FINANCE & PRICING ---
   {
     title: "Overview",
-    subtitle: "Review overall revenue streams",
+    subtitle: "View revenue and earnings",
     icon: CreditCard,
     href: "/admin/finance",
     roles: ["SUPER_ADMIN", "ADMIN"],
@@ -124,7 +124,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Pricing",
-    subtitle: "Manage rules and parcel tariffs",
+    subtitle: "Manage pricing rules and tariffs",
     icon: Target,
     href: "/admin/pricing",
     roles: ["SUPER_ADMIN", "ADMIN"],
@@ -134,7 +134,7 @@ export const sidebarItems: SidebarItem[] = [
   // --- RAIL & FACILITIES ---
   {
     title: "Rail Network",
-    subtitle: "Manage locomotives and rolling stock",
+    subtitle: "Manage trains and rolling stock",
     icon: TrainFront,
     href: "/super-admin/fleet",
     roles: ["SUPER_ADMIN"],
@@ -142,7 +142,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Fleet Management",
-    subtitle: "Manage your locomotives and wagons",
+    subtitle: "Manage locomotives and wagons",
     icon: TrainFront,
     href: "/admin/fleet",
     roles: ["ADMIN"],
@@ -158,7 +158,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Station Network",
-    subtitle: "Node management and logistics hubs",
+    subtitle: "Manage stations and service points",
     icon: Target,
     href: "/super-admin/stations",
     roles: ["SUPER_ADMIN"],
@@ -166,7 +166,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Station Network",
-    subtitle: "Manage your logistics hubs",
+    subtitle: "Manage your stations",
     icon: Target,
     href: "/admin/stations",
     roles: ["ADMIN"],
@@ -176,35 +176,35 @@ export const sidebarItems: SidebarItem[] = [
   // --- USER MANAGEMENT ---
   {
     title: "Platform Users",
-    subtitle: "Manage platform administrators",
+    subtitle: "Manage system administrators",
     icon: Users,
     href: "/super-admin/users",
     roles: ["SUPER_ADMIN"],
-    section: "User Management",
+    section: "Users",
   },
   {
     title: "Staff",
-    subtitle: "Manage organization staff",
+    subtitle: "Manage staff members",
     icon: Users,
     href: "/admin/users",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "User Management",
+    section: "Users",
   },
   {
     title: "Roles",
     icon: ShieldCheck,
-    subtitle: "Manage user permissions",
+    subtitle: "Manage access and permissions",
     href: "/super-admin/roles",
     roles: ["SUPER_ADMIN"],
-    section: "User Management",
+    section: "Users",
   },
   {
     title: "Audit Logs",
-    subtitle: "View system-wide activity logs",
+    subtitle: "View activity history",
     icon: ClipboardList,
     href: "/super-admin/audit",
     roles: ["SUPER_ADMIN"],
-    section: "User Management",
+    section: "Users",
   },
 
   // --- PLATFORM CONFIGURATION ---
@@ -214,31 +214,31 @@ export const sidebarItems: SidebarItem[] = [
     icon: Settings,
     href: "/super-admin/integrations",
     roles: ["SUPER_ADMIN"],
-    section: "Platform Configuration",
+    section: "Settings",
   },
   {
     title: "SMS Settings",
-    subtitle: "Configure messaging alerts",
+    subtitle: "Configure SMS notifications",
     icon: Bell,
     href: "/super-admin/sms",
     roles: ["SUPER_ADMIN"],
-    section: "Platform Configuration",
+    section: "Settings",
   },
   {
     title: "App Updates",
-    subtitle: "Manage mobile app deliveries",
+    subtitle: "Manage mobile app versions",
     icon: Package,
     href: "/super-admin/versions",
     roles: ["SUPER_ADMIN"],
-    section: "Platform Configuration",
+    section: "Settings",
   },
   {
     title: "Settings",
-    subtitle: "General platform configurations",
+    subtitle: "General system settings",
     icon: Settings,
     href: "/super-admin/settings",
     roles: ["SUPER_ADMIN"],
-    section: "Platform Configuration",
+    section: "Settings",
   },
 ];
 

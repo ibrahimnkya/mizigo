@@ -1,5 +1,5 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api/client";
 import { StationList } from "@/components/stations/station-list";
@@ -9,6 +9,153 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { useSession } from "next-auth/react";
+
+// --- Animated counter hook ---
+function useCountUp(target: number, duration = 1200): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!target) {
+      setValue(0);
+      return;
+    }
+    const steps = 40;
+    const increment = target / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// --- Sparkline SVG ---
+function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
+  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
+  const points = basePoints.map((p, i) => {
+    const shift = Math.sin(seed + i) * 8;
+    return Math.max(10, Math.min(100, p + shift));
+  });
+  const h = 48, w = 120;
+  const max = Math.max(...points), min = Math.min(...points);
+  const coords: [number, number][] = points.map((p, i) => [
+    (i / (points.length - 1)) * w,
+    h - ((p - min) / (max - min)) * (h - 4) - 2,
+  ]);
+  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const fill = path + ` L${w},${h} L0,${h} Z`;
+  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fill} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// --- Helper to map text class to Hex ---
+const getSparkColor = (colorClass: string) => {
+  if (colorClass.includes("blue")) return "#3b82f6";
+  if (colorClass.includes("emerald")) return "#10b981";
+  if (colorClass.includes("indigo")) return "#6366f1";
+  if (colorClass.includes("amber")) return "#f59e0b";
+  if (colorClass.includes("orange")) return "#f97316";
+  if (colorClass.includes("violet")) return "#8b5cf6";
+  if (colorClass.includes("cyan")) return "#06b6d4";
+  if (colorClass.includes("rose")) return "#f43f5e";
+  return "#94a3b8";
+};
+
+// --- Custom StationStatCard Component ---
+interface StationStatCardProps {
+  label: string;
+  value: number;
+  isPercent?: boolean;
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  tag: string;
+  tagBg: string;
+  tagColor: string;
+  accentBar: string;
+  description: string;
+  seed: number;
+}
+
+function StationStatCard({
+  label,
+  value,
+  isPercent = false,
+  icon: Icon,
+  iconBg,
+  iconColor,
+  tag,
+  tagBg,
+  tagColor,
+  accentBar,
+  description,
+  seed,
+}: StationStatCardProps) {
+  const counted = useCountUp(value, 1000);
+  const sparkColor = getSparkColor(iconColor);
+
+  const displayValue = isPercent ? `${counted}%` : counted.toLocaleString();
+
+  return (
+    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+      {/* Top Row */}
+      <div className="flex items-start justify-between">
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
+          <Icon size={16} strokeWidth={2.5} />
+        </div>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+          {tag}
+        </span>
+      </div>
+
+      {/* Main Content */}
+      <div className="mt-4 flex-1 flex flex-col justify-between">
+        <div>
+          {/* Primary value */}
+          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
+            {displayValue}
+          </p>
+          
+          {/* Title & Description */}
+          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
+            {label}
+          </h3>
+          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
+            {description}
+          </p>
+        </div>
+
+        {/* Sparkline */}
+        <div className="mt-4 space-y-3">
+          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+            <Sparkline color={sparkColor} seed={seed} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom accent glow */}
+      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
+    </div>
+  );
+}
 
 function AdminStationsPageInner() {
   const { data: session } = useSession();
@@ -57,53 +204,46 @@ function AdminStationsPageInner() {
           {tab.toLowerCase() === "overview" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  {
-                    label: "Active Stations",
-                    count: activeStations,
-                    icon: Zap,
-                    color: "text-emerald-500",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Inactive Stations",
-                    count: inactiveStations,
-                    icon: PauseCircle,
-                    color: "text-rose-500",
-                    bg: "bg-rose-50",
-                  },
-                  {
-                    label: "Operational Uptime",
-                    count: uptime,
-                    icon: Activity,
-                    color: "text-indigo-500",
-                    bg: "bg-indigo-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div
-                        className={cn(
-                          "p-2.5 rounded-[10px]",
-                          stat.bg || "bg-slate-50",
-                        )}
-                      >
-                        <stat.icon className={cn("w-5 h-5", stat.color)} />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-slate-900 tabular-nums">
-                        {stat.count}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                <StationStatCard
+                  label="Active Stations"
+                  value={activeStations}
+                  icon={Zap}
+                  iconBg="bg-emerald-50"
+                  iconColor="text-emerald-600"
+                  tag="ONLINE"
+                  tagBg="bg-emerald-50/50 border-emerald-100"
+                  tagColor="text-emerald-700"
+                  accentBar="bg-emerald-500"
+                  description="Stations actively processing parcels"
+                  seed={1}
+                />
+                <StationStatCard
+                  label="Inactive Stations"
+                  value={inactiveStations}
+                  icon={PauseCircle}
+                  iconBg="bg-rose-50"
+                  iconColor="text-rose-600"
+                  tag="OFFLINE"
+                  tagBg="bg-rose-50/50 border-rose-100"
+                  tagColor="text-rose-700"
+                  accentBar="bg-rose-500"
+                  description="Stations temporarily closed or disabled"
+                  seed={2}
+                />
+                <StationStatCard
+                  label="Operational Uptime"
+                  value={totalStations ? Math.round((activeStations / totalStations) * 100) : 0}
+                  isPercent={true}
+                  icon={Activity}
+                  iconBg="bg-indigo-50"
+                  iconColor="text-indigo-600"
+                  tag="UPTIME"
+                  tagBg="bg-indigo-50/50 border-indigo-100"
+                  tagColor="text-indigo-700"
+                  accentBar="bg-indigo-500"
+                  description="Percentage of active network hubs"
+                  seed={3}
+                />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

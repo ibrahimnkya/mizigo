@@ -332,7 +332,7 @@ export function createReceiptPDF(data: ReceiptData) {
           <Text style={s.footerText}>
             This is an official digital receipt issued by{" "}
             <Text style={s.footerBrand}>Mizigo Logistics</Text>.{"\n"}
-            For support, contact support@mizigo.co.tz {" | "} +255 700 000 000
+            For support, contact support@mizigo.akiliapp.co.tz {" | "} +255 700 000 000
           </Text>
         </View>
       </Page>
