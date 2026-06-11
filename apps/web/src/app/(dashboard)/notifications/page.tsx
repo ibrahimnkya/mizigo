@@ -9,10 +9,10 @@ import {
   MoreHorizontal,
   Archive,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 async function getNotifications() {
-  const res = await fetch("http://localhost:3000/api/notifications", {
+  const res = await fetch(getInternalUrl("/api/notifications"), {
     cache: "no-store",
   });
   if (!res.ok) return [];

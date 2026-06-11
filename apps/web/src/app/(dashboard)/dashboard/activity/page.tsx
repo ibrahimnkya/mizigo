@@ -1,9 +1,10 @@
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { auth } from "@/auth";
+import { getInternalUrl } from "@/lib/utils";
 import { Activity } from "lucide-react";
 
 async function getActivity() {
-  const res = await fetch("http://localhost:3000/api/parcel", {
+  const res = await fetch(getInternalUrl("/api/parcel"), {
     cache: "no-store",
   });
   if (!res.ok) return [];

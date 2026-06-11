@@ -9,10 +9,10 @@ import {
   ArrowUpRight,
   TrendingDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 async function getStats() {
-  const res = await fetch("http://localhost:3000/api/stats", {
+  const res = await fetch(getInternalUrl("/api/stats"), {
     cache: "no-store",
   });
   if (!res.ok) return null;

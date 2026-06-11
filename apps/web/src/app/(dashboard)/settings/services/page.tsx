@@ -1,8 +1,8 @@
 import { Truck, Zap, Shield, Edit2, Plus, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 async function getServices() {
-  const res = await fetch("http://localhost:3000/api/services", {
+  const res = await fetch(getInternalUrl("/api/services"), {
     cache: "no-store",
   });
   if (!res.ok) return [];

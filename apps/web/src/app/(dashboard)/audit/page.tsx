@@ -8,13 +8,13 @@ import {
   Download,
   Filter,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
 async function getAuditLogs() {
   try {
-    const res = await fetch("http://localhost:3000/api/audit", {
+    const res = await fetch(getInternalUrl("/api/audit"), {
       cache: "no-store",
     });
     if (!res.ok) return [];

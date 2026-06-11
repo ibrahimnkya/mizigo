@@ -7,13 +7,13 @@ import {
   ArrowUpRight,
   Search,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getInternalUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 async function getLocations() {
   try {
-    const res = await fetch("http://localhost:3000/api/locations", {
+    const res = await fetch(getInternalUrl("/api/locations"), {
       cache: "no-store",
     });
     if (!res.ok) return [];
