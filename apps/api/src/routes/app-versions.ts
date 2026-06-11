@@ -102,7 +102,7 @@ router.get(
     }
     const latest = [...versions].sort((a, b) =>
       compareVersions(b.version, a.version),
-    )[0];
+    )[0]!;
     const forceUpdate =
       latest.forceUpdate ||
       compareVersions(currentVersion, latest.minSupportedVersion) < 0;

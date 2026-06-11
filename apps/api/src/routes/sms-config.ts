@@ -231,7 +231,7 @@ router.put(
             apiPassword: apiPassword ?? current.apiPassword,
             defaultSenderId: defaultSenderId ?? current.defaultSenderId,
             baseUrl: apiUrl ?? current.baseUrl,
-          },
+          } as any,
           isActive: isActive ?? config.isActive,
         },
       });

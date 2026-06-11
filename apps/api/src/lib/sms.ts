@@ -102,9 +102,13 @@ const loadSmsProviderConfig = async (
   const defaultSenderId = String(
     config.defaultSenderId || process.env.SENDER_ID || "MySAFARI",
   );
-  const baseUrl = String(
-    config.baseUrl || "https://api.sprintsmsservice.com/api/SendSMS",
+  const baseUrlRaw = String(
+    config.baseUrl || process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
   );
+  let baseUrl = baseUrlRaw;
+  if (baseUrlRaw && !baseUrlRaw.includes("/api/SendSMS") && !baseUrlRaw.includes("MOCK_URL")) {
+    baseUrl = baseUrlRaw.replace(/\/$/, "") + "/api/SendSMS";
+  }
 
   if (!apiId || !apiPassword) {
     const source = organizationId
@@ -156,6 +160,7 @@ export const sendSms = async (input: {
   if (!formattedPhone) {
     throw new Error("A valid phone number is required to send SMS");
   }
+
 
   const url = new URL(
     config.baseUrl || "https://api.sprintsmsservice.com/api/SendSMS",

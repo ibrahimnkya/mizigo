@@ -31,7 +31,7 @@ router.post(
   requirePermission("admins:create"),
   async (req: Request, res: Response) => {
     try {
-      const { name, email, phone, organizationId } = req.body;
+      const { name, email, phone, organizationId, initialOtp } = req.body;
       if (!name || !email || !phone) {
         return sendError(
           res,
@@ -59,9 +59,12 @@ router.post(
           400,
         );
       }
-      const generatedOtp = Math.floor(
-        100000 + Math.random() * 900000,
-      ).toString();
+      // Use the OTP provided by the admin UI (matches what they see in the confirm screen),
+      // or fall back to a server-generated one.
+      const generatedOtp =
+        initialOtp && /^\d{6}$/.test(String(initialOtp))
+          ? String(initialOtp)
+          : Math.floor(100000 + Math.random() * 900000).toString();
 
       const user = await prisma.user.create({
         data: {
@@ -132,7 +135,7 @@ router.post(
         );
       }
 
-      const { name, email, phone } = req.body;
+      const { name, email, phone, initialOtp } = req.body;
       if (!name || !email || !phone) {
         return sendError(
           res,
@@ -157,9 +160,10 @@ router.post(
         );
       }
 
-      const generatedOtp = Math.floor(
-        100000 + Math.random() * 900000,
-      ).toString();
+      const generatedOtp =
+        initialOtp && /^\d{6}$/.test(String(initialOtp))
+          ? String(initialOtp)
+          : Math.floor(100000 + Math.random() * 900000).toString();
       const user = await prisma.user.create({
         data: {
           name,

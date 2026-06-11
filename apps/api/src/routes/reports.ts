@@ -166,17 +166,22 @@ router.get("/stations/:id", async (req: Request, res: Response) => {
     const stationIdentifiers = [station.id, station.code];
 
     const dateFilter: any = {};
-    if (timeframe === "weekly") {
+    if (timeframe === "daily") {
+      dateFilter.gte = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    } else if (timeframe === "weekly") {
       dateFilter.gte = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     } else if (timeframe === "monthly") {
       dateFilter.gte = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     } else if (timeframe === "quarterly") {
       dateFilter.gte = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    } else if (timeframe === "custom" || req.query.dateFrom || req.query.dateTo) {
+      if (req.query.dateFrom) dateFilter.gte = new Date(String(req.query.dateFrom));
+      if (req.query.dateTo) dateFilter.lte = new Date(String(req.query.dateTo));
     }
 
     const whereBase = {
       fromAddress: { in: stationIdentifiers },
-      ...(dateFilter.gte ? { createdAt: dateFilter } : {}),
+      ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}),
     };
 
     const [received, delivered, sent, atWarehouse] = await Promise.all([

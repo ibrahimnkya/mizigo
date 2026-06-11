@@ -103,7 +103,7 @@ router.patch(
           if (permissionIds.length > 0) {
             await tx.rolePermission.createMany({
               data: permissionIds.map((pId: string) => ({
-                roleId: id,
+                roleId: id as string,
                 permissionId: pId,
               })),
               skipDuplicates: true,
@@ -154,7 +154,7 @@ router.post(
         prisma.rolePermission.deleteMany({ where: { roleId: id } }),
         prisma.rolePermission.createMany({
           data: permissionIds.map((permissionId) => ({
-            roleId: id,
+            roleId: id as string,
             permissionId,
           })),
           skipDuplicates: true,

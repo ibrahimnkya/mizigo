@@ -107,6 +107,18 @@ router.get("/", async (req: Request, res: Response) => {
           });
         }
 
+        // Find if name is already taken by a different ID
+        const existingByName = await prisma.station.findUnique({
+          where: { name: s.name },
+        });
+
+        if (existingByName && existingByName.id !== s.id) {
+          // Delete conflicting record to allow upserting with correct ID
+          await prisma.station.delete({
+            where: { id: existingByName.id },
+          });
+        }
+
         await prisma.station.upsert({
           where: { id: s.id },
           update: {
@@ -132,13 +144,10 @@ router.get("/", async (req: Request, res: Response) => {
     }
 
     // 2) Load from local DB
-    const where =
-      req.user?.role === "SUPER_ADMIN"
-        ? { ...(includeInactive ? {} : { isActive: true }) }
-        : {
-            organizationId: req.user?.organizationId ?? "",
-            ...(includeInactive ? {} : { isActive: true }),
-          };
+    // SGR train stations are shared infrastructure — all authenticated users
+    // need to see them regardless of their own organization. Super admins can
+    // additionally request inactive stations via ?includeInactive=true.
+    const where = includeInactive ? {} : { isActive: true };
 
     const stations = await prisma.station.findMany({
       where,
@@ -165,7 +174,8 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     if (
       req.user?.role !== "SUPER_ADMIN" &&
-      req.user?.organizationId !== station.organizationId
+      req.user?.organizationId !== station.organizationId &&
+      !station.isActive
     ) {
       return sendError(res, "FORBIDDEN", "Cannot view this station", 403);
     }
@@ -197,15 +207,15 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
 
     const totalStaff = await prisma.user.count({
-      where: { stationId: id },
+      where: { stationId: id, deletedAt: null },
     });
 
     const activeStaff = await prisma.user.count({
-      where: { stationId: id, isActive: true },
+      where: { stationId: id, isActive: true, deletedAt: null },
     });
 
     const staff = await prisma.user.findMany({
-      where: { stationId: id },
+      where: { stationId: id, deletedAt: null },
       include: {
         role: {
           select: { name: true },

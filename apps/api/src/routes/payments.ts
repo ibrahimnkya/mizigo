@@ -21,6 +21,56 @@ export const getCallbackUrl = () => {
 };
 
 /**
+ * GET /api/v1/payments
+ * Returns the list of payments for the current organization or all if SUPER_ADMIN.
+ */
+router.get("/", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { status, stationId } = req.query;
+    const where: any = { deletedAt: null };
+    if (req.user?.role !== "SUPER_ADMIN") {
+      where.organizationId = req.user?.organizationId ?? null;
+    }
+    if (status) {
+      where.status = String(status);
+    }
+    if (stationId) {
+      where.parcel = {
+        OR: [
+          { originId: String(stationId) },
+          { fromAddress: String(stationId) }
+        ]
+      };
+    }
+    const payments = await prisma.payment.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        parcel: {
+          select: {
+            id: true,
+            trackingNumber: true,
+            receiverName: true,
+            receiverPhone: true,
+            serviceType: true,
+            origin: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          },
+        },
+      },
+    });
+    return sendSuccess(res, payments);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+/**
  * GET /api/v1/payments/providers
  * Returns the list of active payment providers from the external gateway.
  */

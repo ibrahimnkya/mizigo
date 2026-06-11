@@ -100,6 +100,28 @@ router.get("/roles", authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/v1/users/check-availability?email=xxx&phone=yyy
+// Returns {emailExists, phoneExists} — used by create-user modal before posting
+router.get("/check-availability", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { email, phone } = req.query as { email?: string; phone?: string };
+    const [emailUser, phoneUser] = await Promise.all([
+      email
+        ? prisma.user.findFirst({ where: { email: String(email) } })
+        : null,
+      phone
+        ? prisma.user.findFirst({ where: { phone: String(phone) } })
+        : null,
+    ]);
+    return sendSuccess(res, {
+      emailExists: !!emailUser,
+      phoneExists: !!phoneUser,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 // GET /api/v1/users/:id/parcels - Retrieve parcels handled by a user
 router.get(
   "/:id/parcels",
@@ -205,6 +227,52 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
       ...user,
       stats,
     });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// DELETE /api/v1/users/:id — soft-delete a staff member if they have NO activity
+router.delete("/:id", authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: { role: true },
+    });
+
+    if (!user || user.deletedAt) {
+      return sendError(res, "NOT_FOUND", "User not found", 404);
+    }
+
+    // Check for any parcel activity
+    const activityCount = await prisma.parcel.count({
+      where: {
+        OR: [
+          { userId: id },
+          { dispatcherId: id },
+          { offloaderId: id },
+          { delivererId: id },
+        ],
+      },
+    });
+
+    if (activityCount > 0) {
+      return sendError(
+        res,
+        "CONFLICT",
+        `Cannot delete staff member — they have ${activityCount} parcel operation(s) on record. Suspend the account instead.`,
+        409,
+      );
+    }
+
+    // Safe to delete — soft-delete
+    await prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false, stationId: null },
+    });
+
+    return sendSuccess(res, { deleted: true, id });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }

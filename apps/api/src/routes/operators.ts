@@ -33,6 +33,7 @@ router.post(
         stationId,
         organizationId,
         role: requestedRoleName,
+        initialOtp,
       } = req.body;
       if (!name || !email || !phone || !stationId) {
         return sendError(
@@ -101,9 +102,11 @@ router.post(
           400,
         );
       }
-      const generatedOtp = Math.floor(
-        100000 + Math.random() * 900000,
-      ).toString();
+      // Use OTP from the admin UI confirm screen if valid, else generate server-side
+      const generatedOtp =
+        initialOtp && /^\d{6}$/.test(String(initialOtp))
+          ? String(initialOtp)
+          : Math.floor(100000 + Math.random() * 900000).toString();
 
       const user = await prisma.user.create({
         data: {

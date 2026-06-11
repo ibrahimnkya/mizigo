@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { Router, Request, Response, NextFunction } from "express";
 import { prisma } from "@repo/database";
 import { sendError, sendSuccess } from "../lib/api-response";
-import { loadSgrConfig } from "../lib/sgr-client";
+import { loadSgrConfig, fetchSgrTariffs } from "../lib/sgr-client";
 
 const router: Router = Router();
 
@@ -91,27 +91,16 @@ router.get("/sgrparcel/v1/fetch/sgr-stations", async (req: Request, res: Respons
 });
 
 /**
- * 4.2 GET Parcel Tariffs
+ * 4.2 GET Parcel Tariffs — live from TRC SGR
  */
 router.get("/sgrparcel/v1/fetch/parcel-tariffs", async (req: Request, res: Response) => {
   try {
-    // Return static SGR tariffs to match spec/test file
-    const tariffs = [
-      {
-        id: "01KQEWDZ9QYQGG1QW9QTYWHY0A",
-        name: "ENVELOP",
-        minimumCharge: 10000,
-        description: "Envelope parcel tariff",
-      },
-      {
-        id: "01KQ7PKRBC4B4K4Q68S1X783BE",
-        name: "Mizigo mingine",
-        minimumCharge: 15000,
-        description: "Other general cargo tariff",
-      },
-    ];
-
-    return sendSuccess(res, tariffs);
+    const tariffs = await fetchSgrTariffs();
+    return res.json({
+      code: "SUCCESS",
+      message: "Parcel tariff list found",
+      data: tariffs,
+    });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }

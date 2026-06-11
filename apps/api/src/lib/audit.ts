@@ -18,7 +18,7 @@ export const logAudit = async ({
       userId: userId ?? null,
       action,
       resource,
-      details: details ?? {},
+      details: (details ?? {}) as any,
     },
   });
 };

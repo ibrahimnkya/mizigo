@@ -15,22 +15,56 @@ router.get("/summary", async (req: Request, res: Response) => {
         ? {}
         : { organizationId: req.user?.organizationId || "" };
 
-    const [totalCount, successCount, failedCount, totalAmount] =
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const [totalCount, successCount, failedCount, totalAmount, currentPeriodRevenue, previousPeriodRevenue] =
       await Promise.all([
         prisma.payment.count({ where }),
         prisma.payment.count({ where: { ...where, status: "SUCCESS" } }),
         prisma.payment.count({ where: { ...where, status: "FAILED" } }),
         prisma.payment.aggregate({
           where: { ...where, status: "SUCCESS" },
+          _sum: { amount: true, commission: true },
+        }),
+        prisma.payment.aggregate({
           _sum: { amount: true },
+          where: {
+            ...where,
+            status: "SUCCESS",
+            createdAt: { gte: thirtyDaysAgo },
+          },
+        }),
+        prisma.payment.aggregate({
+          _sum: { amount: true },
+          where: {
+            ...where,
+            status: "SUCCESS",
+            createdAt: {
+              gte: sixtyDaysAgo,
+              lt: thirtyDaysAgo,
+            },
+          },
         }),
       ]);
+
+    const currentRev = currentPeriodRevenue._sum.amount || 0;
+    const prevRev = previousPeriodRevenue._sum.amount || 0;
+    let growth = 0;
+    if (prevRev > 0) {
+      growth = ((currentRev - prevRev) / prevRev) * 100;
+    } else if (currentRev > 0) {
+      growth = 100;
+    }
 
     return sendSuccess(res, {
       totalTransactions: totalCount,
       successfulTransactions: successCount,
       failedTransactions: failedCount,
       totalRevenue: totalAmount._sum.amount || 0,
+      platformCommission: totalAmount._sum.commission || 0,
+      revenueGrowth: growth,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);

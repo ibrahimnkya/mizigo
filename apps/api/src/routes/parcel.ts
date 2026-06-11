@@ -49,6 +49,8 @@ const computePrice = async (input: {
   let additionalFixedFees = 0;
 
   for (const rule of rules) {
+    // SGR_TARIFF rules use a different pricing model — skip in generic engine
+    if (rule.type === "SGR_TARIFF") continue;
     let isMatch = true;
     if (rule.condition) {
       const conditions = rule.condition.split("&");
