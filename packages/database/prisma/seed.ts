@@ -189,9 +189,135 @@ async function main() {
     },
   });
 
-  // NOTE: Stations are NOT seeded here.
-  // They are fetched and synced automatically from the TRC SGR API
-  // the first time GET /stations is called at runtime.
+  // 5.5) Create SGR Portal Integration Config
+  await prisma.integration.upsert({
+    where: { id: "sgr-portal-default-integration" },
+    update: {
+      name: "TRC SGR Portal",
+      type: "SGR_PORTAL",
+      isActive: true,
+      config: {
+        baseUrl: "https://dev.trc.co.tz/ecargo_sgr",
+        serviceName: "SETL_SERVICE",
+        headerService: "ANONYMOUS_SERVICE",
+        clientRef: "XCNT202606830874",
+        publicKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpNs5Vm1uwxrA0EEwbCACylnqzwf4kJaENxn/vbklopzyTxZjnv0eSumA7oytlwzHwQuadMS44zx0dc2xno+jNrGDYRf8Cd5iN0V1xPRhwOJeyhQhuiziw57YuUhu70gEGklb2SAFxM3DWtzecJnR17lrsCYwZ8q/0cXjbTCQUYQIDAQAB",
+      }
+    },
+    create: {
+      id: "sgr-portal-default-integration",
+      name: "TRC SGR Portal",
+      type: "SGR_PORTAL",
+      isActive: true,
+      config: {
+        baseUrl: "https://dev.trc.co.tz/ecargo_sgr",
+        serviceName: "SETL_SERVICE",
+        headerService: "ANONYMOUS_SERVICE",
+        clientRef: "XCNT202606830874",
+        publicKey: "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpNs5Vm1uwxrA0EEwbCACylnqzwf4kJaENxn/vbklopzyTxZjnv0eSumA7oytlwzHwQuadMS44zx0dc2xno+jNrGDYRf8Cd5iN0V1xPRhwOJeyhQhuiziw57YuUhu70gEGklb2SAFxM3DWtzecJnR17lrsCYwZ8q/0cXjbTCQUYQIDAQAB",
+      }
+    }
+  });
+
+  // 6) Seed Stations
+  const stationsToSeed = [
+    { id: "01KPWEWYACW1NRAFBTTGFRSKYS", code: "DSM", name: "Dar es Salaam" },
+    { id: "01KPWEWYAH1EWYZA9A87M6JVHN", code: "PUG", name: "Pugu" },
+    { id: "01KPWEWYAMDJWDA4V46CYERGK0", code: "SOG", name: "Soga" },
+    { id: "01KPWEWYAQ78HT4H60XPXPM199", code: "RUV", name: "Ruvu" },
+    { id: "01KPWEWYATH95AFXQTNXAPHK0H", code: "NGR", name: "Ngerengere" },
+    { id: "01KPWEWYAXQKQE805RXDFP5327", code: "MOR", name: "Morogoro" },
+    { id: "01KPWEWYB0DXCZSXJHPJJ4NEJX", code: "MkA", name: "Mkata" },
+    { id: "01KPWEWYB3MBYH1ATFDHT5C9QA", code: "KLO", name: "Kilosa" },
+    { id: "01KPWEWYB64BN465AYCY0ANFF8", code: "KID", name: "Kidete" },
+    { id: "01KPWEWYB8HQWA38MK5VMY1S7B", code: "GLW", name: "Gulwe" },
+    { id: "01KPWEWYBBNAD6DQYCXJ7CBS22", code: "IGD", name: "Igandu" },
+    { id: "01KPWEWYBDHMSDJKHNQYKJBV4M", code: "DOM", name: "Dodoma" }
+  ];
+
+  for (const s of stationsToSeed) {
+    await prisma.station.upsert({
+      where: { id: s.id },
+      update: {
+        code: s.code,
+        name: s.name,
+        isActive: true,
+        organizationId: trcOrg.id,
+      },
+      create: {
+        id: s.id,
+        code: s.code,
+        name: s.name,
+        isActive: true,
+        organizationId: trcOrg.id,
+      }
+    });
+  }
+
+  // 6.5) Seed Pricing Rules / SGR Tariffs
+  const tariffsToSeed = [
+    {
+      name: "ENVOLOP TARRIF FOR SAFARI EXPR",
+      type: "SGR_TARIFF",
+      value: 10000,
+      condition: JSON.stringify({
+        description: "ENVOLOP PRICE",
+        distanceRate: 1,
+        weightRate: 1,
+        sgrId: "01KTC2KADYQR2TCGBH0PWQ0DW9",
+        parcelCategory: {
+          id: "01KQ7EGD31TD4ES1C57N2XPW7M",
+          name: "ENVOLOP PRICE",
+          code: "TRCEP",
+          description: "BAHASHAYENYEUKUBWAA4",
+          chargingMode: "Fixed_Amount",
+          maxWeightInKg: 0.5,
+        }
+      })
+    },
+    {
+      name: "OTHER PARCEL FOR SAFAR EXP",
+      type: "SGR_TARIFF",
+      value: 1,
+      condition: JSON.stringify({
+        description: "OTHER PARCEL FOR SAFARI",
+        distanceRate: 1,
+        weightRate: 1,
+        sgrId: "01KTC3GH2GW8YDDDW9SBK9PMA4",
+        parcelCategory: {
+          id: "01KQ7EKJX6GQ0K8Y2NTJ2E6R95",
+          name: "PARCEL NYINGINEZO",
+          code: "TRCPN",
+          description: "MINGINEYOMIZIGO",
+          chargingMode: "Percentage_Wise",
+          maxWeightInKg: 5,
+          maxLengthInCm: 30,
+          maxWidthInCm: 30,
+          maxHeightInCm: 30,
+          cubicVolumeLimit: 27000
+        }
+      })
+    }
+  ];
+
+  for (const t of tariffsToSeed) {
+    await prisma.pricingRule.upsert({
+      where: { name: t.name },
+      update: {
+        type: t.type,
+        value: t.value,
+        condition: t.condition,
+        isActive: true,
+      },
+      create: {
+        name: t.name,
+        type: t.type,
+        value: t.value,
+        condition: t.condition,
+        isActive: true,
+      }
+    });
+  }
 
   // 7) Create SUPER_ADMIN user (credentials via env; safe defaults).
   const email = process.env.SUPER_ADMIN_EMAIL || "superadmin@mizigo.com";

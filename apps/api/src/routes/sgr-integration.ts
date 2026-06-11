@@ -77,7 +77,7 @@ router.use(verifySignatureMiddleware);
 /**
  * 4.1 GET SGR Stations
  */
-router.get("/sgrparcel/v1/fetch/sgr-stations", async (req: Request, res: Response) => {
+router.get(["/sgrparcel/v1/fetch/sgr-stations", "/sgr-parcel/v1/fetch/sgr-stations"], async (req: Request, res: Response) => {
   try {
     const stations = await prisma.station.findMany({
       where: { isActive: true },
@@ -93,7 +93,7 @@ router.get("/sgrparcel/v1/fetch/sgr-stations", async (req: Request, res: Respons
 /**
  * 4.2 GET Parcel Tariffs — live from TRC SGR
  */
-router.get("/sgrparcel/v1/fetch/parcel-tariffs", async (req: Request, res: Response) => {
+router.get(["/sgrparcel/v1/fetch/parcel-tariffs", "/sgr-parcel/v1/fetch/parcel-tariffs"], async (req: Request, res: Response) => {
   try {
     const tariffs = await fetchSgrTariffs();
     return res.json({
@@ -109,7 +109,7 @@ router.get("/sgrparcel/v1/fetch/parcel-tariffs", async (req: Request, res: Respo
 /**
  * 4.3 POST Calculate Tariff
  */
-router.post("/sgr-parcel/get/parcelcost", async (req: Request, res: Response) => {
+router.post(["/sgr-parcel/get/parcelcost", "/sgrparcel/get/parcelcost"], async (req: Request, res: Response) => {
   try {
     const { originStation, destinationStation, weightInKg } = req.body.data || {};
     const weight = Number(weightInKg || 0.1);
@@ -134,7 +134,7 @@ router.post("/sgr-parcel/get/parcelcost", async (req: Request, res: Response) =>
 /**
  * 4.4 POST Book Parcel
  */
-router.post("/sgrparcel/manage/parcel-booking", async (req: Request, res: Response) => {
+router.post(["/sgrparcel/manage/parcel-booking", "/sgr-parcel/manage/parcel-booking"], async (req: Request, res: Response) => {
   try {
     const {
       sourceRef,
@@ -197,7 +197,7 @@ router.post("/sgrparcel/manage/parcel-booking", async (req: Request, res: Respon
 /**
  * 4.5 POST Confirm Parcel Booking
  */
-router.post("/sgrparcel/confirm/parcel-booking", async (req: Request, res: Response) => {
+router.post(["/sgrparcel/confirm/parcel-booking", "/sgr-parcel/confirm/parcel-booking"], async (req: Request, res: Response) => {
   try {
     const { sourceRef, parcelRef } = req.body.data || {};
 
@@ -233,7 +233,7 @@ router.post("/sgrparcel/confirm/parcel-booking", async (req: Request, res: Respo
 /**
  * 4.6 POST Cancel Parcel Booking
  */
-router.post("/sgrparcel/cancel/parcel-booking", async (req: Request, res: Response) => {
+router.post(["/sgrparcel/cancel/parcel-booking", "/sgr-parcel/cancel/parcel-booking"], async (req: Request, res: Response) => {
   try {
     const { sourceRef, parcelRef, cancellationReason } = req.body.data || {};
 
@@ -271,7 +271,7 @@ router.post("/sgrparcel/cancel/parcel-booking", async (req: Request, res: Respon
 /**
  * 4.7 POST Dispatch Parcel
  */
-router.post("/sgrparcel/dispatch/parcel", async (req: Request, res: Response) => {
+router.post(["/sgrparcel/dispatch/parcel", "/sgr-parcel/dispatch/parcel"], async (req: Request, res: Response) => {
   try {
     const { sourceRef, parcelNumber } = req.body.data || {};
 
@@ -302,7 +302,7 @@ router.post("/sgrparcel/dispatch/parcel", async (req: Request, res: Response) =>
 /**
  * 4.8 POST Deliver Parcel
  */
-router.post("/sgrparcel/deliver/parcel", async (req: Request, res: Response) => {
+router.post(["/sgrparcel/deliver/parcel", "/sgr-parcel/deliver/parcel"], async (req: Request, res: Response) => {
   try {
     const { sourceRef, parcelNumber, deliveryCondition } = req.body.data || {};
 
@@ -334,7 +334,7 @@ router.post("/sgrparcel/deliver/parcel", async (req: Request, res: Response) => 
 /**
  * 4.9 POST Pick-Up Parcel
  */
-router.post("/sgr-parcel/pick-up/parcel", async (req: Request, res: Response) => {
+router.post(["/sgr-parcel/pick-up/parcel", "/sgrparcel/pick-up/parcel"], async (req: Request, res: Response) => {
   try {
     const { sourceRef, parcelNumber } = req.body.data || {};
 
