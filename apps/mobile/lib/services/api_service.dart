@@ -8,7 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://mizigo.akiliapp.co.tz/api/v1';
+  static const String _baseUrl = 'https://api.mizigo.akiliapp.co.tz/api/v1';
     
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static const String _tokenKey = 'jwt_token';

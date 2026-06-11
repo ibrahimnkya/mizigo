@@ -16,7 +16,7 @@ const logger = createServiceLogger("payments");
 const router: Router = Router();
 
 export const getCallbackUrl = () => {
-  const host = process.env.PUBLIC_URL || "https://mizigo.akiliapp.co.tz";
+  const host = process.env.PUBLIC_URL || "https://api.mizigo.akiliapp.co.tz";
   return `${host}/api/v1/payments/callback`;
 };
 
