@@ -101,6 +101,8 @@ const buildUserClaims = async (userId: string) => {
     userId: user.id,
     id: user.id,
     name: user.name,
+    email: user.email,
+    phone: user.phone,
     role: user.role?.name || user.roleId || "USER",
     permissions,
     organizationId: user.organizationId ?? null,

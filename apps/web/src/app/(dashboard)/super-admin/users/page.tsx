@@ -176,7 +176,7 @@ function GlobalUsersPageInner() {
                     bg: "bg-blue-50",
                   },
                   {
-                    label: "System Operators",
+                    label: "System Staffs",
                     count: users?.filter(
                       (u: any) => (u.role?.name || u.role) === "OPERATOR",
                     ).length,

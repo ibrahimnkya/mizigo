@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { headers } from "next/headers";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
@@ -6,6 +7,28 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      let currentOrigin = baseUrl;
+      try {
+        const reqHeaders = await headers();
+        const host = reqHeaders.get("host");
+        const protocol = reqHeaders.get("x-forwarded-proto") || "http";
+        if (host) {
+          currentOrigin = `${protocol}://${host}`;
+        }
+      } catch (_) {}
+
+      if (url.startsWith("/")) {
+        return `${currentOrigin}${url}`;
+      }
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.origin === currentOrigin || urlObj.origin === baseUrl) {
+          return url;
+        }
+      } catch (_) {}
+      return currentOrigin;
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const pathname = nextUrl.pathname;

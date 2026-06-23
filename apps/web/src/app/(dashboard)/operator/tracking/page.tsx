@@ -185,7 +185,7 @@ function TrackingPageInner() {
               {[
                 { label: "Weight", value: `${result.weight}kg`, icon: Clock },
                 { label: "Service", value: result.serviceType, icon: Building },
-                { label: "Urgency", value: result.urgency, icon: Truck },
+                { label: "Delivery Priority", value: result.urgency, icon: Truck },
                 {
                   label: "Paid",
                   value: result.isPaid ? "Yes" : "No",

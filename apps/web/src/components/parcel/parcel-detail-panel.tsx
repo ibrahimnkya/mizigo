@@ -290,7 +290,7 @@ function DetailsTab({
           <Field label="Type" value={parcel.parcelType} />
           <Field label="Size" value={parcel.parcelSize} />
           <Field label="Weight" value={`${parcel.weight} kg`} />
-          <Field label="Urgency" value={parcel.urgency} />
+          <Field label="Delivery Priority" value={parcel.urgency} />
           <Field
             label="Dimensions (L×W×H)"
             value={

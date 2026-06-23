@@ -63,10 +63,10 @@ async function main() {
 
     if (status === 200) {
       console.log(`✅ SUCCESS (200)`);
-      console.log(body.substring(0, 500));
+      console.log(body);
     } else {
       console.log(`❌ FAILED (${status})`);
-      console.log(body.substring(0, 500));
+      console.log(body);
     }
   } catch (e: any) {
     console.log(`💥 ERROR: ${e.message}`);

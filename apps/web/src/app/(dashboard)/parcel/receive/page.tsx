@@ -462,7 +462,7 @@ export default function ReceiveParcelPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
                       <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
-                        Urgency
+                        Delivery Priority
                       </label>
                       <select
                         value={formData.urgency}
@@ -672,7 +672,7 @@ export default function ReceiveParcelPage() {
                     </div>
                     {urgencyMultiplier > 1 && (
                       <div className="flex justify-between text-[11px] font-bold text-amber-500 uppercase tracking-widest">
-                        <span>Urgency Fee (x{urgencyMultiplier})</span>
+                        <span>Delivery Priority Fee (x{urgencyMultiplier})</span>
                         <span>
                           +{" "}
                           {(

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from "@repo/database";
 import { sendError, sendSuccess } from "../lib/api-response";
 import { authenticate, requirePermission } from "../middleware/auth";
+import { normalizePhoneNumber } from "../lib/phone";
 
 const router: Router = Router();
 
@@ -273,6 +274,55 @@ router.delete("/:id", authenticate, async (req: Request, res: Response) => {
     });
 
     return sendSuccess(res, { deleted: true, id });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// PUT /api/v1/users/profile - Update current authenticated user's profile
+router.put("/profile", authenticate, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return sendError(res, "UNAUTHORIZED", "Unauthorized", 401);
+    }
+    const { name, phone } = req.body;
+
+    const dataToUpdate: any = {};
+    if (name !== undefined) {
+      if (!name || String(name).trim().length === 0) {
+        return sendError(res, "VALIDATION_ERROR", "Name cannot be empty", 400);
+      }
+      dataToUpdate.name = String(name).trim();
+    }
+    if (phone !== undefined) {
+      const normalized = normalizePhoneNumber(phone);
+      if (!normalized) {
+        return sendError(res, "VALIDATION_ERROR", "Invalid phone number format", 400);
+      }
+      dataToUpdate.phone = normalized;
+    }
+
+    // If updating phone, check availability
+    if (dataToUpdate.phone) {
+      const existing = await prisma.user.findFirst({
+        where: {
+          phone: dataToUpdate.phone,
+          id: { not: req.user.id },
+          deletedAt: null,
+        },
+      });
+      if (existing) {
+        return sendError(res, "CONFLICT", "Phone number already in use", 409);
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: dataToUpdate,
+      include: { role: true, organization: true, station: true },
+    });
+
+    return sendSuccess(res, updated);
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }

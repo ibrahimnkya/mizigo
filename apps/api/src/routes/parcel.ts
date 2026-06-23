@@ -317,6 +317,76 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
   }
 });
 
+router.get("/stats/operator", ...secure, async (req: Request, res: Response) => {
+  try {
+    const stationId = req.user?.stationId;
+    if (!stationId) {
+      return sendError(res, "VALIDATION_ERROR", "stationId scope missing", 400);
+    }
+
+    const getStatsForRange = async (stationId: string, minDate?: Date) => {
+      const dateFilter = minDate ? { createdAt: { gte: minDate } } : {};
+      
+      const [received, delivered, sent, atWarehouse] = await Promise.all([
+        (prisma as any).parcel.count({
+          where: {
+            OR: [{ originId: stationId }, { fromAddress: stationId }],
+            ...dateFilter,
+          },
+        }),
+        (prisma as any).parcel.count({
+          where: {
+            OR: [{ destinationId: stationId }, { toAddress: stationId }],
+            status: "DELIVERED",
+            ...dateFilter,
+          },
+        }),
+        (prisma as any).parcel.count({
+          where: {
+            OR: [{ originId: stationId }, { fromAddress: stationId }],
+            status: { in: ["DISPATCHED", "SENT", "IN_TRANSIT"] },
+            ...dateFilter,
+          },
+        }),
+        (prisma as any).parcel.count({
+          where: {
+            OR: [
+              { originId: stationId, status: { in: ["RECEIVED", "AT_STATION"] } },
+              { destinationId: stationId, status: "OFFLOADED" }
+            ],
+            ...dateFilter,
+          },
+        }),
+      ]);
+
+      return { received, delivered, sent, atWarehouse };
+    };
+
+    const now = Date.now();
+    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+    const [overall, daily, weekly, monthly] = await Promise.all([
+      getStatsForRange(stationId),
+      getStatsForRange(stationId, oneDayAgo),
+      getStatsForRange(stationId, oneWeekAgo),
+      getStatsForRange(stationId, oneMonthAgo),
+    ]);
+
+    return sendSuccess(res, {
+      ...overall,
+      daily,
+      weekly,
+      monthly,
+      last30: monthly,
+      last90: await getStatsForRange(stationId, new Date(now - 90 * 24 * 60 * 60 * 1000)),
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 router.get("/", ...secure, async (req: Request, res: Response) => {
   try {
     const { status, trackingNumber } = req.query;

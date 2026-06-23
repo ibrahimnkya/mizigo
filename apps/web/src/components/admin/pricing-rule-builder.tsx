@@ -198,14 +198,14 @@ export function PricingRuleBuilder({
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
               <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-                Urgency
+                Delivery Priority
               </label>
             </div>
             <select
               {...register("urgency")}
               className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
             >
-              <option value="">Any Urgency</option>
+              <option value="">Any Delivery Priority</option>
               <option value="EXPRESS">Express</option>
               <option value="STANDARD">Standard</option>
               <option value="MGR">MGR</option>
