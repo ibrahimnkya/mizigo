@@ -160,7 +160,11 @@ export const fetchSgrStations = async (): Promise<SgrStationExternal[]> => {
     });
 
     if (!response.ok) {
-      throw new Error(`SGR API error: ${response.status} ${response.statusText}`);
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR API error: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`);
     }
 
     const result = (await response.json()) as {
@@ -197,7 +201,11 @@ export const fetchSgrTariffs = async (): Promise<SgrTariffExternal[]> => {
     const response = await fetch(url, { method: "GET", headers });
 
     if (!response.ok) {
-      throw new Error(`SGR API error: ${response.status} ${response.statusText}`);
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR API error: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`);
     }
 
     const result = (await response.json()) as {
