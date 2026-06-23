@@ -7,7 +7,8 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "start": "node dist/index.js",
     "lint": "eslint .",
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "tsx --test src/**/*.test.ts",
+    "cleanup-stations": "tsx cleanup_seeded_stations.ts"
   },
   "dependencies": {
     "@repo/database": "workspace:*",
