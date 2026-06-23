@@ -319,7 +319,28 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
 
 router.get("/stats/operator", ...secure, async (req: Request, res: Response) => {
   try {
-    const stationId = req.user?.stationId;
+    let stationId = req.user?.stationId;
+    if (!stationId) {
+      if (req.user?.organizationId) {
+        const firstStation = await prisma.station.findFirst({
+          where: { organizationId: req.user.organizationId, isActive: true, deletedAt: null },
+          select: { id: true },
+        });
+        if (firstStation) {
+          stationId = firstStation.id;
+        }
+      }
+      if (!stationId) {
+        const firstStation = await prisma.station.findFirst({
+          where: { isActive: true, deletedAt: null },
+          select: { id: true },
+        });
+        if (firstStation) {
+          stationId = firstStation.id;
+        }
+      }
+    }
+
     if (!stationId) {
       return sendError(res, "VALIDATION_ERROR", "stationId scope missing", 400);
     }
