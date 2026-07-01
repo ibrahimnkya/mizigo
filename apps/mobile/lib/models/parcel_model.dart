@@ -176,6 +176,17 @@ class ParcelModel {
       aPhone = agentJson['phone'];
     }
 
+    final receiverJson = json['receiver'];
+    String rName = json['receiverName'] ?? '';
+    String rPhone = json['receiverPhone'] ?? '';
+    if (rName.isEmpty && receiverJson is Map) {
+      rName = receiverJson['name'] ?? '';
+      rPhone = receiverJson['phone'] ?? '';
+    }
+
+    double? amt = json['amount'] != null ? (json['amount']).toDouble() : null;
+    amt ??= json['price'] != null ? (json['price']).toDouble() : null;
+
     return ParcelModel(
       id: json['id'] ?? '',
       trackingNumber: json['trackingNumber'],
@@ -188,13 +199,13 @@ class ParcelModel {
       parcelSize: json['parcelSize'] ?? '',
       condition: json['condition'] ?? '',
       urgency: json['urgency'] ?? '',
-      receiverName: json['receiverName'] ?? '',
-      receiverPhone: json['receiverPhone'] ?? '',
+      receiverName: rName,
+      receiverPhone: rPhone,
       receiverPays: json['receiverPays'] ?? false,
       additionalServices: json['additionalServices'] is Map ? json['additionalServices'] : null,
       status: ParcelStatus.fromString(json['status'] ?? 'PENDING'),
       rejectionReason: json['rejectionReason'] ?? json['reason'],
-      amount: json['amount'] != null ? (json['amount']).toDouble() : null,
+      amount: amt,
       payment: json['payment'] != null ? PaymentModel.fromJson(json['payment']) : null,
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),

@@ -1,3 +1,4 @@
+process.env.TZ = "Africa/Nairobi";
 import "dotenv/config";
 const port = process.env.PORT || 3001;
 import { createApp } from "./app";

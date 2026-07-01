@@ -191,7 +191,9 @@ const formatParcelResponse = (parcel: any) => {
       : parcel.destinationId ? { id: parcel.destinationId } : null,
     agent: parcel.approvedBy
       ? { name: parcel.approvedBy.name, phone: parcel.approvedBy.phone || null }
-      : null,
+      : parcel.user
+        ? { name: parcel.user.name, phone: parcel.user.phone || null }
+        : null,
     additionalServices: parcel.additionalServices,
   };
 };
@@ -374,6 +376,7 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       data: {
         organizationId: req.user?.organizationId ?? null,
         userId: userId ? String(userId) : req.user?.id,
+        approvedById: req.user?.id,
         trackingNumber: trackingNumberVal,
         deliveryOtp: hashPassword(deliveryOtpValue),
         fromAddress: String(receivingStationId), // Mapping to existing field
@@ -406,6 +409,8 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
         organization: true,
         origin: true,
         destination: true,
+        approvedBy: { select: { id: true, name: true, email: true, phone: true } },
+        user: { select: { id: true, name: true, email: true, phone: true } },
       },
     });
 
@@ -695,6 +700,8 @@ router.get("/", ...secure, async (req: Request, res: Response) => {
         organization: true,
         origin: true,
         destination: true,
+        approvedBy: { select: { id: true, name: true, email: true, phone: true } },
+        user: { select: { id: true, name: true, email: true, phone: true } },
       },
     });
 
