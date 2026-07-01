@@ -29,8 +29,8 @@ export type MySafariPushInput = {
 };
 
 const getSystemFee = async (): Promise<number> => {
-  const config = await prisma.systemConfig.findUnique({
-    where: { key_organizationId: { key: "DEFAULT_SYSTEM_FEE", organizationId: null as any } },
+  const config = await prisma.systemConfig.findFirst({
+    where: { key: "DEFAULT_SYSTEM_FEE", organizationId: null },
   });
   return Number(config?.value || process.env.DEFAULT_SYSTEM_FEE);
 };

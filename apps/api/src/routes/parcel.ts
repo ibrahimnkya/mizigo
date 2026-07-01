@@ -189,6 +189,10 @@ const formatParcelResponse = (parcel: any) => {
     destination: parcel.destination
       ? { id: parcel.destination.id, name: parcel.destination.name, code: parcel.destination.code }
       : parcel.destinationId ? { id: parcel.destinationId } : null,
+    agent: parcel.approvedBy
+      ? { name: parcel.approvedBy.name, phone: parcel.approvedBy.phone || null }
+      : null,
+    additionalServices: parcel.additionalServices,
   };
 };
 
@@ -1132,7 +1136,7 @@ router.get("/:id", ...secure, async (req: Request, res: Response) => {
       include: {
         user: { select: { id: true, name: true, email: true, phone: true } },
         payment: true,
-        approvedBy: { select: { id: true, name: true, email: true } },
+        approvedBy: { select: { id: true, name: true, email: true, phone: true } },
         dispatcher: { select: { id: true, name: true, phone: true } },
         offloader: { select: { id: true, name: true, phone: true } },
         deliverer: { select: { id: true, name: true, phone: true } },

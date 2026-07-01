@@ -94,6 +94,8 @@ class ParcelModel {
   final DateTime updatedAt;
   final String? senderName;
   final String? senderPhone;
+  final String? agentName;
+  final String? agentPhone;
 
   ParcelModel({
     required this.id,
@@ -119,6 +121,8 @@ class ParcelModel {
     this.payment,
     this.senderName,
     this.senderPhone,
+    this.agentName,
+    this.agentPhone,
   });
 
   /// Convenience getter used by display screens.
@@ -164,6 +168,14 @@ class ParcelModel {
       sPhone = json['additionalServices']['senderPhone'];
     }
 
+    final agentJson = json['agent'];
+    String? aName;
+    String? aPhone;
+    if (agentJson is Map) {
+      aName = agentJson['name'];
+      aPhone = agentJson['phone'];
+    }
+
     return ParcelModel(
       id: json['id'] ?? '',
       trackingNumber: json['trackingNumber'],
@@ -188,6 +200,8 @@ class ParcelModel {
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
       senderName: sName,
       senderPhone: sPhone,
+      agentName: aName,
+      agentPhone: aPhone,
     );
   }
 }

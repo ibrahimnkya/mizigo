@@ -1230,8 +1230,8 @@ Powered by Mizigo Logistics''';
 
                           // ── Agent Responsible Card ──
                           _AgentChip(
-                            name: parcel.additionalServices?['agentName'] ?? 'Milton Juma',
-                            phone: parcel.additionalServices?['agentPhone'] ?? '+255 754 123 456',
+                            name: parcel.agentName ?? parcel.additionalServices?['agentName'] ?? 'N/A',
+                            phone: parcel.agentPhone ?? parcel.additionalServices?['agentPhone'] ?? 'N/A',
                           ),
 
                           const Gap(20),

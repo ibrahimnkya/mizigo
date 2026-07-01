@@ -310,8 +310,8 @@ export const sendParcelNotificationSms = async (input: {
 
 const resolveSmsTemplate = async (key: string, defaultTemplate: string): Promise<string> => {
   try {
-    const config = await prisma.systemConfig.findUnique({
-      where: { key_organizationId: { key, organizationId: null as any } },
+    const config = await prisma.systemConfig.findFirst({
+      where: { key, organizationId: null },
     });
     return config?.value || defaultTemplate;
   } catch {
