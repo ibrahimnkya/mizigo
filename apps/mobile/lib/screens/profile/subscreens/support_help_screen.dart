@@ -2,50 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mizigo/theme/app_theme.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
 
 class SupportHelpScreen extends StatelessWidget {
   const SupportHelpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.cBlackMain,
+      appBar: const SettingsAppBar(title: 'Support & Help'),
       body: Column(
         children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF0F172A),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                  ),
-                ),
-                const Gap(16),
-                Text(
-                  'Support & Help',
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -56,17 +27,36 @@ class SupportHelpScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.03),
+                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                      ),
+                      boxShadow: isDark
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                     ),
                     child: TextField(
-                      style: GoogleFonts.inter(color: Colors.white),
+                      style: GoogleFonts.inter(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Search for help...',
-                        hintStyle: GoogleFonts.inter(color: Colors.white24),
+                        hintStyle: GoogleFonts.inter(
+                          color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                        ),
                         border: InputBorder.none,
-                        icon: const HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Colors.white38, size: 20),
+                        icon: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -83,21 +73,25 @@ class SupportHelpScreen extends StatelessWidget {
                   ),
                   const Gap(16),
                   _buildTopicItem(
+                    context,
                     icon: HugeIcons.strokeRoundedPackageReceive,
                     title: 'How to receive parcel?',
                     onTap: () {},
                   ),
                   _buildTopicItem(
+                    context,
                     icon: HugeIcons.strokeRoundedPrinter,
                     title: 'Printer connection issues',
                     onTap: () {},
                   ),
                   _buildTopicItem(
+                    context,
                     icon: HugeIcons.strokeRoundedSecurityPassword,
                     title: 'Resetting your password',
                     onTap: () {},
                   ),
                   _buildTopicItem(
+                    context,
                     icon: HugeIcons.strokeRoundedUserList,
                     title: 'Account verification',
                     onTap: () {},
@@ -120,9 +114,20 @@ class SupportHelpScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.03),
+                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                      ),
+                      boxShadow: isDark
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                     ),
                     child: Column(
                       children: [
@@ -132,7 +137,7 @@ class SupportHelpScreen extends StatelessWidget {
                             color: AppTheme.cPrimary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: const HugeIcon(
+                          child: HugeIcon(
                             icon: HugeIcons.strokeRoundedMessageQuestion,
                             color: AppTheme.cPrimary,
                             size: 32,
@@ -144,7 +149,7 @@ class SupportHelpScreen extends StatelessWidget {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                         const Gap(8),
@@ -153,7 +158,7 @@ class SupportHelpScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.white38,
+                            color: isDark ? Colors.white38 : const Color(0xFF64748B),
                           ),
                         ),
                         const Gap(24),
@@ -186,17 +191,30 @@ class SupportHelpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopicItem({
+  Widget _buildTopicItem(
+    BuildContext context, {
     required dynamic icon,
     required String title,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: ListTile(
         onTap: onTap,
@@ -206,10 +224,14 @@ class SupportHelpScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white24, size: 20),
+        trailing: HugeIcon(
+          icon: HugeIcons.strokeRoundedArrowRight01,
+          color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+          size: 20,
+        ),
       ),
     );
   }

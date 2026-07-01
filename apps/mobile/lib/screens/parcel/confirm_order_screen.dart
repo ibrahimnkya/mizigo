@@ -55,10 +55,10 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
-          // Blue Header
+          // Theme-aware Header
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 14,
@@ -66,12 +66,12 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               left: 20,
               right: 20,
             ),
-            color: const Color(0xFF3B82F6),
+            color: theme.appBarTheme.backgroundColor,
             child: Row(
               children: [
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                  child: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 24),
                 ),
                 const Gap(16),
                 Text(
@@ -95,11 +95,12 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                   // ── Order Summary Card ────────────────────────────────
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      color: theme.cardTheme.color ?? theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: theme.colorScheme.outline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
@@ -223,7 +224,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 ),
                                 const Gap(14),
                                 _DetailRow(
-                                  label: 'Urgency',
+                                  label: 'Delivery Priority',
                                   value: widget.urgency,
                                   isDark: isDark,
                                 ),
@@ -273,13 +274,13 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                           height: 22,
                           decoration: BoxDecoration(
                             color: _confirmed
-                                ? const Color(0xFF3B82F6)
+                                ? theme.colorScheme.primary
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
                               color: _confirmed
-                                  ? const Color(0xFF3B82F6)
-                                  : (isDark ? Colors.white30 : const Color(0xFF94A3B8)),
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.outline,
                               width: 1.5,
                             ),
                           ),
@@ -308,7 +309,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                       'View list',
                                       style: GoogleFonts.inter(
                                         fontSize: 14,
-                                        color: const Color(0xFF3B82F6),
+                                        color: theme.colorScheme.primary,
                                         fontWeight: FontWeight.w600,
                                         decoration: TextDecoration.underline,
                                       ),
@@ -334,10 +335,11 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               20, 14, 20, MediaQuery.of(context).padding.bottom + 14,
             ),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: theme.cardTheme.color ?? theme.colorScheme.surface,
+              border: Border(top: BorderSide(color: theme.colorScheme.outline)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, -4),
                 ),
@@ -393,7 +395,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: theme.colorScheme.primary,
                       disabledBackgroundColor:
                           isDark ? Colors.white12 : const Color(0xFFE2E8F0),
                       foregroundColor: Colors.white,
@@ -420,13 +422,15 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
   }
 
   void _showProhibitedItems(BuildContext context, bool isDark) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: theme.cardTheme.color ?? theme.colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: theme.colorScheme.outline),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -500,7 +504,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: theme.colorScheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

@@ -101,14 +101,18 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final appBarTheme = theme.appBarTheme;
+    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
+    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
+    final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: const Color(0xFF101832),
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Column(
         children: [
-          // Blue Header
+          // Header
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 16,
@@ -116,7 +120,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
               left: 20,
               right: 20,
             ),
-            color: const Color(0xFF3B82F6),
+            color: appBarBgColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -125,7 +129,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: appBarTextColor,
                   ),
                 ),
                 GestureDetector(
@@ -134,10 +138,10 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    child: Icon(Icons.close, color: appBarIconColor, size: 20),
                   ),
                 ),
               ],
@@ -322,14 +326,23 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E293B),
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF3B82F6)
-                                : Colors.white.withValues(alpha: 0.05),
+                                : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
                             width: 2,
                           ),
+                          boxShadow: isDark
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +356,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                     width: 64,
                                     height: 64,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.05),
+                                      color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Center(
@@ -354,7 +367,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                         errorBuilder: (context, error, stackTrace) => HugeIcon(
                                           icon: HugeIcons.strokeRoundedCar01,
                                           size: 28,
-                                          color: Colors.white.withValues(alpha: 0.2),
+                                          color: isDark ? Colors.white.withValues(alpha: 0.2) : const Color(0xFF94A3B8),
                                         ),
                                       ),
                                     ),
@@ -369,7 +382,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                           style: GoogleFonts.outfit(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w700,
-                                            color: Colors.white,
+                                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                                           ),
                                         ),
                                         const Gap(4),
@@ -377,7 +390,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                           vehicle['description'] as String,
                                           style: GoogleFonts.inter(
                                             fontSize: 13,
-                                            color: const Color(0xFF94A3B8),
+                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                           ),
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
@@ -393,7 +406,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                               style: GoogleFonts.inter(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
-                                                color: const Color(0xFF64748B),
+                                                color: isDark ? const Color(0xFF64748B) : const Color(0xFF475569),
                                               ),
                                             ),
                                           ],
@@ -422,7 +435,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                             if (showHelpers) ...[
                               Divider(
                                 height: 1,
-                                color: Colors.white.withValues(alpha: 0.05),
+                                color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
                               ),
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -431,7 +444,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                                   ),
                                 ),
                               ),
@@ -440,7 +453,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   label: 'Driver only',
                                   cost: 0,
                                   selected: _selectedHelpers == 0,
-                                  isDark: true,
+                                  isDark: isDark,
                                   onTap: () => setState(() => _selectedHelpers = 0),
                                   showDivider: true,
                                 ),
@@ -448,7 +461,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   label: 'Driver only with backpack',
                                   cost: 40000,
                                   selected: _selectedHelpers == 1,
-                                  isDark: true,
+                                  isDark: isDark,
                                   onTap: () => setState(() => _selectedHelpers = 1),
                                   showDivider: false,
                                 ),
@@ -457,7 +470,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   label: 'Driver only',
                                   cost: 20000,
                                   selected: _selectedHelpers == 0,
-                                  isDark: true,
+                                  isDark: isDark,
                                   onTap: () => setState(() => _selectedHelpers = 0),
                                   showDivider: true,
                                 ),
@@ -465,7 +478,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   label: 'Driver only & 1 helper',
                                   cost: 40000,
                                   selected: _selectedHelpers == 1,
-                                  isDark: true,
+                                  isDark: isDark,
                                   onTap: () => setState(() => _selectedHelpers = 1),
                                   showDivider: true,
                                 ),
@@ -473,7 +486,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                   label: 'Driver only & 2 helper',
                                   cost: 60000,
                                   selected: _selectedHelpers == 2,
-                                  isDark: true,
+                                  isDark: isDark,
                                   onTap: () => setState(() => _selectedHelpers = 2),
                                   showDivider: false,
                                 ),
@@ -501,10 +514,15 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                 MediaQuery.of(context).padding.bottom + 16,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                border: Border(
+                  top: BorderSide(
+                    color: isDark ? Colors.transparent : const Color(0xFFE2E8F0),
+                  ),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: isDark ? Colors.black.withValues(alpha: 0.2) : const Color(0xFF0F172A).withValues(alpha: 0.05),
                     blurRadius: 12,
                     offset: const Offset(0, -4),
                   ),
@@ -545,7 +563,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                       ),
@@ -568,7 +586,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B82F6),
-                        disabledBackgroundColor: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                        disabledBackgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -581,6 +599,9 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
+                          color: _selectedVehicle == null
+                              ? (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8))
+                              : Colors.white,
                         ),
                       ),
                     ),

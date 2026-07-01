@@ -10,6 +10,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/shimmer_utils.dart';
+import 'kpi_details_screen.dart';
 
 // ─── Period enum ──────────────────────────────────────────────────────────────
 
@@ -115,31 +116,13 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
       if (mounted) setState(() => _stats = res);
     } catch (e) {
       debugPrint('Error fetching operator stats: $e');
-      if (mounted && _stats.isEmpty) {
-        setState(() => _stats = {
-              'received': 42,
-              'delivered': 34,
-              'sent': 67,
-              'atWarehouse': 22,
-              'daily': {
-                'received': 5,
-                'delivered': 3,
-                'sent': 8,
-                'atWarehouse': 2,
-              },
-              'weekly': {
-                'received': 28,
-                'delivered': 12,
-                'sent': 28,
-                'atWarehouse': 8,
-              },
-              'monthly': {
-                'received': 42,
-                'delivered': 34,
-                'sent': 67,
-                'atWarehouse': 22,
-              },
-            });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch statistics: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -176,8 +159,13 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final secondaryColor = theme.colorScheme.secondary;
+    final isCustomTheme = primaryColor.toARGB32() == 0xFF670E1E;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: ShimmerLoading(
           isLoading: _loading,
@@ -188,7 +176,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                   await _fetchStats(silent: true);
                   await _fetchHistory();
                 },
-                color: const Color(0xFF3B82F6),
+                color: theme.colorScheme.primary,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
                   children: [
@@ -201,7 +189,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                           style: GoogleFonts.outfit(
                             fontSize: 32,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: theme.textTheme.headlineLarge?.color ?? Colors.white,
                           ),
                         ),
                         Row(
@@ -227,7 +215,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                       'Analyze your operational metrics',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF94A3B8),
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? const Color(0xFF94A3B8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -251,11 +239,27 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                           final timeframe = card['timeframe'] as String;
                           final total = _totalForTimeframe(timeframe);
 
+                          Color startColor = card['gradientStart'] as Color;
+                          Color endColor = card['gradientEnd'] as Color;
+                          
+                          if (isCustomTheme) {
+                            if (timeframe == 'Daily') {
+                              startColor = primaryColor;
+                              endColor = primaryColor.withValues(alpha: 0.7);
+                            } else if (timeframe == 'Weekly') {
+                              startColor = secondaryColor;
+                              endColor = secondaryColor.withValues(alpha: 0.7);
+                            } else {
+                              startColor = primaryColor;
+                              endColor = secondaryColor;
+                            }
+                          }
+
                           return _VolumeCard(
                             timeframe: timeframe,
                             total: total,
-                            gradientStart: card['gradientStart'] as Color,
-                            gradientEnd: card['gradientEnd'] as Color,
+                            gradientStart: startColor,
+                            gradientEnd: endColor,
                           );
                         },
                       ),
@@ -266,7 +270,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                         'Swipe up to cycle cards',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: Colors.white24,
+                          color: (theme.textTheme.bodySmall?.color ?? Colors.white).withValues(alpha: 0.24),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -279,7 +283,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: theme.textTheme.titleMedium?.color ?? Colors.white,
                       ),
                     ),
                     const Gap(4),
@@ -287,7 +291,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                       'Select a period per metric',
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: const Color(0xFF64748B),
+                        color: theme.textTheme.bodySmall?.color ?? const Color(0xFF64748B),
                       ),
                     ),
                     const Gap(16),
@@ -296,7 +300,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                         _KpiCard(
                           title: 'Received',
                           icon: HugeIcons.strokeRoundedPackageReceive,
-                          color: const Color(0xFF3B82F6),
+                          color: isCustomTheme ? primaryColor : const Color(0xFF3B82F6),
                           dataKey: 'received',
                           stats: _stats,
                           valueForPeriod: _valueForPeriod,
@@ -304,7 +308,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                         _KpiCard(
                           title: 'Delivered',
                           icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-                          color: const Color(0xFF10B981),
+                          color: isCustomTheme ? secondaryColor : const Color(0xFF10B981),
                           dataKey: 'delivered',
                           stats: _stats,
                           valueForPeriod: _valueForPeriod,
@@ -317,7 +321,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                         _KpiCard(
                           title: 'Sent',
                           icon: HugeIcons.strokeRoundedSpeedTrain02,
-                          color: const Color(0xFFF59E0B),
+                          color: isCustomTheme ? primaryColor : const Color(0xFFF59E0B),
                           dataKey: 'sent',
                           stats: _stats,
                           valueForPeriod: _valueForPeriod,
@@ -325,7 +329,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
                         _KpiCard(
                           title: 'At Station',
                           icon: HugeIcons.strokeRoundedDeliveryBox01,
-                          color: const Color(0xFF3B82F6),
+                          color: isCustomTheme ? secondaryColor : const Color(0xFF3B82F6),
                           dataKey: 'atWarehouse',
                           stats: _stats,
                           valueForPeriod: _valueForPeriod,
@@ -789,7 +793,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
     return ListView.separated(
       padding: const EdgeInsets.all(24),
       itemCount: _reportHistory.length,
-      separatorBuilder: (_, __) => const Gap(12),
+      separatorBuilder: (_, _) => const Gap(12),
       itemBuilder: (context, index) {
         final item = _reportHistory[index];
         return Container(
@@ -1488,7 +1492,9 @@ class _CardsSwiperWidgetState<T> extends State<CardsSwiperWidget<T>>
     if (_controller!.isAnimating ||
         _downDragController!.isAnimating ||
         widget.shouldStartCardCollectionAnimation ||
-        _cardData.length == 1) return;
+        _cardData.length == 1) {
+      return;
+    }
     _isAnimationBlocked = false;
     _startAnimationValue = _controller!.value;
     _dragStartPosition = details.globalPosition.dy;
@@ -1503,7 +1509,9 @@ class _CardsSwiperWidgetState<T> extends State<CardsSwiperWidget<T>>
         _hasReachedHalf ||
         widget.shouldStartCardCollectionAnimation ||
         _isAnimationBlocked ||
-        _cardData.length == 1) return;
+        _cardData.length == 1) {
+      return;
+    }
 
     final double dragDistance =
         _dragStartPosition - details.globalPosition.dy;
@@ -1548,7 +1556,9 @@ class _CardsSwiperWidgetState<T> extends State<CardsSwiperWidget<T>>
         _downDragController!.isAnimating ||
         widget.shouldStartCardCollectionAnimation ||
         _isAnimationBlocked ||
-        _cardData.length == 1) return;
+        _cardData.length == 1) {
+      return;
+    }
 
     if (_dragOffset != 0.0) {
       _downDragAnimation = Tween<double>(
@@ -1852,33 +1862,39 @@ class _KpiCardState extends State<_KpiCard> {
   ];
 
   void _showDetailSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _KpiDetailSheet(
-        title: widget.title,
-        icon: widget.icon,
-        color: widget.color,
-        dataKey: widget.dataKey,
-        valueForPeriod: widget.valueForPeriod,
-        initialPeriod: _period,
-        onPeriodChanged: (p) => setState(() => _period = p),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => KpiDetailsScreen(
+          title: widget.title,
+          dataKey: widget.dataKey,
+          timeframe: _period.label,
+          color: widget.color,
+          icon: HugeIcon(
+            icon: widget.icon,
+            color: widget.color,
+            size: 28,
+          ),
+          initialPeriod: _period,
+        ),
       ),
-    );
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final int value = widget.valueForPeriod(widget.dataKey, _period);
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: _showDetailSheet,
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: theme.cardTheme.color ?? theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: theme.colorScheme.outline),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1895,8 +1911,8 @@ class _KpiCardState extends State<_KpiCard> {
                       icon: widget.icon, color: widget.color, size: 20),
                 ),
                 const Spacer(),
-                const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 12, color: Colors.white24),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    size: 12, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3) ?? Colors.white24),
               ],
             ),
             const Gap(14),
@@ -1905,7 +1921,7 @@ class _KpiCardState extends State<_KpiCard> {
               style: GoogleFonts.outfit(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: theme.textTheme.bodyLarge?.color ?? Colors.white,
                   height: 1),
             ),
             const Gap(2),
@@ -1913,7 +1929,7 @@ class _KpiCardState extends State<_KpiCard> {
               widget.title,
               style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: const Color(0xFF94A3B8),
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? const Color(0xFF94A3B8),
                   fontWeight: FontWeight.w500),
             ),
             const Gap(14),
@@ -1931,7 +1947,7 @@ class _KpiCardState extends State<_KpiCard> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? widget.color.withValues(alpha: 0.15)
-                          : Colors.white.withValues(alpha: 0.04),
+                          : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.04) ?? Colors.white.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
@@ -1948,7 +1964,7 @@ class _KpiCardState extends State<_KpiCard> {
                             : FontWeight.w500,
                         color: isSelected
                             ? widget.color
-                            : const Color(0xFF64748B),
+                            : theme.textTheme.bodySmall?.color ?? const Color(0xFF64748B),
                       ),
                     ),
                   ),
@@ -2004,18 +2020,8 @@ class _KpiDetailSheetState extends State<_KpiDetailSheet> {
     _period = widget.initialPeriod;
   }
 
-  String _trendLabel() => switch (_period) {
-        ReportPeriod.today => 'vs yesterday',
-        ReportPeriod.thisWeek => 'vs last week',
-        ReportPeriod.thisMonth => 'vs last month',
-        ReportPeriod.last30 => 'vs prior 30 days',
-        ReportPeriod.last90 => 'vs prior 90 days',
-        _ => '',
-      };
-
   @override
   Widget build(BuildContext context) {
-    final int value = widget.valueForPeriod(widget.dataKey, _period);
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFF1E293B),
@@ -2184,23 +2190,27 @@ class _MiniBar extends StatelessWidget {
 class _PerformanceBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isCustomTheme = theme.colorScheme.primary.toARGB32() == 0xFF670E1E;
+    final successColor = isCustomTheme ? theme.colorScheme.secondary : const Color(0xFF10B981);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: theme.colorScheme.outline),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+              color: successColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_circle_outline,
-                color: Color(0xFF10B981), size: 28),
+            child: Icon(Icons.check_circle_outline,
+                color: successColor, size: 28),
           ),
           const Gap(16),
           Expanded(
@@ -2211,11 +2221,11 @@ class _PerformanceBanner extends StatelessWidget {
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white)),
+                        color: theme.textTheme.bodyLarge?.color ?? Colors.white)),
                 Text(
                     'Parcel processing time improved by 12% this week.',
                     style: GoogleFonts.inter(
-                        fontSize: 12, color: const Color(0xFF94A3B8))),
+                        fontSize: 12, color: theme.textTheme.bodyMedium?.color ?? const Color(0xFF94A3B8))),
               ],
             ),
           ),
@@ -2242,6 +2252,10 @@ class _HeaderBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isCustomTheme = theme.colorScheme.primary.toARGB32() == 0xFF670E1E;
+    final successColor = isCustomTheme ? theme.colorScheme.secondary : const Color(0xFF10B981);
+
     final bool isLoading = status == ReportDownloadStatus.downloading || 
                            status == ReportDownloadStatus.paused;
     final bool isSuccess = status == ReportDownloadStatus.success;
@@ -2256,28 +2270,28 @@ class _HeaderBtn extends StatelessWidget {
           height: 42,
           decoration: BoxDecoration(
             color: isSuccess
-                ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                : const Color(0xFF1E293B),
+                ? successColor.withValues(alpha: 0.15)
+                : (theme.cardTheme.color ?? theme.colorScheme.surface),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSuccess
-                  ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.06),
+                  ? successColor.withValues(alpha: 0.4)
+                  : theme.colorScheme.outline,
             ),
           ),
           child: Center(
             child: isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Color(0xFF3B82F6)),
+                        strokeWidth: 2, color: theme.colorScheme.primary),
                   )
                 : HugeIcon(
                     icon: icon,
                     color: isSuccess
-                        ? const Color(0xFF10B981)
-                        : Colors.white.withValues(alpha: 0.6),
+                        ? successColor
+                        : (theme.textTheme.bodyMedium?.color ?? Colors.white).withValues(alpha: 0.6),
                     size: 20,
                   ),
           ),

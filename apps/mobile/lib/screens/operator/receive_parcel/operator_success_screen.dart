@@ -3,11 +3,69 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
+
+import '../../../providers/printer_provider.dart';
+import '../../../widgets/printer_selection_sheet.dart';
 
 class OperatorSuccessScreen extends StatelessWidget {
   final Map<String, dynamic> packageData;
 
   const OperatorSuccessScreen({super.key, required this.packageData});
+
+  Future<void> _handlePrint(BuildContext context, {required bool isSticker}) async {
+    final provider = context.read<PrinterProvider>();
+    
+    // If printer is already connected, print directly
+    if (provider.isConnected) {
+      _executePrint(context, provider, isSticker);
+      return;
+    }
+    
+    // Otherwise, select from the list of connected/available Bluetooth devices
+    PrinterSelectionSheet.show(
+      context,
+      onDeviceSelected: (device) {
+        _executePrint(context, provider, isSticker);
+      },
+    );
+  }
+
+  Future<void> _executePrint(BuildContext context, PrinterProvider provider, bool isSticker) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+            const Gap(12),
+            Text(isSticker ? "Printing thermal label..." : "Printing POS receipt..."),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    final success = isSticker 
+        ? await provider.printLabel(packageData) 
+        : await provider.printReceipt(packageData);
+
+    if (!context.mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success ? (isSticker ? "Label printed successfully!" : "Receipt printed successfully!") : "Print failed. Try again."),
+        backgroundColor: success ? Colors.green : Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +140,7 @@ class OperatorSuccessScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     InkWell(
-                      onTap: () {
-                        // Print Sticker Logic
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Printing Thermal Sticker...')),
-                        );
-                      },
+                      onTap: () => _handlePrint(context, isSticker: true),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -124,19 +177,14 @@ class OperatorSuccessScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Icon(Icons.chevron_right, color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: isDark ? Colors.white38 : const Color(0xFF94A3B8), size: 20),
                           ],
                         ),
                       ),
                     ),
                     Divider(height: 1, color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
                     InkWell(
-                      onTap: () {
-                        // Print Receipt Logic
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Printing POS Receipt...')),
-                        );
-                      },
+                      onTap: () => _handlePrint(context, isSticker: false),
                       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -173,7 +221,7 @@ class OperatorSuccessScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Icon(Icons.chevron_right, color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: isDark ? Colors.white38 : const Color(0xFF94A3B8), size: 20),
                           ],
                         ),
                       ),
@@ -188,7 +236,7 @@ class OperatorSuccessScreen extends StatelessWidget {
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () {
-                    // Navigate back to operations hub (assuming it is the root for operator)
+                    // Navigate back to operations hub
                     context.go('/operations');
                   },
                   style: TextButton.styleFrom(

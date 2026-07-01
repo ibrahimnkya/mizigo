@@ -64,15 +64,16 @@ import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/verification_screen.dart';
 import '../screens/auth/profile_setup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
+import '../screens/auth/change_pin_screen.dart';
 import '../screens/parcel/availability_checker_screen.dart';
 import '../screens/operator/efficiency_screen.dart';
 import '../screens/profile/subscreens/account_deletion_screen.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     refreshListenable: authProvider,
     initialLocation: '/',
     redirect: (context, state) {
@@ -87,6 +88,7 @@ GoRouter createRouter(AuthProvider authProvider) {
       final isWatchingSplash = state.matchedLocation == '/';
       final isOnboarding = state.matchedLocation == '/onboarding';
       final isWelcome = state.matchedLocation == '/welcome';
+      final isChangingPin = state.matchedLocation == '/auth/change-pin';
 
       if (status == AuthStatus.unknown) return '/';
 
@@ -96,11 +98,14 @@ GoRouter createRouter(AuthProvider authProvider) {
       }
 
       if (status == AuthStatus.unauthenticated) {
-        if (isLoggingIn || isRegistering || isWelcome || isVerifying || isForgotMw) return null;
+        if (isLoggingIn || isRegistering || isWelcome || isVerifying || isForgotMw || isChangingPin) return null;
         return '/login';
       }
 
       if (status == AuthStatus.authenticated) {
+        if (authProvider.mustChangeOtp && !isChangingPin) {
+          return '/auth/change-pin';
+        }
         if (isLoggingIn || isRegistering || isWelcome || isWatchingSplash || isOnboarding) {
           return '/home';
         }
@@ -138,6 +143,10 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/forgot-password',
         builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/auth/change-pin',
+        builder: (_, _) => const ChangePinScreen(),
       ),
 
       // Main scaffold with bottom nav
@@ -388,14 +397,48 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: '/track/:id',
         builder: (_, state) {
           final shipment = state.extra as ShipmentData?;
-          return ParcelDetailScreen(shipment: shipment ?? mockShipments.first);
+          final id = state.pathParameters['id'] ?? '';
+          return ParcelDetailScreen(
+            shipment: shipment ??
+                ShipmentData(
+                  id: id,
+                  trackingId: id,
+                  status: 'received',
+                  statusLabel: 'Loading...',
+                  eta: '',
+                  from: '',
+                  to: '',
+                  size: '',
+                  weight: '',
+                  insurance: '',
+                  receiverName: '',
+                  service: '',
+                ),
+          );
         },
       ),
         GoRoute(
           path: '/track/:id/live',
           builder: (_, state) {
             final shipment = state.extra as ShipmentData?;
-            return LiveTrackScreen(shipment: shipment ?? mockShipments.first);
+            final id = state.pathParameters['id'] ?? '';
+            return LiveTrackScreen(
+              shipment: shipment ??
+                  ShipmentData(
+                    id: id,
+                    trackingId: id,
+                    status: 'received',
+                    statusLabel: 'Loading...',
+                    eta: '',
+                    from: '',
+                    to: '',
+                    size: '',
+                    weight: '',
+                    insurance: '',
+                    receiverName: '',
+                    service: '',
+                  ),
+            );
           },
         ),
 
@@ -451,10 +494,11 @@ GoRouter createRouter(AuthProvider authProvider) {
             final data = state.extra as Map<String, dynamic>? ?? {};
             return KpiDetailsScreen(
               title: data['title'] ?? 'KPI Details',
-              value: data['value'] ?? '0',
+              dataKey: data['dataKey'] ?? 'received',
               timeframe: data['timeframe'] ?? 'Daily',
               color: data['color'] as Color? ?? Colors.blue,
               icon: data['icon'] as Widget? ?? const HugeIcon(icon: HugeIcons.strokeRoundedChartBarLine, color: Colors.blue),
+              initialPeriod: data['initialPeriod'] as ReportPeriod? ?? ReportPeriod.thisMonth,
             );
           },
         ),
@@ -566,24 +610,32 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isOperator = auth.user?.role?.toUpperCase() == 'OPERATOR';
+    final isOperator = auth.user?.isStaff ?? false;
     final tabs = _getTabs(isOperator);
     final currentIndex = navigationShell.currentIndex;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final navTheme = theme.bottomNavigationBarTheme;
+    final navBgColor = navTheme.backgroundColor ?? (isDark ? AppTheme.cBlackMain : Colors.white);
+    final activeColor = navTheme.selectedItemColor ?? AppTheme.cPrimary;
+    final unselectedColor = navTheme.unselectedItemColor ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8));
+    final borderSideColor = theme.dividerColor;
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
         height: 85,
         decoration: BoxDecoration(
-          color: AppTheme.cBlackMain, // Solid color instead of glassmorphism
+          color: navBgColor,
           border: Border(
             top: BorderSide(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: borderSideColor,
               width: 1,
             ),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.04),
               blurRadius: 30,
               offset: const Offset(0, -10),
             ),
@@ -598,43 +650,43 @@ class MainScaffold extends StatelessWidget {
                     final tab = tabs[index];
                     final isActive = currentIndex == index;
                     return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _onTap(context, index, isOperator),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: const BoxDecoration(
-                          color: Colors.transparent,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            HugeIcon(
-                              icon: tab['icon'],
-                              color: isActive
-                                  ? AppTheme.cPrimary
-                                  : const Color(0xFF64748B),
-                              size: 24,
-                              strokeWidth: isActive ? 2.5 : 1.5,
-                            ),
-                            const Gap(2),
-                            Text(
-                              tab['label'],
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-                                color: isActive
-                                    ? AppTheme.cPrimary
-                                    : const Color(0xFF64748B),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                       behavior: HitTestBehavior.opaque,
+                       onTap: () => _onTap(context, index, isOperator),
+                       child: AnimatedContainer(
+                         duration: const Duration(milliseconds: 300),
+                         curve: Curves.easeInOut,
+                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                         decoration: const BoxDecoration(
+                           color: Colors.transparent,
+                         ),
+                         child: Column(
+                           mainAxisSize: MainAxisSize.min,
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             HugeIcon(
+                               icon: tab['icon'],
+                               color: isActive
+                                   ? activeColor
+                                   : unselectedColor,
+                               size: 24,
+                               strokeWidth: isActive ? 2.5 : 1.5,
+                             ),
+                             const Gap(2),
+                             Text(
+                               tab['label'],
+                               style: GoogleFonts.outfit(
+                                 fontSize: 11,
+                                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                                 color: isActive
+                                     ? activeColor
+                                     : unselectedColor,
+                                 letterSpacing: 0.2,
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                     );
                   }),
                 ),
               ),

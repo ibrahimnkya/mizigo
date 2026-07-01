@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import '../../theme/app_theme.dart';
 
 enum ExportPeriod {
   today('Today'),
@@ -97,10 +98,16 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(
+          top: BorderSide(color: AppTheme.border),
+          left: BorderSide(color: AppTheme.border),
+          right: BorderSide(color: AppTheme.border),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(
@@ -112,7 +119,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF334155),
+                color: AppTheme.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -122,11 +129,11 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
               style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white)),
+                  color: AppTheme.textPrimary)),
           const Gap(8),
           Text(widget.subtitle,
               style: GoogleFonts.inter(
-                  fontSize: 14, color: const Color(0xFF94A3B8))),
+                  fontSize: 14, color: AppTheme.textSecondary)),
           const Gap(28),
 
           if (widget.availableFormats.isNotEmpty) ...[
@@ -134,7 +141,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                 style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white)),
+                    color: AppTheme.textPrimary)),
             const Gap(12),
             Row(
               children: widget.availableFormats.map((format) {
@@ -147,10 +154,10 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF3B82F6).withValues(alpha: 0.15) : const Color(0xFF1E293B),
+                        color: isSelected ? AppTheme.cPrimary.withValues(alpha: 0.15) : AppTheme.background,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                          color: isSelected ? AppTheme.cPrimary : AppTheme.border,
                           width: 1.5,
                         ),
                       ),
@@ -159,7 +166,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF94A3B8),
+                          color: isSelected ? AppTheme.cPrimary : AppTheme.textSecondary,
                         ),
                       ),
                     ),
@@ -175,7 +182,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                 style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white)),
+                    color: AppTheme.textPrimary)),
             const Gap(12),
             Wrap(
               spacing: 12,
@@ -190,10 +197,10 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                         firstDate: DateTime(2020),
                         lastDate: DateTime.now(),
                         builder: (context, child) => Theme(
-                          data: ThemeData.dark().copyWith(
-                            colorScheme: const ColorScheme.dark(
-                              primary: Color(0xFF3B82F6),
-                              surface: Color(0xFF1E293B),
+                          data: Theme.of(context).copyWith(
+                            colorScheme: ColorScheme.dark(
+                              primary: AppTheme.cPrimary,
+                              surface: AppTheme.surface,
                             ),
                           ),
                           child: child!,
@@ -216,10 +223,10 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF3B82F6).withValues(alpha: 0.15) : const Color(0xFF1E293B),
+                      color: isSelected ? AppTheme.cPrimary.withValues(alpha: 0.15) : AppTheme.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+                        color: isSelected ? AppTheme.cPrimary : AppTheme.border,
                         width: 1.5,
                       ),
                     ),
@@ -230,7 +237,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF94A3B8),
+                        color: isSelected ? AppTheme.cPrimary : AppTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -246,7 +253,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
             child: ElevatedButton(
               onPressed: _isExporting ? null : _handleExport,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
+                backgroundColor: AppTheme.cPrimary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

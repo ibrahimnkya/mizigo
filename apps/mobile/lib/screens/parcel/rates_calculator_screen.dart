@@ -54,11 +54,12 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text('Rates Calculator', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        title: Text('Rates Calculator', style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white)),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.grey, size: 24),
+          icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: theme.appBarTheme.iconTheme?.color ?? Colors.white, size: 24),
           onPressed: () => context.pop(),
         ),
       ),
@@ -218,7 +219,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
               child: Column(
                 children: [
                   const HugeIcon(
-                    icon: HugeIcons.strokeRoundedMoney02,
+                    icon: HugeIcons.strokeRoundedCoins01,
                     color: Colors.white,
                     size: 32,
                   ),

@@ -110,7 +110,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               Container(
                 height: 1,
                 color: isDark
-                    ? Colors.white.withOpacity(0.06)
+                    ? Colors.white.withValues(alpha: 0.06)
                     : const Color(0xFFEAEEF3),
               ),
               Expanded(child: _buildBody(isDark)),
@@ -294,7 +294,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
       name: 'Search "${_searchController.text.trim()}"',
       subtitle: 'Tap to look up this location',
       iconColor: accent,
-      iconBgColor: accent.withOpacity(isDark ? 0.14 : 0.09),
+      iconBgColor: accent.withValues(alpha: isDark ? 0.14 : 0.09),
       onTap: () => _submitSearch(_searchController.text),
     );
   }
@@ -309,7 +309,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
             height: 72,
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.white.withOpacity(0.05)
+                  ? Colors.white.withValues(alpha: 0.05)
                   : const Color(0xFFEEF1F6),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -352,7 +352,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
     Color? iconBgColor,
   }) {
     final defBg = isDark
-        ? Colors.white.withOpacity(0.07)
+        ? Colors.white.withValues(alpha: 0.07)
         : const Color(0xFFF0F3F7);
     final defIcon =
         isDark ? Colors.white54 : const Color(0xFF8B95A3);
@@ -368,8 +368,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
         },
         splashColor: Colors.transparent,
         highlightColor: isDark
-            ? Colors.white.withOpacity(0.03)
-            : const Color(0xFF3B82F6).withOpacity(0.04),
+            ? Colors.white.withValues(alpha: 0.03)
+            : const Color(0xFF3B82F6).withValues(alpha: 0.04),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
@@ -418,8 +418,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                 ),
               ),
               const Gap(8),
-              Icon(
-                Icons.chevron_right_rounded,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 18,
                 color: isDark ? Colors.white24 : const Color(0xFFCDD1D8),
               ),

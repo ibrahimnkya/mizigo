@@ -121,17 +121,17 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
           'Offload Parcel',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 20),
           onPressed: () => context.pop(),
         ),
       ),
@@ -163,7 +163,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                     children: [
                       Text(
                         'Incoming Shipments',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                       ),
                     ],
                   ),
@@ -203,12 +203,21 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF1E293B) : const Color(0xFF1E293B).withValues(alpha: 0.5),
+                              color: isSelected 
+                                  ? (isDark ? const Color(0xFF1E293B) : Colors.white) 
+                                  : (isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF6366F1) : Colors.white.withValues(alpha: 0.05),
+                                color: isSelected ? const Color(0xFF6366F1) : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
                                 width: isSelected ? 2 : 1,
                               ),
+                              boxShadow: isSelected && !isDark ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ] : null,
                             ),
                             child: Row(
                               children: [
@@ -238,12 +247,12 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                                       const Gap(4),
                                       Text(
                                         'From: ${item.fromAddress}',
-                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                                       ),
                                       const Gap(2),
                                       Text(
                                         'Recipient: ${item.receiverName}',
-                                        style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF64748B)),
+                                        style: GoogleFonts.inter(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                       ),
                                     ],
                                   ),
@@ -262,10 +271,11 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
             Container(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                border: isDark ? null : const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 40, offset: const Offset(0, -10)),
+                  BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 40, offset: const Offset(0, -10)),
                 ],
               ),
               child: Column(
@@ -278,7 +288,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                       const Gap(16),
                       Text(
                         '${_selectedItems.length} selected',
-                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8)),
+                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       ),
                     ],
                   ),
@@ -290,7 +300,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                       onPressed: (_selectedItems.isEmpty || _selectedClerk == null || _submitting) ? null : _offloadSelected,
                       style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFF6366F1),
-                        disabledBackgroundColor: const Color(0xFF1E293B),
+                        disabledBackgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: _submitting
@@ -310,24 +320,25 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildClerkDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedClerk,
-          hint: Text('Select Clerk', style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF64748B))),
+          hint: Text('Select Clerk', style: GoogleFonts.inter(fontSize: 14, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))),
           isExpanded: true,
-          dropdownColor: const Color(0xFF1E293B),
+          dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
           items: _mockClerks.map((String clerk) {
             return DropdownMenuItem<String>(
               value: clerk,
-              child: Text(clerk, style: GoogleFonts.inter(fontSize: 14, color: Colors.white)),
+              child: Text(clerk, style: GoogleFonts.inter(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
             );
           }).toList(),
           onChanged: (val) => setState(() => _selectedClerk = val),
@@ -337,19 +348,20 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildSearchField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: _searchController,
       onSubmitted: (_) => _search(),
       textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+      style: GoogleFonts.inter(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: const Color(0xFF64748B)),
+        hintStyle: GoogleFonts.inter(color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
         prefixIcon: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
@@ -393,15 +405,23 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildFoundParcelCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedItems.contains(_foundParcel!.id);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: const Color(0xFF6366F1), width: 2),
+          boxShadow: isDark ? null : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -418,7 +438,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('IDENTIFIED SHIPMENT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF6366F1))),
-                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                     ],
                   ),
                 ),
@@ -436,7 +456,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Origin', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
-                    Text(_foundParcel!.fromAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text(_foundParcel!.fromAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
                   ],
                 ),
                 SizedBox(
@@ -467,21 +487,22 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: Color(0xFF1E293B), size: 80),
+          HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0), size: 80),
           const Gap(24),
           Text(
-            'No parcels to offload',
-            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+            'No data is available',
+            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
           ),
           const Gap(8),
           Text(
             'There are currently no parcels in transit\nto this station.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF64748B)),
+            style: GoogleFonts.inter(fontSize: 14, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
           ),
         ],
       ),

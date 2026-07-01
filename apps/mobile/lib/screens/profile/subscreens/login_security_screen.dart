@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:gap/gap.dart';
 import '../../../services/api_service.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
 
 class LoginSecurityScreen extends StatefulWidget {
   const LoginSecurityScreen({super.key});
@@ -85,226 +88,180 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+        final theme = Theme.of(ctx);
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.cardTheme.color ?? theme.colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              border: Border(
+                top: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+                left: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+                right: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, -5),
                 ),
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Drag handle
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).dividerColor,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.outline,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Change Password',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).textTheme.titleLarge?.color,
-                      ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Change Password',
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Enter your current password and a new one.',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Current Password
+                TextField(
+                  controller: currentPasswordController,
+                  obscureText: isObscureCurrent,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Current Password',
+                    hintStyle: GoogleFonts.inter(
+                      color: theme.hintColor.withValues(alpha: 0.5),
+                      fontSize: 14,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Enter your current password and a new one.',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                      ),
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(height: 20),
-                    // Current Password
-                    TextField(
-                      controller: currentPasswordController,
-                      obscureText: isObscureCurrent,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isObscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        size: 20,
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                       ),
-                      decoration: InputDecoration(
-                        hintText: 'Current Password',
-                        hintStyle: GoogleFonts.inter(
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isObscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            size: 20,
-                            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5),
-                          ),
-                          onPressed: () {
-                            setModalState(() {
-                              isObscureCurrent = !isObscureCurrent;
-                            });
-                          },
-                        ),
-                        prefixIconColor: WidgetStateColor.resolveWith(
-                          (s) => s.contains(WidgetState.focused)
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).iconTheme.color?.withValues(alpha: 0.5) ?? const Color(0xFF94A3B8),
-                        ),
-                        filled: true,
-                        fillColor: WidgetStateColor.resolveWith(
-                          (s) => s.contains(WidgetState.focused)
-                              ? (Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : Colors.white)
-                              : (Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 18),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                              color: Theme.of(context).dividerColor, width: 1.5),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                              color: Theme.of(context).primaryColor, width: 2.0),
-                        ),
-                      ),
+                      onPressed: () {
+                        setState(() {
+                          isObscureCurrent = !isObscureCurrent;
+                        });
+                      },
                     ),
-                    const SizedBox(height: 16),
-                    // New Password
-                    TextField(
-                      controller: newPasswordController,
-                      obscureText: isObscureNew,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'New Password',
-                        hintStyle: GoogleFonts.inter(
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isObscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            size: 20,
-                            color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5),
-                          ),
-                          onPressed: () {
-                            setModalState(() {
-                              isObscureNew = !isObscureNew;
-                            });
-                          },
-                        ),
-                        prefixIconColor: WidgetStateColor.resolveWith(
-                          (s) => s.contains(WidgetState.focused)
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).iconTheme.color?.withValues(alpha: 0.5) ?? const Color(0xFF94A3B8),
-                        ),
-                        filled: true,
-                        fillColor: WidgetStateColor.resolveWith(
-                          (s) => s.contains(WidgetState.focused)
-                              ? (Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : Colors.white)
-                              : (Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 18),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                              color: Theme.of(context).dividerColor, width: 1.5),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                              color: Theme.of(context).primaryColor, width: 2.0),
-                        ),
-                      ),
+                    filled: true,
+                    fillColor: theme.scaffoldBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.colorScheme.outline, width: 1.0),
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Password updated successfully.',
-                                style: GoogleFonts.inter(
-                                    fontSize: 14, fontWeight: FontWeight.w500),
-                              ),
-                              backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFF1E293B),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Update Password',
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.colorScheme.primary, width: 2.0),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // New Password
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: isObscureNew,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'New Password',
+                    hintStyle: GoogleFonts.inter(
+                      color: theme.hintColor.withValues(alpha: 0.5),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isObscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        size: 20,
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isObscureNew = !isObscureNew;
+                        });
+                      },
+                    ),
+                    filled: true,
+                    fillColor: theme.scaffoldBackgroundColor,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.colorScheme.outline, width: 1.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.colorScheme.primary, width: 2.0),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                SettingsCTAButton(
+                  title: 'Update Password',
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Password updated successfully.',
                           style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
                           ),
                         ),
+                        backgroundColor: theme.colorScheme.primary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        duration: const Duration(seconds: 2),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildActionTile({
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).textTheme.bodyLarge?.color,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF64748B)),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: Color(0xFF94A3B8)),
-      onTap: onTap,
     );
   }
 
@@ -313,148 +270,444 @@ class _LoginSecurityScreenState extends State<LoginSecurityScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: theme.iconTheme.color),
-        title: Text(
-          'Login & Security',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: theme.textTheme.titleLarge?.color,
-          ),
-        ),
+      appBar: const SettingsAppBar(
+        title: 'Login & Security',
       ),
       body: ListView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          _buildGroupHeader('Authentication', 'Manage passwords and extra verification options.'),
+          const Gap(12),
+          Container(
+            decoration: BoxDecoration(
+              color: theme.cardTheme.color ?? theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.5),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _buildActionTile(
+                  context,
+                  title: 'Change Password',
+                  subtitle: 'Last changed 3 months ago',
+                  icon: HugeIcons.strokeRoundedLockPassword,
+                  onTap: _showChangePasswordSheet,
+                ),
+                _buildDivider(theme),
+                _buildSwitchTile(
+                  context,
+                  title: 'Two-Factor Authentication',
+                  subtitle: 'Add an extra layer of security',
+                  icon: HugeIcons.strokeRoundedShield01,
+                  value: _twoFactorEnabled,
+                  onChanged: (val) => setState(() => _twoFactorEnabled = val),
+                ),
+              ],
+            ),
+          ),
+          
+          const Gap(32),
+          
+          _buildGroupHeader('Active Sessions', 'These devices are currently logged into your account.'),
+          const Gap(12),
+          
+          if (_isLoadingSessions)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            Container(
+              decoration: BoxDecoration(
+                color: theme.cardTheme.color ?? theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  if (_sessions.isEmpty)
+                    _buildSingleSessionTile(
+                      context,
+                      title: '$_currentDeviceName (Current)',
+                      subtitle: 'Active now',
+                      isBrowser: false,
+                      isCurrent: true,
+                    )
+                  else
+                    for (int i = 0; i < _sessions.length; i++) ...[
+                      _buildListSessionTile(context, _sessions[i]),
+                      if (i < _sessions.length - 1)
+                        _buildDivider(theme),
+                    ],
+                ],
+              ),
+            ),
+          ],
+          const Gap(40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupHeader(String title, String description) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'AUTHENTICATION',
+            title.toUpperCase(),
             style: GoogleFonts.inter(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF94A3B8),
+              fontWeight: FontWeight.w700,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 16),
-          _buildActionTile(
-            title: 'Change Password',
-            subtitle: 'Last changed 3 months ago',
-            onTap: _showChangePasswordSheet,
-          ),
-          Divider(color: theme.dividerColor),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              'Two-Factor Authentication',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-            ),
-            subtitle: Text(
-              'Add an extra layer of security',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-            trailing: Switch(
-              value: _twoFactorEnabled,
-              onChanged: (val) => setState(() => _twoFactorEnabled = val),
-              activeThumbColor: Colors.white,
-              activeTrackColor: theme.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 40),
+          const Gap(4),
           Text(
-            'ACTIVE SESSIONS',
+            description,
             style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF94A3B8),
-              letterSpacing: 1.2,
+              fontSize: 13,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 16),
-          if (_isLoadingSessions)
-            const Center(child: CircularProgressIndicator())
-          else if (_sessions.isEmpty)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(
-                Icons.phone_iphone,
-                color: Color(0xFF3B82F6),
-                size: 32,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider(ThemeData theme) {
+    return Divider(
+      height: 1,
+      indent: 72,
+      endIndent: 16,
+      color: theme.colorScheme.outline.withValues(alpha: 0.5),
+    );
+  }
+
+  Widget _buildActionTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required List<List<dynamic>> icon,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            // Left Accent Indicator
+            Container(
+              width: 4,
+              height: 36,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(2),
               ),
-              title: Text(
-                '$_currentDeviceName (Current)',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textTheme.bodyLarge?.color,
+            ),
+            const Gap(12),
+            // Circular Icon Enclosure
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: icon,
+                  color: theme.colorScheme.primary,
+                  size: 20,
                 ),
               ),
-              subtitle: Text(
-                'Active now',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: const Color(0xFF64748B),
-                ),
+            ),
+            const Gap(16),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  const Gap(2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
               ),
-            )
-          else
-            ..._sessions.map((session) {
-              final isCurrent = session['isCurrent'] ?? false;
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(
-                  session['deviceName'].toString().toLowerCase().contains('chrome') || 
-                  session['deviceName'].toString().toLowerCase().contains('browser')
-                      ? Icons.desktop_windows_outlined
-                      : Icons.phone_android_outlined,
-                  color: const Color(0xFF3B82F6),
-                  size: 32,
-                ),
-                title: Text(
-                  '${session['deviceName']}${isCurrent ? ' (Current)' : ''}',
+            ),
+            HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowRight01,
+              size: 18,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required List<List<dynamic>> icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          // Left Accent Indicator
+          Container(
+            width: 4,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Gap(12),
+          // Circular Icon Enclosure
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: HugeIcon(
+                icon: icon,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+            ),
+          ),
+          const Gap(16),
+          // Title & Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
                   style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: theme.textTheme.bodyLarge?.color,
                   ),
                 ),
-                subtitle: Text(
-                  '${session['location']} • ${session['lastActive']}',
+                const Gap(2),
+                Text(
+                  subtitle,
                   style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
+                    fontSize: 13,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                   ),
                 ),
-                trailing: !isCurrent 
-                    ? TextButton(
-                        onPressed: () {
-                          // TODO: Implement logout from other session
-                        },
-                        child: Text(
-                          'Logout',
-                          style: GoogleFonts.inter(
-                            color: Colors.redAccent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    : null,
-              );
-            }),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: Colors.white,
+            activeTrackColor: theme.colorScheme.primary,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: theme.disabledColor.withValues(alpha: 0.1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSingleSessionTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool isBrowser,
+    required bool isCurrent,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          // Left Accent Indicator
+          Container(
+            width: 4,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Gap(12),
+          // Circular Icon Enclosure
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                isBrowser ? Icons.desktop_windows_outlined : Icons.phone_android_outlined,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+            ),
+          ),
+          const Gap(16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListSessionTile(BuildContext context, Map<String, dynamic> session) {
+    final theme = Theme.of(context);
+    final isCurrent = session['isCurrent'] ?? false;
+    final deviceName = session['deviceName']?.toString() ?? 'Device';
+    final location = session['location']?.toString() ?? 'Unknown';
+    final lastActive = session['lastActive']?.toString() ?? 'Active';
+
+    final isBrowser = deviceName.toLowerCase().contains('chrome') || 
+                      deviceName.toLowerCase().contains('browser') || 
+                      deviceName.toLowerCase().contains('safari');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          // Left Accent Indicator
+          Container(
+            width: 4,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Gap(12),
+          // Circular Icon Enclosure
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(
+                isBrowser ? Icons.desktop_windows_outlined : Icons.phone_android_outlined,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+            ),
+          ),
+          const Gap(16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$deviceName${isCurrent ? ' (Current)' : ''}',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  '$location • $lastActive',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!isCurrent)
+            TextButton(
+              onPressed: () {
+                // Logout other session
+              },
+              child: Text(
+                'Logout',
+                style: GoogleFonts.inter(
+                  color: Colors.redAccent,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
-

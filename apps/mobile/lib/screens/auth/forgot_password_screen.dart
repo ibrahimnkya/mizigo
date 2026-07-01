@@ -7,7 +7,9 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../widgets/profile/premium_settings_components.dart';
+import '../../theme/app_theme.dart';
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
@@ -463,7 +465,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFF3B82F6),
+          backgroundColor: theme.colorScheme.primary,
           disabledBackgroundColor: theme.dividerColor.withValues(alpha: 0.1),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16)),
@@ -1062,92 +1064,97 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
     final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: theme.textTheme.titleLarge?.color,
-            size: 20,
-          ),
-          onPressed: () {
-            if (_step == _ForgotStep.identifier || _resetDone) {
-              context.pop();
-            } else {
-              _timer?.cancel();
-              final idx = _ForgotStep.values.indexOf(_step);
-              setState(() {
-                _step = _ForgotStep.values[idx - 1];
-              });
-            }
-          },
-        ),
-        title: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: Text(
-            _appBarTitle,
-            key: ValueKey(_appBarTitle),
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1E293B),
-            ),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: PopScope(
-        canPop: _step == _ForgotStep.identifier || _resetDone,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          _timer?.cancel();
-          final idx = _ForgotStep.values.indexOf(_step);
-          setState(() => _step = _ForgotStep.values[idx - 1]);
-        },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding:
-                EdgeInsets.fromLTRB(24, 16, 24, bottomPad + 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!_resetDone) ...[
-                  Center(child: _stepIndicator()),
-                  const Gap(28),
-                ],
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (child, anim) => FadeTransition(
-                    opacity: anim,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.04, 0),
-                        end: Offset.zero,
-                      ).animate(anim),
-                      child: child,
-                    ),
-                  ),
-                  child: KeyedSubtree(
-                    key: ValueKey(_step),
-                    child: switch (_step) {
-                      _ForgotStep.identifier => _buildIdentifierStep(),
-                      _ForgotStep.verify => _buildVerifyStep(),
-                      _ForgotStep.reset => _buildResetStep(),
-                    },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        extendBodyBehindAppBar: false,
+            resizeToAvoidBottomInset: true,
+            appBar: AppBar(
+              backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              leading: IconButton(
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowLeft01,
+                  color: theme.appBarTheme.iconTheme?.color ?? Colors.white,
+                  size: 20,
+                ),
+                onPressed: () {
+                  if (_step == _ForgotStep.identifier || _resetDone) {
+                    context.pop();
+                  } else {
+                    _timer?.cancel();
+                    final idx = _ForgotStep.values.indexOf(_step);
+                    setState(() {
+                      _step = _ForgotStep.values[idx - 1];
+                    });
+                  }
+                },
+              ),
+              title: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Text(
+                  _appBarTitle,
+                  key: ValueKey(_appBarTitle),
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white,
                   ),
                 ),
-              ],
+              ),
+              centerTitle: true,
+            ),
+            body: PopScope(
+            canPop: _step == _ForgotStep.identifier || _resetDone,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              _timer?.cancel();
+              final idx = _ForgotStep.values.indexOf(_step);
+              setState(() => _step = _ForgotStep.values[idx - 1]);
+            },
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding:
+                    EdgeInsets.fromLTRB(24, 24, 24, bottomPad + 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!_resetDone) ...[
+                      Center(child: _stepIndicator()),
+                      const Gap(28),
+                    ],
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, anim) => FadeTransition(
+                        opacity: anim,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.04, 0),
+                            end: Offset.zero,
+                          ).animate(anim),
+                          child: child,
+                        ),
+                      ),
+                      child: KeyedSubtree(
+                        key: ValueKey(_step),
+                        child: switch (_step) {
+                          _ForgotStep.identifier => _buildIdentifierStep(),
+                          _ForgotStep.verify => _buildVerifyStep(),
+                          _ForgotStep.reset => _buildResetStep(),
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -1193,12 +1200,16 @@ class _FpCountryPickerSheetState extends State<_FpCountryPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       height: MediaQuery.of(context).size.height * 0.65,
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppTheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(
+          top: BorderSide(color: AppTheme.border),
+          left: BorderSide(color: AppTheme.border),
+          right: BorderSide(color: AppTheme.border),
+        ),
       ),
       child: Column(
         children: [
@@ -1207,7 +1218,7 @@ class _FpCountryPickerSheetState extends State<_FpCountryPickerSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: theme.dividerColor,
+              color: AppTheme.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1217,7 +1228,7 @@ class _FpCountryPickerSheetState extends State<_FpCountryPickerSheet> {
             style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: theme.textTheme.titleLarge?.color),
+                color: AppTheme.textPrimary),
           ),
           const SizedBox(height: 12),
           Padding(
@@ -1225,24 +1236,24 @@ class _FpCountryPickerSheetState extends State<_FpCountryPickerSheet> {
             child: TextField(
               controller: _search,
               style: GoogleFonts.inter(
-                  fontSize: 14, color: theme.textTheme.bodyLarge?.color),
+                  fontSize: 14, color: AppTheme.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Search...',
                 hintStyle: GoogleFonts.inter(
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5), fontSize: 14),
+                    color: AppTheme.textMuted, fontSize: 14),
                 prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedSearch01,
-                    color: theme.iconTheme.color?.withValues(alpha: 0.5) ?? const Color(0xFF94A3B8), size: 20),
+                    color: AppTheme.textSecondary, size: 20),
                 filled: true,
-                fillColor: theme.cardColor,
+                fillColor: AppTheme.background,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                      color: theme.dividerColor, width: 1.5),
+                      color: AppTheme.border, width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                      color: theme.primaryColor, width: 2.0),
+                      color: AppTheme.accent, width: 2.0),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
@@ -1266,17 +1277,17 @@ class _FpCountryPickerSheetState extends State<_FpCountryPickerSheet> {
                         fontWeight: isSel
                             ? FontWeight.w700
                             : FontWeight.w500,
-                        color: theme.textTheme.bodyLarge?.color),
+                        color: AppTheme.textPrimary),
                   ),
                   trailing: Text(
                     c.dialCode,
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6)),
+                        color: AppTheme.textSecondary),
                   ),
                   selected: isSel,
-                  selectedTileColor: theme.primaryColor.withValues(alpha: 0.1),
+                  selectedTileColor: AppTheme.accent.withValues(alpha: 0.1),
                   onTap: () => Navigator.of(context).pop(c),
                 );
               },

@@ -14,6 +14,8 @@ class ParcelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final statusColor = _getStatusColor(parcel.status.name.toLowerCase());
     final statusBgColor = statusColor.withValues(alpha: 0.1);
 
@@ -25,12 +27,21 @@ class ParcelCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), // Reduced vertical padding
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03), // Lighter contrast
+            color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.04),
+              color: isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFE2E8F0),
               width: 1,
             ),
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Row(
             children: [
@@ -39,7 +50,7 @@ class ParcelCard extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(
@@ -63,7 +74,7 @@ class ParcelCard extends StatelessWidget {
                             style: GoogleFonts.outfit(
                               fontSize: 14, // Slightly smaller
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -94,7 +105,7 @@ class ParcelCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B).withValues(alpha: 0.8),
+                        color: isDark ? const Color(0xFF64748B).withValues(alpha: 0.8) : const Color(0xFF64748B),
                       ),
                     ),
                   ],

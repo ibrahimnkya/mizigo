@@ -7,8 +7,84 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter/foundation.dart';
+
 class ApiService {
-  static const String _baseUrl = 'https://api.mizigo.akiliapp.co.tz/api/v1';
+  // Local dev server — auto-discovery will update this for physical devices
+  // Production: 'https://api.mizigo.akiliapp.co.tz/api/v1'
+  static String _baseUrl = 'http://192.168.100.118:3001/api/v1';
+  static bool _localIpResolved = false;
+
+  static Future<void> init() async {
+    await _resolveBaseUrl();
+  }
+
+  static Future<void> _resolveBaseUrl() async {
+    if (_localIpResolved) return;
+    _localIpResolved = true;
+
+    try {
+      if (Platform.isAndroid) {
+        final reachable = await _isPortOpen('10.0.2.2', 3001);
+        if (reachable) {
+          _baseUrl = 'http://10.0.2.2:3001/api/v1';
+          print('Resolved local base URL (Android emulator): $_baseUrl');
+          return;
+        }
+      }
+
+      if (Platform.isIOS) {
+        final reachable = await _isPortOpen('127.0.0.1', 3001);
+        if (reachable) {
+          _baseUrl = 'http://127.0.0.1:3001/api/v1';
+          print('Resolved local base URL (iOS simulator): $_baseUrl');
+          return;
+        }
+      }
+
+      // Physical device: scan the local subnet for the dev server
+      final interfaces = await NetworkInterface.list();
+      for (var interface in interfaces) {
+        for (var addr in interface.addresses) {
+          if (addr.type == InternetAddressType.IPv4 && !addr.isLoopback) {
+            final parts = addr.address.split('.');
+            if (parts.length == 4) {
+              final subnet = '${parts[0]}.${parts[1]}.${parts[2]}';
+              final futures = <Future<String?>>[];
+              for (int i = 1; i < 255; i++) {
+                final hostIp = '$subnet.$i';
+                if (hostIp == addr.address) continue;
+                futures.add(() async {
+                  final open = await _isPortOpen(hostIp, 3001);
+                  return open ? hostIp : null;
+                }());
+              }
+              final results = await Future.wait(futures);
+              final foundIp = results.firstWhere((ip) => ip != null, orElse: () => null);
+              if (foundIp != null) {
+                _baseUrl = 'http://$foundIp:3001/api/v1';
+                print('Resolved local base URL (Wi-Fi subnet): $_baseUrl');
+                return;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Failed to resolve local base URL: $e');
+    }
+    print('Using default base URL: $_baseUrl');
+  }
+
+  static Future<bool> _isPortOpen(String host, int port) async {
+    try {
+      final socket = await Socket.connect(host, port, timeout: const Duration(milliseconds: 150));
+      socket.destroy();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
     
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static const String _tokenKey = 'jwt_token';
@@ -38,22 +114,66 @@ class ApiService {
     };
   }
 
+  static void _logCall({
+    required String method,
+    required Uri url,
+    Map<String, String>? headers,
+    Object? body,
+    required http.Response response,
+  }) {
+    final timestamp = DateTime.now().toIso8601String();
+    print('[$timestamp] API REQUEST: $method $url');
+    if (headers != null) {
+      print('[$timestamp] API REQUEST HEADERS: $headers');
+    }
+    if (body != null && body.toString().isNotEmpty) {
+      print('[$timestamp] API REQUEST BODY: $body');
+    }
+    print('[$timestamp] API RESPONSE STATUS: ${response.statusCode}');
+    print('[$timestamp] API RESPONSE BODY: ${response.body}');
+  }
+
+  static Future<http.Response> _sendRequest({
+    required String method,
+    required Uri url,
+    Map<String, String>? headers,
+    Object? body,
+  }) async {
+    final request = http.Request(method, url);
+    final mergedHeaders = Map<String, String>.from(headers ?? {});
+    final bodyString = body == null ? '' : (body is String ? body : jsonEncode(body));
+    if (body != null) request.body = bodyString;
+    request.headers.addAll(mergedHeaders);
+
+    final streamed = await http.Client().send(request);
+    final response = await http.Response.fromStream(streamed);
+
+    _logCall(
+      method: method,
+      url: url,
+      headers: mergedHeaders,
+      body: bodyString,
+      response: response,
+    );
+
+    return response;
+  }
+
   static Future<http.Response> _sendWithAutoRefresh({
     required String method,
     required Uri url,
     Map<String, String>? headers,
     Object? body,
     bool retryOnUnauthorized = true,
+    bool bypassMock = false,
   }) async {
-    if (_useMocks) {
+    if (_useMocks && !bypassMock) {
       // In mock mode, don't attempt real network calls unless explicitly allowed.
       // This prevents "No route to host" errors during demos.
       return http.Response(jsonEncode({'message': 'Mocks enabled'}), 503);
     }
-    final request = http.Request(method, url);
     final mergedHeaders = Map<String, String>.from(headers ?? {});
     final bodyString = body == null ? '' : (body is String ? body : jsonEncode(body));
-    if (body != null) request.body = bodyString;
     if (_shouldSignRequest(method: method, path: url.path)) {
       mergedHeaders.addAll(_buildSignatureHeaders(
         method: method,
@@ -61,9 +181,13 @@ class ApiService {
         body: bodyString,
       ));
     }
-    request.headers.addAll(mergedHeaders);
-    final streamed = await http.Client().send(request);
-    final response = await http.Response.fromStream(streamed);
+
+    final response = await _sendRequest(
+      method: method,
+      url: url,
+      headers: mergedHeaders,
+      body: bodyString,
+    );
 
     if (response.statusCode == 401 && retryOnUnauthorized) {
       final refreshed = await _refreshAccessToken();
@@ -79,6 +203,7 @@ class ApiService {
           headers: retryHeaders,
           body: body,
           retryOnUnauthorized: false,
+          bypassMock: bypassMock,
         );
       }
     }
@@ -92,13 +217,14 @@ class ApiService {
     final deviceId = await _getOrCreateDeviceId();
 
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/refresh-token'),
+      final response = await _sendRequest(
+        method: 'POST',
+        url: Uri.parse('$_baseUrl/auth/refresh-token'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+        body: {
           'refreshToken': refreshToken,
           'deviceId': deviceId,
-        }),
+        },
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
         return false;
@@ -213,33 +339,36 @@ class ApiService {
         'code': '1234', // For dev testing
       };
     }
-    final res = await http.post(
-      Uri.parse('$_baseUrl/auth/forgot-password'),
+    final res = await _sendRequest(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/forgot-password'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+      body: {
         'identifier': identifier,
         'isPhone': isPhone,
-      }),
+      },
     );
     return _parseResponse(res);
   }
 
   static Future<Map<String, dynamic>> checkPhone(String phone) async {
     final normalized = _normalizePhone(phone);
-    final res = await http.post(
-      Uri.parse('$_baseUrl/auth/check-phone'),
+    final res = await _sendRequest(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/check-phone'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phone': normalized}),
+      body: {'phone': normalized},
     );
     return _parseResponse(res);
   }
 
   static Future<Map<String, dynamic>> sendOperatorOtp(String phone) async {
     final normalized = _normalizePhone(phone);
-    final res = await http.post(
-      Uri.parse('$_baseUrl/auth/operator/reset-otp'),
+    final res = await _sendRequest(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/operator/reset-otp'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'phone': normalized}),
+      body: {'phone': normalized},
     );
     return _parseResponse(res);
   }
@@ -250,14 +379,15 @@ class ApiService {
   }) async {
     final normalized = _normalizePhone(phone);
     final deviceId = await _getOrCreateDeviceId();
-    final res = await http.post(
-      Uri.parse('$_baseUrl/auth/operator/login'),
+    final res = await _sendRequest(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/operator/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+      body: {
         'phone': normalized,
         'otp': otp,
         'deviceId': deviceId,
-      }),
+      },
     );
     return _parseResponse(res);
   }
@@ -275,15 +405,16 @@ class ApiService {
       }
       return {'message': 'Password reset successful'};
     }
-    final res = await http.post(
-      Uri.parse('$_baseUrl/auth/reset-password'),
+    final res = await _sendRequest(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/reset-password'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+      body: {
         'identifier': identifier,
         'isPhone': isPhone,
         'code': code,
         'newPassword': newPassword,
-      }),
+      },
     );
     return _parseResponse(res);
   }
@@ -308,6 +439,268 @@ class ApiService {
     return _parseResponse(res);
   }
 
+  static Future<Map<String, dynamic>> changeOperatorOtp(String newOtp) async {
+    if (_useMocks) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      return {'message': 'OTP updated successfully'};
+    }
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/auth/operator/change-otp'),
+      headers: await _headers,
+      body: {
+        'newOtp': newOtp,
+      },
+    );
+    return _parseResponse(res);
+  }
+
+  static Future<Map<String, dynamic>> updateProfile({String? name, String? phone}) async {
+    if (_useMocks) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      return {
+        'success': true,
+        'data': {
+          'name': name ?? 'Updated Name',
+          'phone': phone ?? '255712345678',
+        }
+      };
+    }
+    final res = await _sendWithAutoRefresh(
+      method: 'PUT',
+      url: Uri.parse('$_baseUrl/users/profile'),
+      headers: await _headers,
+      body: {
+        'name': ?name,
+        'phone': ?phone,
+      },
+    );
+    return _parseResponse(res);
+  }
+
+  static List<dynamic> _parseListResponse(dynamic responseBody) {
+    try {
+      final decoded = responseBody is String ? jsonDecode(responseBody) : responseBody;
+      if (decoded is List) return decoded;
+      if (decoded is Map) {
+        if (decoded.containsKey('data') && decoded['data'] is List) {
+          return decoded['data'] as List;
+        }
+        if (decoded.containsKey('success') && decoded['success'] == true && decoded['data'] is List) {
+          return decoded['data'] as List;
+        }
+      }
+    } catch (_) {}
+    return const [];
+  }
+
+  static Future<List<dynamic>> getOrganizations() async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/organizations?all=true'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        return _parseListResponse(res.body);
+      }
+      _parseResponse(res);
+    } catch (e) {
+      if (_useMocks) {
+        // Fall through to mock fallback
+      } else {
+        rethrow;
+      }
+    }
+    return const [];
+  }
+
+  static Future<List<dynamic>> getStations() async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/stations'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        return _parseListResponse(res.body);
+      }
+      _parseResponse(res);
+    } catch (e) {
+      if (_useMocks) {
+        // Fall through to mock fallback if mock is enabled
+      } else {
+        rethrow;
+      }
+    }
+
+    if (_useMocks) {
+      return const [
+        {'id': '01KPWEWYACW1NRAFBTTGFRSKYS', 'name': 'Dar es Salaam', 'code': 'DSM'},
+        {'id': '01KPWEWYAH1EWYZA9A87M6JVHN', 'name': 'Pugu', 'code': 'PUG'},
+        {'id': '01KPWEWYAMDJWDA4V46CYERGK0', 'name': 'Soga', 'code': 'SOG'},
+        {'id': '01KPWEWYAQ78HT4H60XPXPM199', 'name': 'Ruvu', 'code': 'RUV'},
+        {'id': '01KPWEWYATH95AFXQTNXAPHK0H', 'name': 'Ngerengere', 'code': 'NGR'},
+        {'id': '01KPWEWYAXQKQE805RXDFP5327', 'name': 'Morogoro', 'code': 'MOR'},
+        {'id': '01KPWEWYB0DXCZSXJHPJJ4NEJX', 'name': 'Mkata', 'code': 'MkA'},
+        {'id': '01KPWEWYB3MBYH1ATFDHT5C9QA', 'name': 'Kilosa', 'code': 'KLO'},
+        {'id': '01KPWEWYB64BN465AYCY0ANFF8', 'name': 'Kidete', 'code': 'KID'},
+        {'id': '01KPWEWYB8HQWA38MK5VMY1S7B', 'name': 'Gulwe', 'code': 'GLW'},
+        {'id': '01KPWEWYBBNAD6DQYCXJ7CBS22', 'name': 'Igandu', 'code': 'IGD'},
+        {'id': '01KPWEWYBDHMSDJKHNQYKJBV4M', 'name': 'Dodoma', 'code': 'DOM'},
+      ];
+    }
+    throw ApiException(message: 'Failed to fetch SGR stations', statusCode: 500);
+  }
+
+  static Future<Map<String, Map<String, String>>> getParcelParameters() async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/parcel/parcel-parameters'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final decoded = jsonDecode(res.body);
+        final data = decoded['data'] ?? decoded;
+        final List<dynamic> types = data['parcelTypes'] ?? [];
+        final List<dynamic> conditions = data['parcelConditions'] ?? [];
+        final List<dynamic> sizes = data['packageSizes'] ?? [];
+        final List<dynamic> priorities = data['deliveryPriorities'] ?? [];
+
+        final Map<String, String> parsedTypes = {};
+        for (var item in types) {
+          if (item is Map) {
+            parsedTypes[item['name'].toString()] = item['description']?.toString() ?? '';
+          } else {
+            parsedTypes[item.toString()] = '';
+          }
+        }
+
+        final Map<String, String> parsedConditions = {};
+        for (var item in conditions) {
+          if (item is Map) {
+            parsedConditions[item['name'].toString()] = item['description']?.toString() ?? '';
+          } else {
+            parsedConditions[item.toString()] = '';
+          }
+        }
+
+        final Map<String, String> parsedSizes = {};
+        for (var item in sizes) {
+          if (item is Map) {
+            parsedSizes[item['name'].toString()] = item['description']?.toString() ?? '';
+          } else {
+            parsedSizes[item.toString()] = '';
+          }
+        }
+
+        final Map<String, String> parsedPriorities = {};
+        for (var item in priorities) {
+          if (item is Map) {
+            parsedPriorities[item['name'].toString()] = item['description']?.toString() ?? '';
+          } else {
+            parsedPriorities[item.toString()] = '';
+          }
+        }
+
+        return {
+          'parcelTypes': parsedTypes,
+          'parcelConditions': parsedConditions,
+          'packageSizes': parsedSizes,
+          'deliveryPriorities': parsedPriorities,
+        };
+      }
+      _parseResponse(res);
+    } catch (e) {
+      if (_useMocks) {
+        // Fall through to mock fallback if mock is enabled
+      } else {
+        rethrow;
+      }
+    }
+
+    return {
+      'parcelTypes': {
+        'Parcel': 'User provides their own packaging',
+        'Pallet': 'Stacked bulk goods',
+        'Container': 'Large volume shipments',
+        'Fragile Goods': 'Handle with extra care',
+      },
+      'parcelConditions': {
+        'Brand New': 'Unused, factory-sealed item.',
+        'Refurbished': 'Restored, tested, and certified.',
+        'Used': 'Previously owned, functional condition.',
+      },
+      'packageSizes': {
+        'Document': 'A4-sized paper, lightweight',
+        'A3 Nylon Packing': 'Small packets, soft parcels',
+        'Size 1': 'Small Box – Approx. 30cm x 30cm x 30cm',
+        'Size 2': 'Medium Box – Approx. 50cm x 50cm x 50cm',
+        'Size 3': 'Large Box – Approx. 70cm x 70cm x 70cm',
+      },
+      'deliveryPriorities': {
+        'Express': 'High-priority, same-day or next-day delivery',
+        'Standard': 'Regular ground delivery service',
+        'MGR': 'Mizigo Golden Route - scheduled premium service',
+      },
+    };
+  }
+
+  static Future<Map<String, String>> getLegalPolicies() async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/admin/platform/legal'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final decoded = jsonDecode(res.body);
+        final data = decoded['data'] ?? decoded;
+        return {
+          'termsAndConditions': data['termsAndConditions']?.toString() ?? '',
+          'privacyPolicy': data['privacyPolicy']?.toString() ?? '',
+        };
+      }
+      _parseResponse(res);
+    } catch (_) {}
+    return {
+      'termsAndConditions': '',
+      'privacyPolicy': '',
+    };
+  }
+
+  static Future<Map<String, dynamic>> checkUpdate(String currentVersion) async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/app-versions/check-update?currentVersion=$currentVersion'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final decoded = jsonDecode(res.body);
+        return decoded['data'] ?? decoded;
+      }
+      _parseResponse(res);
+    } catch (e) {
+      if (_useMocks) {
+        // Fall through to default mock response if mock is enabled
+      } else {
+        rethrow;
+      }
+    }
+    return {
+      'latestVersion': currentVersion,
+      'forceUpdate': false,
+      'downloadUrl': '',
+    };
+  }
+
   // ─── PARCEL ─────────────────────────────────────────────────────────
 
   static Future<List<dynamic>> getParcels({String? status}) async {
@@ -317,8 +710,14 @@ class ApiService {
       final localData = prefs.getString('mock_parcel');
       List<dynamic> list = [];
       if (localData != null) {
-        list = jsonDecode(localData) as List;
-      } else {
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            list = decoded;
+          }
+        } catch (_) {}
+      }
+      if (list.isEmpty) {
         // Seed initial mock data with a variety of statuses
         list = [
           {
@@ -488,7 +887,7 @@ class ApiService {
       url: Uri.parse('$_baseUrl/parcel$query'),
       headers: await _headers,
     );
-    return jsonDecode(res.body) as List;
+    return _parseListResponse(res.body);
   }
 
   static Future<Map<String, dynamic>> createParcel(Map<String, dynamic> data) async {
@@ -498,7 +897,12 @@ class ApiService {
       final localData = prefs.getString('mock_parcel');
       List<dynamic> list = [];
       if (localData != null) {
-        list = jsonDecode(localData) as List;
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            list = decoded;
+          }
+        } catch (_) {}
       }
       
       final newId = 'pk-${DateTime.now().millisecondsSinceEpoch}';
@@ -529,9 +933,13 @@ class ApiService {
       final prefs = await SharedPreferences.getInstance();
       final localData = prefs.getString('mock_parcel');
       if (localData != null) {
-        final List<dynamic> list = jsonDecode(localData);
-        final item = list.firstWhere((c) => c['id'] == id, orElse: () => null);
-        if (item != null) return item;
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            final item = decoded.firstWhere((c) => c['id'] == id, orElse: () => null);
+            if (item != null) return item;
+          }
+        } catch (_) {}
       }
       throw ApiException(message: 'Parcel not found', statusCode: 404);
     }
@@ -588,7 +996,15 @@ class ApiService {
       await Future.delayed(const Duration(milliseconds: 1000));
       final prefs = await SharedPreferences.getInstance();
       final localData = prefs.getString('mock_parcel');
-      List<dynamic> list = localData != null ? jsonDecode(localData) : [];
+      List<dynamic> list = [];
+      if (localData != null) {
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            list = decoded;
+          }
+        } catch (_) {}
+      }
       
       final newItem = {
         ...data,
@@ -628,14 +1044,18 @@ class ApiService {
       final prefs = await SharedPreferences.getInstance();
       final localData = prefs.getString('mock_parcel');
       if (localData != null) {
-        List<dynamic> list = jsonDecode(localData);
-        final index = list.indexWhere((c) => c['id'] == id);
-        if (index != -1) {
-          list[index]['status'] = status;
-          if (location != null) list[index]['currentLocation'] = location;
-          await prefs.setString('mock_parcel', jsonEncode(list));
-          return list[index];
-        }
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            final index = decoded.indexWhere((c) => c['id'] == id);
+            if (index != -1) {
+              decoded[index]['status'] = status;
+              if (location != null) decoded[index]['currentLocation'] = location;
+              await prefs.setString('mock_parcel', jsonEncode(decoded));
+              return decoded[index];
+            }
+          }
+        } catch (_) {}
       }
       throw ApiException(message: 'Parcel not found', statusCode: 404);
     }
@@ -715,7 +1135,12 @@ class ApiService {
       final localData = prefs.getString('mock_parcel');
       List<dynamic> list = [];
       if (localData != null) {
-        list = jsonDecode(localData);
+        try {
+          final decoded = jsonDecode(localData);
+          if (decoded is List) {
+            list = decoded;
+          }
+        } catch (_) {}
       }
 
       // Check if specific AAA parcel exists in our registry
@@ -768,10 +1193,7 @@ class ApiService {
       url: Uri.parse('$_baseUrl/parcel/search?q=${Uri.encodeComponent(query)}'),
       headers: await _headers,
     );
-    final body = jsonDecode(res.body);
-    if (body is List) return body;
-    if (body is Map && body.containsKey('data')) return body['data'] as List;
-    return [];
+    return _parseListResponse(res.body);
   }
 
 
@@ -785,9 +1207,7 @@ class ApiService {
       headers: await _headers,
     );
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      final body = jsonDecode(res.body);
-      if (body is Map && body['success'] == true) return body['data'] as List;
-      return body as List;
+      return _parseListResponse(res.body);
     }
     throw ApiException(message: 'Failed to load channels', statusCode: res.statusCode);
   }
@@ -859,7 +1279,7 @@ class ApiService {
       url: Uri.parse('$_baseUrl/payments$query'),
       headers: await _headers,
     );
-    return jsonDecode(res.body) as List;
+    return _parseListResponse(res.body);
   }
 
   // ─── LOGIN & SECURITY ──────────────────────────────────────────────
@@ -882,7 +1302,7 @@ class ApiService {
       url: Uri.parse('$_baseUrl/auth/sessions'),
       headers: await _headers,
     );
-    return jsonDecode(res.body) as List;
+    return _parseListResponse(res.body);
   }
 
   // ─── NOTIFICATIONS ─────────────────────────────────────────────────
@@ -893,7 +1313,7 @@ class ApiService {
       url: Uri.parse('$_baseUrl/notifications'),
       headers: await _headers,
     );
-    return jsonDecode(res.body) as List;
+    return _parseListResponse(res.body);
   }
 
   static Future<Uint8List> downloadReceiptPdf(String parcelId) async {
@@ -1026,8 +1446,17 @@ class ApiService {
       if (body is List) return {'data': body};
       return body is Map<String, dynamic> ? body : {'data': body};
     }
+    String errorMsg = 'Unknown error';
+    if (body is Map && body.containsKey('error')) {
+      final err = body['error'];
+      if (err is Map && err.containsKey('message')) {
+        errorMsg = err['message'].toString();
+      } else {
+        errorMsg = err.toString();
+      }
+    }
     throw ApiException(
-      message: (body is Map && body.containsKey('error')) ? body['error'] : 'Unknown error',
+      message: errorMsg,
       statusCode: res.statusCode,
     );
   }

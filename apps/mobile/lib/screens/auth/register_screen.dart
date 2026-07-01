@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 
 // ─── Country model ────────────────────────────────────────────────────────────
 
@@ -52,28 +54,29 @@ InputDecoration _inputDecoration({
   Widget? prefix,
   Widget? suffix,
 }) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
   return InputDecoration(
-    hintText: hint,
     hintStyle: GoogleFonts.inter(
-      color: Colors.white.withValues(alpha: 0.3),
+      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black38),
       fontSize: 15,
     ),
     prefixIcon: prefixIcon != null ? Padding(
       padding: const EdgeInsets.all(14.0),
-      child: HugeIcon(icon: prefixIcon, size: 20, color: const Color(0xFF94A3B8)),
+      child: HugeIcon(icon: prefixIcon, size: 20, color: theme.iconTheme.color?.withValues(alpha: 0.5) ?? const Color(0xFF94A3B8)),
     ) : null,
     prefix: prefix,
     suffixIcon: suffix,
     filled: true,
-    fillColor: Colors.transparent,
+    fillColor: theme.cardTheme.color?.withValues(alpha: 0.3) ?? theme.colorScheme.surface.withValues(alpha: 0.3),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1.0),
+      borderSide: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5), width: 1.0),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+      borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -154,19 +157,22 @@ class _RegisterScreenState extends State<RegisterScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
     final isPhone = _tabController.index == 0;
     final canContinue = isPhone ? _phoneValid : _emailValid;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: theme.iconTheme.color, size: 20),
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedArrowLeft01,
+            color: theme.appBarTheme.iconTheme?.color ?? Colors.white, 
+            size: 20,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -174,65 +180,72 @@ class _RegisterScreenState extends State<RegisterScreen>
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: Colors.white, size: 22),
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedHelpCircle, 
+              color: theme.appBarTheme.actionsIconTheme?.color ?? theme.appBarTheme.iconTheme?.color ?? Colors.white, 
+              size: 22,
+            ),
             onPressed: () {},
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-        },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Gap(24),
-                // ── Tab switcher ────────────────────────────────
-                Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(10),
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+          },
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Gap(80), // extra padding for extended app bar
+                  // ── Tab switcher ────────────────────────────────
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.cardTheme.color ?? theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        width: 1,
+                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
                       ),
                     ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: const Color(0xFF94A3B8),
-                    labelStyle: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                        color: theme.scaffoldBackgroundColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelColor: theme.textTheme.bodyLarge?.color,
+                      unselectedLabelColor: theme.textTheme.bodySmall?.color ?? const Color(0xFF94A3B8),
+                      labelStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      unselectedLabelStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      dividerColor: Colors.transparent,
+                      tabs: const [
+                        Tab(text: 'Phone'),
+                        Tab(text: 'Email'),
+                      ],
                     ),
-                    unselectedLabelStyle: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    dividerColor: Colors.transparent,
-                    tabs: const [
-                      Tab(text: 'Phone'),
-                      Tab(text: 'Email'),
-                    ],
                   ),
-                ),
 
                 const Gap(32),
 
@@ -277,8 +290,8 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 extra: {'email': _emailController.text}))
                         : null,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
+                      backgroundColor: theme.colorScheme.primary,
+                      disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(28)),
                       elevation: 0,
@@ -320,6 +333,8 @@ class _PhoneTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -331,9 +346,9 @@ class _PhoneTab extends StatelessWidget {
           Container(
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.transparent,
+              color: theme.cardTheme.color?.withValues(alpha: 0.3) ?? theme.colorScheme.surface.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5), width: 1),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -355,12 +370,12 @@ class _PhoneTab extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Colors.white,
+                            color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
                           ),
                         ),
                         const Gap(4),
-                        const HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01,
-                            size: 16, color: Color(0xFF94A3B8)),
+                        HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01,
+                            size: 16, color: theme.iconTheme.color?.withValues(alpha: 0.6) ?? const Color(0xFF94A3B8)),
                       ],
                     ),
                   ),
@@ -379,13 +394,13 @@ class _PhoneTab extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
                       letterSpacing: 1.0,
                     ),
                     decoration: InputDecoration(
                       hintText: '687 122 502',
                       hintStyle: GoogleFonts.inter(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black26),
                         fontSize: 18,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0,
@@ -400,7 +415,7 @@ class _PhoneTab extends StatelessWidget {
                 ),
                 if (controller.text.isNotEmpty)
                   IconButton(
-                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: Color(0xFF94A3B8), size: 18),
+                    icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: theme.iconTheme.color?.withValues(alpha: 0.6) ?? const Color(0xFF94A3B8), size: 18),
                     onPressed: () => controller.clear(),
                   ),
                 const Gap(8),
@@ -415,7 +430,7 @@ class _PhoneTab extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: const Color(0xFF94A3B8),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? const Color(0xFF94A3B8),
                 height: 1.4,
               ),
             ),
@@ -434,6 +449,7 @@ class _EmailTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -447,7 +463,7 @@ class _EmailTab extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: theme.textTheme.bodyLarge?.color,
             ),
             decoration: _inputDecoration(
               context: context,
@@ -460,12 +476,12 @@ class _EmailTab extends StatelessWidget {
           Row(
             children: [
               HugeIcon(icon: HugeIcons.strokeRoundedLockPassword,
-                  size: 13, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.4) ?? const Color(0xFFCBD5E1)),
+                  size: 13, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4) ?? const Color(0xFFCBD5E1)),
               const Gap(5),
               Text(
                 'Your email is safe with us.',
                 style: GoogleFonts.inter(
-                    fontSize: 12, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
+                    fontSize: 12, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
               ),
             ],
           ),

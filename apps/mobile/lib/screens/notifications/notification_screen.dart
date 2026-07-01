@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/parcel_provider.dart';
 import '../../widgets/common/shimmer_utils.dart';
@@ -50,7 +51,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       appBar: AppBar(
         title: const Text('Notifications'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 22),
           onPressed: () => context.go('/home'),
         ),
       ),
@@ -75,12 +76,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
           Container(
             width: 64, height: 64,
             decoration: BoxDecoration(color: AppTheme.accentLight, borderRadius: BorderRadius.circular(16)),
-            child: const Icon(Icons.notifications_none_outlined, color: AppTheme.accent, size: 30),
+            child: Icon(Icons.notifications_none_outlined, color: AppTheme.accent, size: 30),
           ),
           const Gap(16),
-          const Text('No notifications yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppTheme.textPrimary)),
+          Text('No notifications yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppTheme.textPrimary)),
           const Gap(4),
-          const Text("You'll be notified when your parcel status changes.", style: TextStyle(color: AppTheme.textMuted, fontSize: 13), textAlign: TextAlign.center),
+          Text("You'll be notified when your parcel status changes.", style: TextStyle(color: AppTheme.textMuted, fontSize: 13), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -130,7 +131,7 @@ class _NotifCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.border),
       ),
@@ -147,11 +148,11 @@ class _NotifCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(notif['title'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
+                Text(notif['title'] as String? ?? '', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
                 const Gap(3),
-                Text(notif['message'] as String? ?? '', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4)),
+                Text(notif['message'] as String? ?? '', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4)),
                 const Gap(6),
-                Text(createdAt, style: const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
+                Text(createdAt, style: TextStyle(color: AppTheme.textMuted, fontSize: 11)),
               ],
             ),
           ),

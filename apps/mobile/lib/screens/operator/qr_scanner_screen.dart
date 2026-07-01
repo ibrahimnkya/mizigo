@@ -87,13 +87,13 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final scannerProvider = context.watch<ScannerProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F172A), // Match Home Screen / MainScaffold background
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -101,7 +101,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
           onPressed: () => context.pop(),
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: isDark ? Colors.white : Colors.black,
+            color: theme.appBarTheme.iconTheme?.color ?? Colors.white,
           ),
         ),
         title: Text(
@@ -109,7 +109,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
           style: GoogleFonts.outfit(
             fontSize: 28,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black,
+            color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white,
           ),
         ),
         actions: [
@@ -122,7 +122,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
             },
             icon: HugeIcon(
               icon: _isFlashOn ? HugeIcons.strokeRoundedFlashOff : HugeIcons.strokeRoundedFlash,
-              color: isDark ? Colors.white : Colors.black,
+              color: theme.appBarTheme.iconTheme?.color ?? Colors.white,
             ),
           ),
           IconButton(
@@ -131,7 +131,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
             },
             icon: HugeIcon(
               icon: HugeIcons.strokeRoundedCamera01,
-              color: isDark ? Colors.white : Colors.black,
+              color: theme.appBarTheme.iconTheme?.color ?? Colors.white,
             ),
           ),
         ],
@@ -144,7 +144,7 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
               key: qrKey,
               onQRViewCreated: _onQRViewCreated,
               overlay: QrScannerOverlayShape(
-                borderColor: const Color(0xFF3B82F6),
+                borderColor: theme.colorScheme.primary,
                 borderRadius: 20,
                 borderLength: 30,
                 borderWidth: 10,
@@ -239,7 +239,10 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 2,
+                      ),
                     ),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.05),
@@ -250,9 +253,9 @@ class _QrCodeScannerScreenState extends State<QrCodeScannerScreen> {
                           _processCode(_manualEntryController.text);
                         }
                       },
-                      icon: const HugeIcon(
+                      icon: HugeIcon(
                         icon: HugeIcons.strokeRoundedSearch01,
-                        color: Color(0xFF3B82F6),
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import '../../theme/app_theme.dart';
 
 class DangerActionBottomSheet extends StatelessWidget {
   final String title;
@@ -50,9 +51,14 @@ class DangerActionBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F172A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(
+          top: BorderSide(color: AppTheme.border),
+          left: BorderSide(color: AppTheme.border),
+          right: BorderSide(color: AppTheme.border),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewPadding.bottom + 24),
       child: Column(
@@ -64,7 +70,7 @@ class DangerActionBottomSheet extends StatelessWidget {
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF334155),
+                color: AppTheme.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -91,7 +97,7 @@ class DangerActionBottomSheet extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ),
@@ -103,7 +109,7 @@ class DangerActionBottomSheet extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 15,
               height: 1.5,
-              color: const Color(0xFF94A3B8),
+              color: AppTheme.textSecondary,
             ),
           ),
           const Gap(32),
@@ -114,7 +120,7 @@ class DangerActionBottomSheet extends StatelessWidget {
                   height: 52,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF334155)),
+                    border: Border.all(color: AppTheme.border),
                   ),
                   child: Material(
                     color: Colors.transparent,
@@ -127,7 +133,7 @@ class DangerActionBottomSheet extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                       ),
@@ -142,7 +148,7 @@ class DangerActionBottomSheet extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onConfirm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isDestructive ? Colors.redAccent : const Color(0xFF3B82F6),
+                      backgroundColor: isDestructive ? Colors.redAccent : AppTheme.cPrimary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(

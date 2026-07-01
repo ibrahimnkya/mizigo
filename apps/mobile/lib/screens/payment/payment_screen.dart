@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../services/api_service.dart';
 import '../../models/parcel_model.dart';
+import '../../theme/app_theme.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String parcelId;
@@ -101,29 +102,42 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
   }
 
   void _showSuccessBottomSheet() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
       enableDrag: false,
       isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF4F7FE),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-      builder: (context) => _SuccessSheet(parcelId: widget.parcelId, amount: _amountCtrl.text, provider: _selectedProvider),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          border: Border(
+            top: BorderSide(color: AppTheme.border),
+            left: BorderSide(color: AppTheme.border),
+            right: BorderSide(color: AppTheme.border),
+          ),
+        ),
+        child: _SuccessSheet(parcelId: widget.parcelId, amount: _amountCtrl.text, provider: _selectedProvider),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text('Payment Checkout', style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
-        backgroundColor: Colors.transparent,
+        title: Text('Payment Checkout', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white)),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.appBarTheme.iconTheme?.color ?? Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -137,14 +151,14 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                  gradient: LinearGradient(
+                    colors: [AppTheme.cPrimary, AppTheme.accent],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(color: AppTheme.cPrimary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
                   ],
                 ),
                 child: Column(
@@ -177,49 +191,49 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  color: AppTheme.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: _fetchingParcel 
-                  ? const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+                  ? Center(child: Padding(padding: const EdgeInsets.all(20), child: CircularProgressIndicator(color: AppTheme.cPrimary)))
                   : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Pricing Summary', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16)),
+                        Text('Pricing Summary', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16, color: AppTheme.textPrimary)),
                         if (_parcel != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                              color: AppTheme.cPrimary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               '${_parcel!.fromAddress} → ${_parcel!.toAddress}',
-                              style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF3B82F6), fontWeight: FontWeight.bold),
+                              style: GoogleFonts.inter(fontSize: 10, color: AppTheme.cPrimary, fontWeight: FontWeight.bold),
                             ),
                           ),
                       ],
                     ),
                     const Gap(20),
-                    _buildDetailedPriceRow(HugeIcons.strokeRoundedWeightScale, 'Weight Charge (5.0 kg)', 'TZS 25,000', isDark),
+                    _buildDetailedPriceRow(HugeIcons.strokeRoundedWeightScale, 'Weight Charge (5.0 kg)', 'TZS 25,000'),
                     const Gap(12),
-                    _buildDetailedPriceRow(HugeIcons.strokeRoundedShield01, 'Insurance (1.0% Value)', 'TZS 4,500', isDark),
+                    _buildDetailedPriceRow(HugeIcons.strokeRoundedShield01, 'Insurance (1.0% Value)', 'TZS 4,500'),
                     const Gap(12),
-                    _buildDetailedPriceRow(HugeIcons.strokeRoundedLocation01, 'Distance Premium', 'TZS 8,635', isDark),
+                    _buildDetailedPriceRow(HugeIcons.strokeRoundedLocation01, 'Distance Premium', 'TZS 8,635'),
                     const Gap(12),
-                    _buildDetailedPriceRow(Icons.percent, 'VAT (18%)', 'TZS 6,865', isDark),
+                    _buildDetailedPriceRow(Icons.percent, 'VAT (18%)', 'TZS 6,865'),
                     const Gap(20),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: AppTheme.border),
                     const Gap(20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total Payable', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18)),
-                        Text('TZS ${_amountCtrl.text}', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: const Color(0xFF3B82F6))),
+                        Text('Total Payable', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textPrimary)),
+                        Text('TZS ${_amountCtrl.text}', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.accent)),
                       ],
                     ),
                   ],
@@ -229,14 +243,14 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
               const Gap(32),
 
               // Provider Selection
-              Text('Select Provider', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('Select Provider', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               const Gap(16),
               SizedBox(
                 height: 100,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _mobileProviders.length,
-                  separatorBuilder: (_, __) => const Gap(12),
+                  separatorBuilder: (_, _) => const Gap(12),
                   itemBuilder: (context, index) {
                     final p = _mobileProviders[index];
                     final isSelected = _selectedProvider == p['title'];
@@ -246,9 +260,9 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                         duration: const Duration(milliseconds: 200),
                         width: 100,
                         decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF3B82F6) : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                          color: isSelected ? AppTheme.cPrimary : AppTheme.surface,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: isSelected ? const Color(0xFF3B82F6) : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05))),
+                          border: Border.all(color: isSelected ? AppTheme.cPrimary : AppTheme.border),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -259,7 +273,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                               child: Center(child: Text(p['initial']!, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold))),
                             ),
                             const Gap(8),
-                            Text(p['title']!, style: GoogleFonts.inter(fontSize: 11, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87))),
+                            Text(p['title']!, style: GoogleFonts.inter(fontSize: 11, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, color: isSelected ? Colors.white : AppTheme.textSecondary)),
                           ],
                         ),
                       ),
@@ -270,23 +284,24 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
 
               const Gap(32),
               // Phone Input
-              Text('Phone Number', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('Phone Number', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
               const Gap(12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  color: AppTheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: TextField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                  decoration: const InputDecoration(
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                  decoration: InputDecoration(
                     hintText: '07xx xxx xxx',
+                    hintStyle: TextStyle(color: AppTheme.textMuted),
                     border: InputBorder.none,
-                    prefixIcon: Icon(Icons.phone_android_rounded),
+                    prefixIcon: Icon(Icons.phone_android_rounded, color: AppTheme.textSecondary),
                   ),
                 ),
               ),
@@ -298,7 +313,7 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleContinue,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
+                    backgroundColor: AppTheme.cPrimary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: _isLoading 
@@ -314,15 +329,15 @@ class _PaymentScreenState extends State<PaymentScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildDetailedPriceRow(dynamic icon, String label, String value, bool isDark) {
+  Widget _buildDetailedPriceRow(dynamic icon, String label, String value) {
     return Row(
       children: [
-        HugeIcon(icon: icon, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8), size: 18),
+        HugeIcon(icon: icon, color: AppTheme.textSecondary, size: 18),
         const Gap(12),
         Expanded(
-          child: Text(label, style: GoogleFonts.inter(color: isDark ? Colors.white60 : Colors.black54, fontSize: 13)),
+          child: Text(label, style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13)),
         ),
-        Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
+        Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.textPrimary)),
       ],
     );
   }
@@ -337,7 +352,6 @@ class _SuccessSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).padding.bottom + 24),
       child: Column(
@@ -345,10 +359,10 @@ class _SuccessSheet extends StatelessWidget {
         children: [
           const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 80),
           const Gap(24),
-          Text('Payment Initiated', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800)),
+          Text('Payment Initiated', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
           const Gap(12),
           Text('Please check your phone for the PIN prompt to complete the transaction of TZS $amount via $provider.',
-            textAlign: TextAlign.center, style: GoogleFonts.inter(color: isDark ? Colors.white60 : Colors.black54)),
+            textAlign: TextAlign.center, style: GoogleFonts.inter(color: AppTheme.textSecondary)),
           const Gap(32),
           SizedBox(
             width: double.infinity,
@@ -356,7 +370,7 @@ class _SuccessSheet extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () => context.go('/home'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6), 
+                backgroundColor: AppTheme.cPrimary, 
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 elevation: 0,
               ),

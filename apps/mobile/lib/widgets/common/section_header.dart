@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:mizigo/theme/app_theme.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -15,6 +17,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
@@ -25,7 +28,7 @@ class SectionHeader extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: theme.textTheme.bodyLarge?.color,
               letterSpacing: -0.5,
             ),
           ),
@@ -42,14 +45,14 @@ class SectionHeader extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF3B82F6),
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedArrowRight01,
                       size: 12,
-                      color: Color(0xFF3B82F6),
+                      color: theme.colorScheme.primary,
                     ),
                   ],
                 ),

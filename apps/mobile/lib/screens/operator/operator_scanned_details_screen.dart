@@ -26,6 +26,7 @@ class _OperatorScannedDetailsScreenState
   bool _isLoading = false;
 
   Future<void> _showDispatchDialog() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     String? selectedTrain;
     String? selectedGuard;
     final List<String> mockTrains = ['SGR Express 01', 'Cargo Liner 402', 'LRT Shuttle 09'];
@@ -35,13 +36,20 @@ class _OperatorScannedDetailsScreenState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: Text('Dispatch Assignment', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(
+            'Dispatch Assignment', 
+            style: GoogleFonts.outfit(
+              color: isDark ? Colors.white : const Color(0xFF0F172A), 
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildDialogDropdown(
+                context,
                 hint: 'Select Train',
                 value: selectedTrain,
                 items: mockTrains,
@@ -49,6 +57,7 @@ class _OperatorScannedDetailsScreenState
               ),
               const Gap(16),
               _buildDialogDropdown(
+                context,
                 hint: 'Select Guard',
                 value: selectedGuard,
                 items: mockGuards,
@@ -59,14 +68,19 @@ class _OperatorScannedDetailsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
+              child: Text(
+                'Cancel', 
+                style: TextStyle(
+                  color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: (selectedTrain == null || selectedGuard == null) 
                 ? null 
                 : () => Navigator.pop(context, {'train': selectedTrain!, 'guard': selectedGuard!}),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3B82F6)),
-              child: const Text('Dispatch'),
+              child: const Text('Dispatch', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -79,27 +93,44 @@ class _OperatorScannedDetailsScreenState
     }
   }
 
-  Widget _buildDialogDropdown({
+  Widget _buildDialogDropdown(
+    BuildContext context, {
     required String hint,
     required String? value,
     required List<String> items,
     required Function(String?) onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.black26,
+        color: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
+        border: isDark 
+            ? null 
+            : Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          hint: Text(hint, style: const TextStyle(color: Colors.white38, fontSize: 14)),
-          dropdownColor: const Color(0xFF0F172A),
+          hint: Text(
+            hint, 
+            style: TextStyle(
+              color: isDark ? Colors.white38 : const Color(0xFF94A3B8), 
+              fontSize: 14,
+            ),
+          ),
+          dropdownColor: isDark ? const Color(0xFF0F172A) : Colors.white,
           isExpanded: true,
           items: items.map((c) => DropdownMenuItem(
             value: c,
-            child: Text(c, style: const TextStyle(color: Colors.white, fontSize: 14)),
+            child: Text(
+              c, 
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A), 
+                fontSize: 14,
+              ),
+            ),
           )).toList(),
           onChanged: onChanged,
         ),
@@ -121,30 +152,54 @@ class _OperatorScannedDetailsScreenState
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Assign Clerk', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Assign Clerk', 
+          style: GoogleFonts.outfit(
+            color: isDark ? Colors.white : const Color(0xFF0F172A), 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Select the destination clerk who will receive this parcel.', 
-              style: GoogleFonts.inter(color: Colors.white60, fontSize: 13)),
+            Text(
+              'Select the destination clerk who will receive this parcel.', 
+              style: GoogleFonts.inter(
+                color: isDark ? Colors.white60 : const Color(0xFF64748B), 
+                fontSize: 13,
+              ),
+            ),
             const Gap(20),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.black26,
+                color: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(16),
+                border: isDark 
+                    ? null 
+                    : Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: selectedClerk,
-                  hint: const Text('Select Clerk', style: TextStyle(color: Colors.white38)),
-                  dropdownColor: const Color(0xFF0F172A),
+                  hint: Text(
+                    'Select Clerk', 
+                    style: TextStyle(
+                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                  dropdownColor: isDark ? const Color(0xFF0F172A) : Colors.white,
                   isExpanded: true,
                   items: mockClerks.map((c) => DropdownMenuItem(
                     value: c,
-                    child: Text(c, style: const TextStyle(color: Colors.white)),
+                    child: Text(
+                      c, 
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
                   )).toList(),
                   onChanged: (val) => Navigator.pop(context, val),
                 ),

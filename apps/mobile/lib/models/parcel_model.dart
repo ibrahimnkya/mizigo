@@ -80,6 +80,8 @@ class ParcelModel {
   final int peopleNeeded;
   final String parcelType;
   final String parcelSize;
+  final String condition;
+  final String urgency;
   final String receiverName;
   final String receiverPhone;
   final bool receiverPays;
@@ -90,6 +92,8 @@ class ParcelModel {
   final PaymentModel? payment;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? senderName;
+  final String? senderPhone;
 
   ParcelModel({
     required this.id,
@@ -101,6 +105,8 @@ class ParcelModel {
     required this.peopleNeeded,
     required this.parcelType,
     required this.parcelSize,
+    this.condition = '',
+    this.urgency = '',
     required this.receiverName,
     required this.receiverPhone,
     required this.receiverPays,
@@ -111,22 +117,65 @@ class ParcelModel {
     this.rejectionReason,
     this.amount,
     this.payment,
+    this.senderName,
+    this.senderPhone,
   });
 
   /// Convenience getter used by display screens.
   String get description => parcelType.isNotEmpty ? parcelType : 'N/A';
 
   factory ParcelModel.fromJson(Map<String, dynamic> json) {
+    String fromAddr = '';
+    String toAddr = '';
+
+    if (json['origin'] is Map) {
+      fromAddr = json['origin']['name'] ?? '';
+    }
+    if (fromAddr.isEmpty && json['route'] is Map) {
+      fromAddr = json['route']['receivingStation'] ?? '';
+    }
+    if (fromAddr.isEmpty) {
+      fromAddr = json['fromAddress'] ?? '';
+    }
+
+    if (json['destination'] is Map) {
+      toAddr = json['destination']['name'] ?? '';
+    }
+    if (toAddr.isEmpty && json['route'] is Map) {
+      toAddr = json['route']['destinationStation'] ?? '';
+    }
+    if (toAddr.isEmpty) {
+      toAddr = json['toAddress'] ?? '';
+    }
+
+    final senderJson = json['sender'];
+    String? sName;
+    String? sPhone;
+    if (senderJson is Map) {
+      sName = senderJson['name'];
+      sPhone = senderJson['phone'];
+    }
+    sName ??= json['senderName'];
+    sPhone ??= json['senderPhone'];
+    if (sName == null && json['additionalServices'] is Map) {
+      sName = json['additionalServices']['senderName'];
+    }
+    if (sPhone == null && json['additionalServices'] is Map) {
+      sPhone = json['additionalServices']['senderPhone'];
+    }
+
     return ParcelModel(
       id: json['id'] ?? '',
       trackingNumber: json['trackingNumber'],
-      fromAddress: json['fromAddress'] ?? '',
-      toAddress: json['toAddress'] ?? '',
+      fromAddress: fromAddr,
+      toAddress: toAddr,
       pickupType: json['pickupType'] ?? 'SGR_STATION',
       serviceType: json['serviceType'] ?? '',
       peopleNeeded: json['peopleNeeded'] ?? 0,
-      parcelType: json['parcelType'] ?? json['parcelType'] ?? '',
-      parcelSize: json['parcelSize'] ?? json['parcelSize'] ?? '',
+      parcelType: json['parcelType'] ?? '',
+      parcelSize: json['parcelSize'] ?? '',
+      condition: json['condition'] ?? '',
+      urgency: json['urgency'] ?? '',
       receiverName: json['receiverName'] ?? '',
       receiverPhone: json['receiverPhone'] ?? '',
       receiverPays: json['receiverPays'] ?? false,
@@ -137,6 +186,8 @@ class ParcelModel {
       payment: json['payment'] != null ? PaymentModel.fromJson(json['payment']) : null,
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
+      senderName: sName,
+      senderPhone: sPhone,
     );
   }
 }

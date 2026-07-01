@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 
 class ReceiverScreen extends StatefulWidget {
@@ -104,10 +105,10 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
-          // Blue Header
+          // Theme-aware Header
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 14,
@@ -115,12 +116,12 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
               left: 20,
               right: 20,
             ),
-            color: const Color(0xFF3B82F6),
+            color: theme.appBarTheme.backgroundColor,
             child: Row(
               children: [
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                  child: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 24),
                 ),
                 const Gap(16),
                 Text(
@@ -196,11 +197,12 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                   const Gap(12),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      color: theme.cardTheme.color ?? theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.colorScheme.outline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -259,11 +261,12 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                   const Gap(12),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      color: theme.cardTheme.color ?? theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.colorScheme.outline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -308,10 +311,11 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
               20, 14, 20, MediaQuery.of(context).padding.bottom + 14,
             ),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: theme.cardTheme.color ?? theme.colorScheme.surface,
+              border: Border(top: BorderSide(color: theme.colorScheme.outline)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, -4),
                 ),
@@ -362,7 +366,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: theme.colorScheme.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -424,12 +428,13 @@ class _InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1,
         ),
       ),
@@ -469,6 +474,7 @@ class _CheckBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -476,12 +482,12 @@ class _CheckBox extends StatelessWidget {
         width: 20,
         height: 20,
         decoration: BoxDecoration(
-          color: checked ? const Color(0xFF3B82F6) : Colors.transparent,
+          color: checked ? theme.colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
             color: checked
-                ? const Color(0xFF3B82F6)
-                : (isDark ? Colors.white30 : const Color(0xFF94A3B8)),
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline,
             width: 1.5,
           ),
         ),
@@ -501,6 +507,7 @@ class _RadioBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -512,8 +519,8 @@ class _RadioBox extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: checked
-                ? const Color(0xFF3B82F6)
-                : (isDark ? Colors.white30 : const Color(0xFF94A3B8)),
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outline,
             width: 1.5,
           ),
         ),
@@ -522,8 +529,8 @@ class _RadioBox extends StatelessWidget {
                 child: Container(
                   width: 10,
                   height: 10,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF3B82F6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -620,6 +627,7 @@ class _PickupRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         InkWell(
@@ -629,13 +637,13 @@ class _PickupRow extends StatelessWidget {
             margin: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: checked
-                  ? const Color(0xFF3B82F6).withValues(alpha: 0.08)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.08)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: checked
-                    ? const Color(0xFF3B82F6)
-                    : (isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.08)),
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
                 width: 1.5,
               ),
             ),
@@ -652,7 +660,7 @@ class _PickupRow extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: checked
-                            ? const Color(0xFF3B82F6)
+                            ? theme.colorScheme.primary
                             : (isDark ? Colors.white : const Color(0xFF1E293B)),
                       ),
                     ),
@@ -663,7 +671,7 @@ class _PickupRow extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: checked
-                          ? const Color(0xFF3B82F6)
+                          ? theme.colorScheme.primary
                           : (isDark ? Colors.white54 : const Color(0xFF64748B)),
                     ),
                   ),

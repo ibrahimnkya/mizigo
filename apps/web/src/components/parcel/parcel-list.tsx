@@ -51,7 +51,7 @@ async function getParcels(filters: {
   }
 
   try {
-    const parcels = await prisma.parcel.findMany({
+    const parcels = await (prisma.parcel as any).findMany({
       where,
       orderBy: { createdAt: "desc" },
       include: {

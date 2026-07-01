@@ -5,8 +5,12 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/export_action_sheet.dart';
+import '../../providers/printer_provider.dart';
+import '../../widgets/printer_selection_sheet.dart';
+import '../../utils/receipt_pdf_generator.dart';
 
 class ReceiptScreen extends StatefulWidget {
   final String parcelId;
@@ -43,8 +47,27 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   }
 
   Future<void> _downloadAndSharePDF() async {
+    if (_receipt == null) return;
     try {
-      final pdfBytes = await ApiService.downloadReceiptPdf(widget.parcelId);
+      final pdfBytes = await ReceiptPdfGenerator.generate(
+        trackingId: _receipt!['trackingNumber'] ?? _receipt!['id'] ?? widget.parcelId,
+        fromAddress: _receipt!['fromAddress'] ?? 'N/A',
+        toAddress: _receipt!['toAddress'] ?? 'N/A',
+        serviceType: _receipt!['serviceType'] ?? 'N/A',
+        parcelSize: _receipt!['parcelSize'] ?? 'Standard',
+        parcelType: _receipt!['parcelType'] ?? 'General',
+        senderName: _receipt!['senderName'] ?? 'N/A',
+        senderPhone: _receipt!['senderPhone'] ?? 'N/A',
+        receiverName: _receipt!['receiverName'] ?? 'N/A',
+        receiverPhone: _receipt!['receiverPhone'] ?? 'N/A',
+        price: double.tryParse(_receipt!['amount']?.toString() ?? '') ?? 0.0,
+        receiverPays: _receipt!['receiverPays'] == true,
+        status: _receipt!['status'] ?? 'Received',
+        createdAt: _receipt!['createdAt'] != null
+            ? DateTime.tryParse(_receipt!['createdAt']) ?? DateTime.now()
+            : DateTime.now(),
+      );
+
       await Printing.sharePdf(
         bytes: pdfBytes,
         filename: 'mizigo_receipt_${widget.parcelId}.pdf',
@@ -52,10 +75,69 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to download PDF: $e')),
+          SnackBar(content: Text('Failed to generate PDF: $e')),
         );
       }
     }
+  }
+
+  Future<void> _handlePrintReceipt() async {
+    if (_receipt == null) return;
+    final provider = context.read<PrinterProvider>();
+    if (provider.isConnected) {
+      _executePrint(provider);
+      return;
+    }
+
+    PrinterSelectionSheet.show(
+      context,
+      onDeviceSelected: (dev) => _executePrint(provider),
+    );
+  }
+
+  Future<void> _executePrint(PrinterProvider provider) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+            Gap(12),
+            Text("Printing POS receipt..."),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    // Shape the packageData for printer
+    final packageData = {
+      'trackingId': _receipt!['trackingNumber'] ?? _receipt!['id'] ?? widget.parcelId,
+      'description': _receipt!['serviceType'] ?? "Standard Cargo",
+      'senderName': _receipt!['senderName'] ?? "N/A",
+      'receiverName': _receipt!['receiverName'] ?? "N/A",
+      'origin': _receipt!['fromAddress'] ?? "N/A",
+      'destination': _receipt!['toAddress'] ?? "N/A",
+      'price': _receipt!['amount'],
+      'quantity': 1,
+    };
+
+    final success = await provider.printReceipt(packageData);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success ? "Receipt printed successfully!" : "Print failed. Try again."),
+        backgroundColor: success ? Colors.green : Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -266,22 +348,14 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(
-                    onPressed: () => ExportBottomSheet.show(
-                      context: context,
-                      title: 'Download Receipt',
-                      subtitle: 'Select a format to save or share your payment receipt.',
-                      availableFormats: const ['PDF'],
-                      actionButtonText: 'Download Receipt',
-                      includeDateRange: false,
-                      onExport: (format, _) => _downloadAndSharePDF(),
-                    ),
+                    onPressed: _handlePrintReceipt,
                     icon: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedInvoice01,
+                      icon: HugeIcons.strokeRoundedPrinter,
                       color: Color(0xFF4A43EC),
                       size: 22,
                     ),
                     label: Text(
-                      'Download Receipt',
+                      'Print Receipt',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

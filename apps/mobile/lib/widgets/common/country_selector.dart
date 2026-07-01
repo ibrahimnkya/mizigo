@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
+import '../../theme/app_theme.dart';
 
 class Country {
   final String name;
@@ -52,8 +53,13 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: AppTheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border(
+          top: BorderSide(color: AppTheme.border),
+          left: BorderSide(color: AppTheme.border),
+          right: BorderSide(color: AppTheme.border),
+        ),
       ),
       child: Column(
         children: [
@@ -62,7 +68,7 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: isDark ? Colors.white12 : Colors.black12,
+              color: AppTheme.border,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -76,7 +82,7 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const Spacer(),
@@ -84,7 +90,7 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(
                     Icons.close_rounded,
-                    color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -96,9 +102,9 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isDark ? Colors.transparent : const Color(0xFFF1F5F9),
+                color: AppTheme.background,
                 border: Border.all(
-                  color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                  color: AppTheme.border,
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -106,7 +112,7 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
                 children: [
                   Icon(
                     Icons.search_rounded,
-                    color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                    color: AppTheme.textSecondary,
                     size: 20,
                   ),
                   const Gap(12),
@@ -115,16 +121,20 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
                       controller: _searchCtrl,
                       onChanged: _onSearch,
                       style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
-                      cursorColor: const Color(0xFF3B82F6),
+                      cursorColor: AppTheme.cPrimary,
                       decoration: InputDecoration(
                         hintText: 'Search by name or dial code',
                         hintStyle: TextStyle(
-                          color: isDark ? Colors.white10 : const Color(0xFF94A3B8),
+                          color: AppTheme.textMuted,
                         ),
                         border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
                       ),
                     ),
                   ),
@@ -151,14 +161,14 @@ class _CountryPickerSheetState extends State<CountryPickerSheet> {
                       c.name,
                       style: GoogleFonts.inter(
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     trailing: Text(
                       c.dialCode,
                       style: GoogleFonts.inter(
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF3B82F6),
+                        color: AppTheme.cPrimary,
                       ),
                     ),
                   ),

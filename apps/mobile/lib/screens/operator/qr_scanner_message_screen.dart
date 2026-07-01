@@ -15,14 +15,19 @@ class QrScannerMessageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final scannerProvider = context.watch<ScannerProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final operation = scannerProvider.currentOperation;
     final parcel = scannerProvider.scannedParcel;
     final error = scannerProvider.error;
 
+    final isCustomTheme = theme.colorScheme.primary.toARGB32() == 0xFF670E1E;
+    final successColor = isCustomTheme ? theme.colorScheme.secondary : const Color(0xFF10B981);
+    final failureColor = isCustomTheme ? theme.colorScheme.primary : const Color(0xFFEF4444);
+    final activeColor = success ? successColor : failureColor;
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -34,9 +39,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: success 
-                    ? const Color(0xFF10B981).withValues(alpha: 0.1) 
-                    : const Color(0xFFEF4444).withValues(alpha: 0.1),
+                  color: activeColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -44,20 +47,20 @@ class QrScannerMessageScreen extends StatelessWidget {
                     icon: success 
                       ? HugeIcons.strokeRoundedCheckmarkCircle01 
                       : HugeIcons.strokeRoundedCancelCircle,
-                    color: success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    color: activeColor,
                     size: 60,
                   ),
                 ),
               ),
               const Gap(32),
-
+ 
               // Result Message
               Text(
                 success ? 'Operation Successful' : 'Scan Failed',
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
+                  color: theme.textTheme.bodyLarge?.color ?? Colors.white,
                 ),
               ),
               const Gap(12),
@@ -68,11 +71,11 @@ class QrScannerMessageScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? const Color(0xFF64748B),
                 ),
               ),
               const Gap(48),
-
+ 
               // Detail Card (if success)
               if (success && parcel != null)
                 NeoContainer(
@@ -80,21 +83,21 @@ class QrScannerMessageScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       _buildDetailRow(
-                        isDark, 
+                        theme, 
                         'Tracking ID', 
                         parcel.id, 
                         HugeIcons.strokeRoundedQrCode
                       ),
                       const Divider(height: 32),
                       _buildDetailRow(
-                        isDark, 
+                        theme, 
                         'Receiver', 
                         parcel.receiverName, 
                         HugeIcons.strokeRoundedUser
                       ),
                       const Divider(height: 32),
                       _buildDetailRow(
-                        isDark, 
+                        theme, 
                         'Destination', 
                         parcel.toAddress, 
                         HugeIcons.strokeRoundedLocation01
@@ -102,9 +105,9 @@ class QrScannerMessageScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
+ 
               const Gap(40),
-
+ 
               // Actions
               Row(
                 children: [
@@ -117,7 +120,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         side: BorderSide(
-                          color: isDark ? Colors.white24 : Colors.black12,
+                          color: theme.colorScheme.outline,
                         ),
                       ),
                       child: Text(
@@ -125,7 +128,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black,
+                          color: theme.textTheme.bodyLarge?.color ?? Colors.white,
                         ),
                       ),
                     ),
@@ -138,8 +141,8 @@ class QrScannerMessageScreen extends StatelessWidget {
                         context.pushReplacement('/scanner', extra: operation);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        foregroundColor: Colors.white,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -164,12 +167,12 @@ class QrScannerMessageScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(bool isDark, String label, String value, dynamic icon) {
+  Widget _buildDetailRow(ThemeData theme, String label, String value, dynamic icon) {
     return Row(
       children: [
         HugeIcon(
           icon: icon,
-          color: const Color(0xFF3B82F6),
+          color: theme.colorScheme.primary,
           size: 20,
         ),
         const Gap(12),
@@ -180,7 +183,7 @@ class QrScannerMessageScreen extends StatelessWidget {
               label,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: isDark ? Colors.white38 : Colors.black38,
+                color: theme.textTheme.bodySmall?.color ?? const Color(0xFF64748B),
               ),
             ),
             Text(
@@ -188,7 +191,7 @@ class QrScannerMessageScreen extends StatelessWidget {
               style: GoogleFonts.outfit(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: theme.textTheme.bodyLarge?.color ?? Colors.white,
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/parcel_provider.dart';
@@ -59,13 +60,13 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle('Route'),
+        const _SectionTitle('Route'),
         const Gap(16),
         TextFormField(controller: _fromCtrl, decoration: const InputDecoration(labelText: 'Pickup location', prefixIcon: Icon(Icons.trip_origin, color: AppTheme.success))),
         const Gap(16),
         TextFormField(controller: _toCtrl, decoration: const InputDecoration(labelText: 'Destination', prefixIcon: Icon(Icons.location_on_outlined, color: AppTheme.danger))),
         const Gap(20),
-        _SectionTitle('Pickup Type'),
+        const _SectionTitle('Pickup Type'),
         const Gap(12),
         Row(
           children: [
@@ -79,10 +80,13 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildServiceStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle('Select Vehicle Type'),
+        const _SectionTitle('Select Vehicle Type'),
         const Gap(16),
         ..._services.map((s) {
           final name = s['name'] as String;
@@ -94,24 +98,52 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: selected ? AppTheme.accentLight : Colors.white,
+                color: selected
+                    ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                    : (theme.cardTheme.color ?? theme.cardColor),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: selected ? AppTheme.accent : AppTheme.border, width: selected ? 2 : 1),
+                border: Border.all(
+                  color: selected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outline,
+                  width: selected ? 2 : 1,
+                ),
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
               child: Row(
                 children: [
-                  Icon(s['icon'] as IconData, color: selected ? AppTheme.accent : AppTheme.textSecondary, size: 24),
+                  Icon(s['icon'] as IconData,
+                      color: selected
+                          ? theme.colorScheme.primary
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      size: 24),
                   const Gap(14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: TextStyle(fontWeight: FontWeight.w700, color: selected ? AppTheme.accent : AppTheme.textPrimary)),
-                        Text('${s['size']} · Max ${s['weight']}', style: const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                        Text(name,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: selected
+                                    ? theme.colorScheme.primary
+                                    : (isDark ? Colors.white : const Color(0xFF0F172A)))),
+                        Text('${s['size']} · Max ${s['weight']}',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
                       ],
                     ),
                   ),
-                  if (selected) const Icon(Icons.check_circle, color: AppTheme.accent),
+                  if (selected) Icon(Icons.check_circle, color: theme.colorScheme.primary),
                 ],
               ),
             ),
@@ -119,7 +151,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
         }),
         if (_serviceType == 'Minivan/Kirikuu') ...[
           const Gap(16),
-          _SectionTitle('Helpers needed'),
+          const _SectionTitle('Helpers needed'),
           const Gap(12),
           Row(
             children: [0, 1, 2].map((h) => GestureDetector(
@@ -128,12 +160,21 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                 margin: const EdgeInsets.only(right: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: _helpers == h ? AppTheme.accent : Colors.white,
+                  color: _helpers == h
+                      ? theme.colorScheme.primary
+                      : (theme.cardTheme.color ?? theme.cardColor),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _helpers == h ? AppTheme.accent : AppTheme.border),
+                  border: Border.all(
+                    color: _helpers == h
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outline,
+                  ),
                 ),
                 child: Text(h == 0 ? 'Driver only' : '+$h helper${h > 1 ? 's' : ''}',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: _helpers == h ? Colors.white : AppTheme.textSecondary, fontSize: 13)),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: _helpers == h ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      fontSize: 13)),
               ),
             )).toList(),
           ),
@@ -143,16 +184,19 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildDetailsStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle('Parcel Details'),
+        const _SectionTitle('Parcel Details'),
         const Gap(16),
         TextFormField(controller: _parcelTypeCtrl, decoration: const InputDecoration(labelText: 'Parcel type (e.g. Electronics)', prefixIcon: Icon(Icons.inventory_outlined))),
         const Gap(16),
         TextFormField(controller: _parcelSizeCtrl, decoration: const InputDecoration(labelText: 'Parcel size (e.g. Large box)', prefixIcon: Icon(Icons.straighten_outlined))),
         const Gap(24),
-        _SectionTitle('Receiver Info'),
+        const _SectionTitle('Receiver Info'),
         const Gap(16),
         TextFormField(controller: _receiverNameCtrl, decoration: const InputDecoration(labelText: 'Receiver full name', prefixIcon: Icon(Icons.person_outline))),
         const Gap(16),
@@ -161,14 +205,20 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
         Row(
           children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Receiver pays?', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-              const Text('Receiver will be billed', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              Text('Receiver pays?',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              Text('Receiver will be billed',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
             ])),
-            Switch(value: _receiverPays, onChanged: (v) => setState(() => _receiverPays = v), activeThumbColor: AppTheme.accent),
+            Switch(value: _receiverPays, onChanged: (v) => setState(() => _receiverPays = v), activeTrackColor: theme.colorScheme.primary),
           ],
         ),
         const Gap(20),
-        _SectionTitle('Additional Services'),
+        const _SectionTitle('Additional Services'),
         const Gap(12),
         Wrap(
           spacing: 10, runSpacing: 10,
@@ -179,11 +229,21 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: sel ? AppTheme.accent : Colors.white,
+                  color: sel
+                      ? theme.colorScheme.primary
+                      : (theme.cardTheme.color ?? theme.cardColor),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: sel ? AppTheme.accent : AppTheme.border),
+                  border: Border.all(
+                    color: sel
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outline,
+                  ),
                 ),
-                child: Text(s, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: sel ? Colors.white : AppTheme.textSecondary)),
+                child: Text(s,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: sel ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))),
               ),
             );
           }).toList(),
@@ -193,10 +253,13 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildConfirmStep() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle('Review your shipment'),
+        const _SectionTitle('Review your shipment'),
         const Gap(16),
         _InfoTile('From', _fromCtrl.text),
         _InfoTile('To', _toCtrl.text),
@@ -212,12 +275,24 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
         const Gap(16),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppTheme.accentLight, borderRadius: BorderRadius.circular(12)),
-          child: const Row(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
             children: [
-              Icon(Icons.info_outline, color: AppTheme.accent, size: 18),
-              Gap(10),
-              Expanded(child: Text('After submission, your request will be reviewed by an admin. You will be notified once approved.', style: TextStyle(color: AppTheme.accent, fontSize: 13, fontWeight: FontWeight.w500))),
+              HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, color: theme.colorScheme.primary, size: 18),
+              const Gap(10),
+              Expanded(
+                child: Text(
+                  'After submission, your request will be reviewed by an admin. You will be notified once approved.',
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF93C5FD) : theme.colorScheme.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -251,11 +326,13 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final steps = ['Route', 'Service', 'Details', 'Confirm'];
     final provider = context.watch<ParcelProvider>();
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Send Parcel'),
         leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
@@ -264,7 +341,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
         children: [
           // Progress indicator
           Container(
-            color: Colors.white,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: Row(
               children: steps.asMap().entries.map((e) {
@@ -275,7 +352,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                       Expanded(child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         height: 4, decoration: BoxDecoration(
-                          color: active ? AppTheme.accent : AppTheme.border,
+                          color: active ? theme.colorScheme.primary : (isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0)),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       )),
@@ -288,11 +365,14 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
           ),
           // Step label
           Container(
-            color: Colors.white,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             width: double.infinity,
             child: Text('Step ${_step + 1} of ${steps.length}: ${steps[_step]}',
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600)),
           ),
           // Content
           Expanded(
@@ -303,12 +383,25 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
           ),
           // Actions
           Container(
-            color: Colors.white,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
             child: Row(
               children: [
                 if (_step > 0) ...[
-                  OutlinedButton(onPressed: () => setState(() => _step--), child: const Icon(Icons.arrow_back)),
+                  OutlinedButton(
+                    onPressed: () => setState(() => _step--),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: theme.colorScheme.primary),
+                    ),
+                    child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: theme.colorScheme.primary, size: 20),
+                  ),
                   const Gap(12),
                 ],
                 Expanded(
@@ -337,22 +430,58 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
 class _SectionTitle extends StatelessWidget {
   final String text;
   const _SectionTitle(this.text);
-  @override Widget build(BuildContext context) => Text(text, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textPrimary, letterSpacing: -0.3));
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
+      text,
+      style: TextStyle(
+        fontWeight: FontWeight.w800,
+        fontSize: 16,
+        color: isDark ? Colors.white : const Color(0xFF0F172A),
+        letterSpacing: -0.3,
+      ),
+    );
+  }
 }
 
 class _InfoTile extends StatelessWidget {
   final String label, value;
   const _InfoTile(this.label, this.value);
-  @override Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.textPrimary))),
-      ],
-    ),
-  );
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PickupChip extends StatelessWidget {
@@ -360,19 +489,42 @@ class _PickupChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   const _PickupChip({required this.label, required this.value, required this.selected, required this.onTap});
-  @override Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppTheme.accentLight : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? AppTheme.accent : AppTheme.border, width: selected ? 2 : 1),
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                : (theme.cardTheme.color ?? theme.cardColor),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? theme.colorScheme.primary
+                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            ),
+          ),
         ),
-        child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AppTheme.accent : AppTheme.textSecondary)),
       ),
-    ),
-  );
+    );
+  }
 }

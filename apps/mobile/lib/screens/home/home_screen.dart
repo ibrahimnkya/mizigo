@@ -14,6 +14,7 @@ import '../../widgets/home/parcel_card.dart';
 import '../../widgets/common/section_header.dart';
 import '../../models/operation_model.dart';
 import '../../widgets/common/shimmer_utils.dart';
+import '../../providers/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = context.read<AuthProvider>();
 
     await parcel.fetchMyParcels();
-    if (auth.user?.role?.toUpperCase() == 'OPERATOR') {
+    if (auth.user?.isStaff ?? false) {
       await parcel.fetchOperatorStats();
     }
   }
@@ -42,16 +43,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = context.watch<AuthProvider>();
     final parcel = context.watch<ParcelProvider>();
     final printer = context.watch<PrinterProvider>();
-    final isOperator = auth.user?.role?.toUpperCase() == 'OPERATOR';
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
+    final isOperator = auth.user?.isStaff ?? false;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppTheme.cBlackMain,
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: _refreshData,
             color: AppTheme.cPrimary,
-            backgroundColor: const Color(0xFF1E293B),
+            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -101,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // 4. Operational Actions Grid (Operator Only)
                 if (isOperator) ...[
                   const SliverToBoxAdapter(
-                    child: SectionHeader(title: "Operator Actions"),
+                    child: SectionHeader(title: "Staff Actions"),
                   ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -126,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _actionCard(
                           label: 'Deliver',
                           imagePath: 'assets/images/3d_deliver.png',
-                          onTap: () => context.push('/deliver-parcel'),
+                          onTap: () => context.push('/scanner', extra: ParcelOperation.deliver),
                         ),
                       ]),
                     ),
@@ -165,12 +168,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
-                // 5. Recent Bookings Header
+                // 5. Recent Parcels / Bookings List
                 SliverToBoxAdapter(
                   child: SectionHeader(
-                    title: "Recent Bookings",
-                    actionLabel: "View All",
-                    onAction: () => context.push('/bookings/recent'),
+                    title: isOperator ? "Recent Shipments" : "Track Parcels",
+                    actionLabel: "View all",
+                    onAction: () => context.go('/bookings'),
                   ),
                 ),
                 // 6. Recent Bookings List
@@ -215,28 +218,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   Widget _buildSearchField() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return TextField(
-      style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+      style: GoogleFonts.inter(
+        color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: const Color(0xFF64748B)),
+        hintStyle: GoogleFonts.inter(
+          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
-        prefixIcon: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
+        fillColor: theme.cardTheme.color ?? theme.colorScheme.surface,
+        prefixIcon: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedSearch01,
+            color: theme.textTheme.bodySmall?.color ?? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            size: 20,
+          ),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
@@ -275,15 +290,17 @@ class _HomeScreenState extends State<HomeScreen> {
     required String imagePath,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.4),
+          color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? (isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.8)),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -298,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               label,
               style: GoogleFonts.outfit(
-                color: Colors.white,
+                color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
@@ -309,6 +326,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   Widget _quickAction({required String label, required dynamic icon, required VoidCallback onTap}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -316,35 +335,56 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
             ),
-            child: HugeIcon(icon: icon, color: Colors.white, size: 24),
+            child: HugeIcon(
+              icon: icon, 
+              color: theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)), 
+              size: 24,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)), 
+              fontSize: 12, 
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(40.0),
       child: Column(
         children: [
-          HugeIcon(icon: HugeIcons.strokeRoundedPackage01, color: Colors.white.withValues(alpha: 0.1), size: 64),
+          HugeIcon(
+            icon: HugeIcons.strokeRoundedPackage01, 
+            color: theme.iconTheme.color?.withValues(alpha: 0.2) ?? (isDark ? Colors.white24 : Colors.black26), 
+            size: 64,
+          ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No recent bookings',
-            style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(
+              color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white70 : const Color(0xFF0F172A)), 
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Start a new shipment to see it here',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            style: GoogleFonts.inter(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)), 
+              fontSize: 13,
+            ),
           ),
         ],
       ),

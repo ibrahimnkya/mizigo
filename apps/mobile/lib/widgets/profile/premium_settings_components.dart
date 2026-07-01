@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -237,43 +239,38 @@ class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF0F172A),
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 8,
-        bottom: 8,
-        left: 8,
-        right: 8,
-      ),
-      child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          onPressed: onBack ?? () => Navigator.of(context).pop(),
-          icon: const HugeIcon(
-            icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: Colors.white,
-            size: 24,
-          ),
+    final theme = Theme.of(context);
+    final appBarTheme = theme.appBarTheme;
+    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
+    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
+
+    return AppBar(
+      backgroundColor: appBarBgColor,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: true,
+      leading: IconButton(
+        onPressed: onBack ?? () => Navigator.of(context).pop(),
+        icon: const HugeIcon(
+          icon: HugeIcons.strokeRoundedArrowLeft01,
+          color: Colors.white,
+          size: 22,
         ),
-        title: Text(
-          title,
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-        actions: actions,
       ),
+      title: Text(
+        title,
+        style: GoogleFonts.outfit(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: appBarTextColor,
+        ),
+      ),
+      actions: actions,
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(72);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class SettingsCTAButton extends StatelessWidget {
@@ -292,25 +289,34 @@ class SettingsCTAButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+    final onPrimaryColor = theme.colorScheme.onPrimary;
+
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: FilledButton(
         onPressed: isLoading ? null : onTap,
         style: FilledButton.styleFrom(
-          backgroundColor: const Color(0xFF3B82F6),
-          disabledBackgroundColor: const Color(0xFF1E293B),
+          backgroundColor: primaryColor,
+          foregroundColor: onPrimaryColor,
+          disabledBackgroundColor: isDark 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : theme.disabledColor.withValues(alpha: 0.12),
+          disabledForegroundColor: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: onPrimaryColor,
                   strokeWidth: 2.5,
                 ),
               )
@@ -318,7 +324,7 @@ class SettingsCTAButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
-                    _buildIcon(),
+                    _buildIcon(onPrimaryColor),
                     const Gap(10),
                   ],
                   Text(
@@ -326,7 +332,7 @@ class SettingsCTAButton extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
-                      color: Colors.white,
+                      color: onPrimaryColor,
                     ),
                   ),
                 ],
@@ -335,13 +341,13 @@ class SettingsCTAButton extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon() {
+  Widget _buildIcon(Color color) {
     if (icon is IconData) {
-      return Icon(icon as IconData, color: Colors.white, size: 20);
+      return Icon(icon as IconData, color: color, size: 20);
     } else if (icon is List<List<dynamic>>) {
       return HugeIcon(
         icon: icon as List<List<dynamic>>,
-        color: Colors.white,
+        color: color,
         size: 20,
       );
     }
@@ -351,63 +357,155 @@ class SettingsCTAButton extends StatelessWidget {
 
 class MizigoToasts {
   static void showSuccess(BuildContext context, String message) {
-    _show(context, message, const Color(0xFF10B981), HugeIcons.strokeRoundedCheckmarkCircle01);
+    _show(
+      context,
+      message,
+      const Color(0xFF10B981),
+      HugeIcons.strokeRoundedCheckmarkCircle01,
+      'Success',
+    );
   }
 
   static void showError(BuildContext context, String message) {
     final displayMessage = message.toLowerCase().contains('api') 
-        ? 'Server Error' 
+        ? 'Server Connection Issue' 
         : message;
         
-    _show(context, displayMessage, const Color(0xFFEF4444), HugeIcons.strokeRoundedAlert01);
+    _show(
+      context,
+      displayMessage,
+      const Color(0xFFEF4444),
+      HugeIcons.strokeRoundedAlert01,
+      'Error',
+    );
   }
 
-  static void _show(BuildContext context, String message, Color statusColor, List<List<dynamic>> icon) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: statusColor.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              HugeIcon(icon: icon, color: statusColor, size: 20),
-              const Gap(12),
-              Expanded(
-                child: Text(
-                  message,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: Colors.white,
-                    letterSpacing: 0.3,
-                  ),
+  static void _show(
+    BuildContext context, 
+    String message, 
+    Color statusColor, 
+    List<List<dynamic>> icon,
+    String type,
+  ) {
+    late final Timer dismissTimer;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      builder: (dialogContext) {
+        dismissTimer = Timer(const Duration(seconds: 3), () {
+          if (Navigator.of(dialogContext).canPop()) {
+            Navigator.of(dialogContext).pop();
+          }
+        });
+
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.2),
+                  width: 1.5,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: statusColor.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icon Container
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Center(
+                      child: HugeIcon(
+                        icon: icon,
+                        color: statusColor,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                  const Gap(16),
+                  // Title Type
+                  Text(
+                    type,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Gap(8),
+                  // Message Text
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      height: 1.4,
+                    ),
+                  ),
+                  const Gap(20),
+                  // Action Close Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: TextButton(
+                      onPressed: () {
+                        dismissTimer.cancel();
+                        Navigator.of(dialogContext).pop();
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.06),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Close',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        padding: EdgeInsets.zero,
-        duration: const Duration(seconds: 3),
-      ),
+        );
+      },
     );
   }
 }

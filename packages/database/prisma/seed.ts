@@ -30,6 +30,9 @@ const ALL_PERMISSIONS = [
   "sms_config:create",
   "sms_config:read",
   "sms_config:approve_sender",
+  "fleet:create",
+  "fleet:update",
+  "fleet:delete",
 ] as const;
 
 const ROLE_PERMISSIONS = {
@@ -45,6 +48,9 @@ const ROLE_PERMISSIONS = {
     "pricing:create",
     "pricing:update",
     "app_versions:create",
+    "fleet:create",
+    "fleet:update",
+    "fleet:delete",
   ],
   OPERATOR: [
     // Operator role is mostly governed by route scoping/auth today.
@@ -83,6 +89,7 @@ async function main() {
     prisma.permission.deleteMany({}),
     prisma.role.deleteMany({}),
     prisma.paymentProvider.deleteMany({}),
+    prisma.vehicle.deleteMany({}),
     prisma.organization.deleteMany({}),
   ]);
 
@@ -189,6 +196,35 @@ async function main() {
     },
   });
 
+  // 5.2) Seed Vehicles/Wagons
+  const vehiclesToSeed = [
+    { plateNumber: "TRC-9021", type: "Standard", class: "Cargo Wagon", carrier: "TRC" },
+    { plateNumber: "TRC-1044", type: "Premium", class: "Locomotive", carrier: "TRC" },
+    { plateNumber: "TRC-3112", type: "Economy", class: "Flatbed", carrier: "TRC" },
+    { plateNumber: "TRC-7590", type: "Heavy Duty", class: "Tanker", carrier: "TRC" },
+  ];
+
+  for (const v of vehiclesToSeed) {
+    await prisma.vehicle.upsert({
+      where: { plateNumber: v.plateNumber },
+      update: {
+        type: v.type,
+        class: v.class,
+        carrier: v.carrier,
+        status: "ACTIVE",
+        organizationId: trcOrg.id,
+      },
+      create: {
+        plateNumber: v.plateNumber,
+        type: v.type,
+        class: v.class,
+        carrier: v.carrier,
+        status: "ACTIVE",
+        organizationId: trcOrg.id,
+      },
+    });
+  }
+
   // 5.5) Create SGR Portal Integration Config
   await prisma.integration.upsert({
     where: { id: "sgr-portal-default-integration" },
@@ -218,6 +254,84 @@ async function main() {
       }
     }
   });
+
+  // 5.6) Create default SMS Gateway config
+  await prisma.integration.upsert({
+    where: { id: "default-sms-gateway-integration" },
+    update: {
+      name: "Sprint SMS",
+      type: "SMS_GATEWAY",
+      isActive: true,
+      config: {
+        baseUrl: process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
+        apiId: process.env.API_ID || "API45908501712",
+        apiPassword: process.env.API_PASSWORD || "HdWpiSsvcG",
+        defaultSenderId: process.env.SENDER_ID || "MIZIGO",
+      }
+    },
+    create: {
+      id: "default-sms-gateway-integration",
+      name: "Sprint SMS",
+      type: "SMS_GATEWAY",
+      isActive: true,
+      config: {
+        baseUrl: process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
+        apiId: process.env.API_ID || "API45908501712",
+        apiPassword: process.env.API_PASSWORD || "HdWpiSsvcG",
+        defaultSenderId: process.env.SENDER_ID || "MIZIGO",
+      }
+    }
+  });
+
+  // 5.7) Create default Payment Gateway config
+  await prisma.integration.upsert({
+    where: { id: "default-payment-gateway-integration" },
+    update: {
+      name: "MySafari Pay",
+      type: "PAYMENT_GATEWAY",
+      isActive: true,
+      config: {
+        baseUrl: process.env.PAYMENT_GATEWAY_URL || "https://mysafari.co.tz",
+        apiKey: process.env.PAYMENT_GATEWAY_KEY || "TEST-API-KEY-12345",
+      }
+    },
+    create: {
+      id: "default-payment-gateway-integration",
+      name: "MySafari Pay",
+      type: "PAYMENT_GATEWAY",
+      isActive: true,
+      config: {
+        baseUrl: process.env.PAYMENT_GATEWAY_URL || "https://mysafari.co.tz",
+        apiKey: process.env.PAYMENT_GATEWAY_KEY || "TEST-API-KEY-12345",
+      }
+    }
+  });
+
+  // 5.8) Seed Payment Providers
+  const providersToSeed = [
+    { code: "Tigo", name: "Tigo Pesa", description: "Tigo Pesa Mobile Money" },
+    { code: "Airtel", name: "Airtel Money", description: "Airtel Money Mobile Money" },
+    { code: "Halopesa", name: "HaloPesa", description: "Halotel HaloPesa Mobile Money" },
+    { code: "Vodacom", name: "M-Pesa", description: "Vodacom M-Pesa Mobile Money" },
+    { code: "Azampesa", name: "AzamPesa", description: "AzamPesa Mobile Payment" },
+  ];
+
+  for (const p of providersToSeed) {
+    await prisma.paymentProvider.upsert({
+      where: { code: p.code },
+      update: {
+        name: p.name,
+        description: p.description,
+        isActive: true,
+      },
+      create: {
+        code: p.code,
+        name: p.name,
+        description: p.description,
+        isActive: true,
+      },
+    });
+  }
 
   // 6) Seed Stations
   const stationsToSeed = [
@@ -412,6 +526,148 @@ async function main() {
   //     },
   //   });
   // }
+
+  // 11) Seed Default System Configs (Parcel types, conditions, and package sizes)
+  const defaultConfigs = [
+    {
+      key: "DEFAULT_SYSTEM_FEE",
+      value: "500",
+      description: "Default platform transaction fee per parcel",
+    },
+    {
+      key: "SMS_TEMPLATE_RECEIPT_SENDER",
+      value: "Mzigo wako umepokelewa\n\nNamba ya Mzigo: {trackingNumber}\n\nAina ya Mzigo: {packageName}\n\nJina la Mpokeaji: {receiverName}\n\nNamba ya Siri: {otp}\n\nJina la Karani: {agentName}\n\n\nKufatilia Safari ya  Mzigo wako. \n\n{trackingUrl}",
+      description: "SMS template sent to the sender when parcel is received",
+    },
+    {
+      key: "SMS_TEMPLATE_RECEIPT_RECEIVER",
+      value: "Habari {receiverName}!\n\nUmetumiwa mzigo wa {packageName}.\n\nNamba ya Mzigo: {trackingNumber}\nMtumaji: {senderName}\nSafari: {originName} - {destinationName}\nOfisi ya Kupokea: {destinationName}\n\nTafadhali fika na Namba ya Siri (OTP) kupokea mzigo wako.\n\nJina la Wakala: {agentName}\nSimu ya Wakala: {agentPhone}\n\nAsante kwa kutumia {orgName}! Kwa msaada zaidi, tupigie: {helpdesk}\n\nKufatilia Safari ya Mzigo wako: {trackingUrl}",
+      description: "SMS template sent to the receiver when parcel is received",
+    },
+    {
+      key: "SMS_TEMPLATE_DISPATCH",
+      value: "Mzigo Umetumwa\n\nMpendwa {receiverName}, mzigo namba {trackingNumber} umetoka {originName} kwenda {destinationName} na gari la {carrierName}.\nMsafirishaji: {dispatcherName} Simu ya Msafirishaji {dispatcherPhone}\nNamba ya Siri (OTP): {otp}\n\nAsante kwa kutumia {orgName}! Kufatilia Safari ya Mzigo: {trackingUrl}\nKwa msaada zaidi, tupigie: {support}",
+      description: "SMS template sent to the receiver when parcel is dispatched",
+    },
+    {
+      key: "SMS_TEMPLATE_ARRIVED",
+      value: "Mzigo wako umewasili.\nNamba ya Mzigo: {trackingNumber}\nJina la Mtumaji: {senderName}\nAina ya Mzigo: {packageName}\nKwajili ya usalama,OTP ya kupokea mzigo imehifadhiwa kwa mtumaji, tafadhali wasiliana na mtumaji kabla ya kuchukua mzigo wako.\nKufatilia Safari ya Mzigo: {trackingUrl}\n\nAsante kwa kutuma Mzigo kupitia TRC.",
+      description: "SMS template sent to the receiver when parcel is offloaded/arrived",
+    },
+    {
+      key: "SMS_TEMPLATE_DELIVERY_OTP",
+      value: "🔐 Mizigo Secure: Your pickup OTP for #{trackingNumber} is {otp}. Do not share this code. Present it at the station to collect your parcel.",
+      description: "SMS template for secure handover pickup OTP",
+    },
+    {
+      key: "PARCEL_TYPES",
+      value: JSON.stringify([
+        "Document",
+        "Envelope",
+        "Small package",
+        "Medium package",
+        "Large package",
+        "Fragile item",
+        "Commercial Goods",
+        "Cargo",
+        "Perishable Goods",
+        "Other"
+      ]),
+      description: "Available parcel classification types",
+    },
+    {
+      key: "PARCEL_CONDITIONS",
+      value: JSON.stringify([
+        "Intact",
+        "Minor Damage",
+        "Damaged",
+        "Opened/Tampered",
+        "Wet",
+        "Crushed",
+        "Leaking",
+        "Spoiled",
+        "Broken",
+        "Not inspected"
+      ]),
+      description: "Package condition status values",
+    },
+    {
+      key: "PACKAGE_SIZES",
+      value: JSON.stringify([
+        "Document",
+        "Small Parcel",
+        "Medium Parcel",
+        "Large Parcel",
+        "Oversized Parcel",
+        "Cargo Item",
+        "Bulk Cargo"
+      ]),
+      description: "Available package volume/size categories",
+    },
+  ];
+
+  for (const cfg of defaultConfigs) {
+    const existing = await prisma.systemConfig.findFirst({
+      where: { key: cfg.key, organizationId: null },
+    });
+    if (existing) {
+      await prisma.systemConfig.update({
+        where: { id: existing.id },
+        data: {
+          value: cfg.value,
+          description: cfg.description,
+        },
+      });
+    } else {
+      await prisma.systemConfig.create({
+        data: {
+          key: cfg.key,
+          value: cfg.value,
+          description: cfg.description,
+          organizationId: null,
+        },
+      });
+    }
+  }
+
+  // 12) Create Default Service Types
+  const defaultServiceTypes = [
+    {
+      name: "Parcel insurance",
+      description: "protection against loss, damage or theft",
+      basePrice: 5000,
+      isActive: true,
+    },
+    {
+      name: "Secure Packaging",
+      description: "bubble wrap, secure box sealing, nylon packing, palettes",
+      basePrice: 8000,
+      isActive: true,
+    },
+    {
+      name: "Special Handling",
+      description: "priority placement, fragile sticker and padding",
+      basePrice: 6000,
+      isActive: true,
+    },
+  ];
+
+  for (const s of defaultServiceTypes) {
+    await prisma.serviceType.upsert({
+      where: { name: s.name },
+      update: {
+        description: s.description,
+        basePrice: s.basePrice,
+        isActive: s.isActive,
+      },
+      create: {
+        name: s.name,
+        description: s.description,
+        basePrice: s.basePrice,
+        isActive: s.isActive,
+      },
+    });
+  }
 
   console.log("✅ Seed complete. TRC Test environment ready.");
 }

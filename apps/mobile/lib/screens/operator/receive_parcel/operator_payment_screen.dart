@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import '../../../services/api_service.dart';
 import '../../../theme/app_theme.dart';
 
@@ -16,10 +17,15 @@ class OperatorPaymentScreen extends StatefulWidget {
 }
 
 class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
-  String _paymentMethod = 'Mobile Money';
   bool _loading = false;
   double _calculatedPrice = 0.0;
-  bool _hasError = false; // Track error for progress dots
+  bool _hasError = false;
+
+  final double _baseFare = 5000.0;
+  double _weightCharge = 0.0;
+  double _sizeSurcharge = 0.0;
+  double _urgencyPremium = 0.0;
+  double _additionalServicesCost = 0.0;
 
   @override
   void initState() {
@@ -30,17 +36,44 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
   void _calculatePrice() {
     final weightStr = widget.packageData['weight']?.toString() ?? '1';
     final weight = double.tryParse(weightStr) ?? 1.0;
-    double base = 5000.0;
-    base += (weight * 1000.0);
+    _weightCharge = weight * 1000.0;
+
     final size = widget.packageData['packageSize']?.toString() ?? '';
-    if (size.contains('Size 1')) { base += 2000; }
-    else if (size.contains('Size 2')) { base += 5000; }
-    else if (size.contains('Size 3')) { base += 10000; }
+    if (size.contains('Size 1')) {
+      _sizeSurcharge = 2000.0;
+    } else if (size.contains('Size 2')) {
+      _sizeSurcharge = 5000.0;
+    } else if (size.contains('Size 3')) {
+      _sizeSurcharge = 10000.0;
+    } else {
+      _sizeSurcharge = 0.0;
+    }
+
+    double subtotal = _baseFare + _weightCharge + _sizeSurcharge;
+
     final urgency = widget.packageData['urgency']?.toString() ?? '';
-    if (urgency == 'Express') { base *= 1.5; }
-    else if (urgency == 'MGR') { base *= 2.0; }
+    double multiplier = 1.0;
+    if (urgency == 'Express') {
+      multiplier = 1.5;
+    } else if (urgency == 'MGR') {
+      multiplier = 2.0;
+    }
+
+    _urgencyPremium = subtotal * (multiplier - 1.0);
+
+    // Calculate additional services cost
+    _additionalServicesCost = 0.0;
+    if (widget.packageData['additionalServices'] != null) {
+      final List<dynamic> services = widget.packageData['additionalServices'] as List<dynamic>;
+      for (final serviceId in services) {
+        if (serviceId == 'insurance') _additionalServicesCost += 3000.0;
+        if (serviceId == 'packaging') _additionalServicesCost += 2000.0;
+        if (serviceId == 'fragile') _additionalServicesCost += 2500.0;
+      }
+    }
+
     setState(() {
-      _calculatedPrice = base;
+      _calculatedPrice = (subtotal * multiplier) + _additionalServicesCost;
     });
   }
 
@@ -48,31 +81,38 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
     setState(() => _loading = true);
     try {
       final totalAmount = _calculatedPrice;
-      // "Receiver Pays" is disabled, so it's always full amount now.
-      final advanceAmount = totalAmount;
-      final balanceAmount = 0.0;
 
       final payload = {
         'senderName': widget.packageData['senderName'],
         'senderPhone': widget.packageData['senderPhone'],
         'receiverName': widget.packageData['receiverName'],
         'receiverPhone': widget.packageData['receiverPhone'],
-        'origin': widget.packageData['originStation'],
-        'destination': widget.packageData['destinationStation'],
+        'receivingStationId': widget.packageData['originStationId'],
+        'destinationStationId': widget.packageData['destinationStationId'],
+        'packageName': widget.packageData['packageName'],
+        'declaredValue': double.tryParse(widget.packageData['packageValue']?.toString() ?? '0') ?? 0.0,
+        'packageSize': widget.packageData['packageSize'],
         'description': widget.packageData['parcelDescription'] ?? widget.packageData['packageName'],
-        'weight': widget.packageData['weight'],
-        'type': 'OPERATOR_RECEPTION',
-        'totalPrice': totalAmount,
-        'advanceAmount': advanceAmount,
-        'balanceAmount': balanceAmount,
-        'paymentMethod': _paymentMethod,
+        'weight': double.tryParse(widget.packageData['weight']?.toString() ?? '1.0') ?? 1.0,
+        'isPaid': true,
+        'paymentMode': 'PAY_AS_YOU_GO',
         'condition': widget.packageData['condition'],
         'parcelType': widget.packageData['parcelType'],
         'urgency': widget.packageData['urgency'],
+        'additionalServices': widget.packageData['additionalServices'],
       };
-      await ApiService.receiveParcel(payload);
+      final result = await ApiService.receiveParcel(payload);
       if (mounted) {
-        context.push('/operator-receive/success', extra: payload);
+        // API wraps response under result['data']
+        final data = result['data'] as Map<String, dynamic>? ?? result;
+        final parcel = data['parcel'] as Map<String, dynamic>? ?? {};
+        final successPayload = {
+          ...payload,
+          'id': parcel['id'] ?? data['id'],
+          'trackingId': parcel['trackingNumber'] ?? data['trackingNumber'] ?? parcel['id'],
+          'amount': data['pricing']?['amount'] ?? totalAmount,
+        };
+        context.push('/operator-receive/success', extra: successPayload);
       }
     } catch (e) {
       if (mounted) {
@@ -86,72 +126,27 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
     }
   }
 
-  Widget _buildPaymentOption(String title, Widget iconWidget, String description, bool isDark) {
-    bool isSelected = _paymentMethod == title;
-    return GestureDetector(
-      onTap: () => setState(() => _paymentMethod = title),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF3B82F6) : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
-            width: isSelected ? 2 : 1,
+  Widget _buildBreakdownRow(String label, double amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppTheme.textSecondary,
+            fontWeight: FontWeight.w500,
           ),
-          boxShadow: isSelected
-              ? [BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))]
-              : null,
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF3B82F6) : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9)),
-                shape: BoxShape.circle,
-              ),
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  iconTheme: IconThemeData(
-                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF64748B)),
-                    size: 24,
-                  ),
-                ),
-                child: iconWidget,
-              ),
-            ),
-            const Gap(16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
-                    ),
-                  ),
-                  const Gap(4),
-                  Text(
-                    description,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Icon(Icons.check_circle, color: Color(0xFF3B82F6), size: 24)
-            else
-              Icon(Icons.circle_outlined, color: isDark ? Colors.white24 : const Color(0xFFCBD5E1), size: 24),
-          ],
+        Text(
+          'TZS ${NumberFormat('#,###').format(amount)}',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -165,9 +160,14 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
         minChildSize: 0.4,
         maxChildSize: 0.88,
         builder: (ctx, scrollCtrl) => Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF0F172A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border(
+              top: BorderSide(color: AppTheme.border),
+              left: BorderSide(color: AppTheme.border),
+              right: BorderSide(color: AppTheme.border),
+            ),
           ),
           child: Column(
             children: [
@@ -175,7 +175,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
               Center(
                 child: Container(
                   width: 40, height: 4,
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               Padding(
@@ -185,12 +185,12 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                        color: AppTheme.accent.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: const HugeIcon(
+                      child: HugeIcon(
                         icon: HugeIcons.strokeRoundedCreditCard,
-                        color: Color(0xFF3B82F6),
+                        color: AppTheme.accent,
                         size: 22,
                       ),
                     ),
@@ -201,18 +201,18 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                         children: [
                           Text(
                             'Step 3 — Payment',
-                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
+                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                           ),
                           Text(
                             'How payment is collected',
-                            style: GoogleFonts.inter(fontSize: 13, color: Colors.white38),
+                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white38, size: 22),
+                      icon: Icon(Icons.close_rounded, color: AppTheme.textSecondary, size: 22),
                     ),
                   ],
                 ),
@@ -223,19 +223,14 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   children: [
                     _helpRow(
-                      HugeIcons.strokeRoundedSmartPhone01,
-                      'Mobile Money',
-                      'The sender pays the full amount now via Mobile Money (M-Pesa, Airtel Money, etc.). No balance is left unpaid.',
-                    ),
-                    _helpRow(
-                      Icons.attach_money, // Changed from Dollar Icon
+                      HugeIcons.strokeRoundedCoins01,
                       'Price Calculation',
-                      'Price is calculated based on weight (TZS 1,000/kg), package size surcharge, and urgency multiplier (Express ×1.5, MGR ×2.0).',
+                      'Price is calculated based on weight (TZS 1,000/kg), package size surcharge, and delivery priority multiplier (Express ×1.5, MGR ×2.0).',
                     ),
                     _helpRow(
                       HugeIcons.strokeRoundedPrinter,
-                      'Receipt',
-                      'After confirming payment, a receipt will be generated and can be printed immediately. Always print a copy for the sender.',
+                      'Print Receipt',
+                      'Tap "Print Receipt" to register the parcel and print a receipt for the sender. Payment collection will be handled separately.',
                     ),
                   ],
                 ),
@@ -248,7 +243,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                   child: FilledButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: AppTheme.cPrimary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text(
@@ -274,20 +269,20 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
+              color: AppTheme.background,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              border: Border.all(color: AppTheme.border),
             ),
-            child: HugeIcon(icon: icon, color: const Color(0xFF3B82F6), size: 18),
+            child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 18),
           ),
           const Gap(14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
+                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
                 const Gap(3),
-                Text(body, style: GoogleFonts.inter(fontSize: 13, color: Colors.white38, height: 1.5)),
+                Text(body, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
               ],
             ),
           ),
@@ -300,10 +295,13 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final advanceAmount = _calculatedPrice; // Full amount always
+    final appBarTheme = theme.appBarTheme;
+    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
+    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
+    final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
 
     return Scaffold(
-      backgroundColor: AppTheme.cBlackMain,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           Container(
@@ -313,12 +311,12 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
               left: 20,
               right: 20,
             ),
-            color: const Color(0xFF0F172A),
+            color: appBarBgColor,
             child: Row(
               children: [
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 24),
+                  child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: appBarIconColor, size: 24),
                 ),
                 const Gap(16),
                 Text(
@@ -326,7 +324,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: appBarTextColor,
                   ),
                 ),
                 const Spacer(),
@@ -340,8 +338,8 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                       height: 6,
                       decoration: BoxDecoration(
                         color: isActive 
-                          ? (_hasError ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)) 
-                          : Colors.white24,
+                          ? (_hasError ? AppTheme.danger : AppTheme.accent) 
+                          : appBarTextColor.withValues(alpha: 0.24),
                         borderRadius: BorderRadius.circular(3),
                       ),
                     );
@@ -350,7 +348,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                 const Gap(12),
                 GestureDetector(
                   onTap: () => _showPaymentHelp(context),
-                  child: const HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: Colors.white, size: 22),
+                  child: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: appBarIconColor, size: 22),
                 ),
               ],
             ),
@@ -382,7 +380,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Amount to Collect',
+                          'Amount to be Paid',
                           style: GoogleFonts.inter(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 14,
@@ -403,7 +401,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                             ),
                             const Gap(8),
                             Text(
-                              advanceAmount.toStringAsFixed(0),
+                              NumberFormat('#,###').format(_calculatedPrice),
                               style: GoogleFonts.outfit(
                                 color: Colors.white,
                                 fontSize: 40,
@@ -427,11 +425,15 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                                 'Route',
                                 style: GoogleFonts.inter(color: Colors.white70, fontSize: 13),
                               ),
-                              Text(
-                                '${widget.packageData['originStation']} ➔ ${widget.packageData['destinationStation']}',
-                                style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              const Gap(16),
+                              Expanded(
+                                child: Text(
+                                  '${widget.packageData['originStation']} ➔ ${widget.packageData['destinationStation']}',
+                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.right,
+                                ),
                               ),
                             ],
                           ),
@@ -439,32 +441,86 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                       ],
                     ),
                   ),
-                  const Gap(32),
-                  Text(
-                    'Payment Method',
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  const Gap(20),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
+                      boxShadow: isDark ? null : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cost Breakdown',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const Gap(16),
+                        _buildBreakdownRow('Base Fare', _baseFare),
+                        const Gap(12),
+                        _buildBreakdownRow('Weight Charge (${widget.packageData['weight'] ?? 1} kg)', _weightCharge),
+                        if (_sizeSurcharge > 0) ...[
+                          const Gap(12),
+                          _buildBreakdownRow('Size Surcharge (${widget.packageData['packageSize'] ?? 'Standard'})', _sizeSurcharge),
+                        ],
+                        if (_urgencyPremium > 0) ...[
+                          const Gap(12),
+                          _buildBreakdownRow('Delivery Priority Premium (${widget.packageData['urgency'] ?? 'Normal'})', _urgencyPremium),
+                        ],
+                        if (widget.packageData['additionalServices'] != null) ...[
+                          ...(widget.packageData['additionalServices'] as List<dynamic>).map((s) {
+                            String name = '';
+                            double price = 0.0;
+                            if (s == 'insurance') { name = 'Cargo Insurance'; price = 3000.0; }
+                            if (s == 'packaging') { name = 'Secure Packaging'; price = 2000.0; }
+                            if (s == 'fragile') { name = 'Special Handling'; price = 2500.0; }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: _buildBreakdownRow(name, price),
+                            );
+                          }),
+                        ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Divider(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0), height: 1),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Cost',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              'TZS ${NumberFormat('#,###').format(_calculatedPrice)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const Gap(16),
-                  _buildPaymentOption(
-                    'Mobile Money',
-                    const HugeIcon(icon: HugeIcons.strokeRoundedSmartPhone01, color: Colors.transparent),
-                    'Full payment via M-Pesa, Tigo or Airtel',
-                    isDark,
-                  ),
-                  const Gap(16),
-                  // "Receiver Pays" (To Pay) is disabled for now.
-                  /*
-                  _buildPaymentOption(
-                    'Receiver Pays',
-                    const HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: Colors.transparent),
-                    '50% Advance now, 50% on Delivery',
-                    isDark,
-                  ),
-                  */
+                  const Gap(24),
                 ],
               ),
             ),
@@ -503,16 +559,16 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.white, size: 20),
+                          const Gap(8),
                           Text(
-                            'Confirm & Receive Parcel',
+                            'Print Receipt',
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
-                          const Gap(8),
-                          const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.white, size: 20),
                         ],
                       ),
               ),

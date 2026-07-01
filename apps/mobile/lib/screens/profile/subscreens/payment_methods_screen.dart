@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/payment_provider.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
 
 class PaymentMethodsScreen extends StatelessWidget {
   const PaymentMethodsScreen({super.key});
@@ -95,19 +96,8 @@ class PaymentMethodsScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: theme.iconTheme.color),
-        title: Text(
-          'Payment Methods',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: theme.textTheme.titleLarge?.color,
-          ),
-        ),
+      appBar: const SettingsAppBar(
+        title: 'Payment Methods',
       ),
       body: Consumer<PaymentProvider>(
         builder: (context, provider, child) {

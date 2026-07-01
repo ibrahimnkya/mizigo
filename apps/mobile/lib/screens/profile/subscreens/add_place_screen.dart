@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
+import '../../../widgets/profile/premium_settings_components.dart';
 
 class AddPlaceScreen extends StatefulWidget {
   final String placeType;
@@ -41,21 +42,11 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
-        title: Text(
-          _getTitle(),
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1E293B),
-          ),
-        ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: SettingsAppBar(
+        title: _getTitle(),
       ),
       body: Column(
         children: [

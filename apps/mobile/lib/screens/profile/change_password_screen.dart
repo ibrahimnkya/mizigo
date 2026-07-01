@@ -88,9 +88,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final user = auth.user;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppTheme.cBlackMain,
       body: Stack(
         children: [
           // Decorative Wheel Background
@@ -133,7 +134,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                             height: 1.1,
                           ),
                         ),
@@ -166,12 +167,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.03),
                       blurRadius: 40,
                       offset: const Offset(0, 20),
                     ),
@@ -221,8 +224,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF1E293B).withValues(alpha: 0),
-                    const Color(0xFF1E293B),
+                    (isDark ? const Color(0xFF1E293B) : theme.scaffoldBackgroundColor).withValues(alpha: 0),
+                    (isDark ? const Color(0xFF1E293B) : theme.scaffoldBackgroundColor),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -256,19 +259,31 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Widget _buildBackButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: () => context.pop(),
       borderRadius: BorderRadius.circular(15),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0),
+          ),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
-        child: const HugeIcon(
+        child: HugeIcon(
           icon: HugeIcons.strokeRoundedArrowLeft01,
-          color: Colors.white,
+          color: isDark ? Colors.white : const Color(0xFF475569),
           size: 22,
         ),
       ),
@@ -304,15 +319,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             focusNode: focusNode,
             obscureText: obscureText,
             onChanged: (v) => setState(() {}),
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
+              fontSize: 16,
+            ),
             decoration: InputDecoration(
               border: InputBorder.none,
-              prefixIcon: HugeIcon(icon: icon, color: Colors.white54, size: 20),
+              prefixIcon: HugeIcon(
+                icon: icon,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFF64748B),
+                size: 20,
+              ),
               suffixIcon: IconButton(
                 onPressed: onToggleObscure,
                 icon: HugeIcon(
                   icon: obscureText ? HugeIcons.strokeRoundedView : HugeIcons.strokeRoundedViewOff,
-                  color: Colors.white38,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white38 : const Color(0xFF94A3B8),
                   size: 20,
                 ),
               ),

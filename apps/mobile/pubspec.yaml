@@ -9,7 +9,7 @@ environment:
 dependencies:
   cached_network_image: ^3.4.1
   country_picker: ^2.0.27
-  device_info_plus: ^12.3.0
+  device_info_plus: ^13.1.0
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
   flutter:
@@ -33,7 +33,7 @@ dependencies:
   provider: ^6.1.5+1
   shared_preferences: ^2.5.4
   shimmer: ^3.0.0
-  print_bluetooth_thermal: ^1.1.0
+  print_bluetooth_thermal: ^1.2.2
   esc_pos_utils_plus: ^2.0.3
   permission_handler: ^12.0.1
   image: ^4.3.0
@@ -49,3 +49,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/bg/

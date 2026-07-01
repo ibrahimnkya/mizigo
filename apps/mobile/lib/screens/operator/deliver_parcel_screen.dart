@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:go_router/go_router.dart';
 import '../../models/parcel_model.dart';
 import '../../models/operation_model.dart';
@@ -62,25 +61,28 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Enter Handover Code', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: isDark ? BorderSide.none : const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        title: Text('Enter Handover Code', style: GoogleFonts.outfit(color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Ask the recipient for the 4-digit code sent to their phone.', 
-              style: GoogleFonts.inter(color: Colors.white60, fontSize: 13)),
+              style: GoogleFonts.inter(color: isDark ? Colors.white60 : const Color(0xFF64748B), fontSize: 13)),
             const Gap(20),
             TextField(
               controller: otpController,
               keyboardType: TextInputType.number,
               maxLength: 4,
               textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8),
+              style: GoogleFonts.outfit(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8),
               decoration: InputDecoration(
                 counterText: '',
                 filled: true,
-                fillColor: Colors.black26,
+                fillColor: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
               ),
             ),
@@ -131,17 +133,17 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
           'Deliver Parcel',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 20),
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -182,9 +184,19 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                  border: Border.all(
+                    color: const Color(0xFF3B82F6), 
+                    width: 2,
+                  ),
+                  boxShadow: isDark ? null : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,14 +224,14 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
                     const Gap(16),
                     Text(
                       _foundParcel!.receiverName,
-                      style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                     ),
                     Text(
                       _foundParcel!.receiverPhone,
-                      style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF94A3B8)),
+                      style: GoogleFonts.inter(fontSize: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                     const Gap(16),
-                    const Divider(color: Color(0xFF334155)),
+                    Divider(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     const Gap(16),
                     _buildDetailRow(HugeIcons.strokeRoundedPackage, 'Description', _foundParcel!.description),
                     const Gap(12),
@@ -256,14 +268,15 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
   }
 
   Widget _buildSearchField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: _searchController,
       onSubmitted: (_) => _search(),
       textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+      style: GoogleFonts.inter(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: const Color(0xFF64748B)),
+        hintStyle: GoogleFonts.inter(color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -277,18 +290,18 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
           borderSide: BorderSide.none,
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
         prefixIcon: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
         ),
         suffixIcon: _searching 
-          ? const Padding(
-              padding: EdgeInsets.all(12.0),
+          ? Padding(
+              padding: const EdgeInsets.all(12.0),
               child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.cPrimary, strokeWidth: 2)),
             )
           : IconButton(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppTheme.cPrimary),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppTheme.cPrimary),
               onPressed: _search,
             ),
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -332,6 +345,7 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
   }
 
   Widget _buildDetailRow(List<List<dynamic>> icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         HugeIcon(icon: icon, color: const Color(0xFF64748B), size: 18),
@@ -340,7 +354,7 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B), fontWeight: FontWeight.w600)),
-            Text(value, style: GoogleFonts.inter(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500)),
+            Text(value, style: GoogleFonts.inter(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A), fontWeight: FontWeight.w500)),
           ],
         ),
       ],
@@ -348,31 +362,33 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
   }
 
   void _showHelp(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Color(0xFF0F172A),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          border: isDark ? null : Border.all(color: const Color(0xFFE2E8F0)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Gap(8),
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(2)))),
             const Gap(24),
             Text(
               'Delivery Guide',
-              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white),
+              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             const Gap(8),
             Text(
               'Follow these steps to ensure secure parcel handover.',
-              style: GoogleFonts.inter(color: Colors.white38, fontSize: 14),
+              style: GoogleFonts.inter(color: isDark ? Colors.white38 : const Color(0xFF64748B), fontSize: 14),
             ),
             const Gap(32),
             Expanded(
@@ -391,7 +407,7 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
                   _helpItem(
                     'Payment Status',
                     'For "Receiver Pays" parcels, ensure the amount is paid in full before releasing the package.',
-                    HugeIcons.strokeRoundedMoney01,
+                    HugeIcons.strokeRoundedCoins01,
                   ),
                   _helpItem(
                     'Finalize Handover',
@@ -421,6 +437,7 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
   }
 
   Widget _helpItem(String title, String desc, dynamic icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -429,9 +446,9 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),
+              color: isDark ? Colors.white.withValues(alpha: 0.03) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
             ),
             child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 22),
           ),
@@ -442,12 +459,12 @@ class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                 ),
                 const Gap(4),
                 Text(
                   desc,
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.white38, height: 1.5),
+                  style: GoogleFonts.inter(fontSize: 13, color: isDark ? Colors.white38 : const Color(0xFF64748B), height: 1.5),
                 ),
               ],
             ),

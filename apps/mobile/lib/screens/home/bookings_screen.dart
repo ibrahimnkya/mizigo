@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/parcel_model.dart';
 import '../../providers/parcel_provider.dart';
-import '../../widgets/home/premium_ui_components.dart';
 import 'recent_bookings_screen.dart'; // for BookingListCard
 
 class BookingsScreen extends StatefulWidget {
@@ -21,7 +20,6 @@ class BookingsScreen extends StatefulWidget {
 class _BookingsScreenState extends State<BookingsScreen> {
   late String _selectedFilter;
   int _pageSize = 20;
-  bool _searchOpen = false;
   final _searchController = TextEditingController();
   final _searchFocus = FocusNode();
   String _searchQuery = '';
@@ -63,20 +61,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
     _searchController.dispose();
     _searchFocus.dispose();
     super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _searchOpen = !_searchOpen;
-      if (!_searchOpen) {
-        _searchController.clear();
-        _searchQuery = '';
-      } else {
-        Future.delayed(const Duration(milliseconds: 80), () {
-          _searchFocus.requestFocus();
-        });
-      }
-    });
   }
 
   List<ParcelModel> _applyFilter(List<ParcelModel> all) {
@@ -130,76 +114,69 @@ class _BookingsScreenState extends State<BookingsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        titleSpacing: 20,
-        title: _searchOpen
-            ? TextField(
-                controller: _searchController,
-                focusNode: _searchFocus,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Search by ID, parcel, address…',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: const Color(0xFF94A3B8),
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                textInputAction: TextInputAction.search,
-              )
-            : Text(
-                'Bookings',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 24,
-                  color: theme.textTheme.headlineSmall?.color,
-                ),
-              ),
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        centerTitle: false,
-        actions: [
-          IconButton(
-            onPressed: _toggleSearch,
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: _searchOpen
-                  ? Icon(
-                      Icons.close_rounded,
-                      key: const ValueKey('close'),
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
-                      size: 22,
-                    )
-                  : Container(
-                      key: const ValueKey('search'),
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border:
-                            Border.all(color: theme.dividerColor, width: 1.5),
-                      ),
-                      child: Center(
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSearch01,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1E293B),
-                          size: 18,
-                        ),
-                      ),
-                    ),
+        titleSpacing: 20,
+        leadingWidth: context.canPop() ? 56 : 0,
+        leading: context.canPop()
+            ? IconButton(
+                onPressed: () => context.pop(),
+                icon: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowLeft01,
+                    size: 16,
+                    color: theme.appBarTheme.iconTheme?.color ?? Colors.white,
+                  ),
+                ),
+              )
+            : const SizedBox.shrink(),
+        title: Row(
+          children: [
+            Text(
+              'My Bookings',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                fontSize: 26,
+                color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white,
+              ),
             ),
-          ),
-          const Gap(4),
-        ],
+            const Gap(10),
+            Consumer<ParcelProvider>(
+              builder: (context, provider, _) {
+                if (provider.loading || provider.parcels.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                final isBlueAppBar = theme.appBarTheme.backgroundColor != null && theme.appBarTheme.backgroundColor != Colors.transparent;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isBlueAppBar 
+                        ? Colors.white.withValues(alpha: 0.2) 
+                        : theme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${provider.parcels.length}',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: isBlueAppBar ? Colors.white : theme.primaryColor,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        centerTitle: false,
       ),
       body: Consumer<ParcelProvider>(
         builder: (context, provider, _) {
@@ -212,133 +189,148 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
           return Column(
             children: [
-              // ── Sub-header: pagination info + filters ─────────────
-              Container(
-                color: theme.appBarTheme.backgroundColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Pagination / result count strip
-                    if (!provider.loading && provider.error == null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF1E3A5F)
-                                    : const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                _searchQuery.isNotEmpty
-                                    ? '${filtered.length} result${filtered.length == 1 ? '' : 's'}'
-                                    : 'Showing ${paged.length} of ${provider.parcels.length}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2563EB),
-                                ),
-                              ),
-                            ),
-                            if (_searchQuery.isNotEmpty) ...[
-                              const Gap(8),
-                              GestureDetector(
-                                onTap: () {
-                                  _searchController.clear();
-                                  _toggleSearch();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? const Color(0xFF1C1917)
-                                        : const Color(0xFFFFF7ED),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        '"$_searchQuery"',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: const Color(0xFFD97706),
-                                        ),
-                                      ),
-                                      const Gap(4),
-                                      const Icon(
-                                        Icons.close_rounded,
-                                        size: 12,
-                                        color: Color(0xFFD97706),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
+              // ── Dedicated Premium Search Bar ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocus,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      hintText: 'Search by ID, parcel, address…',
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                      ),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          size: 18,
                         ),
                       ),
-
-                    // Filter chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                      child: Row(
-                        children: _filters.map((filter) {
-                          final isSelected = _selectedFilter == filter;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: InkWell(
-                              onTap: () => setState(() {
-                                _selectedFilter = filter;
-                                _pageSize = 20;
-                              }),
-                              borderRadius: BorderRadius.circular(24),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? theme.primaryColor
-                                      : theme.cardColor,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Text(
-                                  filter,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w700
-                                        : FontWeight.w600,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : const Color(0xFF64748B),
-                                  ),
-                                ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                              icon: Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          width: 1.5,
+                        ),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(
+                          color: theme.primaryColor,
+                          width: 1.5,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                     ),
-                  ],
+                    textInputAction: TextInputAction.search,
+                  ),
                 ),
               ),
 
-              // ── List ─────────────────────────────────────────────────
+              // ── Filter chips ──
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: Row(
+                  children: _filters.map((filter) {
+                    final isSelected = _selectedFilter == filter;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: InkWell(
+                        onTap: () => setState(() {
+                          _selectedFilter = filter;
+                          _pageSize = 20;
+                        }),
+                        borderRadius: BorderRadius.circular(24),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? theme.primaryColor
+                                : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isSelected
+                                  ? theme.primaryColor
+                                  : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9)),
+                              width: 1.5,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: theme.primaryColor.withValues(alpha: 0.25),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    )
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            filter,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              // ── Main Content Area ──
               Expanded(
                 child: _buildContent(
                   provider: provider,
@@ -372,53 +364,56 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     if (provider.error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.cloud_off_rounded,
-              size: 56,
-              color: Color(0xFF94A3B8),
-            ),
-            const Gap(16),
-            Text(
-              'Could not load bookings',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF64748B),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.cloud_off_rounded,
+                size: 56,
+                color: Color(0xFF94A3B8),
               ),
-            ),
-            const Gap(8),
-            Text(
-              provider.error!,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: const Color(0xFF94A3B8),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const Gap(20),
-            ElevatedButton.icon(
-              onPressed: provider.fetchMyParcels,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(
-                'Retry',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              const Gap(16),
+              Text(
+                'Could not load bookings',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF64748B),
                 ),
               ),
-            ),
-          ],
+              const Gap(8),
+              Text(
+                provider.error!,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: const Color(0xFF94A3B8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Gap(24),
+              ElevatedButton.icon(
+                onPressed: provider.fetchMyParcels,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(
+                  'Retry',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -433,17 +428,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _searchQuery.isNotEmpty
-                  ? Icons.search_off_rounded
-                  : Icons.inbox_rounded,
+              _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.inbox_rounded,
               size: 64,
               color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
             ),
             const Gap(16),
             Text(
-              _searchQuery.isNotEmpty
-                  ? 'No results for "$_searchQuery"'
-                  : 'No bookings found',
+              _searchQuery.isNotEmpty ? 'No results for "$_searchQuery"' : 'No data is available',
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -483,22 +474,29 @@ class _BookingsScreenState extends State<BookingsScreen> {
         children: [
           for (final entry in grouped.entries) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 16, top: 8),
+              padding: const EdgeInsets.only(bottom: 16, top: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     entry.key,
                     style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: theme.textTheme.titleLarge?.color,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
-                  const HugeIcon(
+                  const Gap(10),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                    ),
+                  ),
+                  const Gap(10),
+                  HugeIcon(
                     icon: HugeIcons.strokeRoundedCalendar03,
-                    color: Color(0xFF64748B),
-                    size: 20,
+                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    size: 18,
                   ),
                 ],
               ),
@@ -517,38 +515,37 @@ class _BookingsScreenState extends State<BookingsScreen> {
               ),
           ],
 
-          // ── Load More ────────────────────────────────────────────
+          // ── Load More ──
           if (hasMore)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: TextButton(
+              padding: const EdgeInsets.only(top: 8, bottom: 20),
+              child: OutlinedButton(
                 onPressed: () => setState(() => _pageSize += 20),
-                style: TextButton.styleFrom(
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(
+                    color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                    width: 1.5,
+                  ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: isDark
-                          ? Colors.white12
-                          : const Color(0xFFE2E8F0),
-                    ),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.expand_more_rounded,
-                      size: 18,
-                      color: Color(0xFF3B82F6),
+                      size: 20,
+                      color: theme.primaryColor,
                     ),
                     const Gap(6),
                     Text(
-                      'Load more  ·  $remaining remaining',
+                      'Load More Bookings  ·  $remaining Left',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF3B82F6),
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
                       ),
                     ),
                   ],
@@ -568,6 +565,9 @@ class _EmptyBookingsState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -583,25 +583,25 @@ class _EmptyBookingsState extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
+                  color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                  border: Border.all(color: theme.primaryColor, width: 2),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.inbox_rounded,
                   size: 56,
-                  color: Color(0xFF3B82F6),
+                  color: theme.primaryColor,
                 ),
               ),
             ),
-            const Gap(12),
+            const Gap(16),
             Text(
-              'No Upcoming Deliveries',
+              'No data is available',
               textAlign: TextAlign.center,
               style: GoogleFonts.outfit(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: Theme.of(context).textTheme.headlineMedium?.color,
+                color: theme.textTheme.headlineMedium?.color,
               ),
             ),
             const Gap(10),
@@ -613,7 +613,7 @@ class _EmptyBookingsState extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   height: 1.6,
                 ),
               ),
@@ -625,7 +625,7 @@ class _EmptyBookingsState extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => context.push('/send-package'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: const StadiumBorder(),

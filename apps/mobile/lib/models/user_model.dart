@@ -6,6 +6,7 @@ class UserModel {
   final String? role;
   final String? avatarUrl; // network URL or local file path
   final String? station;
+  final String? stationId;
 
   UserModel({
     required this.id,
@@ -15,7 +16,20 @@ class UserModel {
     this.role,
     this.avatarUrl,
     this.station,
+    this.stationId,
   });
+
+  bool get isStaff {
+    final r = role?.toUpperCase();
+    return r != null && const {
+      'OPERATOR',
+      'CLERK',
+      'STATION_MASTER',
+      'TRAIN_GUARD',
+      'ADMIN',
+      'SUPER_ADMIN',
+    }.contains(r);
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -26,6 +40,7 @@ class UserModel {
       role: json['role'],
       avatarUrl: json['avatarUrl'],
       station: json['station'],
+      stationId: json['stationId'],
     );
   }
 
@@ -37,6 +52,7 @@ class UserModel {
         'role': role,
         'avatarUrl': avatarUrl,
         'station': station,
+        'stationId': stationId,
       };
 
   UserModel copyWith({
@@ -47,6 +63,7 @@ class UserModel {
     String? role,
     String? avatarUrl,
     String? station,
+    String? stationId,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -56,6 +73,7 @@ class UserModel {
       role: role ?? this.role,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       station: station ?? this.station,
+      stationId: stationId ?? this.stationId,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/parcel_provider.dart';
@@ -50,14 +51,19 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final status = ParcelStatus.fromString(_statusData?['status'] ?? 'PENDING');
     final uiState = _statusData?['uiState'] as Map<String, dynamic>?;
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Parcel #${widget.parcelId.substring(widget.parcelId.length - 6).toUpperCase()}'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/home')),
+        leading: IconButton(
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 22),
+          onPressed: () => context.go('/home'),
+        ),
       ),
       body: _loading
           ? const _StatusSkeleton()
@@ -69,9 +75,9 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                   // Status icon
                   _StatusIcon(status: status),
                   const Gap(24),
-                  Text(status.displayLabel, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5)),
+                  Text(status.displayLabel, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF0F172A), letterSpacing: -0.5)),
                   const Gap(8),
-                  Text(uiState?['message'] ?? '', textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 15)),
+                  Text(uiState?['message'] ?? '', textAlign: TextAlign.center, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 15)),
                   if (status == ParcelStatus.canceled && _statusData?['rejectionReason'] != null) ...[
                     const Gap(16),
                     Container(
@@ -103,9 +109,9 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                     ),
                   if (status == ParcelStatus.received) ...[
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accent)),
+                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3B82F6))),
                       const Gap(10),
-                      const Text('Auto-refreshing every 10s', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                      Text('Auto-refreshing every 10s', style: TextStyle(color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8), fontSize: 13)),
                     ]),
                     const Gap(12),
                   ],
@@ -212,7 +218,9 @@ class _Timeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final statusIndex = _steps.indexWhere((s) => s.$1 == currentStatus);
+    final activeColor = theme.colorScheme.primary;
 
     return Column(
       children: _steps.asMap().entries.map((entry) {
@@ -231,8 +239,11 @@ class _Timeline extends StatelessWidget {
                   width: 28, height: 28,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isDone ? AppTheme.accent : Colors.white,
-                    border: Border.all(color: isDone ? AppTheme.accent : AppTheme.border, width: 2),
+                    color: isDone ? activeColor : (theme.cardTheme.color ?? theme.cardColor),
+                    border: Border.all(
+                      color: isDone ? activeColor : theme.colorScheme.outline,
+                      width: 2,
+                    ),
                   ),
                   child: isDone ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
                 ),
@@ -240,7 +251,7 @@ class _Timeline extends StatelessWidget {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     width: 2, height: 40,
-                    color: i < statusIndex ? AppTheme.accent : AppTheme.border,
+                    color: i < statusIndex ? activeColor : theme.colorScheme.outline,
                   ),
               ],
             ),
@@ -251,8 +262,8 @@ class _Timeline extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(step.$2, style: TextStyle(fontWeight: FontWeight.w700, color: isDone ? AppTheme.accent : AppTheme.textMuted)),
-                    if (isActive) Text(step.$3, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    Text(step.$2, style: TextStyle(fontWeight: FontWeight.w700, color: isDone ? activeColor : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6))),
+                    if (isActive) Text(step.$3, style: TextStyle(fontSize: 12, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8))),
                   ],
                 ),
               ),

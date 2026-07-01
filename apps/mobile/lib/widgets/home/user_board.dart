@@ -19,6 +19,9 @@ class UserBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
       child: Row(
@@ -28,10 +31,10 @@ class UserBoard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Welcome back,',
                   style: TextStyle(
-                    color: Color(0xFF94A3B8),
+                    color: theme.textTheme.bodyMedium?.color,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -39,8 +42,8 @@ class UserBoard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   userName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
@@ -56,19 +59,28 @@ class UserBoard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: theme.cardTheme.color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: theme.dividerColor,
                   width: 1,
                 ),
+                boxShadow: isDark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const HugeIcon(
+                  HugeIcon(
                     icon: HugeIcons.strokeRoundedPrinter,
-                    color: Colors.white,
+                    color: theme.iconTheme.color,
                     size: 20,
                   ),
                   Positioned(
@@ -82,7 +94,10 @@ class UserBoard extends StatelessWidget {
                             ? Colors.yellow
                             : (printerConnected ? Colors.green : Colors.red),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF1E293B), width: 1.5),
+                        border: Border.all(
+                          color: theme.cardTheme.color ?? theme.scaffoldBackgroundColor,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -98,17 +113,26 @@ class UserBoard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: theme.cardTheme.color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: theme.dividerColor,
                   width: 1,
                 ),
+                boxShadow: isDark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
               ),
-              child: const Center(
+              child: Center(
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedUser,
-                  color: Colors.white,
+                  color: theme.iconTheme.color,
                   size: 24,
                 ),
               ),

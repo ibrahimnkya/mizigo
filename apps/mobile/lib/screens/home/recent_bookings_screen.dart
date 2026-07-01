@@ -8,11 +8,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/parcel_model.dart';
 import '../../providers/parcel_provider.dart';
-import '../../widgets/home/premium_ui_components.dart';
+import '../../services/api_service.dart';
 import '../../widgets/common/shimmer_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../utils/receipt_pdf_generator.dart';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -100,15 +101,15 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20,
-              color: isDark ? Colors.white : const Color(0xFF1E293B)),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 20,
+              color: Colors.white),
         ),
         title: Text(
           'Recent Bookings',
           style: GoogleFonts.outfit(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: theme.textTheme.headlineSmall?.color,
+            color: Colors.white,
           ),
         ),
         centerTitle: false,
@@ -280,7 +281,7 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
           Icon(Icons.inbox_rounded, size: 64,
               color: const Color(0xFF94A3B8).withValues(alpha: 0.5)),
           const Gap(16),
-          Text('No bookings found',
+          Text('No data is available',
               style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700,
                   color: const Color(0xFF64748B))),
           const Gap(8),
@@ -333,7 +334,7 @@ class BookingListCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const BookingListCard(
-      {required this.parcel, required this.isDark, required this.onTap});
+      {super.key, required this.parcel, required this.isDark, required this.onTap});
 
   String _short(String addr) {
     final parts = addr.split(',');
@@ -342,25 +343,57 @@ class BookingListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final fgColor = _statusFg(parcel.status);
+    final bgColor = _statusBg(parcel.status, isDark);
+    
+    // Calculate progress fraction
+    double progress = 0.2;
+    switch (parcel.status) {
+      case ParcelStatus.delivered:
+        progress = 1.0;
+        break;
+      case ParcelStatus.inTransit:
+      case ParcelStatus.dispatched:
+        progress = 0.75;
+        break;
+      case ParcelStatus.received:
+      case ParcelStatus.atStation:
+      case ParcelStatus.offloaded:
+        progress = 0.45;
+        break;
+      case ParcelStatus.canceled:
+        progress = 0.0;
+        break;
+    }
+
+    final trackingNum = (parcel.trackingNumber != null && parcel.trackingNumber!.isNotEmpty)
+        ? parcel.trackingNumber!
+        : '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}';
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : const Color(0xFFF1F5F9),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-              blurRadius: 14,
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           children: [
-            // ── Header: icon · parcel type / id · status badge ──
+            // ── Header: Icon, Parcel Info, Status Badge ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: Row(
@@ -370,7 +403,7 @@ class BookingListCard extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _statusBg(parcel.status, isDark),
+                      color: bgColor,
                     ),
                     child: Center(
                       child: HugeIcon(
@@ -393,119 +426,63 @@ class BookingListCard extends StatelessWidget {
                             color: isDark ? Colors.white : const Color(0xFF1E293B),
                           ),
                         ),
+                        const Gap(2),
                         Text(
-                          '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}',
+                          trackingNum,
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: _statusBg(parcel.status, isDark),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _statusLabel(parcel.status),
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: fgColor,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _statusLabel(parcel.status),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: fgColor,
                       ),
-                      const Gap(4),
-                      Text(
-                        parcel.serviceType,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // ── Route bar (confirm-order style) ────────────────
+            // ── Route Visualizer ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          border: Border.all(color: const Color(0xFF3B82F6), width: 4),
-                        ),
-                      ),
                       Expanded(
-                        child: Container(
-                          height: 3,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF3B82F6),
-                                parcel.status == ParcelStatus.canceled
-                                    ? const Color(0xFFE11D48)
-                                    : const Color(0xFF10B981),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                          border: Border.all(
-                            color: parcel.status == ParcelStatus.canceled
-                                ? const Color(0xFFE11D48)
-                                : const Color(0xFF10B981),
-                            width: 4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Gap(10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flexible(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              intl.DateFormat('HH:mm').format(parcel.createdAt),
+                              'Origin',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                               ),
                             ),
+                            const Gap(4),
                             Text(
                               _short(parcel.fromAddress),
                               style: GoogleFonts.outfit(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
@@ -515,42 +492,24 @@ class BookingListCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Price pill
-                      if (parcel.amount != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF0F172A)
-                                : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : const Color(0xFF1E293B),
-                            ),
-                          ),
-                        ),
-                      Flexible(
+                      const Gap(16),
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              intl.DateFormat('d MMM').format(parcel.createdAt),
+                              'Destination',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                               ),
                             ),
+                            const Gap(4),
                             Text(
                               _short(parcel.toAddress),
                               style: GoogleFonts.outfit(
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
@@ -563,13 +522,196 @@ class BookingListCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const Gap(16),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        height: 4,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: progress,
+                          child: Container(
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: parcel.status == ParcelStatus.canceled ? const Color(0xFFE11D48) : const Color(0xFF3B82F6),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (parcel.status != ParcelStatus.canceled)
+                        Align(
+                          alignment: Alignment(progress * 2 - 1, 0),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedSpeedTrain02,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        )
+                      else
+                        Align(
+                          alignment: const Alignment(-1.0, 0),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFE11D48),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const Gap(14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        intl.DateFormat('d MMM · HH:mm').format(parcel.createdAt),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (parcel.receiverPays) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1C1917)
+                                    : const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Receiver Pays',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFD97706),
+                                ),
+                              ),
+                            ),
+                            const Gap(8),
+                          ],
+                          if (parcel.amount != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white70 : const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            // ── Receiver footer + view details link ─────────────
+            // ── Sender & Receiver Info Row ──
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.arrow_upward_rounded,
+                          size: 13,
+                          color: Color(0xFF10B981),
+                        ),
+                        const Gap(4),
+                        Expanded(
+                          child: Text(
+                            'From: ${parcel.senderName ?? "Sender"}',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(12),
+                  Icon(
+                    Icons.arrow_right_alt_rounded,
+                    size: 14,
+                    color: isDark ? Colors.white24 : Colors.grey.shade400,
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.arrow_downward_rounded,
+                          size: 13,
+                          color: Color(0xFF3B82F6),
+                        ),
+                        const Gap(4),
+                        Expanded(
+                          child: Text(
+                            'To: ${parcel.receiverName}',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Divider ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
                 height: 1,
                 color: isDark
@@ -577,42 +719,43 @@ class BookingListCard extends StatelessWidget {
                     : const Color(0xFFF1F5F9),
               ),
             ),
+
+            // ── Footer: Agent Responsible & View Details ──
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
               child: Row(
                 children: [
-                  Icon(Icons.person_outline_rounded,
-                      size: 14,
-                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8)),
-                  const Gap(6),
-                  Text(
-                    parcel.receiverName,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? theme.primaryColor.withValues(alpha: 0.15)
+                          : theme.primaryColor.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedUser,
+                      color: theme.primaryColor,
+                      size: 12,
                     ),
                   ),
-                  if (parcel.receiverPays) ...[
-                    const Gap(6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1C1917)
-                            : const Color(0xFFFFFBEB),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Receiver Pays',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFD97706),
-                        ),
-                      ),
+                  const Gap(8),
+                  Text(
+                    'Agent: ',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                     ),
-                  ],
+                  ),
+                  Text(
+                    parcel.additionalServices?['agentName'] ?? 'Milton Juma',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    ),
+                  ),
                   const Spacer(),
                   Text(
                     'View Details',
@@ -623,8 +766,11 @@ class BookingListCard extends StatelessWidget {
                     ),
                   ),
                   const Gap(2),
-                  const Icon(Icons.chevron_right_rounded,
-                      size: 16, color: Color(0xFF3B82F6)),
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    size: 16,
+                    color: Color(0xFF3B82F6),
+                  ),
                 ],
               ),
             ),
@@ -637,462 +783,184 @@ class BookingListCard extends StatelessWidget {
 
 // ─── Booking Detail Screen ────────────────────────────────────────────────────
 
-class BookingDetailScreen extends StatelessWidget {
+class BookingDetailScreen extends StatefulWidget {
   final ParcelModel parcel;
   const BookingDetailScreen({super.key, required this.parcel});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  State<BookingDetailScreen> createState() => _BookingDetailScreenState();
+}
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // ── Collapsible AppBar ────────────────────────────────
-          SliverAppBar(
-            expandedHeight: 180,
-            pinned: true,
-            backgroundColor: theme.appBarTheme.backgroundColor,
-            surfaceTintColor: Colors.transparent,
-            leading: IconButton(
-              onPressed: () => context.pop(),
-              icon: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white12 : Colors.white,
-                  shape: BoxShape.circle,
+class _BookingDetailScreenState extends State<BookingDetailScreen> {
+  ParcelModel? _parcel;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFullParcel();
+  }
+
+  Future<void> _fetchFullParcel() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final json = await ApiService.getParcelById(widget.parcel.id);
+      if (mounted) {
+        setState(() {
+          _parcel = ParcelModel.fromJson(json);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  ParcelModel get _currentParcel => _parcel ?? widget.parcel;
+
+  bool get _canCancel {
+    return _currentParcel.status == ParcelStatus.received;
+  }
+
+  Future<void> _cancelBooking() async {
+    final reasonController = TextEditingController();
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
+          title: Text(
+            'Cancel Booking',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to cancel this booking?',
+                style: GoogleFonts.inter(color: theme.textTheme.bodyMedium?.color),
+              ),
+              const Gap(16),
+              TextField(
+                controller: reasonController,
+                decoration: InputDecoration(
+                  labelText: 'Reason for cancellation',
+                  labelStyle: GoogleFonts.inter(fontSize: 13),
+                  alignLabelWithHint: true,
+                  border: const OutlineInputBorder(),
                 ),
-                child: Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 16,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'Go Back',
+                style: GoogleFonts.inter(color: theme.textTheme.bodySmall?.color),
               ),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      isDark ? const Color(0xFF0F172A) : const Color(0xFFEFF6FF),
-                      isDark ? const Color(0xFF1E293B) : Colors.white,
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: _statusBg(parcel.status, isDark),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Center(
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedPackage,
-                              color: _statusFg(parcel.status),
-                              size: 32,
-                            ),
-                          ),
-                        ),
-                        const Gap(16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                parcel.parcelType.isEmpty
-                                    ? parcel.serviceType
-                                    : parcel.parcelType,
-                                style: GoogleFonts.outfit(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: theme.textTheme.headlineSmall?.color),
-                              ),
-                              const Gap(4),
-                              Text(
-                                '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 10))}',
-                                style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: const Color(0xFF94A3B8)),
-                              ),
-                              const Gap(8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _statusBg(parcel.status, isDark),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  _statusLabel(parcel.status),
-                                  style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: _statusFg(parcel.status)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Confirm Cancel',
+                style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-          ),
-
-          // ── Content ──────────────────────────────────────────
-          SliverPadding(
-            padding: const EdgeInsets.all(20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Route Card
-                _InfoCard(
-                  isDark: isDark,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle('Route', isDark),
-                      const Gap(16),
-                      Row(
-                        children: [
-                          Column(
-                            children: [
-                              Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: const BoxDecoration(
-                                      color: Color(0xFF3B82F6),
-                                      shape: BoxShape.circle)),
-                              Container(
-                                  width: 1.5,
-                                  height: 40,
-                                  color: const Color(0xFFE2E8F0)),
-                              Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: const Color(0xFF10B981),
-                                          width: 2.5),
-                                      shape: BoxShape.circle)),
-                            ],
-                          ),
-                          const Gap(14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _RouteLabel('From', parcel.fromAddress, theme),
-                                const Gap(16),
-                                _RouteLabel('To', parcel.toAddress, theme),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Gap(16),
-
-                // Booking Details
-                _InfoCard(
-                  isDark: isDark,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle('Shipment Details', isDark),
-                      const Gap(12),
-                      _DetailRow('Parcel Type', parcel.parcelType, theme),
-                      _DetailRow('Package Size', parcel.parcelSize, theme),
-                      _DetailRow('Service', parcel.serviceType, theme),
-                      _DetailRow('Pickup Type', parcel.pickupType, theme),
-                      _DetailRow('Receiver', parcel.receiverName, theme),
-                      _DetailRow('Receiver Phone', parcel.receiverPhone, theme),
-                      _DetailRow(
-                          'Payment By',
-                          parcel.receiverPays ? 'Receiver' : 'Sender',
-                          theme),
-                      _DetailRow(
-                          'Booked',
-                          intl.DateFormat('d MMM yyyy · HH:mm')
-                              .format(parcel.createdAt),
-                          theme),
-                    ],
-                  ),
-                ),
-                const Gap(16),
-
-                // Payment Summary
-                if (parcel.amount != null)
-                  _InfoCard(
-                    isDark: isDark,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionTitle('Payment', isDark),
-                        const Gap(12),
-                        if (parcel.payment != null) ...[
-                          _DetailRow(
-                              'Method',
-                              parcel.payment!.paymentMethod ?? '—',
-                              theme),
-                          _DetailRow(
-                              'Transaction',
-                              parcel.payment!.transactionReference ?? 'Pending',
-                              theme),
-                          _DetailRow(
-                              'Paid On',
-                              parcel.payment!.paidAt != null
-                                  ? intl.DateFormat('d MMM yyyy')
-                                      .format(parcel.payment!.paidAt!)
-                                  : '—',
-                              theme),
-                          const Gap(8),
-                          const DashedDivider(),
-                          const Gap(8),
-                        ],
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Total',
-                                style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF64748B))),
-                            Text(
-                                'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
-                                style: GoogleFonts.outfit(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color:
-                                        theme.textTheme.titleLarge?.color)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                if (parcel.amount != null) const Gap(16),
-
-                // Timeline
-                _InfoCard(
-                  isDark: isDark,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle('Timeline', isDark),
-                      const Gap(16),
-                      _TimelineEntry(
-                          label: 'Received',
-                          time: intl.DateFormat('d MMM · HH:mm')
-                              .format(parcel.createdAt),
-                          done: true,
-                          theme: theme),
-                      _TimelineEntry(
-                          label: 'In Transit',
-                          time: intl.DateFormat('d MMM').format(parcel.updatedAt),
-                          done: parcel.status != ParcelStatus.received &&
-                              parcel.status != ParcelStatus.canceled,
-                          theme: theme),
-                      _TimelineEntry(
-                          label: 'At Station',
-                          time: intl.DateFormat('d MMM').format(parcel.updatedAt),
-                          done: parcel.status == ParcelStatus.atStation ||
-                              parcel.status == ParcelStatus.delivered,
-                          theme: theme),
-                      _TimelineEntry(
-                          label: parcel.status == ParcelStatus.canceled
-                              ? 'Canceled'
-                              : 'Delivered',
-                          time: parcel.status == ParcelStatus.delivered
-                              ? intl.DateFormat('d MMM').format(parcel.updatedAt)
-                              : 'Pending',
-                          done: parcel.status == ParcelStatus.delivered,
-                          isLast: true,
-                          isFailed: parcel.status == ParcelStatus.canceled,
-                          theme: theme),
-                    ],
-                  ),
-                ),
-                const Gap(24),
-
-                // Actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: _ActionChip(
-                        label: 'PDF Receipt',
-                        icon: HugeIcons.strokeRoundedInvoice01,
-                        onTap: () => _generateAndSharePdf(context),
-                        isDark: isDark,
-                        isPrimary: true,
-                      ),
-                    ),
-                    const Gap(14),
-                    Expanded(
-                      child: _ActionChip(
-                        label: 'Share Info',
-                        icon: HugeIcons.strokeRoundedUser,
-                        onTap: () => _shareBooking(context),
-                        isDark: isDark,
-                      ),
-                    ),
-                      Expanded(
-                        child: _ActionChip(
-                          label: 'Receipt',
-                          icon: HugeIcons.strokeRoundedInvoice01,
-                          onTap: () =>
-                              context.push('/parcel/${parcel.id}/receipt'),
-                          isDark: isDark,
-                          isPrimary: true,
-                        ),
-                      ),
-                  ],
-                ),
-
-                // If receiver pays and booking is received, show an info note
-                if (parcel.receiverPays &&
-                    parcel.status == ParcelStatus.received) ...[
-                  const Gap(16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF2D1B01)
-                          : const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color: const Color(0xFFD97706).withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline_rounded,
-                            color: Color(0xFFD97706), size: 20),
-                        const Gap(12),
-                        Expanded(
-                          child: Text(
-                            'The receiver (${parcel.receiverName}) will receive a payment request for this shipment.',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: const Color(0xFFD97706),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const Gap(32),
-              ]),
-            ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
+
+    if (shouldCancel == true) {
+      if (reasonController.text.trim().isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cancellation reason is required'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() => _isLoading = true);
+      try {
+        await ApiService.updateParcelStatus(
+          widget.parcel.id,
+          'Canceled',
+          location: 'Canceled by user. Reason: ${reasonController.text.trim()}',
+        );
+        await _fetchFullParcel();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Booking canceled successfully ✓'),
+              backgroundColor: Color(0xFF10B981),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to cancel booking: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
   }
 
   Future<void> _generateAndSharePdf(BuildContext context) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Header(
-                level: 0,
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('Mizigo Booking Receipt',
-                        style: pw.TextStyle(
-                            fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                    pw.Text('#${parcel.id.toUpperCase().substring(0, 8)}',
-                        style: const pw.TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text('Booking Details',
-                  style: pw.TextStyle(
-                      fontSize: 18, fontWeight: pw.FontWeight.bold)),
-              pw.Divider(),
-              _pdfRow('From:', parcel.fromAddress),
-              _pdfRow('To:', parcel.toAddress),
-              _pdfRow('Service:', parcel.serviceType),
-              _pdfRow('Parcel Size:', parcel.parcelSize),
-              _pdfRow('Parcel Type:',
-                  parcel.parcelType.isEmpty ? 'General' : parcel.parcelType),
-              _pdfRow('Receiver:', parcel.receiverName),
-              _pdfRow('Receiver Phone:', parcel.receiverPhone),
-              _pdfRow('Payment By:', parcel.receiverPays ? 'Receiver' : 'Sender'),
-              _pdfRow('Status:', parcel.status.displayLabel),
-              _pdfRow('Date:', intl.DateFormat('d MMM yyyy HH:mm').format(parcel.createdAt)),
-              pw.SizedBox(height: 20),
-              if (parcel.amount != null)
-                pw.Container(
-                  alignment: pw.Alignment.centerRight,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text('Total Amount',
-                          style: pw.TextStyle(
-                              fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                      pw.Text(
-                          'TZS ${intl.NumberFormat('#,###').format(parcel.amount!.toInt())}',
-                          style: pw.TextStyle(
-                              fontSize: 20,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.blue900)),
-                    ],
-                  ),
-                ),
-              pw.Spacer(),
-              pw.Divider(),
-              pw.Align(
-                alignment: pw.Alignment.center,
-                child: pw.Text('Thank you for choosing Mizigo!',
-                    style: const pw.TextStyle(fontSize: 12)),
-              ),
-            ],
-          );
-        },
-      ),
+    final parcel = _currentParcel;
+    final pdfBytes = await ReceiptPdfGenerator.generate(
+      trackingId: parcel.trackingNumber ?? parcel.id,
+      fromAddress: parcel.fromAddress,
+      toAddress: parcel.toAddress,
+      serviceType: parcel.serviceType,
+      parcelSize: parcel.parcelSize,
+      parcelType: parcel.parcelType,
+      senderName: parcel.senderName ?? 'N/A',
+      senderPhone: parcel.senderPhone ?? 'N/A',
+      receiverName: parcel.receiverName,
+      receiverPhone: parcel.receiverPhone,
+      price: parcel.amount ?? 0.0,
+      receiverPays: parcel.receiverPays,
+      status: parcel.status.displayLabel,
+      createdAt: parcel.createdAt,
     );
 
     await Printing.sharePdf(
-        bytes: await pdf.save(), filename: 'mizigo_receipt_${parcel.id}.pdf');
-  }
-
-  pw.Widget _pdfRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.SizedBox(width: 120, child: pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-          pw.Expanded(child: pw.Text(value)),
-        ],
-      ),
+      bytes: pdfBytes,
+      filename: 'mizigo_receipt_${parcel.id}.pdf',
     );
   }
 
   void _shareBooking(BuildContext context) {
+    final parcel = _currentParcel;
     final msg = '''
 📦 Mizigo Booking Confirmation
 ━━━━━━━━━━━━━━━━━━━━
@@ -1102,7 +970,7 @@ From: ${parcel.fromAddress}
 To: ${parcel.toAddress}
 Receiver: ${parcel.receiverName} (${parcel.receiverPhone})
 Payment: ${parcel.receiverPays ? 'Handled by Receiver' : 'Paid by Sender'}
-Status: ${_statusLabel(parcel.status)}
+Status: ${parcel.status.displayLabel}
 Date: ${intl.DateFormat('d MMM yyyy').format(parcel.createdAt)}
 ━━━━━━━━━━━━━━━━━━━━
 Powered by Mizigo Logistics''';
@@ -1120,182 +988,909 @@ Powered by Mizigo Logistics''';
       ),
     );
   }
-}
 
-// ─── Small helpers ────────────────────────────────────────────────────────────
+  String _formatDateTime(DateTime dt) {
+    final hourStr = dt.hour.toString().padLeft(2, '0');
+    final minStr = dt.minute.toString().padLeft(2, '0');
+    final monthStr = _monthAbbr(dt.month);
+    final dayStr = dt.day.toString();
+    return '$dayStr $monthStr · $hourStr:$minStr';
+  }
 
-Widget _sectionTitle(String label, bool isDark) => Text(
-      label,
-      style: GoogleFonts.outfit(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-          color: isDark ? Colors.white : const Color(0xFF1E293B)),
-    );
-
-class _RouteLabel extends StatelessWidget {
-  final String label;
-  final String value;
-  final ThemeData theme;
-  const _RouteLabel(this.label, this.value, this.theme);
-
-  @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: GoogleFonts.inter(
-                  fontSize: 11, color: const Color(0xFF94A3B8))),
-          const Gap(2),
-          Text(value,
-              style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: theme.textTheme.bodyLarge?.color),
-              maxLines: 2),
-        ],
-      );
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final ThemeData theme;
-  const _DetailRow(this.label, this.value, this.theme);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label,
-                style: GoogleFonts.inter(
-                    fontSize: 14, color: const Color(0xFF94A3B8))),
-            Flexible(
-                child: Text(value,
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodyLarge?.color))),
-          ],
-        ),
-      );
-}
-
-// ─── _InfoCard ────────────────────────────────────────────────────────────────
-
-class _InfoCard extends StatelessWidget {
-  final Widget child;
-  final bool isDark;
-  const _InfoCard({required this.child, required this.isDark});
+  String _monthAbbr(int m) {
+    return switch (m) {
+      1 => 'Jan',
+      2 => 'Feb',
+      3 => 'Mar',
+      4 => 'Apr',
+      5 => 'May',
+      6 => 'Jun',
+      7 => 'Jul',
+      8 => 'Aug',
+      9 => 'Sep',
+      10 => 'Oct',
+      11 => 'Nov',
+      12 => 'Dec',
+      _ => '',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final parcel = _currentParcel;
+    
+    final trackingNum = (parcel.trackingNumber != null && parcel.trackingNumber!.isNotEmpty)
+        ? parcel.trackingNumber!
+        : '#${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}';
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Header ──────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.dividerColor, width: 1.5),
+                      ),
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedArrowLeft01,
+                          size: 20,
+                          color: theme.iconTheme.color,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Booking Details',
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: theme.textTheme.headlineSmall?.color,
+                          ),
+                        ),
+                        Text(
+                          trackingNum,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _StatusBadge(status: parcel.status),
+                ],
+              ),
+            ),
+
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline_rounded, color: theme.colorScheme.error, size: 16),
+                      const Gap(8),
+                      Expanded(
+                        child: Text(
+                          'Failed to sync: $_errorMessage',
+                          style: GoogleFonts.inter(color: theme.colorScheme.error, fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            const Gap(20),
+
+            Expanded(
+              child: _isLoading && _parcel == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ── Route Visualizer Card ──
+                          _RouteCard(
+                            from: parcel.fromAddress,
+                            to: parcel.toAddress,
+                            status: parcel.status,
+                          ),
+
+                          const Gap(20),
+
+                          // ── Details Card ──
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: theme.dividerColor, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.shadowColor.withValues(alpha: isDark ? 0.2 : 0.04),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const HugeIcon(
+                                      icon: HugeIcons.strokeRoundedPackage,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    const Gap(8),
+                                    Text(
+                                      'Shipment Information',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.textTheme.titleMedium?.color,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Gap(16),
+                                GridView.count(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  crossAxisCount: 2,
+                                  childAspectRatio: 2.2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  children: [
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedPackage,
+                                      label: 'Parcel Type',
+                                      value: parcel.parcelType.isEmpty ? 'General' : parcel.parcelType,
+                                    ),
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedWeightScale,
+                                      label: 'Package Size',
+                                      value: parcel.parcelSize.isEmpty ? 'Medium' : parcel.parcelSize,
+                                    ),
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedDeliveryTruck02,
+                                      label: 'Service',
+                                      value: parcel.serviceType.isEmpty ? 'Standard' : parcel.serviceType,
+                                    ),
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedLocation01,
+                                      label: 'Pickup Type',
+                                      value: parcel.pickupType,
+                                    ),
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedUser,
+                                      label: 'Receiver',
+                                      value: parcel.receiverName,
+                                    ),
+                                    _DetailItem(
+                                      icon: HugeIcons.strokeRoundedCreditCard,
+                                      label: 'Price',
+                                      value: parcel.amount != null
+                                          ? 'TSh ${intl.NumberFormat('#,###').format(parcel.amount)}'
+                                          : 'N/A',
+                                    ),
+                                  ],
+                                ),
+                                const Gap(16),
+                                Divider(color: theme.dividerColor, height: 1, thickness: 1.0),
+                                const Gap(16),
+                                _DetailItemFull(
+                                  icon: HugeIcons.strokeRoundedQrCode,
+                                  label: 'Parcel Number',
+                                  value: trackingNum,
+                                  onCopy: () {
+                                    Clipboard.setData(ClipboardData(text: trackingNum));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Parcel Number copied!', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                                        backgroundColor: const Color(0xFF10B981),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const Gap(12),
+                                _DetailItemFull(
+                                  icon: HugeIcons.strokeRoundedLocation01,
+                                  label: 'Origin Location',
+                                  value: parcel.fromAddress,
+                                ),
+                                const Gap(12),
+                                _DetailItemFull(
+                                  icon: HugeIcons.strokeRoundedLocation02,
+                                  label: 'Destination Location',
+                                  value: parcel.toAddress,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Gap(20),
+
+                          // ── Agent Responsible Card ──
+                          _AgentChip(
+                            name: parcel.additionalServices?['agentName'] ?? 'Milton Juma',
+                            phone: parcel.additionalServices?['agentPhone'] ?? '+255 754 123 456',
+                          ),
+
+                          const Gap(20),
+
+                          // ── Timeline Card ──
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: theme.dividerColor, width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.shadowColor.withValues(alpha: isDark ? 0.2 : 0.04),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Timeline',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.textTheme.titleLarge?.color,
+                                  ),
+                                ),
+                                const Gap(16),
+                                _TimelineItem(
+                                  label: 'Booked',
+                                  date: _formatDateTime(parcel.createdAt),
+                                  isDone: true,
+                                  isActive: parcel.status == ParcelStatus.received,
+                                  icon: HugeIcons.strokeRoundedCalendar01,
+                                ),
+                                _TimelineItem(
+                                  label: 'Received at Station',
+                                  date: parcel.status != ParcelStatus.received && parcel.status != ParcelStatus.canceled
+                                      ? _formatDateTime(parcel.updatedAt)
+                                      : 'Pending',
+                                  isDone: parcel.status != ParcelStatus.received && parcel.status != ParcelStatus.canceled,
+                                  isActive: parcel.status == ParcelStatus.atStation || parcel.status == ParcelStatus.offloaded,
+                                  icon: HugeIcons.strokeRoundedWarehouse,
+                                ),
+                                _TimelineItem(
+                                  label: 'In Transit',
+                                  date: parcel.status == ParcelStatus.inTransit || parcel.status == ParcelStatus.delivered
+                                      ? _formatDateTime(parcel.updatedAt)
+                                      : 'Pending',
+                                  isDone: parcel.status == ParcelStatus.delivered,
+                                  isActive: parcel.status == ParcelStatus.inTransit,
+                                  icon: HugeIcons.strokeRoundedSpeedTrain02,
+                                ),
+                                _TimelineItem(
+                                  label: parcel.status == ParcelStatus.canceled ? 'Canceled' : 'Delivered',
+                                  date: parcel.status == ParcelStatus.delivered || parcel.status == ParcelStatus.canceled
+                                      ? _formatDateTime(parcel.updatedAt)
+                                      : 'Pending',
+                                  isDone: parcel.status == ParcelStatus.delivered || parcel.status == ParcelStatus.canceled,
+                                  isActive: parcel.status == ParcelStatus.delivered || parcel.status == ParcelStatus.canceled,
+                                  isLast: true,
+                                  icon: parcel.status == ParcelStatus.canceled
+                                      ? HugeIcons.strokeRoundedCancelCircle
+                                      : HugeIcons.strokeRoundedHome01,
+                                  isFailed: parcel.status == ParcelStatus.canceled,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Gap(32),
+                        ],
+                      ),
+                    ),
+            ),
+            
+            // ── Bottom Action CTAs ──
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              decoration: BoxDecoration(
+                color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                border: Border(top: BorderSide(color: theme.dividerColor, width: 1.5)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                          ),
+                          onPressed: () => _generateAndSharePdf(context),
+                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.white, size: 20),
+                          label: Text(
+                            'Print Receipt',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const Gap(12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: theme.textTheme.bodyLarge?.color,
+                            side: BorderSide(color: theme.dividerColor, width: 1.5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: () => _shareBooking(context),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedUser, color: theme.iconTheme.color ?? Colors.grey, size: 20),
+                          label: Text(
+                            'Share Info',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_canCancel) ...[
+                    const Gap(12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          side: BorderSide(color: theme.colorScheme.error, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: _cancelBooking,
+                        icon: HugeIcon(icon: HugeIcons.strokeRoundedCancelCircle, color: theme.colorScheme.error, size: 20),
+                        label: Text(
+                          'Cancel Booking',
+                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      child: child,
     );
   }
 }
 
-// ─── _TimelineEntry ───────────────────────────────────────────────────────────
+// ─── Status Badge Widget ───
 
-class _TimelineEntry extends StatelessWidget {
+class _StatusBadge extends StatelessWidget {
+  final ParcelStatus status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = _statusFg(status);
+    final bg = _statusBg(status, Theme.of(context).brightness == Brightness.dark);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status.displayLabel.toUpperCase(),
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: fg,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Route Visualizer Card Widget ───
+
+class _RouteCard extends StatelessWidget {
+  final String from;
+  final String to;
+  final ParcelStatus status;
+
+  const _RouteCard({
+    required this.from,
+    required this.to,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    double progress = 0.2;
+    switch (status) {
+      case ParcelStatus.delivered:
+        progress = 1.0;
+        break;
+      case ParcelStatus.inTransit:
+      case ParcelStatus.dispatched:
+        progress = 0.75;
+        break;
+      case ParcelStatus.received:
+      case ParcelStatus.atStation:
+      case ParcelStatus.offloaded:
+        progress = 0.45;
+        break;
+      case ParcelStatus.canceled:
+        progress = 0.0;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.dividerColor, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Origin',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      from.split(',').first.trim(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Destination',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      to.split(',').first.trim(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Gap(24),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: 4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: theme.dividerColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: progress,
+                  child: Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: status == ParcelStatus.canceled ? const Color(0xFFE11D48) : theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
+              if (status != ParcelStatus.canceled)
+                AnimatedAlign(
+                  alignment: Alignment(progress * 2 - 1, 0),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutBack,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedSpeedTrain02,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                )
+              else
+                Align(
+                  alignment: const Alignment(-1.0, 0),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE11D48),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Detail Grid Item Widget ───
+
+class _DetailItem extends StatelessWidget {
+  final dynamic icon;
   final String label;
-  final String time;
-  final bool done;
-  final bool isLast;
-  final bool isFailed;
-  final ThemeData theme;
+  final String value;
 
-  const _TimelineEntry({
+  const _DetailItem({
+    required this.icon,
     required this.label,
-    required this.time,
-    required this.done,
-    required this.theme,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor, width: 1.0),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: HugeIcon(
+              icon: icon,
+              color: theme.colorScheme.primary,
+              size: 18,
+            ),
+          ),
+          const Gap(10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Detail Grid Item Full Widget ───
+
+class _DetailItemFull extends StatelessWidget {
+  final dynamic icon;
+  final String label;
+  final String value;
+  final VoidCallback? onCopy;
+
+  const _DetailItemFull({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.onCopy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor, width: 1.0),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: HugeIcon(
+              icon: icon,
+              color: theme.colorScheme.primary,
+              size: 18,
+            ),
+          ),
+          const Gap(10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Gap(2),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (onCopy != null) ...[
+            const Gap(10),
+            IconButton(
+              icon: Icon(
+                Icons.copy_rounded,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              onPressed: onCopy,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Timeline Item Widget ───
+
+class _TimelineItem extends StatelessWidget {
+  final String label;
+  final String date;
+  final bool isDone;
+  final bool isActive;
+  final bool isLast;
+  final dynamic icon;
+  final bool isFailed;
+
+  const _TimelineItem({
+    required this.label,
+    required this.date,
+    required this.isDone,
+    required this.isActive,
+    required this.icon,
     this.isLast = false,
     this.isFailed = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = isFailed
-        ? const Color(0xFFE11D48)
-        : done
-            ? const Color(0xFF10B981)
-            : const Color(0xFFCBD5E1);
-    final isDark = theme.brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    
+    Color circleColor;
+    Color iconColor;
+    
+    if (isFailed) {
+      circleColor = const Color(0xFFEF4444);
+      iconColor = Colors.white;
+    } else if (isActive) {
+      circleColor = theme.colorScheme.primary;
+      iconColor = Colors.white;
+    } else if (isDone) {
+      circleColor = theme.colorScheme.primary.withValues(alpha: 0.15);
+      iconColor = theme.colorScheme.primary;
+    } else {
+      circleColor = theme.dividerColor;
+      iconColor = theme.textTheme.bodySmall?.color ?? Colors.grey;
+    }
 
     return IntrinsicHeight(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 32,
+            width: 40,
             child: Column(
               children: [
                 Container(
-                  width: 20,
-                  height: 20,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: color,
+                    color: circleColor,
+                    border: isActive && !isFailed
+                        ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 3)
+                        : null,
                   ),
-                  child: done
-                      ? Icon(
-                          isFailed ? Icons.close : Icons.check,
-                          color: Colors.white,
-                          size: 12,
-                        )
-                      : null,
+                  child: Center(
+                    child: HugeIcon(
+                      icon: icon,
+                      size: 16,
+                      color: iconColor,
+                    ),
+                  ),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
                       margin: const EdgeInsets.symmetric(vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isDone && !isFailed
+                            ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                            : theme.dividerColor,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-          const Gap(12),
+          const Gap(16),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: done ? FontWeight.w600 : FontWeight.w500,
-                      color: done
-                          ? (isDark ? Colors.white : const Color(0xFF1E293B))
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ),
-                  Text(
-                    time,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: const Color(0xFF94A3B8),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isActive
+                                ? theme.colorScheme.primary
+                                : isFailed
+                                    ? const Color(0xFFEF4444)
+                                    : theme.textTheme.titleMedium?.color,
+                          ),
+                        ),
+                      ),
+                      const Gap(8),
+                      Text(
+                        date,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: theme.textTheme.bodySmall?.color ?? const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1307,63 +1902,116 @@ class _TimelineEntry extends StatelessWidget {
   }
 }
 
-// ─── _ActionChip ──────────────────────────────────────────────────────────────
+// ─── Agent Chip Widget ───
 
-class _ActionChip extends StatelessWidget {
-  final String label;
-  final dynamic icon;
-  final VoidCallback onTap;
-  final bool isDark;
-  final bool isPrimary;
-
-  const _ActionChip({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-    required this.isDark,
-    this.isPrimary = false,
-  });
+class _AgentChip extends StatelessWidget {
+  final String name;
+  final String phone;
+  const _AgentChip({required this.name, required this.phone});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isPrimary
-              ? const Color(0xFF3B82F6)
-              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
-          borderRadius: BorderRadius.circular(14),
-          border: isPrimary
-              ? null
-              : Border.all(
-                  color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
-                ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            HugeIcon(
-              icon: icon,
-              size: 18,
-              color: isPrimary
-                  ? Colors.white
-                  : (isDark ? Colors.white70 : const Color(0xFF475569)),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFCBD5E1),
+              border: Border.all(color: Colors.white, width: 2),
             ),
-            const Gap(8),
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: isPrimary
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : const Color(0xFF475569)),
+            child: const Center(
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
+                color: Color(0xFF64748B),
+                size: 20,
               ),
             ),
-          ],
-        ),
+          ),
+          const Gap(10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: theme.textTheme.titleSmall?.color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Responsible Agent',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: const Color(0xFF64748B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.dividerColor),
+                color: theme.cardTheme.color,
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCall02,
+                  size: 16,
+                  color: theme.iconTheme.color?.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          ),
+          const Gap(8),
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.dividerColor),
+                color: theme.cardTheme.color,
+              ),
+              child: Center(
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedChatting01,
+                  size: 16,
+                  color: theme.iconTheme.color?.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

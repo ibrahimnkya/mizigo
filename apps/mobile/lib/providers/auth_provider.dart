@@ -14,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _user;
   String? _error;
   bool _loading = false;
+  bool _mustChangeOtp = false;
   
   // OTP Security
   int _resendAttempts = 0;
@@ -27,6 +28,7 @@ class AuthProvider extends ChangeNotifier {
   UserModel? get user => _user;
   String? get error => _error;
   bool get loading => _loading;
+  bool get mustChangeOtp => _mustChangeOtp;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
   AuthProvider() {
@@ -143,10 +145,15 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> verifyOtp(String phone, String code) async {
     _loading = true;
     _error = null;
+    _mustChangeOtp = false;
     notifyListeners();
 
     try {
       final data = await ApiService.loginOperatorWithOtp(phone: phone, otp: code);
+      final payload = (data['data'] is Map<String, dynamic>)
+          ? data['data'] as Map<String, dynamic>
+          : data;
+      _mustChangeOtp = payload['mustChangeOtp'] as bool? ?? false;
       await _saveSession(data, fallbackPhone: phone);
       _status = AuthStatus.authenticated;
       return true;
@@ -155,6 +162,27 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (_) {
       _error = "Verification failed.";
+      return false;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> changeOperatorOtp(String newOtp) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await ApiService.changeOperatorOtp(newOtp);
+      _mustChangeOtp = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (_) {
+      _error = "Failed to update Safety PIN. Please try again.";
       return false;
     } finally {
       _loading = false;
@@ -255,15 +283,48 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Update basic user profile information locally
-  Future<void> updateProfile({String? name, String? phone}) async {
-    if (_user == null) return;
-    _user = _user!.copyWith(name: name, phone: phone);
-    await _storage.write(
-      key: 'user_data',
-      value: jsonEncode(_user!.toJson()),
-    );
+  /// Update basic user profile information locally and on backend
+  Future<bool> updateProfile({String? name, String? phone}) async {
+    if (_user == null) return false;
+    _loading = true;
+    _error = null;
     notifyListeners();
+    try {
+      final res = await ApiService.updateProfile(name: name, phone: phone);
+      final payload = (res['data'] is Map<String, dynamic>)
+          ? res['data'] as Map<String, dynamic>
+          : res;
+      final userPayload = {
+        'id': (payload['id'] ?? _user!.id).toString(),
+        'name': (payload['name'] ?? name ?? _user!.name).toString(),
+        'email': (payload['email'] ?? _user!.email).toString(),
+        'phone': payload['phone'] ?? phone ?? _user!.phone,
+        'role': payload['role'] is Map<String, dynamic>
+            ? (payload['role']['name'] ?? _user!.role).toString()
+            : (payload['role'] ?? _user!.role).toString(),
+        'station': payload['station'] is Map<String, dynamic>
+            ? (payload['station']['name'] ?? _user!.station).toString()
+            : (payload['station'] ?? _user!.station).toString(),
+        'stationId': payload['stationId'] ?? (payload['station'] is Map<String, dynamic> ? payload['station']['id'] : null) ?? _user!.stationId,
+      };
+
+      _user = UserModel.fromJson(userPayload);
+      await _storage.write(
+        key: 'user_data',
+        value: jsonEncode(userPayload),
+      );
+      notifyListeners();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      return false;
+    } catch (e) {
+      _error = "An error occurred while updating profile.";
+      return false;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> changePassword({
@@ -318,6 +379,7 @@ class AuthProvider extends ChangeNotifier {
           'station': payload['assignedStation'] is Map<String, dynamic>
               ? (payload['assignedStation']['name'] ?? '').toString()
               : null,
+          'stationId': payload['stationId'] ?? (payload['assignedStation'] is Map<String, dynamic> ? payload['assignedStation']['id'] : null),
         };
 
     _user = UserModel.fromJson(userPayload);
