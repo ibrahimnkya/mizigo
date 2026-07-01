@@ -87,8 +87,13 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         }
 
         try {
+          // Server-side auth must bypass nginx to avoid POST→GET redirect.
+          // NEXT_PUBLIC_API_URL is the public domain (goes through nginx);
+          // API_INTERNAL_URL should be http://localhost:3002/api/v1 on the server.
           const baseUrl =
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+            process.env.API_INTERNAL_URL ||
+            process.env.NEXT_PUBLIC_API_URL ||
+            "http://localhost:3002/api/v1";
           const url = `${baseUrl}${loginUrl}`;
 
           console.log(

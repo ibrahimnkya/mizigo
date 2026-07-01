@@ -15,7 +15,12 @@
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email FROM \"User\" ORDER BY \"createdAt\" DESC;')",
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email, \"loginCode\" IS NOT NULL as has_otp, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id WHERE u.phone = '\"'\"'255745763600'\"'\"';')",
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT u.id, u.name, u.phone, u.email, u.\"loginCode\" IS NOT NULL as has_otp, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id WHERE u.phone = '\"'\"'255745763600'\"'\"';')",
-      "Bash(curl -s -X POST http://localhost:3001/api/v1/auth/check-phone -H \"Content-Type: application/json\" -d '{\"phone\":\"255745763600\"}')"
+      "Bash(curl -s -X POST http://localhost:3001/api/v1/auth/check-phone -H \"Content-Type: application/json\" -d '{\"phone\":\"255745763600\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://api.mizigo.akiliapp.co.tz/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://mizigo.akiliapp.co.tz)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://161.97.81.61:3001/api/v1/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://161.97.81.61:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://161.97.81.61:3002/api/v1/health)"
     ]
   }
 }

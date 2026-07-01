@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useRef } from "react";
+import { useActionState, useState, useRef, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { authenticate } from "@/app/lib/actions";
 import {
@@ -42,6 +42,11 @@ export default function LoginForm() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [localError, setLocalError] = useState<string | undefined>();
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Focus first OTP input once on mount — not on every re-render (avoids re-submit loop)
+  useEffect(() => {
+    inputsRef.current[0]?.focus();
+  }, []);
 
   const displayError = errorMessage ?? localError;
 
@@ -137,7 +142,6 @@ export default function LoginForm() {
                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
                 onPaste={handleOtpPaste}
                 className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-indigo-400/20 focus:border-indigo-400 rounded-[10px] transition-all outline-none text-slate-900"
-                autoFocus={index === 0}
               />
             ))}
           </div>
