@@ -155,7 +155,7 @@ export const sendSms = async (input: {
   senderId?: string;
 }) => {
   const config = await loadSmsProviderConfig(input.organizationId);
-  const senderId = input.senderId || config.defaultSenderId;
+  const senderId = input.senderId || config.defaultSenderId || "MIZIGO";
   const formattedPhone = normalizePhoneNumber(input.phoneNumber);
   if (!formattedPhone) {
     throw new Error("A valid phone number is required to send SMS");
@@ -173,6 +173,7 @@ export const sendSms = async (input: {
       message: input.message,
       status: "SENT",
       organizationId: input.organizationId,
+      senderId,
     });
     return {
       status: "S",
@@ -207,6 +208,7 @@ export const sendSms = async (input: {
         message: input.message,
         status: "SENT",
         organizationId: input.organizationId,
+        senderId,
       });
       logger.info("sms_sent", { formattedPhone });
       return payload;
@@ -226,6 +228,7 @@ export const sendSms = async (input: {
     status: "FAILED",
     error: lastError?.message || null,
     organizationId: input.organizationId,
+    senderId,
   });
   logger.error("sms_send_failed", {
     formattedPhone,
@@ -242,9 +245,10 @@ export const logSmsStatus = async (input: {
   status: string;
   error?: string | null;
   organizationId?: string | null;
+  senderId?: string | null;
 }) => {
   // Log to stdout for server capturing
-  console.log(`[SMS SEND LOG] [${new Date().toISOString()}] To: ${input.phoneNumber} | Status: ${input.status} | Message: "${input.message}"${input.error ? ` | Error: ${input.error}` : ""}`);
+  console.log(`[SMS SEND LOG] [${new Date().toISOString()}] To: ${input.phoneNumber} | Sender: ${input.senderId || "—"} | Status: ${input.status} | Message: "${input.message}"${input.error ? ` | Error: ${input.error}` : ""}`);
 
   await prisma.auditLog.create({
     data: {
@@ -256,6 +260,7 @@ export const logSmsStatus = async (input: {
         message: input.message,
         status: input.status,
         error: input.error || null,
+        senderId: input.senderId || null,
         timestamp: new Date().toISOString(),
       },
     },

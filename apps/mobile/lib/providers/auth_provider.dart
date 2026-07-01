@@ -174,8 +174,9 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await ApiService.changeOperatorOtp(newOtp);
+      final data = await ApiService.changeOperatorOtp(newOtp);
       _mustChangeOtp = false;
+      await _saveSession(data);
       notifyListeners();
       return true;
     } on ApiException catch (e) {

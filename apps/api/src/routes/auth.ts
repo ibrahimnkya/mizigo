@@ -767,7 +767,29 @@ router.post(
         where: { id: req.user.id },
         data: { loginCode: hashOtp(String(newOtp)), isFirstLogin: false },
       });
-      return sendSuccess(res, { message: "OTP changed successfully" });
+
+      const sessionRecord = await prisma.authSession.findUnique({
+        where: { id: req.user.sessionId },
+      });
+      const deviceId = sessionRecord?.deviceId || "unknown";
+
+      const claims = await buildUserClaims(req.user.id);
+      if (!claims)
+        return sendError(res, "NOT_FOUND", "User claims not found", 404);
+
+      const session = await issueSessionTokens({
+        userId: req.user.id,
+        deviceId,
+        claims,
+      });
+
+      return sendSuccess(res, {
+        message: "OTP changed successfully",
+        ...claims,
+        mustChangeOtp: false,
+        token: session.accessToken,
+        refreshToken: session.refreshToken,
+      });
     } catch (error: any) {
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }
@@ -794,7 +816,29 @@ router.post(
         where: { id: req.user.id },
         data: { loginCode: hashOtp(String(newOtp)), isFirstLogin: false },
       });
-      return sendSuccess(res, { message: "OTP changed successfully" });
+
+      const sessionRecord = await prisma.authSession.findUnique({
+        where: { id: req.user.sessionId },
+      });
+      const deviceId = sessionRecord?.deviceId || "unknown";
+
+      const claims = await buildUserClaims(req.user.id);
+      if (!claims)
+        return sendError(res, "NOT_FOUND", "User claims not found", 404);
+
+      const session = await issueSessionTokens({
+        userId: req.user.id,
+        deviceId,
+        claims,
+      });
+
+      return sendSuccess(res, {
+        message: "OTP changed successfully",
+        ...claims,
+        mustChangeOtp: false,
+        token: session.accessToken,
+        refreshToken: session.refreshToken,
+      });
     } catch (error: any) {
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }

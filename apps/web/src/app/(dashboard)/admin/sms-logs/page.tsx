@@ -46,6 +46,7 @@ interface AuditLog {
     status: "SENT" | "FAILED" | "PENDING";
     error?: string | null;
     timestamp?: string;
+    senderId?: string | null;
   };
 }
 
@@ -220,6 +221,7 @@ function SmsLogsPageInner() {
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Time</th>
                     <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Recipient</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender ID</th>
                     {isSuperAdmin && (
                       <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Organization</th>
                     )}
@@ -244,6 +246,9 @@ function SmsLogsPageInner() {
                             <Phone size={13} className="text-slate-400" />
                             {log.details?.phoneNumber || "—"}
                           </span>
+                        </td>
+                        <td className="px-6 py-4.5 whitespace-nowrap text-slate-500 font-mono text-[12px]">
+                          {log.details?.senderId || "—"}
                         </td>
                         {isSuperAdmin && (
                           <td className="px-6 py-4.5 whitespace-nowrap">
@@ -358,6 +363,10 @@ function SmsLogsPageInner() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Sender ID</span>
+                      <span className="text-[13px] font-mono font-bold text-slate-800">{selectedLog.details?.senderId || "—"}</span>
+                    </div>
+                    <div>
                       <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Status</span>
                       <span className={cn(
                         "px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-[6px] border block w-fit",
@@ -368,13 +377,13 @@ function SmsLogsPageInner() {
                         {selectedLog.details?.status}
                       </span>
                     </div>
-                    {selectedLog.details?.error && (
-                      <div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Error Remarks</span>
-                        <span className="text-[11px] font-bold text-red-600 block">{selectedLog.details.error}</span>
-                      </div>
-                    )}
                   </div>
+                  {selectedLog.details?.error && (
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Error Remarks</span>
+                      <span className="text-[11px] font-bold text-red-600 block">{selectedLog.details.error}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-6 border-t border-slate-100 flex gap-3 mt-auto">
