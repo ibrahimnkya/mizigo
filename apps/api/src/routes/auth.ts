@@ -363,19 +363,40 @@ router.post("/admin/refresh-token", async (req: Request, res: Response) => {
       );
     }
 
-    await prisma.authSession.delete({ where: { id: existing.id } });
-
     const claims = await buildUserClaims(existing.userId);
     if (!claims) return sendError(res, "NOT_FOUND", "User not found", 404);
-    const session = await issueSessionTokens({
-      userId: existing.userId,
-      deviceId: String(deviceId),
-      claims,
+
+    const accessToken = jwt.sign(
+      { ...claims, typ: "access", sessionId: existing.id },
+      JWT_SECRET,
+      { expiresIn: ACCESS_TOKEN_TTL as any },
+    );
+    const nextRefreshToken = jwt.sign(
+      {
+        sub: existing.userId,
+        sid: existing.id,
+        did: String(deviceId),
+        typ: "refresh",
+      },
+      JWT_SECRET,
+      { expiresIn: `${REFRESH_TOKEN_TTL_DAYS}d` },
+    );
+
+    const nextExpiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    await prisma.authSession.update({
+      where: { id: existing.id },
+      data: {
+        refreshTokenHash: hashToken(nextRefreshToken),
+        expiresAt: nextExpiresAt,
+      },
     });
 
     return sendSuccess(res, {
-      token: session.accessToken,
-      refreshToken: session.refreshToken,
+      token: accessToken,
+      refreshToken: nextRefreshToken,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
@@ -439,19 +460,40 @@ router.post("/operator/refresh-token", async (req: Request, res: Response) => {
       );
     }
 
-    await prisma.authSession.delete({ where: { id: existing.id } });
-
     const claims = await buildUserClaims(existing.userId);
     if (!claims) return sendError(res, "NOT_FOUND", "User not found", 404);
-    const session = await issueSessionTokens({
-      userId: existing.userId,
-      deviceId: String(deviceId),
-      claims,
+
+    const accessToken = jwt.sign(
+      { ...claims, typ: "access", sessionId: existing.id },
+      JWT_SECRET,
+      { expiresIn: ACCESS_TOKEN_TTL as any },
+    );
+    const nextRefreshToken = jwt.sign(
+      {
+        sub: existing.userId,
+        sid: existing.id,
+        did: String(deviceId),
+        typ: "refresh",
+      },
+      JWT_SECRET,
+      { expiresIn: `${REFRESH_TOKEN_TTL_DAYS}d` },
+    );
+
+    const nextExpiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    await prisma.authSession.update({
+      where: { id: existing.id },
+      data: {
+        refreshTokenHash: hashToken(nextRefreshToken),
+        expiresAt: nextExpiresAt,
+      },
     });
 
     return sendSuccess(res, {
-      token: session.accessToken,
-      refreshToken: session.refreshToken,
+      token: accessToken,
+      refreshToken: nextRefreshToken,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
@@ -515,19 +557,40 @@ router.post("/refresh-token", async (req: Request, res: Response) => {
       );
     }
 
-    await prisma.authSession.delete({ where: { id: existing.id } });
-
     const claims = await buildUserClaims(existing.userId);
     if (!claims) return sendError(res, "NOT_FOUND", "User not found", 404);
-    const session = await issueSessionTokens({
-      userId: existing.userId,
-      deviceId: String(deviceId),
-      claims,
+
+    const accessToken = jwt.sign(
+      { ...claims, typ: "access", sessionId: existing.id },
+      JWT_SECRET,
+      { expiresIn: ACCESS_TOKEN_TTL as any },
+    );
+    const nextRefreshToken = jwt.sign(
+      {
+        sub: existing.userId,
+        sid: existing.id,
+        did: String(deviceId),
+        typ: "refresh",
+      },
+      JWT_SECRET,
+      { expiresIn: `${REFRESH_TOKEN_TTL_DAYS}d` },
+    );
+
+    const nextExpiresAt = new Date(
+      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    await prisma.authSession.update({
+      where: { id: existing.id },
+      data: {
+        refreshTokenHash: hashToken(nextRefreshToken),
+        expiresAt: nextExpiresAt,
+      },
     });
 
     return sendSuccess(res, {
-      token: session.accessToken,
-      refreshToken: session.refreshToken,
+      token: accessToken,
+      refreshToken: nextRefreshToken,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
