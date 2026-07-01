@@ -9,7 +9,9 @@
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email, role FROM \"User\";')",
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email, \"roleId\", \"loginCode\" IS NOT NULL as has_otp FROM \"User\";')",
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c '\\\\dt')",
-      "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT u.id, u.name, u.phone, u.email, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id ORDER BY r.name;')"
+      "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT u.id, u.name, u.phone, u.email, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id ORDER BY r.name;')",
+      "Bash(grep -i \"^base\\\\|/base$\\\\|/base/\")",
+      "Bash(git rm *)"
     ]
   }
 }
