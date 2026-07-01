@@ -51,7 +51,7 @@ const buildParcelWhere = (req: Request) => {
   }
 
   if (req.user?.role !== "SUPER_ADMIN" && req.user?.organizationId) {
-    where.user = { organizationId: req.user.organizationId };
+    where.organizationId = req.user.organizationId;
   }
 
   return where;

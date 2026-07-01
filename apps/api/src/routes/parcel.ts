@@ -552,7 +552,7 @@ router.get("/stats/operator", ...secure, async (req: Request, res: Response) => 
     const getStatsForRange = async (stationId: string, minDate?: Date) => {
       const dateFilter = minDate ? { createdAt: { gte: minDate } } : {};
       
-      const [received, delivered, sent, atWarehouse] = await Promise.all([
+      const [received, delivered, sent, atWarehouse, total] = await Promise.all([
         (prisma as any).parcel.count({
           where: {
             OR: [{ originId: stationId }, { fromAddress: stationId }],
@@ -582,9 +582,20 @@ router.get("/stats/operator", ...secure, async (req: Request, res: Response) => 
             ...dateFilter,
           },
         }),
+        (prisma as any).parcel.count({
+          where: {
+            OR: [
+              { originId: stationId },
+              { fromAddress: stationId },
+              { destinationId: stationId },
+              { toAddress: stationId }
+            ],
+            ...dateFilter,
+          },
+        }),
       ]);
 
-      return { received, delivered, sent, atWarehouse };
+      return { received, delivered, sent, atWarehouse, total };
     };
 
     const now = Date.now();

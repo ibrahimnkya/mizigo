@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/parcel_model.dart';
 import '../../providers/parcel_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/shimmer_utils.dart';
@@ -817,6 +818,229 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     return _currentParcel.status == ParcelStatus.received;
   }
 
+  Future<void> _dispatchParcel() async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.updateParcelStatus(_currentParcel.id, 'In Transit', location: 'Dispatched to train');
+      await _fetchFullParcel();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Parcel successfully dispatched ✓'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to dispatch: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _offloadParcel() async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.updateParcelStatus(_currentParcel.id, 'Offloaded', location: 'Offloaded at station');
+      await _fetchFullParcel();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Parcel successfully offloaded ✓'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to offload: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDelivery() async {
+    final otpControllers = List.generate(6, (_) => TextEditingController());
+    final focusNodes = List.generate(6, (_) => FocusNode());
+    bool verified = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(builder: (ctx, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const Gap(24),
+                  Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.verified_user_outlined, color: Color(0xFF10B981), size: 32),
+                  ),
+                  const Gap(16),
+                  Text(
+                    'Verify Delivery',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const Gap(8),
+                  Text(
+                    'Ask the receiver for their 6-digit delivery code',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const Gap(32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(6, (i) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 48,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppTheme.background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.border,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: otpControllers[i],
+                          focusNode: focusNodes[i],
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          maxLength: 1,
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            counterText: '',
+                          ),
+                          onChanged: (val) {
+                            if (val.isNotEmpty && i < 5) {
+                              FocusScope.of(ctx).requestFocus(focusNodes[i + 1]);
+                            } else if (val.isEmpty && i > 0) {
+                              FocusScope.of(ctx).requestFocus(focusNodes[i - 1]);
+                            }
+                            setSheetState(() {});
+                          },
+                        ),
+                      );
+                    }),
+                  ),
+                  const Gap(32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final otp = otpControllers.map((c) => c.text).join();
+                        if (otp.length == 6) {
+                          verified = true;
+                          Navigator.pop(sheetCtx);
+                        } else {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter a valid 6-digit code.'),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Confirm Delivery',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+
+    if (verified && mounted) {
+      final otp = otpControllers.map((c) => c.text).join();
+      setState(() => _isLoading = true);
+      try {
+        await ApiService.deliverParcel(_currentParcel.id, otp);
+        await _fetchFullParcel();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Parcel marked as Delivered ✓'),
+              backgroundColor: Color(0xFF10B981),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
   Future<void> _cancelBooking() async {
     final reasonController = TextEditingController();
     final shouldCancel = await showDialog<bool>(
@@ -964,9 +1188,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       createdAt: parcel.createdAt,
     );
 
+    final trackingNum = parcel.trackingNumber ?? parcel.id;
+    final timestamp = intl.DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
+
     await Printing.sharePdf(
       bytes: pdfBytes,
-      filename: 'mizigo_receipt_${parcel.id}.pdf',
+      filename: 'mizigo_receipt_${trackingNum}_$timestamp.pdf',
     );
   }
 
@@ -1030,6 +1257,8 @@ Powered by Mizigo Logistics''';
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final parcel = _currentParcel;
+    final auth = context.watch<AuthProvider>();
+    final isStaff = auth.user?.isStaff ?? false;
     
     final trackingNum = (parcel.trackingNumber != null && parcel.trackingNumber!.isNotEmpty)
         ? parcel.trackingNumber!
@@ -1384,6 +1613,71 @@ Powered by Mizigo Logistics''';
                       ),
                     ],
                   ),
+                  if (isStaff) ...[
+                    if (parcel.status == ParcelStatus.received) ...[
+                      const Gap(12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3B82F6),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                          ),
+                          onPressed: _dispatchParcel,
+                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedSpeedTrain02, color: Colors.white, size: 20),
+                          label: Text(
+                            'Dispatch Parcel',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (parcel.status == ParcelStatus.dispatched || parcel.status == ParcelStatus.inTransit) ...[
+                      const Gap(12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF59E0B),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                          ),
+                          onPressed: _offloadParcel,
+                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedDownload01, color: Colors.white, size: 20),
+                          label: Text(
+                            'Offload Parcel',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (parcel.status == ParcelStatus.offloaded || parcel.status == ParcelStatus.atStation) ...[
+                      const Gap(12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                          ),
+                          onPressed: _confirmDelivery,
+                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedTask01, color: Colors.white, size: 20),
+                          label: Text(
+                            'Deliver Parcel',
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                   if (_canCancel) ...[
                     const Gap(12),
                     SizedBox(

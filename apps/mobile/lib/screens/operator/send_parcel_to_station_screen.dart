@@ -30,6 +30,9 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
   final List<String> _mockTrains = ['SGR Express 01', 'Cargo Liner 402', 'LRT Shuttle 09'];
   final List<String> _mockGuards = ['Juma Kapuya', 'Sarah Mwasame', 'Bakari Jenge'];
 
+  List<String> _trains = [];
+  List<String> _guards = [];
+
   @override
   void initState() {
     super.initState();
@@ -39,8 +42,17 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
   Future<void> _fetchItems() async {
     setState(() => _loading = true);
     try {
-      final raw = await ApiService.getParcels();
-      List<ParcelModel> items = raw
+      final results = await Future.wait([
+        ApiService.getParcels(),
+        ApiService.getVehicles(),
+        ApiService.getOperators(),
+      ]);
+
+      final rawParcels = results[0] as List;
+      final rawVehicles = results[1] as List;
+      final rawOperators = results[2] as List;
+
+      List<ParcelModel> items = rawParcels
           .map((j) => ParcelModel.fromJson(j))
           .where((c) => 
             c.status == ParcelStatus.received || 
@@ -48,12 +60,33 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
             c.status.displayLabel.toUpperCase() == 'RECEIVED'
           )
           .toList();
+
+      final List<String> loadedTrains = rawVehicles
+          .map((v) => v['plateNumber']?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      final List<String> loadedGuards = rawOperators
+          .where((u) {
+            final roleObj = u['role'];
+            final roleName = roleObj is Map ? roleObj['name']?.toString() : u['role']?.toString();
+            return roleName?.toUpperCase() == 'TRAIN_GUARD';
+          })
+          .map((u) => u['name']?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
       
       setState(() {
         _warehouseItems = items;
+        _trains = loadedTrains.isNotEmpty ? loadedTrains : _mockTrains;
+        _guards = loadedGuards.isNotEmpty ? loadedGuards : _mockGuards;
       });
     } catch (e) {
       debugPrint('Error fetching warehouse items: $e');
+      setState(() {
+        _trains = _mockTrains;
+        _guards = _mockGuards;
+      });
     } finally {
       setState(() => _loading = false);
     }
@@ -287,7 +320,7 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
                         child: _buildSelectionContainer(
                           hint: 'Select Train',
                           value: _selectedTrain,
-                          items: _mockTrains,
+                          items: _trains,
                           onChanged: (val) => setState(() => _selectedTrain = val),
                           icon: Icons.speed,
                         ),
@@ -297,7 +330,7 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
                         child: _buildSelectionContainer(
                           hint: 'Select Guard',
                           value: _selectedGuard,
-                          items: _mockGuards,
+                          items: _guards,
                           onChanged: (val) => setState(() => _selectedGuard = val),
                           icon: Icons.person,
                         ),

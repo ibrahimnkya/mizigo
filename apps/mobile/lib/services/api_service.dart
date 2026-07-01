@@ -1129,6 +1129,40 @@ class ApiService {
     return _parseResponse(res);
   }
 
+  static Future<List<dynamic>> getVehicles() async {
+    if (_useMocks) {
+      return [
+        {'id': 'v1', 'plateNumber': 'SGR Express 01'},
+        {'id': 'v2', 'plateNumber': 'Cargo Liner 402'},
+        {'id': 'v3', 'plateNumber': 'LRT Shuttle 09'}
+      ];
+    }
+    final res = await _sendWithAutoRefresh(
+      method: 'GET',
+      url: Uri.parse('$_baseUrl/fleet'),
+      headers: await _headers,
+    );
+    final parsed = _parseResponse(res);
+    return parsed['data'] is List ? parsed['data'] as List : [];
+  }
+
+  static Future<List<dynamic>> getOperators() async {
+    if (_useMocks) {
+      return [
+        {'id': 'u1', 'name': 'Juma Kapuya', 'role': {'name': 'TRAIN_GUARD'}},
+        {'id': 'u2', 'name': 'Sarah Mwasame', 'role': {'name': 'TRAIN_GUARD'}},
+        {'id': 'u3', 'name': 'Bakari Jenge', 'role': {'name': 'TRAIN_GUARD'}}
+      ];
+    }
+    final res = await _sendWithAutoRefresh(
+      method: 'GET',
+      url: Uri.parse('$_baseUrl/operators'),
+      headers: await _headers,
+    );
+    final parsed = _parseResponse(res);
+    return parsed['data'] is List ? parsed['data'] as List : [];
+  }
+
 
   /// Search for parcel by tracking ID or parcel ID (operator use).
   static Future<List<dynamic>> searchParcel(String query) async {

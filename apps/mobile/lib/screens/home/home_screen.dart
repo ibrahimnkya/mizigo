@@ -7,6 +7,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/printer_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/parcel_provider.dart';
+import '../../models/parcel_model.dart';
+import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/home/user_board.dart';
 import '../../widgets/home/summary_board.dart';
@@ -21,6 +23,52 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _searchLoading = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSearch(String value) async {
+    final query = value.trim().toUpperCase();
+    if (query.isEmpty) return;
+
+    setState(() => _searchLoading = true);
+    try {
+      final results = await ApiService.searchParcel(query);
+      if (results.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No parcel found for "$query"'),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
+      } else {
+        final parcelData = results[0]['data'] ?? results[0];
+        final parcel = ParcelModel.fromJson(parcelData);
+        if (mounted) {
+          context.push('/bookings/recent/${parcel.id}', extra: parcel);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Search error: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _searchLoading = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -217,6 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchField() {
     final theme = Theme.of(context);
     return TextField(
+      controller: _searchController,
+      textCapitalization: TextCapitalization.characters,
+      onSubmitted: _handleSearch,
       style: GoogleFonts.inter(
         color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
         fontSize: 16,
@@ -249,6 +300,19 @@ class _HomeScreenState extends State<HomeScreen> {
             size: 20,
           ),
         ),
+        suffixIcon: _searchLoading
+            ? Padding(
+                padding: const EdgeInsets.all(14),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.cPrimary),
+                  ),
+                ),
+              )
+            : null,
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );

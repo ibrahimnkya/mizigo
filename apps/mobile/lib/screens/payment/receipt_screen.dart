@@ -69,9 +69,12 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             : DateTime.now(),
       );
 
+      final trackingNum = _receipt!['trackingNumber'] ?? _receipt!['id'] ?? widget.parcelId;
+      final timestamp = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
+
       await Printing.sharePdf(
         bytes: pdfBytes,
-        filename: 'mizigo_receipt_${widget.parcelId}.pdf',
+        filename: 'mizigo_receipt_${trackingNum}_$timestamp.pdf',
       );
     } catch (e) {
       if (mounted) {

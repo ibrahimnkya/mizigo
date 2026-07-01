@@ -108,6 +108,8 @@ router.post(
           ? String(initialOtp)
           : Math.floor(100000 + Math.random() * 900000).toString();
 
+      const { wagonId } = req.body;
+
       const user = await prisma.user.create({
         data: {
           name,
@@ -118,8 +120,9 @@ router.post(
           roleId,
           organizationId: targetOrganizationId || null,
           stationId,
+          wagonId: wagonId || null,
         },
-        include: { role: true, organization: true, station: true },
+        include: { role: true, organization: true, station: true, wagon: true },
       });
 
       await logAudit({
@@ -267,7 +270,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     const operators = await prisma.user.findMany({
       where,
-      include: { role: true, organization: true, station: true },
+      include: { role: true, organization: true, station: true, wagon: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -308,9 +311,10 @@ router.put(
               ? undefined
               : normalizePhoneNumber(req.body.phone),
           stationId: req.body.stationId,
+          wagonId: req.body.wagonId === undefined ? undefined : req.body.wagonId,
           isActive: req.body.isActive,
         },
-        include: { role: true, organization: true, station: true },
+        include: { role: true, organization: true, station: true, wagon: true },
       });
 
       await logAudit({

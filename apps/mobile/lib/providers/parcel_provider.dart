@@ -102,10 +102,12 @@ class ParcelProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final stats = await ApiService.getOperatorStats();
+      final res = await ApiService.getOperatorStats();
+      final stats = res['data'] ?? res;
       _operatorStats = {
         'received': (stats['received'] as num?)?.toInt() ?? 0,
         'delivered': (stats['delivered'] as num?)?.toInt() ?? 0,
+        'in_transit': (stats['sent'] as num?)?.toInt() ?? 0,
         'dispatched': (stats['sent'] as num?)?.toInt() ?? 0,
         'atWarehouse': (stats['atWarehouse'] as num?)?.toInt() ?? 0,
       };

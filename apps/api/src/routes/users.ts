@@ -268,9 +268,16 @@ router.delete("/:id", authenticate, async (req: Request, res: Response) => {
     }
 
     // Safe to delete — soft-delete
+    const timestamp = Date.now();
     await prisma.user.update({
       where: { id },
-      data: { deletedAt: new Date(), isActive: false, stationId: null },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+        stationId: null,
+        email: `deleted_${timestamp}_${user.email}`,
+        phone: user.phone ? `deleted_${timestamp}_${user.phone}` : null,
+      },
     });
 
     return sendSuccess(res, { deleted: true, id });

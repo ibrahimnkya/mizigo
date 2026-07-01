@@ -11,6 +11,7 @@ import {
   Mail,
   CheckCircle2,
   MapPin,
+  Train,
 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import {
@@ -42,6 +43,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [stations, setStations] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
 
   // Form State
   const [name, setName] = useState("");
@@ -50,6 +52,10 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
   const [roleId, setRoleId] = useState("");
   const [organizationId, setOrganizationId] = useState("");
   const [stationId, setStationId] = useState("");
+  const [wagonId, setWagonId] = useState("");
+
+  const selectedRole = roles.find((r) => r.id === roleId)?.name;
+  const isTrainGuard = selectedRole === "TRAIN_GUARD";
 
   useEffect(() => {
     if (open) {
@@ -60,14 +66,16 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
   const fetchMetadata = async () => {
     setFetchingMetadata(true);
     try {
-      const [orgsRes, rolesRes, stationsRes] = await Promise.all([
+      const [orgsRes, rolesRes, stationsRes, fleetRes] = await Promise.all([
         api.get("/organizations"),
         api.get("/roles"),
         api.get("/stations"),
+        api.get("/fleet"),
       ]);
       setOrganizations(orgsRes.data.data || orgsRes.data || []);
       setRoles(rolesRes.data.data || rolesRes.data || []);
       setStations(stationsRes.data.data || stationsRes.data || []);
+      setVehicles(fleetRes.data.data || fleetRes.data || []);
     } catch (err) {
       console.error("Failed to fetch provisioning metadata", err);
     } finally {
@@ -103,6 +111,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
         phone,
         organizationId: organizationId || undefined,
         stationId: stationId || undefined,
+        wagonId: isTrainGuard ? (wagonId || undefined) : undefined,
         roleId: roleId,
       };
 
@@ -131,6 +140,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
     setRoleId("");
     setOrganizationId("");
     setStationId("");
+    setWagonId("");
     setError(null);
   };
 
@@ -303,6 +313,34 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
                   />
                 </div>
               </div>
+
+              {isTrainGuard && (
+                <div className="space-y-3 sm:col-span-2 mt-6">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    Assigned Train / Wagon (Train Guard Specialization)
+                  </Label>
+                  <EntitySelect
+                    label=""
+                    icon={Train}
+                    placeholder="Select train/wagon (Optional)"
+                    value={wagonId}
+                    onChange={setWagonId}
+                    loading={fetchingMetadata}
+                    options={vehicles
+                      .filter(
+                        (v) =>
+                          !organizationId ||
+                          v.organizationId === organizationId,
+                      )
+                      .map((vehicle) => ({
+                        id: vehicle.id,
+                        name: vehicle.plateNumber,
+                        description: vehicle.type || "Vehicle",
+                        icon: Train,
+                      }))}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

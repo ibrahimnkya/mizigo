@@ -147,6 +147,9 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
     final key = timeframe.toLowerCase();
     final sub = _stats[key];
     if (sub is Map) {
+      if (sub.containsKey('total')) {
+        return (sub['total'] as num?)?.toInt() ?? 0;
+      }
       return [
         (sub['received'] as num?)?.toInt() ?? 0,
         (sub['sent'] as num?)?.toInt() ?? 0,

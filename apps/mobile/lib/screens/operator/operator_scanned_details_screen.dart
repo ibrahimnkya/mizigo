@@ -237,8 +237,8 @@ class _OperatorScannedDetailsScreenState
   }
 
   Future<void> _confirmDelivery() async {
-    final otpControllers = List.generate(4, (_) => TextEditingController());
-    final focusNodes = List.generate(4, (_) => FocusNode());
+    final otpControllers = List.generate(6, (_) => TextEditingController());
+    final focusNodes = List.generate(6, (_) => FocusNode());
     bool verified = false;
 
     await showModalBottomSheet<void>(
@@ -286,7 +286,7 @@ class _OperatorScannedDetailsScreenState
                   ),
                   const Gap(8),
                   Text(
-                    'Ask the receiver for their 4-digit delivery code',
+                    'Ask the receiver for their 6-digit delivery code',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 14,
@@ -297,11 +297,11 @@ class _OperatorScannedDetailsScreenState
                   // OTP boxes
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(4, (i) {
+                    children: List.generate(6, (i) {
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 60,
-                        height: 64,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 48,
+                        height: 56,
                         decoration: BoxDecoration(
                           color: AppTheme.background,
                           borderRadius: BorderRadius.circular(12),
@@ -317,7 +317,7 @@ class _OperatorScannedDetailsScreenState
                           keyboardType: TextInputType.number,
                           maxLength: 1,
                           style: GoogleFonts.outfit(
-                            fontSize: 24,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
                           ),
@@ -326,7 +326,7 @@ class _OperatorScannedDetailsScreenState
                             counterText: '',
                           ),
                           onChanged: (val) {
-                            if (val.isNotEmpty && i < 3) {
+                            if (val.isNotEmpty && i < 5) {
                               FocusScope.of(ctx).requestFocus(focusNodes[i + 1]);
                             } else if (val.isEmpty && i > 0) {
                               FocusScope.of(ctx).requestFocus(focusNodes[i - 1]);
@@ -344,13 +344,13 @@ class _OperatorScannedDetailsScreenState
                     child: ElevatedButton(
                       onPressed: () {
                         final otp = otpControllers.map((c) => c.text).join();
-                        if (otp == '1024') {
+                        if (otp.length == 6) {
                           verified = true;
                           Navigator.pop(sheetCtx);
                         } else {
                           ScaffoldMessenger.of(ctx).showSnackBar(
                             const SnackBar(
-                              content: Text('Invalid verification code. Use 1024 for demo.'),
+                              content: Text('Please enter a valid 6-digit code.'),
                               backgroundColor: Colors.redAccent,
                             ),
                           );

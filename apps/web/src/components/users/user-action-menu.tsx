@@ -58,14 +58,17 @@ export function UserActionMenu({
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editStationId, setEditStationId] = useState("");
+  const [editWagonId, setEditWagonId] = useState("");
   const [saving, setSaving] = useState(false);
   const [stations, setStations] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
 
   useEffect(() => {
     if (viewOpen && user) {
       setEditName(user.name || "");
       setEditPhone(user.phone || "");
       setEditStationId(user.stationId || "");
+      setEditWagonId(user.wagonId || "");
       setIsEditing(false);
     }
   }, [viewOpen, user]);
@@ -75,6 +78,10 @@ export function UserActionMenu({
       api
         .get("/stations")
         .then(({ data }) => setStations(data.data || data || []))
+        .catch(console.error);
+      api
+        .get("/fleet")
+        .then(({ data }) => setVehicles(data.data || data || []))
         .catch(console.error);
     }
   }, [viewOpen]);
@@ -93,6 +100,7 @@ export function UserActionMenu({
             name: editName,
             phone: editPhone,
             stationId: editStationId || null,
+            wagonId: editWagonId || null,
           };
 
       await api.put(endpoint, payload);
@@ -293,6 +301,41 @@ export function UserActionMenu({
                         {stations.map((s: any) => (
                           <option key={s.id} value={s.id}>
                             {s.name} ({s.code})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {user.role?.name === "TRAIN_GUARD" && (
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                      Assigned Train / Wagon
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={editWagonId}
+                        onChange={(e) => setEditWagonId(e.target.value)}
+                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="">No Active Train Assigned</option>
+                        {vehicles.map((v: any) => (
+                          <option key={v.id} value={v.id}>
+                            {v.plateNumber} ({v.type})
                           </option>
                         ))}
                       </select>

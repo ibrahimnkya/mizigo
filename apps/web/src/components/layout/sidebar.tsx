@@ -42,7 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { logout } from "@/app/lib/actions";
+import { signOut } from "next-auth/react";
 
 export interface SidebarItem {
   title: string;
@@ -628,7 +628,7 @@ export function Sidebar() {
                 <DropdownMenuSeparator className="bg-white/5 mx-2" />
                 <DropdownMenuItem
                   className="hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400 cursor-pointer rounded-[10px] transition-all py-3 px-4 m-1 flex items-center gap-3"
-                  onClick={() => logout()}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
                 >
                   <div className="h-8 w-8 rounded-[10px] bg-red-500/10 flex items-center justify-center border border-red-500/10">
                     <LogOut className="h-4 w-4" />
