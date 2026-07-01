@@ -20,6 +20,11 @@ import financeRouter from "./routes/finance";
 import smsConfigRouter from "./routes/sms-config";
 import platformRouter from "./routes/platform";
 import sgrIntegrationRouter from "./routes/sgr-integration";
+import fleetRouter from "./routes/fleet";
+import paymentConfigRouter from "./routes/payment-config";
+import serviceTypesRouter from "./routes/service-types";
+import platformAgentsRouter from "./routes/platform-agents";
+import agentCommissionsRouter from "./routes/agent-commissions";
 import { requestContext } from "./middleware/request-context";
 import { requestLogger } from "./middleware/request-logger";
 import { auditWrites } from "./middleware/audit-writes";
@@ -129,6 +134,11 @@ export const createApp = (): Express => {
     app.use(`${API_PREFIX}/finance`, financeRouter);
     app.use(`${API_PREFIX}/sms-config`, smsConfigRouter);
     app.use(`${API_PREFIX}/admin/platform`, platformRouter);
+    app.use(`${API_PREFIX}/fleet`, fleetRouter);
+    app.use(`${API_PREFIX}/payment-config`, paymentConfigRouter);
+    app.use(`${API_PREFIX}/service-types`, serviceTypesRouter);
+    app.use(`${API_PREFIX}/platform-agents`, platformAgentsRouter);
+    app.use(`${API_PREFIX}/agent-commissions`, agentCommissionsRouter);
     app.use("/sec/trc", sgrIntegrationRouter);
   }
 

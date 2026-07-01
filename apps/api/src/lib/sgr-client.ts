@@ -225,3 +225,159 @@ export const fetchSgrTariffs = async (): Promise<SgrTariffExternal[]> => {
     throw error;
   }
 };
+
+export interface SgrBookingInput {
+  sourceRef: string;
+  senderName: string;
+  senderPhoneNumber: string;
+  parcelName: string;
+  parcelDescription: string;
+  originStation: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  destinationStation: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  tariff: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  declaration: {
+    declaredPrice: number;
+  };
+}
+
+/**
+ * Initiate SGR Parcel Booking on TRC SGR Portal
+ */
+export const bookSgrParcel = async (data: SgrBookingInput) => {
+  try {
+    const config = await loadSgrConfig();
+    const timestamp = Date.now().toString();
+    const body = { data };
+    const payload = `${timestamp}.${JSON.stringify(body)}`;
+    const signature = signPayload(payload, config.privateKey);
+
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Service-Name": config.serviceName,
+      "X-Header-Service": config.headerService,
+      "X-Timestamp": timestamp,
+      "X-Signature": signature,
+      clientRef: config.clientRef,
+    };
+
+    let baseUrl = config.baseUrl.trim();
+    if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    const url = `${baseUrl}/sec/trc/sgr-parcel/v1/manage/parcel-booking`;
+    logger.info("booking_sgr_parcel", { url, sourceRef: data.sourceRef });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR Booking API error: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`);
+    }
+
+    const result = (await response.json()) as {
+      code: string;
+      message: string;
+      data: {
+        parcelRef: string;
+        status: string;
+      };
+    };
+
+    const isSuccess = result.code === "SUCCESS" || (result as any).success === true;
+    if (!isSuccess || !result.data) {
+      throw new Error(result.message || "Failed to book SGR parcel");
+    }
+
+    return result.data;
+  } catch (error: any) {
+    logger.error("failed_to_book_sgr_parcel", { error: error.message });
+    throw error;
+  }
+};
+
+/**
+ * Calculate SGR Parcel cost dynamically from TRC SGR Portal
+ */
+export const calculateSgrCost = async (input: {
+  originStation: { id: string; name: string; code: string };
+  destinationStation: { id: string; name: string; code: string };
+  weightInKg: number;
+}) => {
+  try {
+    const config = await loadSgrConfig();
+    const timestamp = Date.now().toString();
+    const body = { data: input };
+    const payload = `${timestamp}.${JSON.stringify(body)}`;
+    const signature = signPayload(payload, config.privateKey);
+
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Service-Name": config.serviceName,
+      "X-Header-Service": config.headerService,
+      "X-Timestamp": timestamp,
+      "X-Signature": signature,
+      clientRef: config.clientRef,
+    };
+
+    let baseUrl = config.baseUrl.trim();
+    if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    const url = `${baseUrl}/sec/trc/sgr-parcel/get/parcelcost`;
+    logger.info("calculating_sgr_cost", { url });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR Cost API error: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`);
+    }
+
+    const result = (await response.json()) as {
+      code: string;
+      message: string;
+      data: {
+        parcelCharge: number;
+        taxedAmount: number;
+        totalCharge: number;
+        distanceInKm: number;
+        currency: string;
+      };
+    };
+
+    const isSuccess = result.code === "SUCCESS" || (result as any).success === true;
+    if (!isSuccess || !result.data) {
+      throw new Error(result.message || "Failed to calculate SGR cost");
+    }
+
+    return result.data;
+  } catch (error: any) {
+    logger.error("failed_to_calculate_sgr_cost", { error: error.message });
+    throw error;
+  }
+};
+

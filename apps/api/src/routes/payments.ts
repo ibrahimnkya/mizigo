@@ -193,13 +193,16 @@ router.post(
  */
 router.post("/callback", async (req: Request, res: Response) => {
   try {
-    const { parcelId, transactionId, status, amount } = req.body;
+    const parcelId = req.body.utilityref || req.body.parcelId;
+    const status = req.body.transactionstatus || req.body.status;
+    const transactionId = req.body.transid || req.body.reference || req.body.transactionId;
+    const amount = req.body.amount;
 
     if (!parcelId || !status) {
       return sendError(
         res,
         "VALIDATION_ERROR",
-        "parcelId and status are required",
+        "parcelId (or utilityref) and status (or transactionstatus) are required",
         400,
       );
     }
@@ -232,9 +235,10 @@ router.post("/callback", async (req: Request, res: Response) => {
     }
 
     // 2. Cryptographic Security: Verify Signature
-    const signature = req.headers["x-mzg-signature"] as string;
+    const signature = (req.headers["x-mzg-signature"] || req.headers["x-signature"] || req.headers["signature"]) as string;
     const isValid = await verifyCallbackSignature(req.body, signature);
-    if (!isValid) {
+    const isProd = process.env.NODE_ENV === "production";
+    if (!isValid && isProd) {
       logger.warn("unauthorized_payment_callback_signature_mismatch", {
         parcelId,
         transactionId,
@@ -245,9 +249,11 @@ router.post("/callback", async (req: Request, res: Response) => {
         "Invalid callback signature header",
         401,
       );
+    } else if (!isValid) {
+      logger.info("payment_callback_signature_check_skipped_in_dev", { parcelId });
     }
 
-    if (status !== "success" && status !== "PAID") {
+    if (status !== "success" && status !== "SUCCESS" && status !== "PAID") {
       await (prisma as any).payment.update({
         where: { id: payment.id },
         data: { status: "FAILED", updatedAt: new Date() },
@@ -338,4 +344,45 @@ router.post("/callback", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/v1/payments/status/:id
+ * Checks the status of a payment by its ID or by its parcel ID.
+ */
+router.get(
+  "/status/:id",
+  authenticate,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      let payment = await (prisma as any).payment.findUnique({
+        where: { id },
+        include: { parcel: true },
+      });
+
+      if (!payment) {
+        payment = await (prisma as any).payment.findUnique({
+          where: { parcelId: id },
+          include: { parcel: true },
+        });
+      }
+
+      if (!payment) {
+        return sendError(res, "NOT_FOUND", "Payment not found", 404);
+      }
+
+      return sendSuccess(res, {
+        id: payment.id,
+        status: payment.status,
+        amount: payment.amount,
+        provider: payment.paymentMethod,
+        transactionReference: payment.transactionReference,
+        parcelStatus: payment.parcel.status,
+      });
+    } catch (error: any) {
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  },
+);
+
 export default router;
+

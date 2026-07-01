@@ -3,6 +3,7 @@ import { prisma } from "@repo/database";
 import { sendError, sendSuccess } from "../lib/api-response";
 import { authenticate, requirePermission } from "../middleware/auth";
 import { requireTenantContext } from "../middleware/tenant-scope";
+import { sendSms } from "../lib/sms";
 
 const router: Router = Router();
 
@@ -241,6 +242,179 @@ router.put(
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }
   },
+);
+
+/**
+ * POST /api/v1/sms-config/:id/test
+ * Sends a test SMS using the specified configuration to verify credentials.
+ */
+router.post(
+  "/:id/test",
+  requirePermission("sms_config:update"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { phoneNumber, message } = req.body;
+
+      if (!phoneNumber || !message) {
+        return sendError(
+          res,
+          "VALIDATION_ERROR",
+          "phoneNumber and message are required",
+          400,
+        );
+      }
+
+      const config = await prisma.integration.findUnique({ where: { id } });
+      if (!config || config.deletedAt) {
+        return sendError(res, "NOT_FOUND", "SMS config not found", 404);
+      }
+
+      if (
+        req.user?.role !== "SUPER_ADMIN" &&
+        config.organizationId !== req.user?.organizationId
+      ) {
+        return sendError(
+          res,
+          "FORBIDDEN",
+          "Cannot test SMS config outside your organization",
+          403,
+        );
+      }
+
+      const { sendSms } = require("../lib/sms");
+
+      const result = await sendSms({
+        phoneNumber,
+        message,
+        organizationId: config.organizationId,
+        senderId: (config.config as any)?.defaultSenderId,
+      });
+
+      return sendSuccess(res, {
+        success: true,
+        providerResponse: result,
+      });
+    } catch (error: any) {
+      return sendError(res, "VALIDATION_ERROR", error.message, 400);
+    }
+  },
+);
+
+/**
+ * GET /api/v1/sms-config/logs
+ * Retrieves sent SMS logs (using auditLog table with action = "SMS_STATUS").
+ * Super Admin sees all or filters by org. Org Admin only sees their own org's logs.
+ */
+router.get(
+  "/logs",
+  async (req: Request, res: Response) => {
+    try {
+      const { page = "1", limit = "20", status, phoneNumber, organizationId } = req.query;
+
+      const pageNumber = Math.max(1, Number(page) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number(limit) || 20));
+      const skip = (pageNumber - 1) * pageSize;
+
+      const where: any = {
+        action: "SMS_STATUS",
+        resource: "sms",
+      };
+
+      // Scope by organizationId
+      if (req.user?.role !== "SUPER_ADMIN") {
+        where.organizationId = req.user?.organizationId || "";
+      } else if (organizationId) {
+        where.organizationId = String(organizationId);
+      }
+
+      // Handle JSON fields queries in Prisma
+      const andFilters: any[] = [];
+      if (phoneNumber) {
+        andFilters.push({
+          details: {
+            path: ["phoneNumber"],
+            string_contains: String(phoneNumber),
+          },
+        });
+      }
+      if (status) {
+        andFilters.push({
+          details: {
+            path: ["status"],
+            equals: String(status),
+          },
+        });
+      }
+
+      if (andFilters.length > 0) {
+        where.AND = andFilters;
+      }
+
+      const [items, total] = await Promise.all([
+        prisma.auditLog.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: pageSize,
+        }),
+        prisma.auditLog.count({ where }),
+      ]);
+
+      return sendSuccess(res, items, 200, {
+        page: pageNumber,
+        limit: pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      });
+    } catch (error: any) {
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  }
+);
+
+/**
+ * POST /api/v1/sms-config/logs/:id/resend
+ * Resends a previously logged SMS by AuditLog ID.
+ */
+router.post(
+  "/logs/:id/resend",
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const log = await prisma.auditLog.findUnique({
+        where: { id },
+      });
+
+      if (!log || log.action !== "SMS_STATUS" || !log.details) {
+        return sendError(res, "NOT_FOUND", "SMS log not found", 404);
+      }
+
+      // Scope check
+      if (req.user?.role !== "SUPER_ADMIN" && log.organizationId !== req.user?.organizationId) {
+        return sendError(res, "FORBIDDEN", "Cannot resend SMS logs of another organization", 403);
+      }
+
+      const details = log.details as any;
+      const phoneNumber = details.phoneNumber;
+      const message = details.message;
+
+      if (!phoneNumber || !message) {
+        return sendError(res, "VALIDATION_ERROR", "Invalid SMS log entry", 400);
+      }
+
+      const result = await sendSms({
+        phoneNumber,
+        message,
+        organizationId: log.organizationId,
+      });
+
+      return sendSuccess(res, { success: true, result });
+    } catch (error: any) {
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  }
 );
 
 export default router;

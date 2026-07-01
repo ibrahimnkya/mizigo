@@ -30,9 +30,9 @@ export type MySafariPushInput = {
 
 const getSystemFee = async (): Promise<number> => {
   const config = await prisma.systemConfig.findUnique({
-    where: { key: "DEFAULT_SYSTEM_FEE" },
+    where: { key_organizationId: { key: "DEFAULT_SYSTEM_FEE", organizationId: null as any } },
   });
-  return Number(config?.value || process.env.DEFAULT_SYSTEM_FEE || "500");
+  return Number(config?.value || process.env.DEFAULT_SYSTEM_FEE);
 };
 
 /**
@@ -49,9 +49,32 @@ const loadPaymentGatewayConfig = async () => {
     baseUrl:
       config.baseUrl ||
       process.env.PAYMENT_GATEWAY_URL ||
-      "https://sandbox.mysafari.co.tz",
-    apiKey: config.apiKey || process.env.PAYMENT_GATEWAY_KEY || "",
+      "https://mysafari.co.tz",
+    apiKey:    config.apiKey    || process.env.PAYWAY_KEY            || process.env.PAYMENT_GATEWAY_KEY  || "",
+    appName:   config.appName   || process.env.PAYMENT_APP_NAME      || "",
+    clientId:  config.clientId  || process.env.PAYMENT_CLIENT_ID     || "",
+    clientSecret: config.clientSecret || process.env.PAYMENT_CLIENT_SECRET || "",
   };
+};
+
+/**
+ * Builds the standard MySafari auth headers from the loaded config.
+ */
+const buildGatewayHeaders = (cfg: {
+  apiKey: string;
+  appName: string;
+  clientId: string;
+  clientSecret: string;
+}): Record<string, string> => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (cfg.appName)      headers["AppName"]      = cfg.appName;
+  if (cfg.clientId)     headers["ClientId"]     = cfg.clientId;
+  if (cfg.clientSecret) headers["ClientSecret"] = cfg.clientSecret;
+  // Some endpoints also accept a legacy apiKey header
+  if (cfg.apiKey)       headers["Authorization"] = `Bearer ${cfg.apiKey}`;
+  return headers;
 };
 
 /**
@@ -61,13 +84,13 @@ export const fetchExternalProviders = async (): Promise<
   PaymentProviderExternal[]
 > => {
   try {
-    const { baseUrl } = await loadPaymentGatewayConfig();
+    const cfg = await loadPaymentGatewayConfig();
 
     const response = await fetch(
-      `${baseUrl}/api/partner/get-payment-partners`,
+      `${cfg.baseUrl}/api/partner/get-payment-partners`,
       {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: buildGatewayHeaders(cfg),
       },
     );
 
@@ -91,69 +114,102 @@ export const fetchExternalProviders = async (): Promise<
 
     // Fallback to basic providers if external call fails
     return [
-      { id: "ext_mpesa", name: "M-Pesa", code: "mpesa", isActive: true },
-      { id: "ext_tigopesa", name: "Tigo Pesa", code: "tigo", isActive: true },
-      {
-        id: "ext_airtel",
-        name: "Airtel Money",
-        code: "airtel",
-        isActive: true,
-      },
+      { id: "ext_mpesa",    name: "M-Pesa",       code: "mpesa",  isActive: true },
+      { id: "ext_tigopesa", name: "Tigo Pesa",    code: "tigo",   isActive: true },
+      { id: "ext_airtel",   name: "Airtel Money", code: "airtel", isActive: true },
     ];
   }
 };
 
 /**
  * Initiates a push payment request to the customer's phone using MySafari.
+ * Always makes a real API call — no mocking, no environment bypasses.
  */
 export const initiatePushPayment = async (input: MySafariPushInput) => {
+  const cfg = await loadPaymentGatewayConfig();
+
+  if (!cfg.baseUrl) {
+    throw new Error(
+      "Payment gateway base URL is not configured. Please set it in Payment Settings."
+    );
+  }
+
+  // Validate that at least the minimum required credentials are present
+  const hasVodacomHeaders = cfg.appName && cfg.clientId && cfg.clientSecret;
+  const hasApiKey = !!cfg.apiKey;
+  if (!hasVodacomHeaders && !hasApiKey) {
+    throw new Error(
+      "Payment gateway credentials are incomplete. Please configure AppName, ClientId and ClientSecret in Payment Settings."
+    );
+  }
+
+
+  const body = {
+    payment_channel: input.paymentChannel,
+    phone_number: input.phoneNumber,
+    payment_reference: input.reference,
+    amount: input.amount,
+    callback_url: input.callbackUrl,
+    additionalData: input.additionalData || {},
+  };
+
+  logger.info("initiating_push_payment", {
+    reference: input.reference,
+    channel: input.paymentChannel,
+    baseUrl: cfg.baseUrl,
+  });
+
+  let response: Response;
   try {
-    const { baseUrl } = await loadPaymentGatewayConfig();
-
-    const body = {
-      payment_channel: input.paymentChannel,
-      phone_number: input.phoneNumber,
-      payment_reference: input.reference,
-      amount: input.amount,
-      callback_url: input.callbackUrl,
-      additionalData: input.additionalData || {},
-    };
-
-    logger.info("initiating_push_payment", {
-      reference: input.reference,
-      channel: input.paymentChannel,
-    });
-
-    const response = await fetch(`${baseUrl}/api/paymentGw/pushPayment`, {
+    response = await fetch(`${cfg.baseUrl}/api/paymentGw/pushPayment`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildGatewayHeaders(cfg),
       body: JSON.stringify(body),
     });
+  } catch (networkError: any) {
+    logger.error("push_payment_network_error", {
+      error: networkError.message,
+      reference: input.reference,
+      baseUrl: cfg.baseUrl,
+    });
+    throw new Error(
+      `Could not reach payment gateway at ${cfg.baseUrl}: ${networkError.message}`
+    );
+  }
 
-    if (!response.ok) {
-      throw new Error(
-        `MySafari push error: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const data = (await response.json()) as {
-      status: boolean;
-      message: string;
-      transaction_id: string;
-    };
-
-    if (!data.status) {
-      throw new Error(data.message || "Failed to initiate push payment");
-    }
-
-    return data;
-  } catch (error: any) {
-    logger.error("push_payment_failed", {
-      error: error.message,
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => response.statusText);
+    logger.error("push_payment_gateway_error", {
+      status: response.status,
+      body: errorText,
       reference: input.reference,
     });
-    throw error;
+    throw new Error(
+      `Payment gateway error (${response.status}): ${errorText}`
+    );
   }
+
+  let data: { status: boolean; message: string; transaction_id: string };
+  try {
+    data = await response.json();
+  } catch (parseErr: any) {
+    throw new Error("Payment gateway returned an invalid response format");
+  }
+
+  if (!data.status) {
+    logger.error("push_payment_rejected_by_gateway", {
+      message: data.message,
+      reference: input.reference,
+    });
+    throw new Error(data.message || "Payment gateway rejected the push request");
+  }
+
+  logger.info("push_payment_initiated_successfully", {
+    reference: input.reference,
+    transactionId: data.transaction_id,
+  });
+
+  return data;
 };
 
 /**

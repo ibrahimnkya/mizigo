@@ -13,13 +13,16 @@ import {
 import { authenticate } from "../middleware/auth";
 import { requireTenantContext } from "../middleware/tenant-scope";
 import { publicTrackingLimit } from "../middleware/rate-limit";
+import { bookSgrParcel, calculateSgrCost } from "../lib/sgr-client";
 
 type ParcelMeta = {
   paymentStatus?: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   senderName?: string;
   senderPhone?: string;
-  packageName?: string;
+  itemName?: string;
+  packageName?: string; // legacy key — kept for backwards compat
   declaredValue?: number;
+  paymentMode?: string;
 };
 
 const router: Router = Router();
@@ -35,10 +38,32 @@ const computePrice = async (input: {
   parcelType: string;
   parcelSize: string;
   condition: string;
+  organizationId?: string | null;
 }) => {
   const rules = await prisma.pricingRule.findMany({
-    where: { isActive: true, deletedAt: null },
+    where: {
+      isActive: true,
+      deletedAt: null,
+      OR: [
+        { organizationId: null },
+        { organizationId: input.organizationId || undefined },
+      ],
+    },
+    orderBy: [
+      { organizationId: "desc" }, // Scoped/custom rules come first
+      { createdAt: "desc" },
+    ],
   });
+
+  // Override global rules with organization-specific custom ones of the same name
+  const seenNames = new Set<string>();
+  const activeRules = [];
+  for (const rule of rules) {
+    if (!seenNames.has(rule.name)) {
+      seenNames.add(rule.name);
+      activeRules.push(rule);
+    }
+  }
 
   // Base defaults
   let baseFee = 5000;
@@ -48,7 +73,7 @@ const computePrice = async (input: {
   let totalMultiplier = 1;
   let additionalFixedFees = 0;
 
-  for (const rule of rules) {
+  for (const rule of activeRules) {
     // SGR_TARIFF rules use a different pricing model — skip in generic engine
     if (rule.type === "SGR_TARIFF") continue;
     let isMatch = true;
@@ -130,13 +155,17 @@ const formatParcelResponse = (parcel: any) => {
     id: parcel.id,
     trackingNumber: parcel.trackingNumber || parcel.reason || parcel.id,
     route: {
-      receivingStation: parcel.fromAddress,
-      destinationStation: parcel.toAddress,
+      receivingStation: parcel.origin?.name || parcel.fromAddress,
+      destinationStation: parcel.destination?.name || parcel.toAddress,
     },
+    itemName: meta.itemName || meta.packageName || parcel.specialInstructions || null,
+    packageSize: parcel.parcelSize,
     parcelType: parcel.parcelType,
     parcelSize: parcel.parcelSize,
     condition: parcel.condition,
     urgency: parcel.urgency,
+    serviceType: parcel.serviceType,
+    declaredValue: meta.declaredValue ?? null,
     receiver: {
       name: parcel.receiverName,
       phone: parcel.receiverPhone,
@@ -146,10 +175,20 @@ const formatParcelResponse = (parcel: any) => {
       phone: meta.senderPhone || null,
     },
     paymentStatus: meta.paymentStatus || "PENDING",
+    paymentMode: meta.paymentMode || "PAY_AS_YOU_GO",
     status: normalizeStatus(parcel.status),
     price: parcel.amount ?? null,
     createdAt: parcel.createdAt,
     updatedAt: parcel.updatedAt,
+    organization: parcel.organization
+      ? { id: parcel.organization.id, name: parcel.organization.name }
+      : parcel.organizationId ? { id: parcel.organizationId } : null,
+    origin: parcel.origin
+      ? { id: parcel.origin.id, name: parcel.origin.name, code: parcel.origin.code }
+      : parcel.originId ? { id: parcel.originId } : null,
+    destination: parcel.destination
+      ? { id: parcel.destination.id, name: parcel.destination.name, code: parcel.destination.code }
+      : parcel.destinationId ? { id: parcel.destinationId } : null,
   };
 };
 
@@ -179,6 +218,7 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
     if (
       !receivingStationId ||
       !destinationStationId ||
+      !receiverName ||
       !receiverPhone ||
       !weight
     ) {
@@ -190,27 +230,124 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       );
     }
 
-    const { totalPrice, breakdown } = await computePrice({
-      weight: Number(weight),
-      declaredValue: Number(declaredValue),
-      urgency: String(urgency),
-      parcelType: String(parcelType),
-      parcelSize: String(packageSize),
-      condition: String(condition),
+    const originStation = await prisma.station.findUnique({
+      where: { id: receivingStationId },
+    });
+    const destinationStation = await prisma.station.findUnique({
+      where: { id: destinationStationId },
     });
 
-    const deliveryOtpValue = createDeliveryOtp();
-    const parcelCount = await (prisma as any).parcel.count();
-    const trackingNumber = generateTracking(parcelCount);
+    // Look up tariff by parcelType first (maps SGR category to local rule),
+    // then fall back to any active SGR tariff. packageName is the item name, not the tariff.
+    const tariffRule =
+      (await prisma.pricingRule.findFirst({
+        where: { name: String(parcelType || ""), type: "SGR_TARIFF", isActive: true },
+      })) ??
+      (await prisma.pricingRule.findFirst({
+        where: { type: "SGR_TARIFF", isActive: true },
+      }));
 
-    let amountToCollect = totalPrice;
+    let totalPriceVal = 0;
+    let trackingNumberVal = "";
+    let isSgrBookingSuccess = false;
+    let breakdownVal: any = {};
+
+    if (originStation && destinationStation) {
+      try {
+        // Resolve tariff fields from the local rule if found, otherwise use safe defaults
+        let sgrTariffId = tariffRule?.id ?? "default";
+        let sgrTariffCode = "TRCPN";
+        let sgrTariffName = tariffRule?.name ?? String(packageName || "Standard");
+        if (tariffRule?.condition) {
+          try {
+            const meta = JSON.parse(tariffRule.condition);
+            if (meta.sgrId) sgrTariffId = meta.sgrId;
+            if (meta.parcelCategory?.code) sgrTariffCode = meta.parcelCategory.code;
+          } catch (_) {}
+        }
+
+        // 1. Fetch live price from TRC SGR (station-to-station weight-based cost)
+        const sgrCost = await calculateSgrCost({
+          originStation: {
+            id: originStation.id,
+            name: originStation.name,
+            code: originStation.code,
+          },
+          destinationStation: {
+            id: destinationStation.id,
+            name: destinationStation.name,
+            code: destinationStation.code,
+          },
+          weightInKg: Number(weight || 0.1),
+        });
+
+        if (sgrCost && sgrCost.totalCharge) {
+          totalPriceVal = sgrCost.totalCharge;
+        }
+
+        // 2. Register the booking with TRC SGR to get an official parcelRef
+        const sgrBooking = await bookSgrParcel({
+          sourceRef: `MZG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          senderName: String(senderName || "Sender"),
+          senderPhoneNumber: String(senderPhone || ""),
+          parcelName: String(parcelType || "Parcel"),
+          parcelDescription: String(description || "No description"),
+          originStation: {
+            id: originStation.id,
+            name: originStation.name,
+            code: originStation.code,
+          },
+          destinationStation: {
+            id: destinationStation.id,
+            name: destinationStation.name,
+            code: destinationStation.code,
+          },
+          tariff: {
+            id: sgrTariffId,
+            name: sgrTariffName,
+            code: sgrTariffCode,
+          },
+          declaration: {
+            declaredPrice: Number(declaredValue || 0),
+          },
+        });
+
+        if (sgrBooking && sgrBooking.parcelRef) {
+          trackingNumberVal = sgrBooking.parcelRef;
+          isSgrBookingSuccess = true;
+        }
+      } catch (sgrErr: any) {
+        console.error("[SGR Integration Error] Bypassing and falling back to local computation:", sgrErr.message);
+      }
+    }
+
+    if (!isSgrBookingSuccess) {
+      const { totalPrice, breakdown } = await computePrice({
+        weight: Number(weight),
+        declaredValue: Number(declaredValue),
+        urgency: String(urgency),
+        parcelType: String(parcelType),
+        parcelSize: String(packageSize),
+        condition: String(condition),
+        organizationId: req.user?.organizationId ?? null,
+      });
+      totalPriceVal = totalPrice;
+      breakdownVal = breakdown;
+
+      const parcelCount = await (prisma as any).parcel.count();
+      trackingNumberVal = generateTracking(parcelCount);
+    }
+
+    const deliveryOtpValue = createDeliveryOtp();
+
+    let amountToCollect = totalPriceVal;
     let receiverPays = false;
 
     if (paymentMode === "TO_PAY") {
-      amountToCollect = totalPrice / 2;
+      amountToCollect = totalPriceVal / 2;
       receiverPays = true;
     } else {
-      amountToCollect = totalPrice;
+      amountToCollect = totalPriceVal;
       receiverPays = false;
     }
 
@@ -218,7 +355,7 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       data: {
         organizationId: req.user?.organizationId ?? null,
         userId: userId ? String(userId) : req.user?.id,
-        trackingNumber,
+        trackingNumber: trackingNumberVal,
         deliveryOtp: hashPassword(deliveryOtpValue),
         fromAddress: String(receivingStationId), // Mapping to existing field
         toAddress: String(destinationStationId), // Mapping to existing field
@@ -227,24 +364,29 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
         receiverName: String(receiverName),
         receiverPhone: String(receiverPhone),
         receiverPays,
-        serviceType: String(packageName || "Standard"),
+        serviceType: String(parcelType || urgency || "Standard"),
         parcelType: String(parcelType || "Parcel"),
         parcelSize: String(packageSize || "Standard"),
         weight: Number(weight),
         condition: String(condition),
         urgency: String(urgency),
         pickupType: "STATION_DROP",
-        specialInstructions: description || null,
-        amount: totalPrice,
+        specialInstructions: String(description || packageName || ""),
+        amount: totalPriceVal,
         status: "RECEIVED",
         additionalServices: {
-          packageName,
+          itemName: String(packageName || ""),
           declaredValue: Number(declaredValue),
-          senderName,
-          senderPhone,
+          senderName: String(senderName || ""),
+          senderPhone: String(senderPhone || ""),
           paymentMode,
           paymentStatus: isPaid ? "PAID" : "PENDING",
         },
+      },
+      include: {
+        organization: true,
+        origin: true,
+        destination: true,
       },
     });
 
@@ -280,16 +422,16 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
     });
 
     await sendParcelReceiptSms({
-      trackingNumber,
+      trackingNumber: trackingNumberVal,
       otp: deliveryOtpValue,
       senderName: String(senderName || "Mtumaji"),
       senderPhone: String(senderPhone || ""),
       receiverName: String(receiverName),
       receiverPhone: String(receiverPhone),
-      originName: String(receivingStationId),
-      destinationName: String(destinationStationId),
+      originName: originStation?.name || String(receivingStationId),
+      destinationName: destinationStation?.name || String(destinationStationId),
       packageName: String(packageName || "Parcel"),
-      stationName: String(receivingStationId),
+      stationName: originStation?.name || String(receivingStationId),
       agentName: (req.user as any)?.name || "Agent",
       agentPhone: (req.user as any)?.phone || "",
       organizationId: req.user?.organizationId,
@@ -299,15 +441,15 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       userId: req.user?.id,
       action: "CREATE",
       resource: "parcel.receive",
-      details: { id: parcel.id, trackingNumber },
+      details: { id: parcel.id, trackingNumber: trackingNumberVal },
     });
 
     return sendSuccess(
       res,
       {
         parcel: formatParcelResponse(parcel),
-        pricing: { currency: "TZS", amount: totalPrice, breakdown },
-        trackingNumber,
+        pricing: { currency: "TZS", amount: totalPriceVal, breakdown: breakdownVal },
+        trackingNumber: trackingNumberVal,
         deliveryOtp: deliveryOtpValue,
       },
       201,
@@ -342,7 +484,12 @@ router.get("/stats/operator", ...secure, async (req: Request, res: Response) => 
     }
 
     if (!stationId) {
-      return sendError(res, "VALIDATION_ERROR", "stationId scope missing", 400);
+      return sendSuccess(res, {
+        today: { received: 0, delivered: 0, sent: 0, atWarehouse: 0 },
+        week: { received: 0, delivered: 0, sent: 0, atWarehouse: 0 },
+        month: { received: 0, delivered: 0, sent: 0, atWarehouse: 0 },
+        allTime: { received: 0, delivered: 0, sent: 0, atWarehouse: 0 },
+      });
     }
 
     const getStatsForRange = async (stationId: string, minDate?: Date) => {
@@ -408,12 +555,113 @@ router.get("/stats/operator", ...secure, async (req: Request, res: Response) => 
   }
 });
 
+const VALID_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "PAYMENT_PENDING",
+  "PAID",
+  "RECEIVED",
+  "SENT",
+  "DISPATCHED",
+  "OFFLOADED",
+  "AT_STATION",
+  "IN_TRANSIT",
+  "DELAYED",
+  "DELIVERED",
+  "CANCELED",
+  "LOST"
+];
+
+const mapParcelStatus = (status: any): string | null => {
+  if (!status) return null;
+  let mapped = String(status).toUpperCase().replace(/\s+/g, "_");
+  if (mapped === "CANCELLED") {
+    mapped = "CANCELED";
+  }
+  return VALID_STATUSES.includes(mapped) ? mapped : null;
+};
+
+router.get("/parcel-parameters", authenticate, async (req: Request, res: Response) => {
+  try {
+    const configs = await prisma.systemConfig.findMany({
+      where: {
+        key: {
+          in: ["PARCEL_TYPES", "PARCEL_CONDITIONS", "PACKAGE_SIZES", "DELIVERY_PRIORITIES"]
+        }
+      }
+    });
+
+    const result = configs.reduce((acc: Record<string, any>, curr: any) => {
+      try {
+        acc[curr.key] = JSON.parse(curr.value);
+      } catch {
+        acc[curr.key] = curr.value;
+      }
+      return acc;
+    }, {});
+
+    const defaultTypes = [
+      { name: "Document", description: "Envelopes, paper records, certificates" },
+      { name: "Envelope", description: "Letters and flat documents" },
+      { name: "Small package", description: "Up to 5 kg" },
+      { name: "Medium package", description: "5 kg to 15 kg" },
+      { name: "Large package", description: "15 kg to 30 kg" },
+      { name: "Fragile", description: "Glassware, ceramics, electronics" },
+      { name: "Box", description: "Cardboard boxes" },
+      { name: "Other", description: "Uncategorized goods" }
+    ];
+
+    const defaultConditions = [
+      { name: "Intact", description: "Brand new or perfect condition" },
+      { name: "Minor Damage", description: "Small scratches or dents" },
+      { name: "Damaged", description: "Broken or failed components" },
+      { name: "Opened/Tampered", description: "Seal is broken" },
+      { name: "Wet", description: "Water damage present" },
+      { name: "Crushed", description: "Structural box damage" },
+      { name: "Leaking", description: "Liquid container failure" },
+      { name: "Dented", description: "Metal or plastic indentation" }
+    ];
+
+    const defaultSizes = [
+      { name: "Document", description: "Flat letter size" },
+      { name: "Small Parcel", description: "Shoebox size" },
+      { name: "Medium Parcel", description: "Microwave size" },
+      { name: "Large Parcel", description: "Suitcase size" },
+      { name: "Oversized Parcel", description: "Large cargo" },
+      { name: "Crate", description: "Wooden shipping crate" },
+      { name: "Pallet", description: "Standard warehouse pallet" }
+    ];
+
+    const defaultPriorities = [
+      { name: "Express", description: "High-priority, same-day or next-day delivery" },
+      { name: "Standard", description: "Regular ground delivery service" },
+      { name: "MGR", description: "Mizigo Golden Route - scheduled premium service" }
+    ];
+
+    return sendSuccess(res, {
+      parcelTypes: result.PARCEL_TYPES || defaultTypes,
+      parcelConditions: result.PARCEL_CONDITIONS || defaultConditions,
+      packageSizes: result.PACKAGE_SIZES || defaultSizes,
+      deliveryPriorities: result.DELIVERY_PRIORITIES || defaultPriorities,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 router.get("/", ...secure, async (req: Request, res: Response) => {
   try {
     const { status, trackingNumber } = req.query;
     const where: any = { organizationId: req.user?.organizationId ?? null };
 
-    if (status) where.status = String(status);
+    if (status) {
+      const mapped = mapParcelStatus(status);
+      if (!mapped) {
+        return sendError(res, "VALIDATION_ERROR", `Invalid status value: ${status}`, 400);
+      }
+      where.status = mapped;
+    }
     if (trackingNumber)
       where.trackingNumber = {
         contains: String(trackingNumber),
@@ -424,6 +672,11 @@ router.get("/", ...secure, async (req: Request, res: Response) => {
       where,
       orderBy: { createdAt: "desc" },
       take: 50,
+      include: {
+        organization: true,
+        origin: true,
+        destination: true,
+      },
     });
 
     return sendSuccess(
@@ -492,6 +745,7 @@ router.post("/dispatch", ...secure, async (req: Request, res: Response) => {
         vehicle: true,
         origin: true,
         destination: true,
+        organization: true,
       },
     });
 
@@ -580,6 +834,8 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
       include: {
         offloader: { include: { organization: true } },
         destination: true,
+        origin: true,
+        organization: true,
       },
     });
 
@@ -592,11 +848,17 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
       },
     });
 
+    const extraInfo = (updatedParcel.additionalServices || {}) as Record<string, any>;
+    const senderName = extraInfo.senderName || "Mtumaji";
+    const packageName = extraInfo.packageName || updatedParcel.parcelType || "Parcel";
+
     await sendParcelArrivedSms({
       receiverName: updatedParcel.receiverName,
       receiverPhone: updatedParcel.receiverPhone,
       trackingNumber: updatedParcel.trackingNumber,
       destinationName: updatedParcel.destination?.name || "kupokelea",
+      senderName,
+      packageName,
       organizationId: updatedParcel.organizationId,
     }).catch(() => null);
 
@@ -662,6 +924,11 @@ router.post("/:id/deliver", ...secure, async (req: Request, res: Response) => {
         delivererId: userId,
         updatedAt: new Date(),
       },
+      include: {
+        organization: true,
+        origin: true,
+        destination: true,
+      },
     });
 
     // Mark OTP as used if found in model
@@ -718,6 +985,11 @@ router.post("/:id/cancel", ...secure, async (req: Request, res: Response) => {
         cancellationReason,
         isCanceled: true,
       },
+      include: {
+        organization: true,
+        origin: true,
+        destination: true,
+      },
     });
 
     await (prisma as any).parcelTracking.create({
@@ -760,6 +1032,11 @@ router.get(
             { receiverName: trackingNumber },
             { receiverPhone: trackingNumber },
           ],
+        },
+        include: {
+          organization: true,
+          origin: true,
+          destination: true,
         },
         orderBy: { createdAt: "desc" },
       });
@@ -845,6 +1122,9 @@ router.get("/:id", ...secure, async (req: Request, res: Response) => {
         offloader: { select: { id: true, name: true, phone: true } },
         deliverer: { select: { id: true, name: true, phone: true } },
         tracking: { orderBy: { timestamp: "desc" } },
+        organization: true,
+        origin: true,
+        destination: true,
       },
     });
 

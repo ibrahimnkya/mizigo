@@ -72,17 +72,19 @@ router.post(
 router.get("/", async (req: Request, res: Response) => {
   try {
     const includeInactive = req.query.includeInactive === "true";
-    const where =
-      req.user?.role === "SUPER_ADMIN"
-        ? { ...(includeInactive ? {} : { isActive: true }) }
-        : {
-            id: req.user?.organizationId ?? "",
-            ...(includeInactive ? {} : { isActive: true }),
-          };
+    const all = req.query.all === "true" || req.user?.role === "SUPER_ADMIN";
+    
+    const where = all
+      ? { ...(includeInactive ? {} : { isActive: true }), deletedAt: null }
+      : {
+          id: req.user?.organizationId ?? "",
+          ...(includeInactive ? {} : { isActive: true }),
+          deletedAt: null,
+        };
 
     const organizations = await prisma.organization.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
     });
 
     return sendSuccess(res, organizations);

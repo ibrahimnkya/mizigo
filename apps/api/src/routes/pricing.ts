@@ -14,7 +14,7 @@ router.post(
   requirePermission("pricing:create"),
   async (req: Request, res: Response) => {
     try {
-      const { name, type, value, condition, isActive = true } = req.body;
+      const { name, type, value, condition, isActive = true, organizationId } = req.body;
       if (!name || !type || value === undefined) {
         return sendError(
           res,
@@ -24,6 +24,11 @@ router.post(
         );
       }
 
+      const targetOrganizationId =
+        req.user?.role === "SUPER_ADMIN"
+          ? (organizationId === "null" || organizationId === "" ? null : organizationId)
+          : req.user?.organizationId || null;
+
       const rule = await prisma.pricingRule.create({
         data: {
           name,
@@ -31,6 +36,7 @@ router.post(
           value: Number(value),
           condition: condition || null,
           isActive: Boolean(isActive),
+          organizationId: targetOrganizationId,
         },
       });
 
@@ -50,15 +56,28 @@ router.put(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+      const { name, type, value, condition, isActive, organizationId } = req.body;
+
+      const existing = await prisma.pricingRule.findUnique({ where: { id } });
+      if (!existing) {
+        return sendError(res, "NOT_FOUND", "Pricing rule not found", 404);
+      }
+
+      if (req.user?.role !== "SUPER_ADMIN" && existing.organizationId !== req.user?.organizationId) {
+        return sendError(res, "FORBIDDEN", "Cannot update pricing rule outside your organization", 403);
+      }
+
       const rule = await prisma.pricingRule.update({
         where: { id },
         data: {
-          name: req.body.name,
-          type: req.body.type,
-          value:
-            req.body.value === undefined ? undefined : Number(req.body.value),
-          condition: req.body.condition,
-          isActive: req.body.isActive,
+          name: name !== undefined ? name : undefined,
+          type: type !== undefined ? type : undefined,
+          value: value === undefined ? undefined : Number(value),
+          condition: condition !== undefined ? condition : undefined,
+          isActive: isActive !== undefined ? Boolean(isActive) : undefined,
+          organizationId: req.user?.role === "SUPER_ADMIN"
+            ? (organizationId === "null" || organizationId === "" ? null : organizationId)
+            : undefined,
         },
       });
       return sendSuccess(res, rule);
@@ -68,8 +87,10 @@ router.put(
   },
 );
 
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
+    const organizationId = req.query.organizationId as string | undefined;
+
     // 1) Sync tariffs from TRC SGR API
     try {
       const sgrTariffs = await fetchSgrTariffs();
@@ -107,9 +128,19 @@ router.get("/", async (_req: Request, res: Response) => {
       console.error("[Pricing Sync] SGR tariff sync failed:", sgrErr.message);
     }
 
-    // 2) Return all active pricing rules, enriching SGR_TARIFF entries
+    // 2) Return pricing rules, scoping by organizationId if supplied
+    const where: any = { deletedAt: null };
+    if (req.user?.role !== "SUPER_ADMIN") {
+      where.OR = [
+        { organizationId: null },
+        { organizationId: req.user?.organizationId || "" },
+      ];
+    } else if (organizationId !== undefined) {
+      where.organizationId = organizationId === "null" || organizationId === "" ? null : organizationId;
+    }
+
     const rules = await prisma.pricingRule.findMany({
-      where: { deletedAt: null },
+      where,
       orderBy: { createdAt: "desc" },
     });
 

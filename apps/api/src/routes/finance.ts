@@ -19,14 +19,14 @@ router.get("/summary", async (req: Request, res: Response) => {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    const [totalCount, successCount, failedCount, totalAmount, currentPeriodRevenue, previousPeriodRevenue] =
+    const [totalCount, successCount, failedCount, totalAmount, currentPeriodRevenue, previousPeriodRevenue, payments] =
       await Promise.all([
         prisma.payment.count({ where }),
         prisma.payment.count({ where: { ...where, status: "SUCCESS" } }),
         prisma.payment.count({ where: { ...where, status: "FAILED" } }),
         prisma.payment.aggregate({
           where: { ...where, status: "SUCCESS" },
-          _sum: { amount: true, commission: true },
+          _sum: { amount: true, commission: true, systemFee: true },
         }),
         prisma.payment.aggregate({
           _sum: { amount: true },
@@ -47,6 +47,16 @@ router.get("/summary", async (req: Request, res: Response) => {
             },
           },
         }),
+        prisma.payment.findMany({
+          where: { ...where, status: "SUCCESS" },
+          include: {
+            parcel: {
+              select: {
+                additionalServices: true,
+              },
+            },
+          },
+        }),
       ]);
 
     const currentRev = currentPeriodRevenue._sum.amount || 0;
@@ -58,12 +68,37 @@ router.get("/summary", async (req: Request, res: Response) => {
       growth = 100;
     }
 
+    // Compute additional services revenue from parcel details
+    let additionalServicesRevenue = 0;
+    for (const p of payments) {
+      const services = p.parcel?.additionalServices;
+      if (Array.isArray(services)) {
+        for (const s of services) {
+          const serviceName = String(s).toLowerCase();
+          if (serviceName.includes("insurance")) {
+            additionalServicesRevenue += 3000;
+          } else if (serviceName.includes("packaging")) {
+            additionalServicesRevenue += 2000;
+          } else if (serviceName.includes("handling") || serviceName.includes("fragile")) {
+            additionalServicesRevenue += 2500;
+          }
+        }
+      }
+    }
+
+    const platformCommission = totalAmount._sum.commission || 0;
+    const systemFeeRevenue = totalAmount._sum.systemFee || 0;
+    const totalPlatformEarnings = platformCommission + additionalServicesRevenue + systemFeeRevenue;
+
     return sendSuccess(res, {
       totalTransactions: totalCount,
       successfulTransactions: successCount,
       failedTransactions: failedCount,
       totalRevenue: totalAmount._sum.amount || 0,
-      platformCommission: totalAmount._sum.commission || 0,
+      platformCommission,
+      additionalServicesRevenue,
+      systemFeeRevenue,
+      totalPlatformEarnings,
       revenueGrowth: growth,
     });
   } catch (error: any) {

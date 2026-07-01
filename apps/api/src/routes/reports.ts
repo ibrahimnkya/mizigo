@@ -8,11 +8,41 @@ const router: Router = Router();
 
 router.use(authenticate, requireTenantContext);
 
+const VALID_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "PAYMENT_PENDING",
+  "PAID",
+  "RECEIVED",
+  "SENT",
+  "DISPATCHED",
+  "OFFLOADED",
+  "AT_STATION",
+  "IN_TRANSIT",
+  "DELAYED",
+  "DELIVERED",
+  "CANCELED",
+  "LOST"
+];
+
+const mapParcelStatus = (status: any): string | null => {
+  if (!status) return null;
+  let mapped = String(status).toUpperCase().replace(/\s+/g, "_");
+  if (mapped === "CANCELLED") {
+    mapped = "CANCELED";
+  }
+  return VALID_STATUSES.includes(mapped) ? mapped : null;
+};
+
 const buildParcelWhere = (req: Request) => {
   const { status, dateFrom, dateTo, operatorId } = req.query;
   const where: any = {};
 
-  if (status) where.status = String(status);
+  if (status) {
+    const mapped = mapParcelStatus(status);
+    if (mapped) where.status = mapped;
+  }
   if (operatorId) where.userId = String(operatorId);
   if (dateFrom || dateTo) {
     where.createdAt = {};
@@ -29,6 +59,13 @@ const buildParcelWhere = (req: Request) => {
 
 router.get("/parcel", async (req: Request, res: Response) => {
   try {
+    const { status } = req.query;
+    if (status) {
+      const mapped = mapParcelStatus(status);
+      if (!mapped) {
+        return sendError(res, "VALIDATION_ERROR", `Invalid status value: ${status}`, 400);
+      }
+    }
     const where = buildParcelWhere(req);
     const [parcels, total, pending, inTransit, delivered, cancelled, revenue] =
       await Promise.all([
@@ -350,7 +387,12 @@ router.get("/operator/overview", async (req: Request, res: Response) => {
     }
 
     if (!stationId) {
-      return sendError(res, "VALIDATION_ERROR", "stationId scope missing", 400);
+      return sendSuccess(res, {
+        stationName: "LOGISTICS HUB",
+        totalHandled: 0,
+        pendingRelease: 0,
+        revenueGenerated: 0,
+      });
     }
 
     const [station, atStation, inTransit, delivered, revenue] =

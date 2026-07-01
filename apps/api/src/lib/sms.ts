@@ -23,8 +23,8 @@ export const resolveSupportUrl = async (
     if (organization?.supportUrl) return organization.supportUrl;
   }
 
-  const systemConfig = await (prisma as any).systemConfig.findUnique({
-    where: { key: "PLATFORM_SUPPORT_URL" },
+  const systemConfig = await (prisma as any).systemConfig.findFirst({
+    where: { key: "PLATFORM_SUPPORT_URL", organizationId: null },
   });
   if (systemConfig?.value) return systemConfig.value;
 
@@ -100,7 +100,7 @@ const loadSmsProviderConfig = async (
     config.apiPassword || process.env.API_PASSWORD || "",
   );
   const defaultSenderId = String(
-    config.defaultSenderId || process.env.SENDER_ID || "MySAFARI",
+    config.defaultSenderId || process.env.SENDER_ID || "MIZIGO",
   );
   const baseUrlRaw = String(
     config.baseUrl || process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
@@ -161,6 +161,26 @@ export const sendSms = async (input: {
     throw new Error("A valid phone number is required to send SMS");
   }
 
+  // Bypasses actual network requests only if it is using the seeded mock API ID
+  const isMock = config.apiId === "API45908501712";
+  if (isMock) {
+    logger.info("simulating_sms_send_in_dev", {
+      formattedPhone,
+      message: input.message,
+    });
+    await logSmsStatus({
+      phoneNumber: formattedPhone,
+      message: input.message,
+      status: "SENT",
+      organizationId: input.organizationId,
+    });
+    return {
+      status: "S",
+      response_code: "1",
+      remarks: "SMS Sent Successfully (sandbox mock)",
+    };
+  }
+
 
   const url = new URL(
     config.baseUrl || "https://api.sprintsmsservice.com/api/SendSMS",
@@ -186,6 +206,7 @@ export const sendSms = async (input: {
         phoneNumber: formattedPhone,
         message: input.message,
         status: "SENT",
+        organizationId: input.organizationId,
       });
       logger.info("sms_sent", { formattedPhone });
       return payload;
@@ -204,6 +225,7 @@ export const sendSms = async (input: {
     message: input.message,
     status: "FAILED",
     error: lastError?.message || null,
+    organizationId: input.organizationId,
   });
   logger.error("sms_send_failed", {
     formattedPhone,
@@ -219,11 +241,13 @@ export const logSmsStatus = async (input: {
   message: string;
   status: string;
   error?: string | null;
+  organizationId?: string | null;
 }) => {
   await prisma.auditLog.create({
     data: {
       action: "SMS_STATUS",
       resource: "sms",
+      organizationId: input.organizationId || null,
       details: {
         phoneNumber: input.phoneNumber,
         message: input.message,
@@ -276,6 +300,25 @@ export const sendParcelNotificationSms = async (input: {
   }
 };
 
+const resolveSmsTemplate = async (key: string, defaultTemplate: string): Promise<string> => {
+  try {
+    const config = await prisma.systemConfig.findUnique({
+      where: { key_organizationId: { key, organizationId: null as any } },
+    });
+    return config?.value || defaultTemplate;
+  } catch {
+    return defaultTemplate;
+  }
+};
+
+const interpolateTemplate = (template: string, variables: Record<string, string>): string => {
+  let result = template;
+  for (const [key, val] of Object.entries(variables)) {
+    result = result.replace(new RegExp(`{${key}}`, "g"), val || "");
+  }
+  return result;
+};
+
 /**
  * Sends a Secure Handover OTP to the recipient.
  */
@@ -285,7 +328,13 @@ export const sendDeliveryOtpSms = async (input: {
   otp: string;
   organizationId?: string | null;
 }) => {
-  const message = `🔐 Mizigo Secure: Your pickup OTP for #${input.trackingNumber} is ${input.otp}. Do not share this code. Present it at the station to collect your parcel.`;
+  const defaultTemplate = `🔐 Mizigo Secure: Your pickup OTP for #{trackingNumber} is {otp}. Do not share this code. Present it at the station to collect your parcel.`;
+  const template = await resolveSmsTemplate("SMS_TEMPLATE_DELIVERY_OTP", defaultTemplate);
+
+  const message = interpolateTemplate(template, {
+    trackingNumber: input.trackingNumber,
+    otp: input.otp,
+  });
 
   await sendSms({
     phoneNumber: input.receiverPhone,
@@ -318,10 +367,36 @@ export const sendParcelReceiptSms = async (input: {
   const orgName = input.orgName || "Mizigo";
   const helpdesk = input.helpdesk || "0736699593";
   const website = input.website || "https://mizigo.akiliapp.co.tz";
+  const trackingUrl = `${website.replace(/\/$/, "")}/track/${input.trackingNumber}`;
 
-  const senderMsg = `Taarifa za Mzigo\n\nNamba ya Mzigo: ${input.trackingNumber}\nHali: UMEPOKELEWA\nSafari: ${input.originName} - ${input.destinationName}\nOfisi Ulipopokelewa: ${input.stationName}\nMtumaji: ${input.senderName}\nMpokeaji: ${input.receiverName}\nNamba ya Siri (OTP): ${input.otp}\nJina la Wakala: ${input.agentName}\nSimu ya Wakala: ${input.agentPhone}\n\nAsante kwa kutumia ${orgName}! Kwa msaada zaidi, tupigie: ${helpdesk}\n\n${website}`;
+  const defaultSenderTemplate = `Mzigo wako umepokelewa\n\n` +
+    `Namba ya Mzigo: {trackingNumber}\n\nAina ya Mzigo: {packageName}\n\n` +
+    `Jina la Mpokeaji: {receiverName}\n\nNamba ya Siri: {otp}\n\n` +
+    `Jina la Karani: {agentName}\n\n\nKufatilia Safari ya  Mzigo wako. \n\n{trackingUrl}`;
 
-  const receiverMsg = `Habari ${input.receiverName}!\n\nUmetumiwa mzigo wa ${input.packageName}.\n\nNamba ya Mzigo: ${input.trackingNumber}\nMtumaji: ${input.senderName}\nSafari: ${input.originName} - ${input.destinationName}\nOfisi ya Kupokea: ${input.destinationName}\n\nTafadhali fika na Namba ya Siri (OTP) kupokea mzigo wako.\n\nJina la Wakala: ${input.agentName}\nSimu ya Wakala: ${input.agentPhone}\n\nAsante kwa kutumia ${orgName}! Kwa msaada zaidi, tupigie: ${helpdesk}\n\n${website}`;
+  const defaultReceiverTemplate = `Habari {receiverName}!\n\nUmetumiwa mzigo wa {packageName}.\n\nNamba ya Mzigo: {trackingNumber}\nMtumaji: {senderName}\nSafari: {originName} - {destinationName}\nOfisi ya Kupokea: {destinationName}\n\nTafadhali fika na Namba ya Siri (OTP) kupokea mzigo wako.\n\nJina la Wakala: {agentName}\nSimu ya Wakala: {agentPhone}\n\nAsante kwa kutumia {orgName}! Kwa msaada zaidi, tupigie: {helpdesk}\n\nKufatilia Safari ya Mzigo wako: {trackingUrl}`;
+
+  const senderTemplate = await resolveSmsTemplate("SMS_TEMPLATE_RECEIPT_SENDER", defaultSenderTemplate);
+  const receiverTemplate = await resolveSmsTemplate("SMS_TEMPLATE_RECEIPT_RECEIVER", defaultReceiverTemplate);
+
+  const variables = {
+    trackingNumber: input.trackingNumber,
+    packageName: input.packageName,
+    receiverName: input.receiverName,
+    otp: input.otp,
+    agentName: input.agentName,
+    agentPhone: input.agentPhone,
+    senderName: input.senderName,
+    originName: input.originName,
+    destinationName: input.destinationName,
+    orgName,
+    helpdesk,
+    website,
+    trackingUrl,
+  };
+
+  const senderMsg = interpolateTemplate(senderTemplate, variables);
+  const receiverMsg = interpolateTemplate(receiverTemplate, variables);
 
   // Send to sender
   await sendSms({
@@ -354,7 +429,24 @@ export const sendParcelDispatchSms = async (input: {
 }) => {
   const orgName = input.orgName || "Mizigo";
   const support = input.supportPhone || "0736699593";
-  const msg = `Mzigo Umetumwa\n\nMpendwa ${input.receiverName}, mzigo namba ${input.trackingNumber} umetoka ${input.originName} kwenda ${input.destinationName} na gari la ${input.carrierName}.\nMsafirishaji: ${input.dispatcherName} Simu ya Msafirishaji ${input.dispatcherPhone}\nNamba ya Siri (OTP): ${input.otp}\n\nAsante kwa kutumia ${orgName}! Kwa msaada zaidi, tupigie: ${support}`;
+  const trackingUrl = `https://mizigo.akiliapp.co.tz/track/${input.trackingNumber}`;
+
+  const defaultTemplate = `Mzigo Umetumwa\n\nMpendwa {receiverName}, mzigo namba {trackingNumber} umetoka {originName} kwenda {destinationName} na gari la {carrierName}.\nMsafirishaji: {dispatcherName} Simu ya Msafirishaji {dispatcherPhone}\nNamba ya Siri (OTP): {otp}\n\nAsante kwa kutumia {orgName}! Kufatilia Safari ya Mzigo: {trackingUrl}\nKwa msaada zaidi, tupigie: {support}`;
+  const template = await resolveSmsTemplate("SMS_TEMPLATE_DISPATCH", defaultTemplate);
+
+  const msg = interpolateTemplate(template, {
+    receiverName: input.receiverName,
+    trackingNumber: input.trackingNumber,
+    originName: input.originName,
+    destinationName: input.destinationName,
+    carrierName: input.carrierName,
+    dispatcherName: input.dispatcherName,
+    dispatcherPhone: input.dispatcherPhone,
+    otp: input.otp,
+    orgName,
+    support,
+    trackingUrl,
+  });
 
   await sendSms({
     phoneNumber: input.receiverPhone,
@@ -368,11 +460,28 @@ export const sendParcelArrivedSms = async (input: {
   receiverPhone: string;
   trackingNumber: string;
   destinationName: string;
+  senderName?: string;
+  packageName?: string;
   supportPhone?: string;
   organizationId?: string | null;
 }) => {
+  const sender = input.senderName || "Mtumaji";
+  const type = input.packageName || "Parcel";
   const support = input.supportPhone || "0736699593";
-  const msg = `Mzigo Umefika\n\nMpendwa ${input.receiverName}, mzigo namba ${input.trackingNumber} umefika salama katika kituo cha ${input.destinationName}.\nTafadhali fika kukuchukua. Kwa msaada zaidi, tupigie: ${support}`;
+  const trackingUrl = `https://mizigo.akiliapp.co.tz/track/${input.trackingNumber}`;
+
+  const defaultTemplate = `Mzigo wako umewasili.\nNamba ya Mzigo: {trackingNumber}\nJina la Mtumaji: {senderName}\nAina ya Mzigo: {packageName}\nKwajili ya usalama,OTP ya kupokea mzigo imehifadhiwa kwa mtumaji, tafadhali wasiliana na mtumaji kabla ya kuchukua mzigo wako.\nKufatilia Safari ya Mzigo: {trackingUrl}\n\nAsante kwa kutuma Mzigo kupitia TRC.`;
+  const template = await resolveSmsTemplate("SMS_TEMPLATE_ARRIVED", defaultTemplate);
+
+  const msg = interpolateTemplate(template, {
+    trackingNumber: input.trackingNumber,
+    senderName: sender,
+    packageName: type,
+    receiverName: input.receiverName,
+    destinationName: input.destinationName,
+    support,
+    trackingUrl,
+  });
 
   await sendSms({
     phoneNumber: input.receiverPhone,
