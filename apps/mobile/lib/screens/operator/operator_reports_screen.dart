@@ -113,7 +113,7 @@ class _OperatorReportsScreenState extends State<OperatorReportsScreen>
     if (!silent && _stats.isEmpty) setState(() => _loading = true);
     try {
       final res = await ApiService.getOperatorStats();
-      if (mounted) setState(() => _stats = res);
+      if (mounted) setState(() => _stats = res['data'] ?? res);
     } catch (e) {
       debugPrint('Error fetching operator stats: $e');
       if (mounted) {

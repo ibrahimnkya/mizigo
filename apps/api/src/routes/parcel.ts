@@ -483,6 +483,39 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
   }
 });
 
+router.get("/search", ...secure, async (req: Request, res: Response) => {
+  try {
+    const q = String(req.query.q || "");
+    if (!q) {
+      return sendSuccess(res, []);
+    }
+    
+    const parcels = await (prisma as any).parcel.findMany({
+      where: {
+        OR: [
+          { id: { contains: q, mode: "insensitive" } },
+          { trackingNumber: { contains: q, mode: "insensitive" } },
+          { receiverPhone: { contains: q, mode: "insensitive" } },
+          { receiverName: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        organization: true,
+        origin: true,
+        destination: true,
+        approvedBy: { select: { id: true, name: true, email: true, phone: true } },
+        user: { select: { id: true, name: true, email: true, phone: true } },
+      },
+    });
+
+    return sendSuccess(res, parcels.map((p: any) => formatParcelResponse(p)));
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 router.get("/stats/operator", ...secure, async (req: Request, res: Response) => {
   try {
     let stationId = req.user?.stationId;

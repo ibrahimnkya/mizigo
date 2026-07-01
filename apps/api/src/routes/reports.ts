@@ -73,6 +73,10 @@ router.get("/parcel", async (req: Request, res: Response) => {
           where,
           take: 50,
           orderBy: { createdAt: "desc" },
+          include: {
+            origin: true,
+            destination: true,
+          },
         }),
         (prisma as any).parcel.count({ where }),
         (prisma as any).parcel.count({
@@ -462,6 +466,22 @@ router.get("/revenue", async (req: Request, res: Response) => {
     }
 
     return sendSuccess(res, { chartData });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.get("/operator/reports/history", async (req: Request, res: Response) => {
+  try {
+    return sendSuccess(res, []);
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+router.post("/operator/reports/generate", async (req: Request, res: Response) => {
+  try {
+    return sendSuccess(res, { success: true });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }

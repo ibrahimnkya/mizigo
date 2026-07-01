@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/foundation.dart';
+import '../utils/report_pdf_generator.dart';
 
 class ApiService {
   // Local dev server — auto-discovery will update this for physical devices
@@ -948,7 +949,11 @@ class ApiService {
       url: Uri.parse('$_baseUrl/parcel/$id'),
       headers: await _headers,
     );
-    return _parseResponse(res);
+    final parsed = _parseResponse(res);
+    if (parsed['data'] is Map<String, dynamic>) {
+      return parsed['data'] as Map<String, dynamic>;
+    }
+    return parsed;
   }
 
   static Future<Map<String, dynamic>> getParcelStatus(String id) async {
@@ -1381,29 +1386,72 @@ class ApiService {
     DateTime? start,
     DateTime? end,
   }) async {
-    final body = jsonEncode({
-      'type': type,
-      'period': period,
-      if (start != null) 'startDate': start.toIso8601String(),
-      if (end != null) 'endDate': end.toIso8601String(),
-    });
+    // 1. Get the station name
+    String stationName = 'LOGISTICS HUB';
+    try {
+      final overviewRes = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/reports/operator/overview'),
+        headers: await _headers,
+      );
+      if (overviewRes.statusCode >= 200 && overviewRes.statusCode < 300) {
+        final body = jsonDecode(overviewRes.body);
+        if (body is Map && body['data'] != null && body['data']['stationName'] != null) {
+          stationName = body['data']['stationName'].toString();
+        }
+      }
+    } catch (_) {}
 
+    // 2. Fetch the parcels
+    final queryParams = <String, String>{};
+    if (type != 'All') {
+      queryParams['status'] = type;
+    }
+    
+    // Period date filters
+    final now = DateTime.now();
+    if (period == 'daily') {
+      queryParams['dateFrom'] = DateTime(now.year, now.month, now.day).toIso8601String();
+    } else if (period == 'weekly') {
+      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      queryParams['dateFrom'] = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day).toIso8601String();
+    } else if (period == 'monthly') {
+      queryParams['dateFrom'] = DateTime(now.year, now.month, 1).toIso8601String();
+    } else if (period == 'last30') {
+      queryParams['dateFrom'] = now.subtract(const Duration(days: 30)).toIso8601String();
+    } else if (period == 'last90') {
+      queryParams['dateFrom'] = now.subtract(const Duration(days: 90)).toIso8601String();
+    } else if (period == 'custom') {
+      if (start != null) queryParams['dateFrom'] = start.toIso8601String();
+      if (end != null) queryParams['dateTo'] = end.toIso8601String();
+    }
+
+    final uri = Uri.parse('$_baseUrl/reports/parcel').replace(queryParameters: queryParams);
     final res = await _sendWithAutoRefresh(
-      method: 'POST',
-      url: Uri.parse('$_baseUrl/operator/reports/generate'),
-      headers: {
-        ...await _headers,
-        'Content-Type': 'application/json',
-      },
-      body: body,
+      method: 'GET',
+      url: uri,
+      headers: await _headers,
     );
 
+    List<dynamic> parcels = [];
     if (res.statusCode >= 200 && res.statusCode < 300) {
-      return res.bodyBytes;
+      final body = jsonDecode(res.body);
+      if (body is Map && body['data'] != null && body['data']['parcels'] is List) {
+        parcels = body['data']['parcels'] as List;
+      }
+    } else {
+      throw ApiException(
+        message: 'Failed to fetch report data (${res.statusCode})',
+        statusCode: res.statusCode,
+      );
     }
-    throw ApiException(
-      message: 'Failed to generate report (${res.statusCode})',
-      statusCode: res.statusCode,
+
+    // 3. Generate locally using ReportPdfGenerator
+    return await ReportPdfGenerator.generate(
+      type: type,
+      period: period,
+      parcels: parcels,
+      stationName: stationName,
     );
   }
 

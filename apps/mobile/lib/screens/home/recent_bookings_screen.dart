@@ -920,6 +920,31 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
+  Future<void> _generateAndPrintPdf(BuildContext context) async {
+    final parcel = _currentParcel;
+    final pdfBytes = await ReceiptPdfGenerator.generate(
+      trackingId: parcel.trackingNumber ?? parcel.id,
+      fromAddress: parcel.fromAddress,
+      toAddress: parcel.toAddress,
+      serviceType: parcel.serviceType,
+      parcelSize: parcel.parcelSize,
+      parcelType: parcel.parcelType,
+      senderName: parcel.senderName ?? 'N/A',
+      senderPhone: parcel.senderPhone ?? 'N/A',
+      receiverName: parcel.receiverName,
+      receiverPhone: parcel.receiverPhone,
+      price: parcel.amount ?? 0.0,
+      receiverPays: parcel.receiverPays,
+      status: parcel.status.displayLabel,
+      createdAt: parcel.createdAt,
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfBytes,
+      name: 'mizigo_receipt_${parcel.id}',
+    );
+  }
+
   Future<void> _generateAndSharePdf(BuildContext context) async {
     final parcel = _currentParcel;
     final pdfBytes = await ReceiptPdfGenerator.generate(
@@ -1332,7 +1357,7 @@ Powered by Mizigo Logistics''';
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             elevation: 0,
                           ),
-                          onPressed: () => _generateAndSharePdf(context),
+                          onPressed: () => _generateAndPrintPdf(context),
                           icon: const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.white, size: 20),
                           label: Text(
                             'Print Receipt',
@@ -1349,8 +1374,8 @@ Powered by Mizigo Logistics''';
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: () => _shareBooking(context),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedUser, color: theme.iconTheme.color ?? Colors.grey, size: 20),
+                          onPressed: () => _generateAndSharePdf(context),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedShare01, color: theme.iconTheme.color ?? Colors.grey, size: 20),
                           label: Text(
                             'Share Info',
                             style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
@@ -1942,7 +1967,7 @@ class _AgentChip extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Responsible Agent',
+                  'Clerk Responsible',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: const Color(0xFF64748B),
