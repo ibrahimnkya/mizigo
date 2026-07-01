@@ -24,6 +24,7 @@ model Organization {
   wallet          Wallet?
   configs         SystemConfig[]
   parcels         Parcel[]
+  pricingRules    PricingRule[]
 }
 
 model User {
@@ -219,9 +220,11 @@ model PricingRule {
   value     Float
   condition String?
   isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
 }
 
 model Station {

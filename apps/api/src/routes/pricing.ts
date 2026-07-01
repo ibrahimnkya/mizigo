@@ -93,6 +93,11 @@ router.get("/", async (req: Request, res: Response) => {
 
     // 1) Sync tariffs from TRC SGR API
     try {
+      const trcOrg = await prisma.organization.findUnique({
+        where: { name: "Tanzania Railways Corporation" },
+      });
+      const trcOrgId = trcOrg?.id ?? null;
+
       const sgrTariffs = await fetchSgrTariffs();
       for (const t of sgrTariffs) {
         await prisma.pricingRule.upsert({
@@ -100,6 +105,7 @@ router.get("/", async (req: Request, res: Response) => {
           update: {
             type: "SGR_TARIFF",
             value: t.minimumCharge,
+            organizationId: trcOrgId,
             condition: JSON.stringify({
               description: t.description,
               distanceRate: t.distanceRate,
@@ -113,6 +119,7 @@ router.get("/", async (req: Request, res: Response) => {
             name: t.name,
             type: "SGR_TARIFF",
             value: t.minimumCharge,
+            organizationId: trcOrgId,
             condition: JSON.stringify({
               description: t.description,
               distanceRate: t.distanceRate,

@@ -211,6 +211,28 @@ class PrinterProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> connectToLastPrinter() async {
+    if (_lastPrinterMac == null || _lastPrinterMac!.isEmpty) return false;
+    _addLog("Auto-connecting to last printer: $_lastPrinterName...");
+    setConnecting(true);
+    try {
+      final bool result = await PrintBluetoothThermal.connect(macPrinterAddress: _lastPrinterMac!);
+      setConnecting(false);
+      if (result) {
+        _isConnected = true;
+        _addLog("Auto-connected successfully to $_lastPrinterName");
+      } else {
+        _addLog("Auto-connection failed to $_lastPrinterName");
+      }
+      notifyListeners();
+      return result;
+    } catch (e) {
+      setConnecting(false);
+      _addLog("Auto-connect exception: $e");
+      return false;
+    }
+  }
+
   Future<void> disconnect() async {
     try {
       await PrintBluetoothThermal.disconnect;
@@ -300,12 +322,12 @@ class PrinterProvider extends ChangeNotifier {
 
   Future<bool> printReceipt(Map<String, dynamic> packageData) async {
     final String trackingId = packageData['trackingId']?.toString() ?? packageData['id']?.toString() ?? "MZG-${DateTime.now().millisecond}-TZ";
-    final String description = packageData['description']?.toString() ?? "Standard Cargo";
+    final String description = packageData['description']?.toString() ?? packageData['packageName']?.toString() ?? "Standard Cargo";
     final String senderName = packageData['senderName']?.toString() ?? "N/A";
     final String receiverName = packageData['receiverName']?.toString() ?? "N/A";
-    final String origin = packageData['origin']?.toString() ?? "N/A";
-    final String destination = packageData['destination']?.toString() ?? "N/A";
-    final double price = double.tryParse(packageData['price']?.toString() ?? '') ?? 15000.0;
+    final String origin = packageData['origin']?.toString() ?? packageData['originStation']?.toString() ?? "N/A";
+    final String destination = packageData['destination']?.toString() ?? packageData['destinationStation']?.toString() ?? "N/A";
+    final double price = double.tryParse(packageData['price']?.toString() ?? packageData['amount']?.toString() ?? '') ?? 15000.0;
     final int qty = int.tryParse(packageData['quantity']?.toString() ?? '') ?? 1;
 
     final formattedPrice = NumberFormat('#,###').format(price);
@@ -379,7 +401,7 @@ class PrinterProvider extends ChangeNotifier {
 
   Future<bool> printLabel(Map<String, dynamic> packageData) async {
     final String trackingId = packageData['trackingId']?.toString() ?? packageData['id']?.toString() ?? "MZG-${DateTime.now().millisecond}-TZ";
-    final String destination = packageData['destination']?.toString() ?? "N/A";
+    final String destination = packageData['destination']?.toString() ?? packageData['destinationStation']?.toString() ?? "N/A";
     final String senderName = packageData['senderName']?.toString() ?? "N/A";
 
     try {

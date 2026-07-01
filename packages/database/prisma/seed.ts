@@ -368,70 +368,7 @@ async function main() {
     });
   }
 
-  // 6.5) Seed Pricing Rules / SGR Tariffs
-  const tariffsToSeed = [
-    {
-      name: "ENVOLOP TARRIF FOR SAFARI EXPR",
-      type: "SGR_TARIFF",
-      value: 10000,
-      condition: JSON.stringify({
-        description: "ENVOLOP PRICE",
-        distanceRate: 1,
-        weightRate: 1,
-        sgrId: "01KTC2KADYQR2TCGBH0PWQ0DW9",
-        parcelCategory: {
-          id: "01KQ7EGD31TD4ES1C57N2XPW7M",
-          name: "ENVOLOP PRICE",
-          code: "TRCEP",
-          description: "BAHASHAYENYEUKUBWAA4",
-          chargingMode: "Fixed_Amount",
-          maxWeightInKg: 0.5,
-        }
-      })
-    },
-    {
-      name: "OTHER PARCEL FOR SAFAR EXP",
-      type: "SGR_TARIFF",
-      value: 1,
-      condition: JSON.stringify({
-        description: "OTHER PARCEL FOR SAFARI",
-        distanceRate: 1,
-        weightRate: 1,
-        sgrId: "01KTC3GH2GW8YDDDW9SBK9PMA4",
-        parcelCategory: {
-          id: "01KQ7EKJX6GQ0K8Y2NTJ2E6R95",
-          name: "PARCEL NYINGINEZO",
-          code: "TRCPN",
-          description: "MINGINEYOMIZIGO",
-          chargingMode: "Percentage_Wise",
-          maxWeightInKg: 5,
-          maxLengthInCm: 30,
-          maxWidthInCm: 30,
-          maxHeightInCm: 30,
-          cubicVolumeLimit: 27000
-        }
-      })
-    }
-  ];
 
-  for (const t of tariffsToSeed) {
-    await prisma.pricingRule.upsert({
-      where: { name: t.name },
-      update: {
-        type: t.type,
-        value: t.value,
-        condition: t.condition,
-        isActive: true,
-      },
-      create: {
-        name: t.name,
-        type: t.type,
-        value: t.value,
-        condition: t.condition,
-        isActive: true,
-      }
-    });
-  }
 
   // 7) Create SUPER_ADMIN user (credentials via env; safe defaults).
   const email = process.env.SUPER_ADMIN_EMAIL || "superadmin@mizigo.com";

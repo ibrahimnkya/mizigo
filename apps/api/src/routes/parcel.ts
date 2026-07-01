@@ -241,10 +241,25 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
     // then fall back to any active SGR tariff. packageName is the item name, not the tariff.
     const tariffRule =
       (await prisma.pricingRule.findFirst({
-        where: { name: String(parcelType || ""), type: "SGR_TARIFF", isActive: true },
+        where: {
+          name: String(parcelType || ""),
+          type: "SGR_TARIFF",
+          isActive: true,
+          OR: [
+            { organizationId: null },
+            { organizationId: req.user?.organizationId ?? undefined },
+          ],
+        },
       })) ??
       (await prisma.pricingRule.findFirst({
-        where: { type: "SGR_TARIFF", isActive: true },
+        where: {
+          type: "SGR_TARIFF",
+          isActive: true,
+          OR: [
+            { organizationId: null },
+            { organizationId: req.user?.organizationId ?? undefined },
+          ],
+        },
       }));
 
     let totalPriceVal = 0;

@@ -107,10 +107,12 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
         final data = result['data'] as Map<String, dynamic>? ?? result;
         final parcel = data['parcel'] as Map<String, dynamic>? ?? {};
         final successPayload = {
+          ...widget.packageData,
           ...payload,
           'id': parcel['id'] ?? data['id'],
           'trackingId': parcel['trackingNumber'] ?? data['trackingNumber'] ?? parcel['id'],
           'amount': data['pricing']?['amount'] ?? totalAmount,
+          'price': data['pricing']?['amount'] ?? totalAmount,
         };
         context.push('/operator-receive/success', extra: successPayload);
       }
@@ -555,13 +557,13 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                         width: 24,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                       )
-                    : Row(
+                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.white, size: 20),
+                          const HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: Colors.white, size: 20),
                           const Gap(8),
                           Text(
-                            'Print Receipt',
+                            'Receive Parcel',
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

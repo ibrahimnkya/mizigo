@@ -8,10 +8,43 @@ import 'package:provider/provider.dart';
 import '../../../providers/printer_provider.dart';
 import '../../../widgets/printer_selection_sheet.dart';
 
-class OperatorSuccessScreen extends StatelessWidget {
+class OperatorSuccessScreen extends StatefulWidget {
   final Map<String, dynamic> packageData;
 
   const OperatorSuccessScreen({super.key, required this.packageData});
+
+  @override
+  State<OperatorSuccessScreen> createState() => _OperatorSuccessScreenState();
+}
+
+class _OperatorSuccessScreenState extends State<OperatorSuccessScreen> {
+  bool _autoprintAttempted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoPrint();
+    });
+  }
+
+  Future<void> _autoPrint() async {
+    if (_autoprintAttempted) return;
+    _autoprintAttempted = true;
+    
+    final provider = context.read<PrinterProvider>();
+    
+    // Attempt auto-connection if not already connected
+    if (!provider.isConnected && provider.lastPrinterMac != null) {
+      await provider.connectToLastPrinter();
+    }
+    
+    if (provider.isConnected) {
+      if (mounted) {
+        await _executePrint(context, provider, false); // false = receipt
+      }
+    }
+  }
 
   Future<void> _handlePrint(BuildContext context, {required bool isSticker}) async {
     final provider = context.read<PrinterProvider>();
@@ -52,8 +85,8 @@ class OperatorSuccessScreen extends StatelessWidget {
     );
 
     final success = isSticker 
-        ? await provider.printLabel(packageData) 
-        : await provider.printReceipt(packageData);
+        ? await provider.printLabel(widget.packageData) 
+        : await provider.printReceipt(widget.packageData);
 
     if (!context.mounted) return;
     
@@ -104,7 +137,7 @@ class OperatorSuccessScreen extends StatelessWidget {
                 ),
               ),
               const Gap(32),
-
+ 
               Text(
                 'Parcel Received!',
                 style: GoogleFonts.outfit(
@@ -114,9 +147,9 @@ class OperatorSuccessScreen extends StatelessWidget {
                 ),
               ),
               const Gap(12),
-
+ 
               Text(
-                'You have successfully registered "${packageData['description']}" from ${packageData['senderName']}. It is ready to be dispatched.',
+                'You have successfully registered "${widget.packageData['description'] ?? widget.packageData['packageName'] ?? 'Standard Cargo'}" from ${widget.packageData['senderName']}. It is ready to be dispatched.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 15,
@@ -124,9 +157,9 @@ class OperatorSuccessScreen extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-
+ 
               const Gap(48),
-
+ 
               // Actions
               Container(
                 decoration: BoxDecoration(
@@ -226,9 +259,9 @@ class OperatorSuccessScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
+ 
               const Spacer(),
-
+ 
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
