@@ -70,7 +70,7 @@ async function getParcels(filters: {
       },
     });
 
-    return parcels.map((item) => ({
+    return parcels.map((item: any) => ({
       id: item.id,
       fromAddress: item.origin?.name ?? item.fromAddress,
       toAddress: item.destination?.name ?? item.toAddress,

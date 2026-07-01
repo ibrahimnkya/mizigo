@@ -11,7 +11,11 @@
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c '\\\\dt')",
       "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT u.id, u.name, u.phone, u.email, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id ORDER BY r.name;')",
       "Bash(grep -i \"^base\\\\|/base$\\\\|/base/\")",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email FROM \"User\" ORDER BY \"createdAt\" DESC;')",
+      "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT id, name, phone, email, \"loginCode\" IS NOT NULL as has_otp, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id WHERE u.phone = '\"'\"'255745763600'\"'\"';')",
+      "Bash(PGPASSWORD=devpassword psql -h 127.0.0.1 -U dev -d mizigo -c 'SELECT u.id, u.name, u.phone, u.email, u.\"loginCode\" IS NOT NULL as has_otp, r.name as role FROM \"User\" u LEFT JOIN \"Role\" r ON u.\"roleId\" = r.id WHERE u.phone = '\"'\"'255745763600'\"'\"';')",
+      "Bash(curl -s -X POST http://localhost:3001/api/v1/auth/check-phone -H \"Content-Type: application/json\" -d '{\"phone\":\"255745763600\"}')"
     ]
   }
 }
