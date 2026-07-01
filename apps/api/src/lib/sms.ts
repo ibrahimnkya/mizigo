@@ -243,6 +243,9 @@ export const logSmsStatus = async (input: {
   error?: string | null;
   organizationId?: string | null;
 }) => {
+  // Log to stdout for server capturing
+  console.log(`[SMS SEND LOG] [${new Date().toISOString()}] To: ${input.phoneNumber} | Status: ${input.status} | Message: "${input.message}"${input.error ? ` | Error: ${input.error}` : ""}`);
+
   await prisma.auditLog.create({
     data: {
       action: "SMS_STATUS",

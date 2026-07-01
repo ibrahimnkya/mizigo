@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Local dev server — auto-discovery will update this for physical devices
-  static String _baseUrl = 'http://api.mizigo.akiliapp.co.tz/api/v1';
+  static String _baseUrl = 'https://api.mizigo.akiliapp.co.tz/api/v1';
   static bool _localIpResolved = false;
 
   static Future<void> init() async {
