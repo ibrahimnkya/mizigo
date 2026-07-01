@@ -24,6 +24,32 @@ const hashOtp = (otp: string) => {
   return crypto.createHash("sha256").update(otp).digest("hex");
 };
 
+const buildPhoneOrConditions = (phone: string | undefined | null) => {
+  const conditions: any[] = [];
+  if (!phone) return conditions;
+  const trimmed = phone.trim();
+  if (trimmed) {
+    conditions.push({ phone: trimmed });
+  }
+  const normalized = normalizePhoneNumber(phone);
+  if (normalized) {
+    if (!conditions.some(c => c.phone === normalized)) {
+      conditions.push({ phone: normalized });
+    }
+    const withPlus = `+${normalized}`;
+    if (!conditions.some(c => c.phone === withPlus)) {
+      conditions.push({ phone: withPlus });
+    }
+    if (normalized.startsWith("255") && normalized.length > 3) {
+      const withZero = `0${normalized.slice(3)}`;
+      if (!conditions.some(c => c.phone === withZero)) {
+        conditions.push({ phone: withZero });
+      }
+    }
+  }
+  return conditions;
+};
+
 const hashToken = (token: string) =>
   crypto.createHash("sha256").update(token).digest("hex");
 
@@ -234,9 +260,8 @@ router.post(
       }
 
       const orConditions: any[] = [];
-      if (normalizedPhone) orConditions.push({ phone: normalizedPhone });
-      if (phone && normalizedPhone !== phone) orConditions.push({ phone });
       if (email) orConditions.push({ email });
+      orConditions.push(...buildPhoneOrConditions(phone));
 
       const user = await prisma.user.findFirst({ where: { OR: orConditions } });
       if (!user) {
@@ -542,11 +567,7 @@ router.post(
         );
       }
 
-      const orConditions: any[] = [];
-      orConditions.push({ phone: normalizedPhone });
-      if (phone && normalizedPhone !== phone) {
-        orConditions.push({ phone });
-      }
+      const orConditions: any[] = buildPhoneOrConditions(phone);
 
       const user = await prisma.user.findFirst({
         where: {
@@ -582,9 +603,8 @@ router.post(
       }
 
       const orConditions: any[] = [];
-      if (normalizedPhone) orConditions.push({ phone: normalizedPhone });
-      if (phone && normalizedPhone !== phone) orConditions.push({ phone });
       if (email) orConditions.push({ email });
+      orConditions.push(...buildPhoneOrConditions(phone));
 
       const user = await prisma.user.findFirst({ where: { OR: orConditions } });
       if (!user) {
@@ -601,9 +621,8 @@ router.post(
       // 2. Check temporary PasswordReset OTP
       if (!otpIsValid) {
         const orConditionsReset: any[] = [];
-        if (normalizedPhone) orConditionsReset.push({ phone: normalizedPhone });
-        if (phone && normalizedPhone !== phone) orConditionsReset.push({ phone });
         if (email) orConditionsReset.push({ email });
+        orConditionsReset.push(...buildPhoneOrConditions(phone));
 
         const resetRecord = await prisma.passwordReset.findFirst({
           where: {
@@ -672,9 +691,8 @@ router.post(
         );
 
       const orConditions: any[] = [];
-      if (normalizedPhone) orConditions.push({ phone: normalizedPhone });
-      if (phone && normalizedPhone !== phone) orConditions.push({ phone });
       if (email) orConditions.push({ email });
+      orConditions.push(...buildPhoneOrConditions(phone));
 
       const user = await prisma.user.findFirst({
         where: {
