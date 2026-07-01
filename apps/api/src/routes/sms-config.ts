@@ -48,6 +48,7 @@ router.post(
             apiPassword,
             defaultSenderId,
             baseUrl: apiUrl,
+            apiUrl,
             customSenderIdRequest: customSenderIdRequest || null,
             customSenderIdApproved: false,
           },
@@ -55,7 +56,13 @@ router.post(
         },
       });
 
-      return sendSuccess(res, item, 201);
+      return sendSuccess(res, {
+        ...item,
+        config: {
+          ...(item.config as any),
+          apiUrl: (item.config as any).apiUrl || (item.config as any).baseUrl || "",
+        },
+      }, 201);
     } catch (error: any) {
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }
@@ -80,7 +87,22 @@ router.get(
         where,
         orderBy: { createdAt: "desc" },
       });
-      return sendSuccess(res, data);
+
+      const mappedData = data.map((item) => {
+        if (item.config && typeof item.config === "object") {
+          const cfg = item.config as any;
+          return {
+            ...item,
+            config: {
+              ...cfg,
+              apiUrl: cfg.apiUrl || cfg.baseUrl || "",
+            },
+          };
+        }
+        return item;
+      });
+
+      return sendSuccess(res, mappedData);
     } catch (error: any) {
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }
@@ -232,12 +254,19 @@ router.put(
             apiPassword: apiPassword ?? current.apiPassword,
             defaultSenderId: defaultSenderId ?? current.defaultSenderId,
             baseUrl: apiUrl ?? current.baseUrl,
+            apiUrl: apiUrl ?? current.apiUrl ?? current.baseUrl,
           } as any,
           isActive: isActive ?? config.isActive,
         },
       });
 
-      return sendSuccess(res, updated);
+      return sendSuccess(res, {
+        ...updated,
+        config: {
+          ...(updated.config as any),
+          apiUrl: (updated.config as any).apiUrl || (updated.config as any).baseUrl || "",
+        },
+      });
     } catch (error: any) {
       return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
     }

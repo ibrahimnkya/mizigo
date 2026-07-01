@@ -271,7 +271,11 @@ function SmsConfigPageInner() {
   });
 
   const activeConfig = configs?.[0] || null;
-  const configData = (activeConfig?.config || {}) as any;
+  const configRaw = (activeConfig?.config || {}) as any;
+  const configData = {
+    ...configRaw,
+    apiUrl: configRaw.apiUrl || configRaw.baseUrl || "",
+  } as any;
 
   const handleEditorSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
