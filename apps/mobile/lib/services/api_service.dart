@@ -11,12 +11,11 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Local dev server — auto-discovery will update this for physical devices
-  // Production: 'https://api.mizigo.akiliapp.co.tz/api/v1'
-  static String _baseUrl = 'http://192.168.100.118:3001/api/v1';
+  static String _baseUrl = 'https://api.mizigo.akiliapp.co.tz/api/v1';
   static bool _localIpResolved = false;
 
   static Future<void> init() async {
-    await _resolveBaseUrl();
+    // Production mode — skip local IP resolution
   }
 
   static Future<void> _resolveBaseUrl() async {

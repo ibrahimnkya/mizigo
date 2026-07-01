@@ -40,10 +40,14 @@ export default function LoginForm() {
   const [errorMessage, dispatch] = useActionState(authenticate, undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [localError, setLocalError] = useState<string | undefined>();
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const displayError = errorMessage ?? localError;
 
   const handleOtpChange = (value: string, index: number) => {
     if (value && isNaN(Number(value))) return;
+    setLocalError(undefined);
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
@@ -156,14 +160,14 @@ export default function LoginForm() {
       </div>
 
       {/* Error */}
-      {errorMessage && (
+      {displayError && (
         <div
           className="flex items-center gap-2 px-3 py-2.5 bg-rose-50 border border-rose-200/60 rounded-[10px]"
           aria-live="polite"
         >
           <XCircle size={13} className="text-rose-500 shrink-0" />
           <p className="text-[12px] text-rose-600 font-semibold">
-            {errorMessage}
+            {displayError}
           </p>
         </div>
       )}
