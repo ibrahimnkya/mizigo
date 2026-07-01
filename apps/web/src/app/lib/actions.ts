@@ -8,9 +8,13 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    console.log("Attempting authentication...");
+    const identifier = formData.get("identifier") as string;
+    const otp = formData.get("otp") as string;
+
     await signIn("credentials", {
-      ...Object.fromEntries(formData),
+      email: identifier,
+      otp,
+      deviceId: "web-portal-default",
       redirectTo: "/dashboard",
     });
   } catch (error) {
@@ -24,12 +28,11 @@ export async function authenticate(
       }
     }
 
-    // Next.js redirect errors are intentional and should be re-thrown
+    // Next.js redirect throws — must re-throw so navigation completes
     if (
       (error as any).message === "NEXT_REDIRECT" ||
       (error as any).digest?.startsWith("NEXT_REDIRECT")
     ) {
-      console.log("Redirecting...");
       throw error;
     }
 

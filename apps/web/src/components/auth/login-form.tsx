@@ -1,20 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { signIn } from "next-auth/react";
+import { useActionState, useState, useRef } from "react";
+import { useFormStatus } from "react-dom";
+import { authenticate } from "@/app/lib/actions";
 import {
   Eye,
   EyeOff,
-  Mail,
-  Lock,
+  Phone,
   ArrowRight,
   XCircle,
   Loader2,
-  Phone,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-function LoginButton({ pending }: { pending: boolean }) {
+function LoginButton() {
+  const { pending } = useFormStatus();
   return (
     <button
       type="submit"
@@ -38,19 +37,16 @@ function LoginButton({ pending }: { pending: boolean }) {
 }
 
 export default function LoginForm() {
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isPending, setIsPending] = useState(false);
+  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleOtpChange = (value: string, index: number) => {
     if (value && isNaN(Number(value))) return;
-
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
-
     if (value && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
@@ -77,43 +73,13 @@ export default function LoginForm() {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text").trim();
     if (pasteData.length === 6 && !isNaN(Number(pasteData))) {
-      const newOtp = pasteData.split("");
-      setOtp(newOtp);
+      setOtp(pasteData.split(""));
       inputsRef.current[5]?.focus();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsPending(true);
-    setErrorMessage("");
-
-    const formData = new FormData(e.currentTarget);
-    const identifier = formData.get("identifier") as string;
-    const secret = formData.get("secret") as string;
-
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email: identifier,
-        otp: secret,
-        deviceId: "web-portal-default",
-      });
-
-      if (result?.error) {
-        setErrorMessage("Invalid credentials");
-        setIsPending(false);
-      } else {
-        window.location.href = "/dashboard";
-      }
-    } catch (error) {
-      setErrorMessage("Something went wrong");
-      setIsPending(false);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form action={dispatch} className="flex flex-col gap-4">
       {/* Identifier (Phone or Email) */}
       <div className="flex flex-col gap-1.5">
         <label
@@ -137,7 +103,7 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Secret (Password or PIN) */}
+      {/* 6-digit OTP */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <label
@@ -159,9 +125,7 @@ export default function LoginForm() {
               <input
                 key={index}
                 id={`otp-${index}`}
-                ref={(el) => {
-                  inputsRef.current[index] = el;
-                }}
+                ref={(el) => { inputsRef.current[index] = el; }}
                 type={showPassword ? "text" : "password"}
                 maxLength={1}
                 value={data}
@@ -169,12 +133,10 @@ export default function LoginForm() {
                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
                 onPaste={handleOtpPaste}
                 className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-indigo-400/20 focus:border-indigo-400 rounded-[10px] transition-all outline-none text-slate-900"
-                required
                 autoFocus={index === 0}
               />
             ))}
           </div>
-
           <div className="flex justify-end pr-1">
             <button
               type="button"
@@ -182,19 +144,15 @@ export default function LoginForm() {
               className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5"
             >
               {showPassword ? (
-                <>
-                  <EyeOff size={12} strokeWidth={2.5} /> Hide Code
-                </>
+                <><EyeOff size={12} strokeWidth={2.5} /> Hide Code</>
               ) : (
-                <>
-                  <Eye size={12} strokeWidth={2.5} /> Show Code
-                </>
+                <><Eye size={12} strokeWidth={2.5} /> Show Code</>
               )}
             </button>
           </div>
         </div>
-
-        <input type="hidden" name="secret" value={otp.join("")} />
+        {/* Hidden input carries the assembled OTP value to the server action */}
+        <input type="hidden" name="otp" value={otp.join("")} />
       </div>
 
       {/* Error */}
@@ -210,7 +168,7 @@ export default function LoginForm() {
         </div>
       )}
 
-      <LoginButton pending={isPending} />
+      <LoginButton />
     </form>
   );
 }
