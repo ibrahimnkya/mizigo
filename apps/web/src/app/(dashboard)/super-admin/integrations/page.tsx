@@ -82,7 +82,12 @@ function IntegrationsPageInner() {
   const paymentConfig = (paymentIntegration?.config || {}) as any;
 
   const smsIntegration = integrations?.find((i: any) => i.type === "SMS_GATEWAY") || null;
-  const smsConfig = (smsIntegration?.config || {}) as any;
+  const smsConfigRaw = (smsIntegration?.config || {}) as any;
+  const smsConfig = {
+    ...smsConfigRaw,
+    baseUrl: smsConfigRaw.baseUrl || smsConfigRaw.apiUrl || "",
+    apiUrl: smsConfigRaw.apiUrl || smsConfigRaw.baseUrl || "",
+  } as any;
 
   // Mutations
   const { mutate: updatePayment, isPending: isUpdatingPayment } = useMutation({

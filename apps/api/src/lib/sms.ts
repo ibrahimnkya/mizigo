@@ -162,7 +162,7 @@ export const sendSms = async (input: {
   }
 
   // Bypasses actual network requests only if it is using the seeded mock API ID
-  const isMock = config.apiId === "API45908501712";
+  const isMock = config.apiId === "API45908501712_MOCK" || config.apiId === "MOCK_GATEWAY";
   if (isMock) {
     logger.info("simulating_sms_send_in_dev", {
       formattedPhone,

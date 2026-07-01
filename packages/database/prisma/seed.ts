@@ -264,7 +264,7 @@ async function main() {
       isActive: true,
       config: {
         baseUrl: process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
-        apiId: process.env.API_ID || "API45908501712",
+        apiId: process.env.API_ID || "API45908501712_MOCK",
         apiPassword: process.env.API_PASSWORD || "HdWpiSsvcG",
         defaultSenderId: process.env.SENDER_ID || "MIZIGO",
       }
@@ -276,7 +276,7 @@ async function main() {
       isActive: true,
       config: {
         baseUrl: process.env.API_URL || "https://api.sprintsmsservice.com/api/SendSMS",
-        apiId: process.env.API_ID || "API45908501712",
+        apiId: process.env.API_ID || "API45908501712_MOCK",
         apiPassword: process.env.API_PASSWORD || "HdWpiSsvcG",
         defaultSenderId: process.env.SENDER_ID || "MIZIGO",
       }
