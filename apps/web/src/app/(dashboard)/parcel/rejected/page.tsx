@@ -7,7 +7,7 @@ export default async function RejectedParcelPage() {
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
           title="Terminated Requests"
-          subtitle="Archive of shipments rejected or cancelled by the protocol"
+          subtitle="Archive of parcels rejected or cancelled by the protocol"
           iconName="XCircle"
         />
         <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">

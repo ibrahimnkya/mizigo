@@ -44,6 +44,12 @@ async function getParcels(filters: {
     where.userId = userId;
   }
 
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+  const organizationId = (session?.user as any)?.organizationId;
+  if (!isSuperAdmin && organizationId) {
+    where.organizationId = organizationId;
+  }
+
   try {
     const parcels = await prisma.parcel.findMany({
       where,
@@ -53,10 +59,13 @@ async function getParcels(filters: {
           select: { name: true, email: true, phone: true },
         },
         origin: {
-          select: { name: true },
+          select: { id: true, name: true },
         },
         destination: {
-          select: { name: true },
+          select: { id: true, name: true },
+        },
+        organization: {
+          select: { id: true, name: true },
         },
       },
     });
@@ -68,6 +77,8 @@ async function getParcels(filters: {
       serviceType: item.serviceType,
       parcelType: item.parcelType,
       parcelSize: item.parcelSize,
+      condition: (item as any).condition ?? null,
+      urgency: (item as any).urgency ?? null,
       status: item.status as string,
       wagonType: item.wagonType,
       amount: item.amount,
@@ -77,6 +88,9 @@ async function getParcels(filters: {
       createdAt: item.createdAt.toISOString(),
       user: item.user,
       payment: null,
+      organization: item.organization,
+      origin: item.origin,
+      destination: item.destination,
     })) as ParcelItem[];
   } catch (error) {
     console.error("[ParcelList] Database query failed:", error);

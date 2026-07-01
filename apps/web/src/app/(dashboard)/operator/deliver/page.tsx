@@ -42,7 +42,10 @@ export default function DeliverPage() {
         },
         onError: (err: any) => {
           toast.error(
-            err.response?.data?.message || "Invalid OTP verification code",
+            err.response?.data?.error?.message ||
+              err.response?.data?.message ||
+              err.message ||
+              "Invalid OTP verification code",
           );
         },
       },

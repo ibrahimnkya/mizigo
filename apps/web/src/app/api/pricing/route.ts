@@ -65,7 +65,13 @@ async function syncSgrTariffs() {
 
     const url = `${baseUrl}/sec/trc/sgr-parcel/v1/fetch/parcel-tariffs`;
     const response = await fetch(url, { method: "GET", headers });
-    if (!response.ok) throw new Error(`SGR tariff fetch failed: ${response.status}`);
+    if (!response.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR tariff fetch failed: ${response.status}${errorBody ? ` - ${errorBody}` : ""}`);
+    }
 
     const result = await response.json();
     if (result.code !== "SUCCESS" || !Array.isArray(result.data)) {

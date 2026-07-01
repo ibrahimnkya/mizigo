@@ -6,7 +6,7 @@ export default async function LostParcelPage() {
     <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
-          title="Lost Shipments"
+          title="Lost Parcels"
           subtitle="Anomalies flagged as unlocatable within the network"
           iconName="AlertTriangle"
         />

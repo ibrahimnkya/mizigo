@@ -7,7 +7,7 @@ export default async function ReceivedParcelPage() {
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
           title="Received Parcels"
-          subtitle="Shipments successfully logged into the terminal"
+          subtitle="Parcels successfully logged into the terminal"
           iconName="Inbox"
         />
         <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">

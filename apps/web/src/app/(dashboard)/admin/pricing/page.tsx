@@ -20,6 +20,9 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api/client";
 
 // --- Animated counter hook ---
 function useCountUp(target: number, duration = 1200): number {
@@ -179,11 +182,23 @@ function PricingCard({
 }
 
 function PricingPageInner() {
-  const { data: rules, isLoading } = usePricingRules();
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+  const [selectedOrgId, setSelectedOrgId] = useState<string>(""); // "" = global/platform
+  const { data: rules, isLoading } = usePricingRules(selectedOrgId || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewRule, setViewRule] = useState<any>(null);
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
+
+  const { data: organizations = [] } = useQuery<any[]>({
+    queryKey: ["organizations-list"],
+    queryFn: async () => {
+      const { data } = await api.get("/organizations");
+      return data.data || data;
+    },
+    enabled: isSuperAdmin,
+  });
 
   const handleView = (rule: any) => {
     setViewRule(rule);
@@ -316,6 +331,7 @@ function PricingPageInner() {
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           rule={null}
+          organizationId={selectedOrgId || null}
         />
 
         <PricingDetailSheet
@@ -476,16 +492,48 @@ function PricingPageInner() {
           )}
 
           {tab.toLowerCase() === "all" && (
-            <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
-              <DataTable
-                title="Current Pricing Rules"
-                data={rules || []}
-                columns={columns}
-                isLoading={isLoading}
-                hideActions={true}
-                hideInternalSearch={true}
-                onRowClick={handleView}
-              />
+            <div className="space-y-4">
+              {isSuperAdmin && (
+                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex flex-col text-left">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                      {selectedOrgId
+                        ? <>Editing overrides for <span className="text-blue-600">{organizations.find((o: any) => o.id === selectedOrgId)?.name}</span></>
+                        : "Global Platform Pricing Rules"
+                      }
+                    </h3>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      {selectedOrgId ? "Custom rates overriding platform defaults" : "Global defaults applied across all organizations"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Scope:</span>
+                    <select
+                      value={selectedOrgId}
+                      onChange={(e) => setSelectedOrgId(e.target.value)}
+                      className="h-10 px-4 bg-slate-50 border border-slate-100 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[200px]"
+                    >
+                      <option value="">Platform Defaults (Global)</option>
+                      {organizations.map((org: any) => (
+                        <option key={org.id} value={org.id}>
+                          {org.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+              <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
+                <DataTable
+                  title="Current Pricing Rules"
+                  data={rules || []}
+                  columns={columns}
+                  isLoading={isLoading}
+                  hideActions={true}
+                  hideInternalSearch={true}
+                  onRowClick={handleView}
+                />
+              </div>
             </div>
           )}
         </div>

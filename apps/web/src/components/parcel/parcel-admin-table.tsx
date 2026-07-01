@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   CheckCircle2,
   XCircle,
@@ -124,6 +125,8 @@ export interface ParcelItem {
   serviceType: string;
   parcelType: string;
   parcelSize: string;
+  condition?: string | null;
+  urgency?: string | null;
   status: string;
   wagonType?: string | null;
   amount?: number | null;
@@ -133,6 +136,9 @@ export interface ParcelItem {
   createdAt: string;
   user?: { name: string; email: string; phone?: string | null } | null;
   payment?: { status: string; transactionReference?: string | null } | null;
+  organization?: { id: string; name: string } | null;
+  origin?: { id: string; name: string } | null;
+  destination?: { id: string; name: string } | null;
 }
 
 // ── Modals ─────────────────────────────────────────────────────────────────────
@@ -367,33 +373,40 @@ function FilterSelect({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="flex items-center gap-2 h-9 bg-slate-50 border border-slate-200 rounded-[10px] px-3 pr-2 min-w-[160px]">
-      <Icon size={12} className="text-slate-400 shrink-0" />
+    <div className="relative flex items-center h-9 bg-slate-50 border border-slate-200 rounded-[10px] min-w-[180px]">
+      <Icon size={12} className="absolute left-3 text-slate-400 pointer-events-none" />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 bg-transparent border-none text-[11px] font-black uppercase tracking-widest text-slate-600 outline-none cursor-pointer appearance-none"
+        className="w-full h-full pl-8 pr-8 bg-transparent border-none text-[12px] font-bold text-slate-600 outline-none cursor-pointer appearance-none"
       >
-        <option value="">{label}</option>
+        <option value="" className="text-slate-900 bg-white font-normal normal-case tracking-normal">
+          {label}
+        </option>
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
+          <option
+            key={o.value}
+            value={o.value}
+            className="text-slate-900 bg-white font-normal normal-case tracking-normal"
+          >
             {o.label}
           </option>
         ))}
       </select>
-      <svg
-        width="8"
-        height="8"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-slate-400 shrink-0 pointer-events-none"
-      >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+      <div className="absolute right-3 pointer-events-none text-slate-400">
+        <svg
+          width="8"
+          height="8"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
     </div>
   );
 }
@@ -406,6 +419,9 @@ export function ParcelAdminTable({
   initialItems: ParcelItem[];
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isSuperAdmin = (session?.user as any)?.role === "SUPER_ADMIN";
+
   const [approveTarget, setApproveTarget] = useState<ParcelItem | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ParcelItem | null>(null);
   const refresh = useCallback(() => router.refresh(), [router]);
@@ -415,12 +431,13 @@ export function ParcelAdminTable({
   const [filterService, setFilterService] = useState("");
   const [filterParcelType, setFilterParcelType] = useState("");
   const [filterOrigin, setFilterOrigin] = useState("");
+  const [filterDestination, setFilterDestination] = useState("");
 
   // Derive unique values for filter options from data
   const companyOptions = useMemo(() => {
     const names = [
       ...new Set(
-        initialItems.map((i) => i.user?.name).filter(Boolean) as string[],
+        initialItems.map((i) => (i as any).organization?.name || i.user?.name).filter(Boolean) as string[],
       ),
     ];
     return names.map((n) => ({ label: n, value: n }));
@@ -447,20 +464,29 @@ export function ParcelAdminTable({
     return origins.map((o) => ({ label: o, value: o }));
   }, [initialItems]);
 
+  const destinationOptions = useMemo(() => {
+    const destinations = [
+      ...new Set(initialItems.map((i) => i.toAddress).filter(Boolean)),
+    ];
+    return destinations.map((d) => ({ label: d, value: d }));
+  }, [initialItems]);
+
   const activeFilterCount = [
     filterCompany,
     filterService,
     filterParcelType,
     filterOrigin,
+    filterDestination,
   ].filter(Boolean).length;
 
   const filteredItems = useMemo(() => {
     return initialItems.filter((item) => {
-      if (filterCompany && item.user?.name !== filterCompany) return false;
+      if (filterCompany && (item as any).organization?.name !== filterCompany && item.user?.name !== filterCompany) return false;
       if (filterService && item.serviceType !== filterService) return false;
       if (filterParcelType && item.parcelType !== filterParcelType)
         return false;
       if (filterOrigin && item.fromAddress !== filterOrigin) return false;
+      if (filterDestination && item.toAddress !== filterDestination) return false;
       return true;
     });
   }, [
@@ -469,6 +495,7 @@ export function ParcelAdminTable({
     filterService,
     filterParcelType,
     filterOrigin,
+    filterDestination,
   ]);
 
   const clearFilters = () => {
@@ -476,6 +503,7 @@ export function ParcelAdminTable({
     setFilterService("");
     setFilterParcelType("");
     setFilterOrigin("");
+    setFilterDestination("");
   };
 
   // ── Columns ────────────────────────────────────────────────────────────────
@@ -505,43 +533,45 @@ export function ParcelAdminTable({
     },
     {
       header: "Company / Sender",
-      accessor: (item: ParcelItem) =>
-        item.user ? (
+      accessor: (item: ParcelItem) => {
+        const orgName = (item as any).organization?.name || null;
+        const senderName = item.user?.name || "Customer";
+        return (
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-[8px] bg-blue-50 border border-blue-100 flex items-center justify-center text-[12px] font-black text-blue-600 shrink-0">
-              {item.user.name.charAt(0).toUpperCase()}
+              {(orgName || senderName).charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col">
               <span className="font-black text-slate-900 text-[13px] tracking-tight">
-                {item.user.name}
+                {orgName || senderName}
               </span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                {item.user.phone ?? item.user.email}
+                {orgName ? "Organization" : (item.user?.phone ?? item.user?.email ?? "Walk-in")}
               </span>
             </div>
           </div>
-        ) : (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Info size={12} />
-            <span className="text-[11px] font-bold italic">Unassigned</span>
-          </div>
-        ),
+        );
+      },
     },
     {
       header: "Route",
-      accessor: (item: ParcelItem) => (
-        <div className="flex flex-col gap-1.5 relative pl-4">
-          <div className="absolute left-0.5 top-1 bottom-1 w-[1.5px] bg-slate-100 rounded-full" />
-          <div className="flex items-center gap-2 text-[12px] font-bold text-slate-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-            <span className="truncate max-w-[140px]">{item.fromAddress}</span>
+      accessor: (item: ParcelItem) => {
+        const originName = (item as any).origin?.name || item.fromAddress;
+        const destName = (item as any).destination?.name || item.toAddress;
+        return (
+          <div className="flex flex-col gap-1.5 relative pl-4">
+            <div className="absolute left-0.5 top-1 bottom-1 w-[1.5px] bg-slate-100 rounded-full" />
+            <div className="flex items-center gap-2 text-[12px] font-bold text-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <span className="truncate max-w-[140px]">{originName}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[12px] font-bold text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
+              <span className="truncate max-w-[140px]">{destName}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-[12px] font-bold text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
-            <span className="truncate max-w-[140px]">{item.toAddress}</span>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: "Receiver",
@@ -649,13 +679,15 @@ export function ParcelAdminTable({
           Filters
         </div>
         <div className="h-5 w-px bg-slate-100" />
-        <FilterSelect
-          icon={Building2}
-          label="All Companies"
-          value={filterCompany}
-          onChange={setFilterCompany}
-          options={companyOptions}
-        />
+        {isSuperAdmin && (
+          <FilterSelect
+            icon={Building2}
+            label="All Companies"
+            value={filterCompany}
+            onChange={setFilterCompany}
+            options={companyOptions}
+          />
+        )}
         <FilterSelect
           icon={Zap}
           label="All Services"
@@ -676,6 +708,13 @@ export function ParcelAdminTable({
           value={filterOrigin}
           onChange={setFilterOrigin}
           options={originOptions}
+        />
+        <FilterSelect
+          icon={Package}
+          label="All Destinations"
+          value={filterDestination}
+          onChange={setFilterDestination}
+          options={destinationOptions}
         />
 
         {activeFilterCount > 0 && (

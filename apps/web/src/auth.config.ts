@@ -1,6 +1,19 @@
 import type { NextAuthConfig } from "next-auth";
 import { headers } from "next/headers";
 
+function decodeJwt(token: string): any {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = parts[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(globalThis.atob(base64));
+  } catch {
+    return null;
+  }
+}
+
 export const authConfig: NextAuthConfig = {
   trustHost: true,
   pages: {
@@ -156,18 +169,26 @@ export const authConfig: NextAuthConfig = {
         token.refreshToken = (user as any).refreshToken;
         token.deviceId = (user as any).deviceId;
 
-        // Set token expiration (1 hour)
-        token.accessTokenExpires = Date.now() + 3600 * 1000;
-
         return token;
       }
 
-      // Subsequent checks: Return previous token if the access token has not expired yet
-      if (
-        token.accessTokenExpires &&
-        Date.now() < (token.accessTokenExpires as number)
-      ) {
+      // If token already has an error, do not attempt to refresh
+      if (token.error) {
         return token;
+      }
+
+      // If we don't have a refresh token, we can't refresh anyway
+      if (!token.refreshToken) {
+        return token;
+      }
+
+      // Decode the access token to check its expiration (robust, handles multiple calls and clock desync)
+      const decoded = token.accessToken ? decodeJwt(token.accessToken as string) : null;
+      if (decoded && decoded.exp) {
+        // Access token is valid (with 10-second safety buffer), return it
+        if (Date.now() / 1000 < decoded.exp - 10) {
+          return token;
+        }
       }
 
       // Access token has expired, try to update it using refreshAccessToken
@@ -226,7 +247,6 @@ async function refreshAccessToken(token: any) {
     return {
       ...token,
       accessToken: refreshedTokens.data.token,
-      accessTokenExpires: Date.now() + 3600 * 1000,
       refreshToken: refreshedTokens.data.refreshToken ?? token.refreshToken, // Fall back to old refresh token
     };
   } catch (error) {

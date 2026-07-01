@@ -7,7 +7,7 @@ export default async function CancelledParcelPage() {
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
           title="Cancelled Requests"
-          subtitle="Shipments terminated by the user or system protocol"
+          subtitle="Parcels terminated by the user or system protocol"
           iconName="XCircle"
         />
         <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">

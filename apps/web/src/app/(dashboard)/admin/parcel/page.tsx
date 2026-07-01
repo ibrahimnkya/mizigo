@@ -57,7 +57,7 @@ export default function AdminParcelPage() {
     {
       title: "Received Parcels",
       description:
-        "Global registry of shipments logged across all terminal nodes.",
+        "Global registry of parcels logged across all terminal nodes.",
       count: stats.RECEIVED || 0,
       icon: Inbox,
       tag: "Registry",
@@ -66,7 +66,7 @@ export default function AdminParcelPage() {
     },
     {
       title: "Dispatched Loads",
-      description: "Active shipments currently in outbound transit vehicles.",
+      description: "Active parcels currently in outbound transit vehicles.",
       count: stats.DISPATCHED || 0,
       icon: LogOut,
       tag: "In-Transit",
@@ -76,7 +76,7 @@ export default function AdminParcelPage() {
     {
       title: "Offloaded Items",
       description:
-        "Shipments reaching intermediate processing and sorting hubs.",
+        "Parcels reaching intermediate processing and sorting hubs.",
       count: stats.OFFLOADED || 0,
       icon: Truck,
       tag: "Sorting",
@@ -85,7 +85,7 @@ export default function AdminParcelPage() {
     },
     {
       title: "Delivered Final",
-      description: "Shipments that have successfully reached target customers.",
+      description: "Parcels that have successfully reached target customers.",
       count: stats.DELIVERED || 0,
       icon: CheckCircle2,
       tag: "Settled",
@@ -94,7 +94,7 @@ export default function AdminParcelPage() {
     },
     {
       title: "Cancelled Requests",
-      description: "Terminated shipment protocols across the network.",
+      description: "Terminated parcel protocols across the network.",
       count: stats.CANCELED || 0,
       icon: XCircle,
       tag: "Void",
@@ -102,7 +102,7 @@ export default function AdminParcelPage() {
       bg: "bg-slate-50",
     },
     {
-      title: "Lost Shipments",
+      title: "Lost Parcels",
       description: "High-priority anomalies requiring administrative review.",
       count: stats.LOST || 0,
       icon: AlertTriangle,

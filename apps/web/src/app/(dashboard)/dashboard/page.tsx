@@ -179,9 +179,9 @@ export default async function Page({
   ];
 
   return (
-    <div className="flex flex-col gap-2 p-2 min-h-screen bg-[#f8f9fb] animate-in fade-in duration-700">
+    <div className="max-w-[1520px] mx-auto w-full flex flex-col gap-8 animate-in fade-in duration-700 py-4">
       <RefreshTrigger interval={30000} />
-      <div className="space-y-12 py-8 px-4 max-w-[1520px] mx-auto w-full">
+      <div className="space-y-12">
         {/* ── HEADER ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2">
           <div className="space-y-1">

@@ -43,6 +43,15 @@ export default function ReceiveParcelPage() {
     "IDLE" | "PENDING" | "SUCCESS" | "FAILED"
   >("IDLE");
 
+  const [parcelTypes, setParcelTypes] = useState<any[]>([]);
+  const [parcelConditions, setParcelConditions] = useState<any[]>([]);
+  const [packageSizes, setPackageSizes] = useState<any[]>([]);
+  const [deliveryPriorities, setDeliveryPriorities] = useState<any[]>([
+    { name: "Standard", description: "Regular ground delivery service" },
+    { name: "Express", description: "High-priority, same-day or next-day delivery" },
+    { name: "MGR", description: "Mizigo Golden Route - scheduled premium service" }
+  ]);
+
   useEffect(() => {
     if (status === "loading") return;
 
@@ -70,7 +79,23 @@ export default function ReceiveParcelPage() {
       }
     };
 
+    const fetchParcelParameters = async () => {
+      try {
+        const { data } = await api.get("/parcel/parcel-parameters");
+        const params = data.data || data;
+        setParcelTypes(params.parcelTypes || []);
+        setParcelConditions(params.parcelConditions || []);
+        setPackageSizes(params.packageSizes || []);
+        if (params.deliveryPriorities) {
+          setDeliveryPriorities(params.deliveryPriorities);
+        }
+      } catch (err) {
+        console.error("Failed to fetch parcel parameters", err);
+      }
+    };
+
     fetchStations();
+    fetchParcelParameters();
 
     if (status === "authenticated") {
       fetchProviders();
@@ -121,8 +146,9 @@ export default function ReceiveParcelPage() {
 
   // Urgency Multipliers placeholder
   let urgencyMultiplier = 1;
-  if (formData.urgency === "EXPRESS") urgencyMultiplier = 1.25;
-  if (formData.urgency === "MGR") urgencyMultiplier = 1.5;
+  const upperUrgency = formData.urgency?.toUpperCase() || "";
+  if (upperUrgency === "EXPRESS") urgencyMultiplier = 1.25;
+  if (upperUrgency === "MGR") urgencyMultiplier = 1.5;
 
   const subTotal = (baseFee + weightFee + valueFee) * urgencyMultiplier;
   const totalAmount = Math.ceil(subTotal / 100) * 100; // Round to nearest 100
@@ -432,9 +458,11 @@ export default function ReceiveParcelPage() {
                         }
                         className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
                       >
-                        <option value="BRAND_NEW">Brand New</option>
-                        <option value="REFURBISHED">Refurbished</option>
-                        <option value="USED">Used</option>
+                        {parcelConditions.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -451,10 +479,11 @@ export default function ReceiveParcelPage() {
                         }
                         className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
                       >
-                        <option value="PARCEL">Parcel</option>
-                        <option value="PALLET">Pallet</option>
-                        <option value="CONTAINER">Container</option>
-                        <option value="FRAGILE">Fragile</option>
+                        {parcelTypes.map((t) => (
+                          <option key={t.name} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -471,9 +500,11 @@ export default function ReceiveParcelPage() {
                         }
                         className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
                       >
-                        <option value="STANDARD">Standard</option>
-                        <option value="EXPRESS">Express</option>
-                        <option value="MGR">MGR</option>
+                        {deliveryPriorities.map((t) => (
+                          <option key={t.name} value={t.name.toUpperCase()}>
+                            {t.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -490,11 +521,11 @@ export default function ReceiveParcelPage() {
                         }
                         className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
                       >
-                        <option value="DOCUMENT_A4">Document (A4)</option>
-                        <option value="A3_NYLON">A3 Nylon</option>
-                        <option value="SIZE_1">Size 1 (30x30)</option>
-                        <option value="SIZE_2">Size 2 (50x50)</option>
-                        <option value="SIZE_3">Size 3 (70x70)</option>
+                        {packageSizes.map((s) => (
+                          <option key={s.name} value={s.name}>
+                            {s.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>

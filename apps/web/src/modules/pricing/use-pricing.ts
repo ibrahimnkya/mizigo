@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api/client";
 
-export function usePricingRules() {
+export function usePricingRules(organizationId?: string | null) {
   return useQuery({
-    queryKey: ["pricing-rules"],
+    queryKey: ["pricing-rules", organizationId],
     queryFn: async () => {
-      const { data } = await api.get("/pricing");
+      const { data } = await api.get("/pricing", {
+        params: { organizationId },
+      });
       return data.data;
     },
   });

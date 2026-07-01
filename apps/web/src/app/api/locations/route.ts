@@ -85,7 +85,11 @@ async function syncSgrStationsInWeb() {
     });
 
     if (!response.ok) {
-      throw new Error(`SGR API status: ${response.status}`);
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch (_) {}
+      throw new Error(`SGR API status: ${response.status}${errorBody ? ` - ${errorBody}` : ""}`);
     }
 
     const result = await response.json();

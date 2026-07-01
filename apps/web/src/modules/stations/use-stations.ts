@@ -26,7 +26,7 @@ export function useCreateStation() {
     },
     onError: (error: any) => {
       toast.error(
-        error.response?.data?.error ||
+        error.response?.data?.error?.message ||
           error.message ||
           "Failed to create station",
       );
@@ -48,7 +48,7 @@ export function useUpdateStation() {
     },
     onError: (error: any) => {
       toast.error(
-        error.response?.data?.error ||
+        error.response?.data?.error?.message ||
           error.message ||
           "Failed to update station",
       );

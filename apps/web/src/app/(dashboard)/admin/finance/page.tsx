@@ -216,8 +216,8 @@ function FinanceSummaryPageInner() {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden bg-[#f8f9fb]">
-      <div className="max-w-[1520px] w-full mx-auto flex-1 flex flex-col gap-4 min-h-0">
+    <div className="max-w-[1520px] mx-auto w-full flex flex-col gap-6 animate-in fade-in duration-700">
+      <div className="w-full flex flex-col gap-6">
         <div className="flex-shrink-0 [&_>_div]:!mb-0">
           <ReportPageHeader
             title="Financial Overview"
@@ -236,71 +236,86 @@ function FinanceSummaryPageInner() {
           />
         </div>
 
-        <div className="flex-1 min-h-0 animate-in fade-in duration-700">
+        <div className="mt-2">
           {tab.toLowerCase() === "overview" && (
-            <div className="h-full flex flex-col gap-4 overflow-hidden">
+            <div className="flex flex-col gap-6">
               {/* Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <FinanceCard
-                  label="Total Revenue"
-                  value={summary?.totalRevenue || 0}
+                  label="Total Platform Earnings"
+                  value={summary?.totalPlatformEarnings || 0}
                   isCurrency={true}
                   icon={Coins}
+                  iconBg="bg-indigo-50"
+                  iconColor="text-indigo-600"
+                  tag="Total Platform"
+                  tagBg="bg-indigo-50"
+                  tagColor="text-indigo-600"
+                  accentBar="bg-indigo-500"
+                  description="Overall earnings (commission + extras + system fees)"
+                  seed={78}
+                />
+                <FinanceCard
+                  label="Platform Share (Orgs)"
+                  value={summary?.platformCommission || 0}
+                  isCurrency={true}
+                  icon={Building}
                   iconBg="bg-blue-50"
                   iconColor="text-blue-600"
-                  tag="Earnings"
+                  tag="Orgs Share"
                   tagBg="bg-blue-50"
                   tagColor="text-blue-600"
                   accentBar="bg-blue-500"
-                  description="Total gross amount collected on transit bookings"
+                  description="Commissions accrued from bookings"
                   seed={12}
                 />
                 <FinanceCard
-                  label="Service Fees"
-                  value={summary?.platformCommission || 0}
+                  label="Additional Services"
+                  value={summary?.additionalServicesRevenue || 0}
                   isCurrency={true}
                   icon={Zap}
                   iconBg="bg-amber-50"
                   iconColor="text-amber-600"
-                  tag="Fees"
+                  tag="Extras"
                   tagBg="bg-amber-50"
                   tagColor="text-amber-600"
                   accentBar="bg-amber-500"
-                  description="Standard commission accrued to the platform"
+                  description="Accrued from packaging, insurance, fragile handling"
                   seed={34}
                 />
                 <FinanceCard
-                  label="Revenue Growth"
-                  value={summary?.revenueGrowth || 0}
-                  isPercentage={true}
-                  icon={(summary?.revenueGrowth || 0) >= 0 ? TrendingUp : TrendingDown}
-                  iconBg="bg-emerald-50"
-                  iconColor="text-emerald-600"
-                  tag="Growth"
-                  tagBg="bg-emerald-50"
-                  tagColor="text-emerald-600"
-                  accentBar="bg-emerald-500"
-                  description="Comparison of recent 30-day revenue cycle"
+                  label="System Transaction Fees"
+                  value={summary?.systemFeeRevenue || 0}
+                  isCurrency={true}
+                  icon={Scale}
+                  iconBg="bg-purple-50"
+                  iconColor="text-purple-600"
+                  tag="System Fees"
+                  tagBg="bg-purple-50"
+                  tagColor="text-purple-600"
+                  accentBar="bg-purple-500"
+                  description="Accrued from flat 500 TSh processing fee"
                   seed={56}
                 />
                 <FinanceCard
-                  label="System Status"
-                  value="Active"
-                  icon={ShieldCheck}
-                  iconBg="bg-indigo-50"
-                  iconColor="text-indigo-600"
-                  tag="Status"
-                  tagBg="bg-indigo-50"
-                  tagColor="text-indigo-600"
-                  accentBar="bg-indigo-500"
-                  description="Current operational protocol health"
-                  seed={78}
+                  label="Gross Bookings"
+                  value={summary?.totalRevenue || 0}
+                  isCurrency={true}
+                  icon={TrendingUp}
+                  iconBg="bg-emerald-50"
+                  iconColor="text-emerald-600"
+                  tag="Gross Rev"
+                  tagBg="bg-emerald-50"
+                  tagColor="text-emerald-600"
+                  accentBar="bg-emerald-500"
+                  description="Total amount collected on transit bookings"
+                  seed={90}
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Analytical Overview */}
-                <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-100 shadow-sm p-6 flex flex-col items-center justify-center text-center relative overflow-hidden h-full">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[320px]">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-3xl -mr-32 -mt-32" />
                   <div className="w-16 h-16 rounded-[1.5rem] bg-blue-50 flex items-center justify-center mb-4 relative z-10 border border-blue-100">
                     <Activity
@@ -316,9 +331,9 @@ function FinanceSummaryPageInner() {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-4 h-full overflow-hidden">
+                <div className="flex flex-col gap-6">
                   {/* Payout System */}
-                  <div className="bg-slate-900 rounded-[20px] p-5 text-white relative overflow-hidden shadow-2xl flex-1 flex flex-col justify-between">
+                  <div className="bg-slate-900 rounded-2xl p-6 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[220px]">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
                     <div>
                       <PieChart
@@ -349,7 +364,7 @@ function FinanceSummaryPageInner() {
                   </div>
 
                   {/* Fees Summary */}
-                  <div className="bg-white rounded-[20px] border border-slate-100 shadow-sm p-5 flex-1 flex flex-col justify-between">
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[220px]">
                     <div>
                       <h4 className="font-black text-slate-900 text-[12px] uppercase tracking-widest mb-3 flex items-center gap-2">
                         <Scale className="w-3.5 h-3.5 text-slate-400" />
@@ -404,7 +419,7 @@ function FinanceSummaryPageInner() {
           )}
 
           {tab.toLowerCase() === "earnings" && (
-            <div className="bg-white rounded-[20px] border border-slate-200/60 shadow-sm overflow-hidden p-1 animate-in slide-in-from-bottom-2 duration-500 h-full flex flex-col">
+            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden p-4 animate-in slide-in-from-bottom-2 duration-500">
               <DataTable
                 title="Organization Earnings"
                 data={commissions || []}

@@ -63,7 +63,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 interface ReportPageHeaderProps {
   title: string;
   subtitle: string;
-  icon?: LucideIcon | string;
+  icon?: any;
   iconName?: string;
   onSearch?: (query: string) => void;
   pdfData?: any[];

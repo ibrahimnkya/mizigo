@@ -26,7 +26,7 @@ export function useCreateOrganization() {
     },
     onError: (error: any) => {
       toast.error(
-        error.response?.data?.error ||
+        error.response?.data?.error?.message ||
           error.message ||
           "Failed to create organization",
       );
@@ -48,7 +48,7 @@ export function useUpdateOrganization() {
     },
     onError: (error: any) => {
       toast.error(
-        error.response?.data?.error ||
+        error.response?.data?.error?.message ||
           error.message ||
           "Failed to update organization",
       );

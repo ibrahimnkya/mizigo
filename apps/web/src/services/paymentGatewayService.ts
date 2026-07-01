@@ -109,13 +109,34 @@ export const CHANNEL_DISPLAY_MAP: Record<string, string> = {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+import { prisma } from "@repo/database";
+
 export class PaymentGatewayService {
-  private static BASE_URL = "https://mysafari.co.tz";
+  private static async getGatewayConfig() {
+    try {
+      const integration = await prisma.integration.findFirst({
+        where: { type: "PAYMENT_GATEWAY", isActive: true, deletedAt: null },
+        orderBy: { updatedAt: "desc" },
+      });
+      const config = (integration?.config || {}) as Record<string, any>;
+      return {
+        baseUrl: config.baseUrl || "https://mysafari.co.tz",
+        apiKey: config.apiKey || "",
+      };
+    } catch (error) {
+      console.warn("Failed to load payment gateway config from DB:", error);
+      return {
+        baseUrl: "https://mysafari.co.tz",
+        apiKey: "",
+      };
+    }
+  }
 
   static async getChannels(): Promise<PaymentChannel[]> {
     try {
+      const { baseUrl } = await this.getGatewayConfig();
       const response = await fetch(
-        `${this.BASE_URL}/api/payment/mobile-money-channels`,
+        `${baseUrl}/api/payment/mobile-money-channels`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -151,8 +172,46 @@ export class PaymentGatewayService {
     transactionId?: string;
   }> {
     try {
+      const { baseUrl, apiKey } = await this.getGatewayConfig();
+
+      const isMock = baseUrl.includes("mysafari.co.tz") && apiKey === "TEST-API-KEY-12345";
+      if (isMock || process.env.NODE_ENV !== "production") {
+        console.log("[PaymentGateway] Simulating Next.js payment push in dev...", payload);
+
+        const callbackUrl = payload.callback_url;
+        if (callbackUrl) {
+          setTimeout(async () => {
+            try {
+              const callbackBody = {
+                utilityref: payload.payment_reference,
+                transactionstatus: "success",
+                transid: `MOCK-TXID-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
+                amount: String(payload.amount),
+                operator: payload.payment_channel,
+                msisdn: payload.phone_number,
+              };
+              console.log(`[PaymentGateway] Triggering callback to: ${callbackUrl}`);
+              const res = await fetch(callbackUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(callbackBody),
+              });
+              console.log(`[PaymentGateway] Callback response status: ${res.status}`);
+            } catch (err) {
+              console.error("Next.js dev payment callback trigger failed:", err);
+            }
+          }, 1000);
+        }
+
+        return {
+          status: "SUCCESS",
+          message: "Payment initiated (sandbox mock)",
+          transactionId: `MOCK-${Date.now()}`,
+        };
+      }
+
       const response = await fetch(
-        `${this.BASE_URL}/api/paymentGw/pushPayment`,
+        `${baseUrl}/api/paymentGw/pushPayment`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -186,3 +245,4 @@ export class PaymentGatewayService {
     }
   }
 }
+

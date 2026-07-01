@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       prisma.payment.update({
         where: { id: payment.id },
         data: {
-          status: "PAID",
+          status: "SUCCESS",
           paidAt: new Date(),
           transactionReference: `SIM-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
           paymentMethod: "SIMULATED",

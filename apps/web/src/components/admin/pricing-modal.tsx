@@ -31,9 +31,10 @@ interface PricingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rule?: any; // If present, we're in Edit mode
+  organizationId?: string | null;
 }
 
-export function PricingModal({ open, onOpenChange, rule }: PricingModalProps) {
+export function PricingModal({ open, onOpenChange, rule, organizationId }: PricingModalProps) {
   const createMutation = useCreatePricingRule();
   const updateMutation = useUpdatePricingRule();
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,7 @@ export function PricingModal({ open, onOpenChange, rule }: PricingModalProps) {
       value: Number(value),
       condition: condition || null,
       isActive,
+      organizationId: rule ? rule.organizationId : (organizationId || null),
     };
 
     try {

@@ -23,9 +23,13 @@ import {
   Target,
   Building,
   Search,
+  Sparkles,
+  MapPin,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ApiIcon, MessageSecure01Icon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@repo/ui/utils";
 import { useUIStore } from "@/store/ui-store";
@@ -97,7 +101,7 @@ export const sidebarItems: SidebarItem[] = [
 
   // --- PARCEL MANAGEMENT ---
   {
-    title: "All Shipments",
+    title: "All Parcels",
     subtitle: "View all parcels across stations",
     icon: Package,
     href: "/parcel",
@@ -183,6 +187,22 @@ export const sidebarItems: SidebarItem[] = [
     section: "Users",
   },
   {
+    title: "Platform Agents",
+    subtitle: "Agents & businesses — KYC, commissions",
+    icon: Building,
+    href: "/super-admin/platform-agents",
+    roles: ["SUPER_ADMIN"],
+    section: "Users",
+  },
+  {
+    title: "Agent Network",
+    subtitle: "View agent offices & locations",
+    icon: MapPin,
+    href: "/admin/agent-network",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    section: "Users",
+  },
+  {
     title: "Staff",
     subtitle: "Manage staff members",
     icon: Users,
@@ -206,12 +226,20 @@ export const sidebarItems: SidebarItem[] = [
     roles: ["SUPER_ADMIN"],
     section: "Users",
   },
+  {
+    title: "SMS Logs",
+    subtitle: "View outgoing notification logs",
+    icon: (props: any) => <HugeiconsIcon icon={MessageSecure01Icon} {...props} />,
+    href: "/admin/sms-logs",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    section: "Users",
+  },
 
   // --- PLATFORM CONFIGURATION ---
   {
     title: "Integrations",
     subtitle: "Connect external services",
-    icon: Settings,
+    icon: (props: any) => <HugeiconsIcon icon={ApiIcon} {...props} />,
     href: "/super-admin/integrations",
     roles: ["SUPER_ADMIN"],
     section: "Settings",
@@ -219,8 +247,16 @@ export const sidebarItems: SidebarItem[] = [
   {
     title: "SMS Settings",
     subtitle: "Configure SMS notifications",
-    icon: Bell,
+    icon: (props: any) => <HugeiconsIcon icon={MessageSecure01Icon} {...props} />,
     href: "/super-admin/sms",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Payment Settings",
+    subtitle: "Configure payment gateways",
+    icon: CreditCard,
+    href: "/super-admin/payment",
     roles: ["SUPER_ADMIN"],
     section: "Settings",
   },
@@ -229,6 +265,30 @@ export const sidebarItems: SidebarItem[] = [
     subtitle: "Manage mobile app versions",
     icon: Package,
     href: "/super-admin/versions",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Parcel Parameters",
+    subtitle: "Configure type, conditions, sizes",
+    icon: ClipboardList,
+    href: "/super-admin/parcel-parameters",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Additional Services",
+    subtitle: "Manage service offerings & prices",
+    icon: Sparkles,
+    href: "/super-admin/additional-services",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Legal Policies",
+    subtitle: "Terms and Privacy Policy settings",
+    icon: ShieldCheck,
+    href: "/super-admin/legal",
     roles: ["SUPER_ADMIN"],
     section: "Settings",
   },
@@ -353,7 +413,7 @@ export function Sidebar() {
             className={cn(
               "relative flex items-center gap-4 rounded-[10px] px-5 py-3 transition-all text-slate-400 hover:text-white hover:bg-white/5 group",
               pathname === item.href &&
-                "bg-blue-600/10 text-white ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.1)]",
+              "bg-blue-600/10 text-white ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.1)]",
             )}
           >
             {pathname === item.href && (

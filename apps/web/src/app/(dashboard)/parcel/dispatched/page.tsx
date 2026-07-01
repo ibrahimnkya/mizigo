@@ -7,7 +7,7 @@ export default async function DispatchedParcelPage() {
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
           title="Dispatched Loads"
-          subtitle="Shipments assigned to outbound transit vehicles"
+          subtitle="Parcels assigned to outbound transit vehicles"
           iconName="LogOut"
         />
         <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">

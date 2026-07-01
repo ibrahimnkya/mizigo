@@ -24,7 +24,7 @@ export function useCreateVehicle() {
       toast.success("Vehicle registered successfully");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to register vehicle");
+      toast.error(error.response?.data?.error?.message || "Failed to register vehicle");
     },
   });
 }
@@ -41,7 +41,7 @@ export function useUpdateVehicle() {
       toast.success("Vehicle updated successfully");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to update vehicle");
+      toast.error(error.response?.data?.error?.message || "Failed to update vehicle");
     },
   });
 }
@@ -57,7 +57,7 @@ export function useDeleteVehicle() {
       toast.success("Vehicle removed from fleet");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to remove vehicle");
+      toast.error(error.response?.data?.error?.message || "Failed to remove vehicle");
     },
   });
 }

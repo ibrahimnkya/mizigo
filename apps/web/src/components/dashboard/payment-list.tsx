@@ -326,7 +326,7 @@ export function PaymentList({
   ];
 
   return (
-    <div className="h-full flex flex-col gap-4 overflow-hidden animate-in fade-in duration-700">
+    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-700">
       {/* Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-100 rounded-[12px] px-6 py-4 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -357,8 +357,8 @@ export function PaymentList({
 
       {/* Stats Overview Tab */}
       {tab.toLowerCase() === "overview" && (
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden min-h-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
+        <div className="flex flex-col gap-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <PaymentStatCard
               label="Total Paid"
               value={totalPaidAmount}
@@ -416,9 +416,9 @@ export function PaymentList({
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* How It Works Section */}
-            <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between h-full min-h-0">
+            <div className="lg:col-span-1 bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[320px]">
               <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
 
               <div className="relative z-10">
@@ -466,7 +466,7 @@ export function PaymentList({
             </div>
 
             {/* Placeholder for Graphs or other analytical tools */}
-            <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center h-full min-h-0">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center min-h-[320px]">
               <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
                 <TrendingUp className="w-8 h-8 text-blue-500" />
               </div>
@@ -485,7 +485,7 @@ export function PaymentList({
 
       {/* Table Tab */}
       {tab.toLowerCase() === "all" && (
-        <div className="flex-1 min-h-0 bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden p-4">
           <DataTable
             title="Payments"
             data={rawPayments}

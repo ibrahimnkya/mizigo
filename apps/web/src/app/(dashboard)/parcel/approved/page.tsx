@@ -7,7 +7,7 @@ export default async function ApprovedParcelPage() {
       <div className="max-w-[1520px] mx-auto">
         <ReportPageHeader
           title="Approved Manifest"
-          subtitle="Shipments verified and cleared for network transit"
+          subtitle="Parcels verified and cleared for network transit"
           iconName="ShieldCheck"
         />
         <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">

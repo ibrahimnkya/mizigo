@@ -1,7 +1,7 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api/client";
 import {
   Package,
@@ -13,6 +13,9 @@ import {
   Globe,
   Zap,
   Search,
+  Database,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -20,10 +23,24 @@ import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { Activity } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@repo/ui/sheet";
+import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
+import { toast } from "sonner";
 
 function AppVersionsPageInner() {
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
+  const [openPublish, setOpenPublish] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(false);
 
   const { data: versions, isLoading } = useQuery({
     queryKey: ["app-versions"],
@@ -32,6 +49,36 @@ function AppVersionsPageInner() {
       return data.data || data;
     },
   });
+
+  const { mutate: publishVersion, isPending: isPublishing } = useMutation({
+    mutationFn: async (payload: any) => {
+      const { data } = await api.post("/app-versions", payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["app-versions"] });
+      toast.success("App version published successfully");
+      setOpenPublish(false);
+      setForceUpdate(false);
+    },
+    onError: (err: any) => {
+      toast.error(
+        err.response?.data?.error?.message || "Failed to publish version"
+      );
+    },
+  });
+
+  const handlePublishSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      version: formData.get("version") as string,
+      minSupportedVersion: formData.get("minSupportedVersion") as string,
+      downloadUrl: formData.get("downloadUrl") as string,
+      forceUpdate: forceUpdate,
+    };
+    publishVersion(payload);
+  };
 
   const latest = versions?.[0];
 
@@ -51,10 +98,116 @@ function AppVersionsPageInner() {
           subtitle="Manage platform releases and device deployment"
           iconName="Smartphone"
           action={
-            <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">
-              <Plus size={14} strokeWidth={3} />
-              Publish New Version
-            </button>
+            <Sheet open={openPublish} onOpenChange={setOpenPublish}>
+              <SheetTrigger asChild>
+                <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">
+                  <Plus size={14} strokeWidth={3} />
+                  Publish New Version
+                </button>
+              </SheetTrigger>
+              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white shadow-2xl rounded-2xl flex flex-col">
+                <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
+                  <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+                    <Database className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div className="flex flex-col relative z-10 text-left">
+                    <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+                      Publish App Version
+                    </SheetTitle>
+                    <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+                      Deploy a new release to the mobile application ecosystem
+                    </SheetDescription>
+                  </div>
+                </div>
+
+                <form
+                  id="publish-version-form"
+                  onSubmit={handlePublishSubmit}
+                  className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar"
+                >
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                        Version Code
+                      </Label>
+                      <Input
+                        name="version"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
+                        placeholder="e.g. 1.0.0"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                        Minimum Supported Version
+                      </Label>
+                      <Input
+                        name="minSupportedVersion"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
+                        placeholder="e.g. 1.0.0"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                        Binary Download URL
+                      </Label>
+                      <Input
+                        name="downloadUrl"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
+                        placeholder="e.g. https://example.com/app.apk"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-[10px]">
+                      <div className="flex flex-col text-left">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-900">
+                          Force Update
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
+                          Enforce mandatory update compliance
+                        </span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={forceUpdate}
+                        onChange={(e) => setForceUpdate(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </form>
+
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setOpenPublish(false)}
+                    className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    form="publish-version-form"
+                    disabled={isPublishing}
+                    className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+                  >
+                    {isPublishing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
+                    ) : (
+                      <>
+                        <CheckCircle2 size={16} strokeWidth={3} />
+                        Publish Release
+                      </>
+                    )}
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
           }
           tabs={["Overview", "All"]}
           tabParamName="tab"
