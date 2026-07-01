@@ -10,9 +10,6 @@ class SupportHelpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       appBar: const SettingsAppBar(title: 'Support & Help'),
       body: Column(
@@ -27,34 +24,32 @@ class SupportHelpScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                        color: AppTheme.border,
                       ),
-                      boxShadow: isDark
-                          ? null
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: TextField(
                       style: GoogleFonts.inter(
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        color: AppTheme.textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Search for help...',
                         hintStyle: GoogleFonts.inter(
-                          color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                          color: AppTheme.textMuted,
                         ),
                         border: InputBorder.none,
                         icon: HugeIcon(
                           icon: HugeIcons.strokeRoundedSearch01,
-                          color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -114,20 +109,18 @@ class SupportHelpScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                        color: AppTheme.border,
                       ),
-                      boxShadow: isDark
-                          ? null
-                          : [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.02),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -149,7 +142,7 @@ class SupportHelpScreen extends StatelessWidget {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(8),
@@ -158,7 +151,7 @@ class SupportHelpScreen extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                         const Gap(24),
@@ -197,24 +190,21 @@ class SupportHelpScreen extends StatelessWidget {
     required String title,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+          color: AppTheme.border,
         ),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
         onTap: onTap,
@@ -224,12 +214,12 @@ class SupportHelpScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
           ),
         ),
-        trailing: HugeIcon(
+        trailing: const HugeIcon(
           icon: HugeIcons.strokeRoundedArrowRight01,
-          color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+          color: Color(0xFF94A3B8),
           size: 20,
         ),
       ),

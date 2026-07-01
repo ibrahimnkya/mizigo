@@ -11,6 +11,7 @@ import '../../widgets/common/export_action_sheet.dart';
 import '../../providers/printer_provider.dart';
 import '../../widgets/printer_selection_sheet.dart';
 import '../../utils/receipt_pdf_generator.dart';
+import '../../theme/app_theme.dart';
 
 class ReceiptScreen extends StatefulWidget {
   final String parcelId;
@@ -142,9 +143,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -183,14 +181,14 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
         : 'Unknown Date';
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black),
+            icon: Icon(Icons.close, color: AppTheme.textPrimary),
             onPressed: () => context.go('/home'),
           ),
         ],
@@ -206,7 +204,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
@@ -241,7 +239,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       const Gap(8),
@@ -258,7 +256,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 40,
                           fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: AppTheme.textPrimary,
                           letterSpacing: -1,
                         ),
                       ),
@@ -273,7 +271,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 2),
                                 height: 1,
-                                color: isDark ? Colors.white12 : Colors.black12,
+                                color: AppTheme.border,
                               ),
                             ),
                           ),
@@ -285,10 +283,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: Column(
                           children: [
-                            _buildInfoRow('Tracking ID', r['trackingId'] ?? 'N/A', isDark),
-                            _buildInfoRow('Date', paidAt, isDark),
-                            _buildInfoRow('Payment Method', 'Gateway', isDark),
-                            _buildInfoRow('Receiver', 'Mizigo Services', isDark),
+                            _buildInfoRow('Tracking ID', r['trackingId'] ?? 'N/A'),
+                            _buildInfoRow('Date', paidAt),
+                            _buildInfoRow('Payment Method', 'Gateway'),
+                            _buildInfoRow('Receiver', 'Mizigo Services'),
                           ],
                         ),
                         ),
@@ -304,7 +302,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      color: AppTheme.background,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -316,7 +314,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      color: AppTheme.background,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -373,7 +371,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark) {
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -383,7 +381,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             label,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF64748B),
+              color: AppTheme.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -392,7 +390,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: AppTheme.textPrimary,
             ),
           ),
         ],

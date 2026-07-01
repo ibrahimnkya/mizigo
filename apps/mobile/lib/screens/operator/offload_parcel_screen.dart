@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../models/parcel_model.dart';
 import '../../models/operation_model.dart';
 import '../../widgets/common/shimmer_utils.dart';
+import '../../theme/app_theme.dart';
 
 class OffloadParcelScreen extends StatefulWidget {
   const OffloadParcelScreen({super.key});
@@ -121,7 +122,6 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -163,7 +163,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                     children: [
                       Text(
                         'Incoming Shipments',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                       ),
                     ],
                   ),
@@ -203,15 +203,15 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: isSelected 
-                                  ? (isDark ? const Color(0xFF1E293B) : Colors.white) 
-                                  : (isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC)),
+                              color: isSelected
+                                  ? AppTheme.surface
+                                  : AppTheme.background,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF6366F1) : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
+                                color: isSelected ? const Color(0xFF6366F1) : AppTheme.border,
                                 width: isSelected ? 2 : 1,
                               ),
-                              boxShadow: isSelected && !isDark ? [
+                              boxShadow: isSelected ? [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
@@ -247,12 +247,12 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                                       const Gap(4),
                                       Text(
                                         'From: ${item.fromAddress}',
-                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                                       ),
                                       const Gap(2),
                                       Text(
                                         'Recipient: ${item.receiverName}',
-                                        style: GoogleFonts.inter(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
                                       ),
                                     ],
                                   ),
@@ -271,11 +271,11 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
             Container(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                border: isDark ? null : const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 40, offset: const Offset(0, -10)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10)),
                 ],
               ),
               child: Column(
@@ -288,7 +288,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                       const Gap(16),
                       Text(
                         '${_selectedItems.length} selected',
-                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -300,7 +300,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                       onPressed: (_selectedItems.isEmpty || _selectedClerk == null || _submitting) ? null : _offloadSelected,
                       style: FilledButton.styleFrom(
                         backgroundColor: const Color(0xFF6366F1),
-                        disabledBackgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                        disabledBackgroundColor: const Color(0xFFE2E8F0),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: _submitting
@@ -320,25 +320,24 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildClerkDropdown() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        color: AppTheme.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedClerk,
-          hint: Text('Select Clerk', style: GoogleFonts.inter(fontSize: 14, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))),
+          hint: Text('Select Clerk', style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textMuted)),
           isExpanded: true,
-          dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          dropdownColor: AppTheme.surface,
           icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
           items: _mockClerks.map((String clerk) {
             return DropdownMenuItem<String>(
               value: clerk,
-              child: Text(clerk, style: GoogleFonts.inter(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              child: Text(clerk, style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textPrimary)),
             );
           }).toList(),
           onChanged: (val) => setState(() => _selectedClerk = val),
@@ -348,20 +347,19 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildSearchField() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: _searchController,
       onSubmitted: (_) => _search(),
       textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: isDark ? Colors.white : const Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w500),
+      style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+        hintStyle: GoogleFonts.inter(color: AppTheme.textMuted),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+        fillColor: AppTheme.background,
         prefixIcon: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
@@ -405,17 +403,16 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildFoundParcelCard() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedItems.contains(_foundParcel!.id);
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: const Color(0xFF6366F1), width: 2),
-          boxShadow: isDark ? null : [
+          boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 15,
@@ -438,7 +435,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('IDENTIFIED SHIPMENT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF6366F1))),
-                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
                     ],
                   ),
                 ),
@@ -456,7 +453,7 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Origin', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
-                    Text(_foundParcel!.fromAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                    Text(_foundParcel!.fromAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
                   ],
                 ),
                 SizedBox(
@@ -487,22 +484,21 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   }
 
   Widget _buildEmptyState() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0), size: 80),
+          HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: const Color(0xFFE2E8F0), size: 80),
           const Gap(24),
           Text(
             'No data is available',
-            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
           ),
           const Gap(8),
           Text(
             'There are currently no parcels in transit\nto this station.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textMuted),
           ),
         ],
       ),

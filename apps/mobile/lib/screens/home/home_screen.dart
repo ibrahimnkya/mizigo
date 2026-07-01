@@ -14,7 +14,6 @@ import '../../widgets/home/parcel_card.dart';
 import '../../widgets/common/section_header.dart';
 import '../../models/operation_model.dart';
 import '../../widgets/common/shimmer_utils.dart';
-import '../../providers/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -43,18 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = context.watch<AuthProvider>();
     final parcel = context.watch<ParcelProvider>();
     final printer = context.watch<PrinterProvider>();
-    final themeProvider = context.watch<ThemeProvider>();
-    final isDark = themeProvider.isDarkMode;
     final isOperator = auth.user?.isStaff ?? false;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: _refreshData,
             color: AppTheme.cPrimary,
-            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            backgroundColor: AppTheme.surface,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -219,17 +216,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   Widget _buildSearchField() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return TextField(
       style: GoogleFonts.inter(
-        color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+        color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         hintText: 'enter Parcel number',
         hintStyle: GoogleFonts.inter(
-          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -249,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: HugeIcon(
             icon: HugeIcons.strokeRoundedSearch01,
-            color: theme.textTheme.bodySmall?.color ?? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            color: theme.textTheme.bodySmall?.color ?? AppTheme.textSecondary,
             size: 20,
           ),
         ),
@@ -291,14 +287,13 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? (isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.8)),
+          color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? AppTheme.surface.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
         ),
@@ -315,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               label,
               style: GoogleFonts.outfit(
-                color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
@@ -327,7 +322,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   Widget _quickAction({required String label, required dynamic icon, required VoidCallback onTap}) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -335,13 +329,13 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+              color: theme.cardTheme.color ?? AppTheme.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
             ),
             child: HugeIcon(
-              icon: icon, 
-              color: theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)), 
+              icon: icon,
+              color: theme.iconTheme.color ?? AppTheme.textPrimary,
               size: 24,
             ),
           ),
@@ -349,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             label,
             style: GoogleFonts.inter(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)), 
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? AppTheme.textSecondary,
               fontSize: 12, 
               fontWeight: FontWeight.w600,
             ),
@@ -360,21 +354,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.all(40.0),
       child: Column(
         children: [
           HugeIcon(
-            icon: HugeIcons.strokeRoundedPackage01, 
-            color: theme.iconTheme.color?.withValues(alpha: 0.2) ?? (isDark ? Colors.white24 : Colors.black26), 
+            icon: HugeIcons.strokeRoundedPackage01,
+            color: theme.iconTheme.color?.withValues(alpha: 0.2) ?? Colors.black26,
             size: 64,
           ),
           const SizedBox(height: 16),
           Text(
             'No recent bookings',
             style: GoogleFonts.inter(
-              color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white70 : const Color(0xFF0F172A)), 
+              color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -382,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Start a new shipment to see it here',
             style: GoogleFonts.inter(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)), 
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
               fontSize: 13,
             ),
           ),

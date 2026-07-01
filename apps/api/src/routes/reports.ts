@@ -265,15 +265,13 @@ router.get("/stations/:id", async (req: Request, res: Response) => {
 
 router.get("/operators", async (req: Request, res: Response) => {
   try {
-    const role = await prisma.role.findFirst({
-      where: {
-        OR: [{ name: "OPERATOR" }, { name: "STATION_OPERATOR" }],
+    const where: any = {
+      role: {
+        name: {
+          in: ["OPERATOR", "STATION_OPERATOR", "AGENT", "CLERK"],
+        },
       },
-    });
-
-    const where: any = role
-      ? { roleId: role.id }
-      : { role: { name: { in: ["OPERATOR", "STATION_OPERATOR", "AGENT"] } } };
+    };
     if (req.user?.role !== "SUPER_ADMIN") {
       where.organizationId = req.user?.organizationId ?? "";
     }
@@ -294,6 +292,8 @@ router.get("/operators", async (req: Request, res: Response) => {
     const operatorList = operators.map((o) => ({
       id: o.id,
       name: o.name,
+      email: o.email,
+      createdAt: o.createdAt,
       stationName: o.station?.name,
       parcelCount: (o._count as any).parcelRequests || 0,
       avgTime: "12m",

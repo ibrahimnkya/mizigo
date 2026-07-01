@@ -69,11 +69,8 @@ class OperatorSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF1F5F9),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -113,17 +110,17 @@ class OperatorSuccessScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: const Color(0xFF1E293B),
                 ),
               ),
               const Gap(12),
-              
+
               Text(
                 'You have successfully registered "${packageData['description']}" from ${packageData['senderName']}. It is ready to be dispatched.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 15,
-                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  color: const Color(0xFF64748B),
                   height: 1.5,
                 ),
               ),
@@ -133,9 +130,9 @@ class OperatorSuccessScreen extends StatelessWidget {
               // Actions
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   children: [
@@ -164,25 +161,25 @@ class OperatorSuccessScreen extends StatelessWidget {
                                     style: GoogleFonts.outfit(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                      color: const Color(0xFF1E293B),
                                     ),
                                   ),
                                   Text(
                                     '2x1 inch thermal barcode label',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                                      color: const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: isDark ? Colors.white38 : const Color(0xFF94A3B8), size: 20),
+                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: const Color(0xFF94A3B8), size: 20),
                           ],
                         ),
                       ),
                     ),
-                    Divider(height: 1, color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
+                    Divider(height: 1, color: const Color(0xFFE2E8F0)),
                     InkWell(
                       onTap: () => _handlePrint(context, isSticker: false),
                       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
@@ -208,20 +205,20 @@ class OperatorSuccessScreen extends StatelessWidget {
                                     style: GoogleFonts.outfit(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                      color: const Color(0xFF1E293B),
                                     ),
                                   ),
                                   Text(
                                     '58mm receipt for the sender',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                                      color: const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: isDark ? Colors.white38 : const Color(0xFF94A3B8), size: 20),
+                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: const Color(0xFF94A3B8), size: 20),
                           ],
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_theme.dart';
 
 class DeliverySpeedScreen extends StatefulWidget {
   const DeliverySpeedScreen({super.key});
@@ -46,14 +47,13 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final appBarTheme = theme.appBarTheme;
     final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
     final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
@@ -80,7 +80,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.close, color: appBarIconColor, size: 20),
@@ -102,7 +102,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: AppTheme.textPrimary,
                           height: 1.3,
                         ),
                       ),
@@ -111,7 +111,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         'Choose a delivery speed that fits your needs.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(28),
@@ -131,7 +131,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       const Gap(6),
@@ -139,7 +139,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         'Delivery from SGR station to recipient\'s door.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(20),
@@ -159,7 +159,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                                 border: Border.all(
                                   color: _lastMileDelivery
                                       ? const Color(0xFF3B82F6)
-                                      : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+                                      : AppTheme.border,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(5),
@@ -174,7 +174,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const Gap(12),
@@ -216,7 +216,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3B82F6),
-                      disabledBackgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                      disabledBackgroundColor: AppTheme.border,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: const StadiumBorder(),
@@ -228,7 +228,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: _selectedSpeed.isEmpty
-                            ? (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8))
+                            ? AppTheme.textMuted
                             : Colors.white,
                       ),
                     ),
@@ -276,8 +276,6 @@ class _SpeedOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -285,23 +283,21 @@ class _SpeedOptionCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF3B82F6)
-                : (isDark ? Colors.transparent : const Color(0xFFE2E8F0)),
+                : AppTheme.border,
             width: 2,
           ),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -331,7 +327,7 @@ class _SpeedOptionCard extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const Gap(2),
@@ -339,7 +335,7 @@ class _SpeedOptionCard extends StatelessWidget {
                     option.subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],

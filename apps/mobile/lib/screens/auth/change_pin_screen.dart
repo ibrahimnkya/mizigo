@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/profile/premium_settings_components.dart';
 
 class ChangePinScreen extends StatefulWidget {
@@ -57,11 +57,10 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
     Widget? suffix,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return InputDecoration(
       hintText: hint,
       hintStyle: GoogleFonts.inter(
-        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black38),
+        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? Colors.black38,
         fontSize: 15,
       ),
       prefixIcon: Padding(
@@ -113,13 +112,12 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
 
   Widget _inputLabel(String label) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Text(
       label,
       style: GoogleFonts.inter(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? (isDark ? Colors.white70 : const Color(0xFF475569)),
+        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? const Color(0xFF475569),
       ),
     );
   }
@@ -127,12 +125,10 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-    final isDark = themeProvider.isDarkMode;
     final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
@@ -186,7 +182,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
-                              color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                              color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                             ),
                           ),
                         ),
@@ -197,7 +193,7 @@ class _ChangePinScreenState extends State<ChangePinScreen> {
                             textAlign: TextAlign.center,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? AppTheme.textSecondary,
                               height: 1.5,
                             ),
                           ),

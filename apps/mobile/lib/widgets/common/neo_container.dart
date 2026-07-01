@@ -22,8 +22,6 @@ class NeoContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: padding ?? const EdgeInsets.all(20),
@@ -34,21 +32,13 @@ class NeoContainer extends StatelessWidget {
           color: Theme.of(context).colorScheme.outline,
           width: 1,
         ),
-        boxShadow: boxShadow ?? (isDark
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]),
+        boxShadow: boxShadow ?? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: child,
     );

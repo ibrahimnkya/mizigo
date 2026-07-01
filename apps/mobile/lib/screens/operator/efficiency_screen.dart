@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
+import '../../theme/app_theme.dart';
 
 class EfficiencyScreen extends StatefulWidget {
   final String metricTitle;
@@ -16,7 +17,6 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -46,22 +46,18 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.05) 
-                      : const Color(0xFFE2E8F0),
+                  color: AppTheme.border,
                 ),
-                boxShadow: isDark
-                    ? []
-                    : [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -70,17 +66,17 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Select Period', 
+                        'Select Period',
                         style: GoogleFonts.inter(
-                          color: isDark ? Colors.white38 : const Color(0xFF64748B), 
+                          color: AppTheme.textSecondary,
                           fontSize: 12,
                         ),
                       ),
                       const Gap(4),
                       Text(
-                        _selectedPeriod, 
+                        _selectedPeriod,
                         style: GoogleFonts.inter(
-                          color: isDark ? Colors.white : const Color(0xFF0F172A), 
+                          color: AppTheme.textPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -148,9 +144,9 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
             Text(
               'Daily Performance',
               style: GoogleFonts.outfit(
-                fontSize: 18, 
-                fontWeight: FontWeight.w700, 
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(20),
@@ -182,12 +178,10 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                color: AppTheme.background,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.05) 
-                      : const Color(0xFFE2E8F0),
+                  color: AppTheme.border,
                 ),
               ),
               child: Row(
@@ -206,27 +200,27 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Need Help?', 
+                          'Need Help?',
                           style: GoogleFonts.outfit(
-                            fontSize: 16, 
-                            fontWeight: FontWeight.w700, 
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(4),
                         Text(
-                          'Learn how we calculate your efficiency score.', 
+                          'Learn how we calculate your efficiency score.',
                           style: GoogleFonts.inter(
-                            fontSize: 13, 
-                            color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                            fontSize: 13,
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01, 
-                    color: isDark ? Colors.white24 : const Color(0xFF64748B), 
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: Color(0xFF64748B),
                     size: 20,
                   ),
                 ],
@@ -240,16 +234,15 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
   }
 
   Widget _chartBar(String day, double percent) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
           height: 150 * percent,
           width: 30,
           decoration: BoxDecoration(
-            color: percent > 0.7 
-                ? const Color(0xFF3B82F6) 
-                : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+            color: percent > 0.7
+                ? const Color(0xFF3B82F6)
+                : const Color(0xFFE2E8F0),
             borderRadius: BorderRadius.circular(8),
             boxShadow: percent > 0.7 ? [
               BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4)),
@@ -258,9 +251,9 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
         ),
         const Gap(12),
         Text(
-          day, 
+          day,
           style: GoogleFonts.inter(
-            color: isDark ? Colors.white38 : const Color(0xFF64748B), 
+            color: AppTheme.textSecondary,
             fontSize: 11,
           ),
         ),
@@ -269,27 +262,22 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
   }
 
   Widget _insightCard(String title, String value, dynamic icon, Color color) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.05) 
-              : const Color(0xFFE2E8F0),
+          color: AppTheme.border,
         ),
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -307,18 +295,18 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title, 
+                  title,
                   style: GoogleFonts.inter(
-                    color: isDark ? Colors.white38 : const Color(0xFF64748B), 
+                    color: AppTheme.textSecondary,
                     fontSize: 13,
                   ),
                 ),
                 const Gap(2),
                 Text(
-                  value, 
+                  value,
                   style: GoogleFonts.inter(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A), 
-                    fontWeight: FontWeight.w700, 
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
                 ),
@@ -331,35 +319,32 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
   }
 
   void _showPeriodPicker() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F172A) : Colors.white,
+          color: AppTheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select Period', 
+              'Select Period',
               style: GoogleFonts.outfit(
-                fontSize: 20, 
-                fontWeight: FontWeight.w700, 
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(24),
@@ -375,7 +360,6 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
   }
 
   Widget _periodItem(String label) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     bool isSelected = _selectedPeriod == label;
     return ListTile(
       onTap: () {
@@ -384,11 +368,11 @@ class _EfficiencyScreenState extends State<EfficiencyScreen> {
       },
       contentPadding: EdgeInsets.zero,
       title: Text(
-        label, 
+        label,
         style: GoogleFonts.inter(
-          color: isSelected 
-              ? const Color(0xFF3B82F6) 
-              : (isDark ? Colors.white70 : const Color(0xFF334155)), 
+          color: isSelected
+              ? const Color(0xFF3B82F6)
+              : const Color(0xFF334155),
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
         ),
       ),

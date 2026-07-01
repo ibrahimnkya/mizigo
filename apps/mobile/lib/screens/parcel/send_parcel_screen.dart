@@ -80,7 +80,6 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildServiceStep() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
 
     return Column(
@@ -105,25 +104,23 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                 border: Border.all(
                   color: selected
                       ? theme.colorScheme.primary
-                      : theme.colorScheme.outline,
+                      : AppTheme.border,
                   width: selected ? 2 : 1,
                 ),
-                boxShadow: isDark
-                    ? []
-                    : [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   Icon(s['icon'] as IconData,
                       color: selected
                           ? theme.colorScheme.primary
-                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                          : AppTheme.textSecondary,
                       size: 24),
                   const Gap(14),
                   Expanded(
@@ -135,11 +132,11 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                                 fontWeight: FontWeight.w700,
                                 color: selected
                                     ? theme.colorScheme.primary
-                                    : (isDark ? Colors.white : const Color(0xFF0F172A)))),
+                                    : AppTheme.textPrimary)),
                         Text('${s['size']} · Max ${s['weight']}',
                             style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                                color: AppTheme.textSecondary)),
                       ],
                     ),
                   ),
@@ -167,13 +164,13 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                   border: Border.all(
                     color: _helpers == h
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.outline,
+                        : AppTheme.border,
                   ),
                 ),
                 child: Text(h == 0 ? 'Driver only' : '+$h helper${h > 1 ? 's' : ''}',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: _helpers == h ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      color: _helpers == h ? Colors.white : AppTheme.textSecondary,
                       fontSize: 13)),
               ),
             )).toList(),
@@ -184,7 +181,6 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildDetailsStep() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
 
     return Column(
@@ -208,11 +204,11 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
               Text('Receiver pays?',
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                      color: AppTheme.textPrimary)),
               Text('Receiver will be billed',
                   style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+                      color: AppTheme.textSecondary)),
             ])),
             Switch(value: _receiverPays, onChanged: (v) => setState(() => _receiverPays = v), activeTrackColor: theme.colorScheme.primary),
           ],
@@ -236,14 +232,14 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                   border: Border.all(
                     color: sel
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.outline,
+                        : AppTheme.border,
                   ),
                 ),
                 child: Text(s,
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
-                        color: sel ? Colors.white : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)))),
+                        color: sel ? Colors.white : AppTheme.textSecondary)),
               ),
             );
           }).toList(),
@@ -253,7 +249,6 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   }
 
   Widget _buildConfirmStep() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
 
     return Column(
@@ -287,7 +282,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                 child: Text(
                   'After submission, your request will be reviewed by an admin. You will be notified once approved.',
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF93C5FD) : theme.colorScheme.primary,
+                    color: theme.colorScheme.primary,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -327,7 +322,6 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final steps = ['Route', 'Service', 'Details', 'Confirm'];
     final provider = context.watch<ParcelProvider>();
 
@@ -352,7 +346,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
                       Expanded(child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         height: 4, decoration: BoxDecoration(
-                          color: active ? theme.colorScheme.primary : (isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0)),
+                          color: active ? theme.colorScheme.primary : AppTheme.border,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       )),
@@ -370,7 +364,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
             width: double.infinity,
             child: Text('Step ${_step + 1} of ${steps.length}: ${steps[_step]}',
               style: TextStyle(
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600)),
           ),
@@ -433,13 +427,12 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       text,
       style: TextStyle(
         fontWeight: FontWeight.w800,
         fontSize: 16,
-        color: isDark ? Colors.white : const Color(0xFF0F172A),
+        color: AppTheme.textPrimary,
         letterSpacing: -0.3,
       ),
     );
@@ -452,7 +445,6 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -463,7 +455,7 @@ class _InfoTile extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -474,7 +466,7 @@ class _InfoTile extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
               ),
             ),
           ),
@@ -492,7 +484,6 @@ class _PickupChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
@@ -508,7 +499,7 @@ class _PickupChip extends StatelessWidget {
             border: Border.all(
               color: selected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.outline,
+                  : AppTheme.border,
               width: selected ? 2 : 1,
             ),
           ),
@@ -520,7 +511,7 @@ class _PickupChip extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: selected
                   ? theme.colorScheme.primary
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  : AppTheme.textSecondary,
             ),
           ),
         ),

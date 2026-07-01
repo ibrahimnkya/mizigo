@@ -29,9 +29,6 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       appBar: const SettingsAppBar(title: 'Account Security'),
       body: SingleChildScrollView(
@@ -58,7 +55,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(4),
@@ -66,7 +63,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                           'Your data will be permanently removed after 30 days.',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -82,7 +79,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(16),
@@ -106,7 +103,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                             ? AppTheme.cPrimary
                             : AppTheme.border,
                       ),
-                      boxShadow: (isSelected || isDark)
+                      boxShadow: isSelected
                           ? null
                           : [
                               BoxShadow(
@@ -138,7 +135,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(16),
@@ -183,7 +180,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
-                    color: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                   ),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
@@ -191,7 +188,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                   'Deactivate Account Instead',
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    color: const Color(0xFF475569),
                   ),
                 ),
               ),
@@ -204,7 +201,6 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
   }
 
   Widget _consentTile(String text, bool value, ValueChanged<bool?> onChanged) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -213,22 +209,20 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
         border: Border.all(
           color: AppTheme.border,
         ),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Theme(
             data: Theme.of(context).copyWith(
-              unselectedWidgetColor: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
+              unselectedWidgetColor: const Color(0xFFCBD5E1),
             ),
             child: SizedBox(
               width: 24,
@@ -247,7 +241,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
               text,
               style: GoogleFonts.inter(
                 fontSize: 13,
-                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                color: const Color(0xFF475569),
                 height: 1.5,
               ),
             ),

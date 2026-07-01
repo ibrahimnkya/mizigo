@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/parcel_model.dart';
 import '../../providers/parcel_provider.dart';
+import '../../theme/app_theme.dart';
 import 'recent_bookings_screen.dart'; // for BookingListCard
 
 class BookingsScreen extends StatefulWidget {
@@ -109,7 +110,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -194,11 +194,11 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -210,7 +210,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: AppTheme.textPrimary,
                     ),
                     decoration: InputDecoration(
                       filled: true,
@@ -218,13 +218,13 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       hintText: 'Search by ID, parcel, address…',
                       hintStyle: GoogleFonts.inter(
                         fontSize: 14,
-                        color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                        color: AppTheme.textMuted,
                       ),
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(14),
                         child: HugeIcon(
                           icon: HugeIcons.strokeRoundedSearch01,
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          color: AppTheme.textMuted,
                           size: 18,
                         ),
                       ),
@@ -239,21 +239,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               icon: Icon(
                                 Icons.close_rounded,
                                 size: 18,
-                                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                color: AppTheme.textMuted,
                               ),
                             )
                           : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          color: AppTheme.border,
                           width: 1.5,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          color: AppTheme.border,
                           width: 1.5,
                         ),
                       ),
@@ -295,12 +295,12 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? theme.primaryColor
-                                : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                                : AppTheme.surface,
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
                               color: isSelected
                                   ? theme.primaryColor
-                                  : (isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9)),
+                                  : AppTheme.border,
                               width: 1.5,
                             ),
                             boxShadow: isSelected
@@ -320,7 +320,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                               color: isSelected
                                   ? Colors.white
-                                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                  : AppTheme.textSecondary,
                             ),
                           ),
                         ),
@@ -335,7 +335,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 child: _buildContent(
                   provider: provider,
                   theme: theme,
-                  isDark: isDark,
                   filtered: filtered,
                   paged: paged,
                   hasMore: hasMore,
@@ -352,7 +351,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
   Widget _buildContent({
     required ParcelProvider provider,
     required ThemeData theme,
-    required bool isDark,
     required List<ParcelModel> filtered,
     required List<ParcelModel> paged,
     required bool hasMore,
@@ -482,20 +480,20 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const Gap(10),
                   Expanded(
                     child: Container(
                       height: 1,
-                      color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                      color: AppTheme.border,
                     ),
                   ),
                   const Gap(10),
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedCalendar03,
-                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                     size: 18,
                   ),
                 ],
@@ -506,7 +504,6 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 padding: const EdgeInsets.only(bottom: 14),
                 child: BookingListCard(
                   parcel: parcel,
-                  isDark: isDark,
                   onTap: () => context.push(
                     '/bookings/recent/${parcel.id}',
                     extra: parcel,
@@ -524,7 +521,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: BorderSide(
-                    color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                     width: 1.5,
                   ),
                   shape: RoundedRectangleBorder(
@@ -566,7 +563,6 @@ class _EmptyBookingsState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Center(
       child: Padding(
@@ -583,7 +579,7 @@ class _EmptyBookingsState extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
+                  color: const Color(0xFFEFF6FF),
                   shape: BoxShape.circle,
                   border: Border.all(color: theme.primaryColor, width: 2),
                 ),
@@ -613,7 +609,7 @@ class _EmptyBookingsState extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                   height: 1.6,
                 ),
               ),

@@ -393,11 +393,21 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
         );
       }
 
+      const resData = response.data?.data ?? response.data;
+      const otpDelivery = resData?.otpDelivery;
+      const wasDispatched = otpDelivery?.smsDispatched ?? true;
+      const smsErrorMsg = otpDelivery?.smsError;
+
+      let msg = `Staff member ${name} has been successfully provisioned. Login OTP has been dispatched.`;
+      if (!wasDispatched) {
+        msg = `Staff member ${name} has been provisioned, but the SMS notification failed to send (${smsErrorMsg || 'Unknown error'}). Please provide the login OTP manually: ${generatedOTP}`;
+      }
+
       setAlertModal({
         isOpen: true,
         type: "success",
         title: "Account Created",
-        message: `Staff member ${name} has been successfully provisioned. Login OTP has been dispatched.`,
+        message: msg,
       });
       router.refresh();
     } catch (error: any) {

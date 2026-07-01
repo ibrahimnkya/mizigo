@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../theme/app_theme.dart';
 
 // ─── Country model ────────────────────────────────────────────────────────────
 
@@ -55,10 +55,9 @@ InputDecoration _inputDecoration({
   Widget? suffix,
 }) {
   final theme = Theme.of(context);
-  final isDark = theme.brightness == Brightness.dark;
   return InputDecoration(
     hintStyle: GoogleFonts.inter(
-      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black38),
+      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
       fontSize: 15,
     ),
     prefixIcon: prefixIcon != null ? Padding(
@@ -157,7 +156,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
     final isPhone = _tabController.index == 0;
     final canContinue = isPhone ? _phoneValid : _emailValid;
 
@@ -334,7 +332,6 @@ class _PhoneTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -370,7 +367,7 @@ class _PhoneTab extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                            color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(4),
@@ -394,13 +391,13 @@ class _PhoneTab extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                      color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                       letterSpacing: 1.0,
                     ),
                     decoration: InputDecoration(
                       hintText: '687 122 502',
                       hintStyle: GoogleFonts.inter(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black26),
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
                         fontSize: 18,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0,

@@ -145,16 +145,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
 
   Widget _headerIcon({required VoidCallback onTap, required Widget icon, Color? bg}) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 40, height: 40,
         decoration: BoxDecoration(
-          color: bg ?? (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+          color: bg ?? Colors.black.withValues(alpha: 0.05),
           shape: BoxShape.circle,
-          border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         ),
         child: Center(child: icon),
       ),
@@ -327,7 +325,7 @@ class _UserInfoCard extends StatelessWidget {
                     width: 96,
                     height: 96,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                      color: AppTheme.background,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 3),
                       boxShadow: [
@@ -388,7 +386,7 @@ class _UserInfoCard extends StatelessWidget {
               style: GoogleFonts.outfit(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
@@ -398,7 +396,7 @@ class _UserInfoCard extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -434,27 +432,24 @@ class _MenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Material(
-        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+        color: AppTheme.surface,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
           side: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+            color: AppTheme.border,
           ),
         ),
         child: Column(
@@ -481,7 +476,7 @@ class _MenuSection extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 64, right: 20),
                 child: Divider(
                   height: 1,
-                  color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                  color: AppTheme.border,
                 ),
               ),
               itemBuilder: (context, index) => items[index],
@@ -511,9 +506,8 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final effectiveIconColor = iconColor == Colors.white
-        ? (isDark ? Colors.white : const Color(0xFF475569))
+        ? AppTheme.textSecondary
         : iconColor;
 
     return Material(
@@ -523,7 +517,7 @@ class _MenuItem extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+            color: AppTheme.background,
             borderRadius: BorderRadius.circular(12),
           ),
           child: HugeIcon(icon: icon, color: effectiveIconColor, size: 20),
@@ -533,7 +527,7 @@ class _MenuItem extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: iconColor == AppTheme.danger ? AppTheme.danger : (isDark ? Colors.white : const Color(0xFF0F172A)),
+            color: iconColor == AppTheme.danger ? AppTheme.danger : AppTheme.textPrimary,
           ),
         ),
         trailing: !showTrailing
@@ -541,7 +535,7 @@ class _MenuItem extends StatelessWidget {
             : trailing ??
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: isDark ? Colors.white.withValues(alpha: 0.2) : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                     size: 18,
                   ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

@@ -308,6 +308,7 @@ class ApiService {
     final digits = phone.replaceAll(RegExp(r'\D'), '');
     if (digits.startsWith('255')) return digits;
     if (digits.startsWith('0')) return '255${digits.substring(1)}';
+    if (digits.length == 9) return '255$digits';
     return digits;
   }
 

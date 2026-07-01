@@ -294,7 +294,6 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final appBarTheme = theme.appBarTheme;
     final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
@@ -445,10 +444,10 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
-                      boxShadow: isDark ? null : [
+                      border: Border.all(color: AppTheme.border),
+                      boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
@@ -464,7 +463,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(16),
@@ -494,7 +493,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                         ],
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Divider(color: isDark ? Colors.white12 : const Color(0xFFE2E8F0), height: 1),
+                          child: Divider(color: AppTheme.border, height: 1),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -504,7 +503,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             Text(
@@ -530,7 +529,7 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
               20, 16, 20, MediaQuery.of(context).padding.bottom + 16,
             ),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: AppTheme.surface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),

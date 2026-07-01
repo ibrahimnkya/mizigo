@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
+import '../../theme/app_theme.dart';
 
 class SettingsGroup extends StatelessWidget {
   final String? title;
@@ -20,7 +21,6 @@ class SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,10 +41,10 @@ class SettingsGroup extends StatelessWidget {
         ],
         Container(
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF8FAFC),
+            color: AppTheme.background,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+              color: AppTheme.border,
             ),
           ),
           child: Column(
@@ -55,7 +55,7 @@ class SettingsGroup extends StatelessWidget {
                   Divider(
                     height: 1,
                     indent: 56,
-                    color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                    color: AppTheme.border,
                   ),
               ],
             ],
@@ -290,7 +290,6 @@ class SettingsCTAButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final primaryColor = theme.colorScheme.primary;
     final onPrimaryColor = theme.colorScheme.onPrimary;
 
@@ -302,9 +301,7 @@ class SettingsCTAButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: onPrimaryColor,
-          disabledBackgroundColor: isDark 
-              ? Colors.white.withValues(alpha: 0.05) 
-              : theme.disabledColor.withValues(alpha: 0.12),
+          disabledBackgroundColor: theme.disabledColor.withValues(alpha: 0.12),
           disabledForegroundColor: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

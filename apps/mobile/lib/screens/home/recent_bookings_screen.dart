@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../models/parcel_model.dart';
 import '../../providers/parcel_provider.dart';
 import '../../services/api_service.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/common/shimmer_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -17,16 +18,12 @@ import '../../utils/receipt_pdf_generator.dart';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
-Color _statusBg(ParcelStatus status, bool isDark) {
+Color _statusBg(ParcelStatus status) {
   return switch (status) {
-    ParcelStatus.delivered =>
-      isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4),
-    ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded =>
-      isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
-    ParcelStatus.canceled =>
-      isDark ? const Color(0xFF3B0764) : const Color(0xFFFFF1F2),
-    ParcelStatus.received =>
-      isDark ? const Color(0xFF1C1917) : const Color(0xFFF8FAFC),
+    ParcelStatus.delivered => const Color(0xFFF0FDF4),
+    ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFFEFF6FF),
+    ParcelStatus.canceled => const Color(0xFFFFF1F2),
+    ParcelStatus.received => const Color(0xFFF8FAFC),
   };
 }
 
@@ -90,7 +87,6 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -168,7 +164,7 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
                         margin: const EdgeInsets.only(right: 12),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
+                          color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         // child: Text(
@@ -196,12 +192,12 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
                               decoration: BoxDecoration(
                                 color: isSel
                                     ? theme.primaryColor
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                                    : AppTheme.background,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSel
                                       ? theme.primaryColor
-                                      : (isDark ? Colors.white10 : const Color(0xFFE2E8F0)),
+                                      : AppTheme.border,
                                 ),
                               ),
                               child: Text(
@@ -238,7 +234,6 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
                                 padding: const EdgeInsets.only(bottom: 14),
                                 child: BookingListCard(
                                   parcel: parcel,
-                                  isDark: isDark,
                                   onTap: () => context.push(
                                     '/bookings/recent/${parcel.id}',
                                     extra: parcel,
@@ -330,11 +325,10 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
 
 class BookingListCard extends StatelessWidget {
   final ParcelModel parcel;
-  final bool isDark;
   final VoidCallback onTap;
 
   const BookingListCard(
-      {super.key, required this.parcel, required this.isDark, required this.onTap});
+      {super.key, required this.parcel, required this.onTap});
 
   String _short(String addr) {
     final parts = addr.split(',');
@@ -345,7 +339,7 @@ class BookingListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final fgColor = _statusFg(parcel.status);
-    final bgColor = _statusBg(parcel.status, isDark);
+    final bgColor = _statusBg(parcel.status);
     
     // Calculate progress fraction
     double progress = 0.2;
@@ -375,17 +369,15 @@ class BookingListCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : const Color(0xFFF1F5F9),
+            color: AppTheme.border,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -423,7 +415,7 @@ class BookingListCard extends StatelessWidget {
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                            color: AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(2),
@@ -432,7 +424,7 @@ class BookingListCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                            color: AppTheme.textMuted,
                           ),
                         ),
                       ],
@@ -475,7 +467,7 @@ class BookingListCard extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                color: AppTheme.textMuted,
                               ),
                             ),
                             const Gap(4),
@@ -484,7 +476,7 @@ class BookingListCard extends StatelessWidget {
                               style: GoogleFonts.outfit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                color: AppTheme.textPrimary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -502,7 +494,7 @@ class BookingListCard extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                color: AppTheme.textMuted,
                               ),
                             ),
                             const Gap(4),
@@ -511,7 +503,7 @@ class BookingListCard extends StatelessWidget {
                               style: GoogleFonts.outfit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                color: AppTheme.textPrimary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -530,7 +522,7 @@ class BookingListCard extends StatelessWidget {
                         height: 4,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF1F5F9),
+                          color: AppTheme.border,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -597,7 +589,7 @@ class BookingListCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                          color: AppTheme.textMuted,
                         ),
                       ),
                       Row(
@@ -607,9 +599,7 @@ class BookingListCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF1C1917)
-                                    : const Color(0xFFFFFBEB),
+                                color: const Color(0xFFFFFBEB),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -627,7 +617,7 @@ class BookingListCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -635,7 +625,7 @@ class BookingListCard extends StatelessWidget {
                                 style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white70 : const Color(0xFF1E293B),
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
                             ),
@@ -667,7 +657,7 @@ class BookingListCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -679,7 +669,7 @@ class BookingListCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_right_alt_rounded,
                     size: 14,
-                    color: isDark ? Colors.white24 : Colors.grey.shade400,
+                    color: Colors.grey.shade400,
                   ),
                   const Gap(12),
                   Expanded(
@@ -697,7 +687,7 @@ class BookingListCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                              color: AppTheme.textSecondary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -714,9 +704,7 @@ class BookingListCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
                 height: 1,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.07)
-                    : const Color(0xFFF1F5F9),
+                color: AppTheme.border,
               ),
             ),
 
@@ -728,9 +716,7 @@ class BookingListCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? theme.primaryColor.withValues(alpha: 0.15)
-                          : theme.primaryColor.withValues(alpha: 0.08),
+                      color: theme.primaryColor.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: HugeIcon(
@@ -745,7 +731,7 @@ class BookingListCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      color: AppTheme.textMuted,
                     ),
                   ),
                   Text(
@@ -753,7 +739,7 @@ class BookingListCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   const Spacer(),
@@ -1018,7 +1004,6 @@ Powered by Mizigo Logistics''';
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final parcel = _currentParcel;
     
     final trackingNum = (parcel.trackingNumber != null && parcel.trackingNumber!.isNotEmpty)
@@ -1041,7 +1026,7 @@ Powered by Mizigo Logistics''';
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                        color: theme.cardTheme.color ?? AppTheme.surface,
                         shape: BoxShape.circle,
                         border: Border.all(color: theme.dividerColor, width: 1.5),
                       ),
@@ -1130,12 +1115,12 @@ Powered by Mizigo Logistics''';
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                              color: theme.cardTheme.color ?? AppTheme.surface,
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: theme.dividerColor, width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: theme.shadowColor.withValues(alpha: isDark ? 0.2 : 0.04),
+                                  color: theme.shadowColor.withValues(alpha: 0.04),
                                   blurRadius: 24,
                                   offset: const Offset(0, 8),
                                 ),
@@ -1255,12 +1240,12 @@ Powered by Mizigo Logistics''';
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                              color: theme.cardTheme.color ?? AppTheme.surface,
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: theme.dividerColor, width: 1.5),
                               boxShadow: [
                                 BoxShadow(
-                                  color: theme.shadowColor.withValues(alpha: isDark ? 0.2 : 0.04),
+                                  color: theme.shadowColor.withValues(alpha: 0.04),
                                   blurRadius: 24,
                                   offset: const Offset(0, 8),
                                 ),
@@ -1330,7 +1315,7 @@ Powered by Mizigo Logistics''';
             Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               decoration: BoxDecoration(
-                color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+                color: theme.cardTheme.color ?? AppTheme.surface,
                 border: Border(top: BorderSide(color: theme.dividerColor, width: 1.5)),
               ),
               child: Column(
@@ -1413,7 +1398,7 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = _statusFg(status);
-    final bg = _statusBg(status, Theme.of(context).brightness == Brightness.dark);
+    final bg = _statusBg(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -1449,8 +1434,7 @@ class _RouteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
+
     double progress = 0.2;
     switch (status) {
       case ParcelStatus.delivered:
@@ -1473,12 +1457,12 @@ class _RouteCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+        color: theme.cardTheme.color ?? AppTheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: theme.dividerColor, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1498,7 +1482,7 @@ class _RouteCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                        color: AppTheme.textMuted,
                       ),
                     ),
                     const Gap(4),
@@ -1523,7 +1507,7 @@ class _RouteCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                        color: AppTheme.textMuted,
                       ),
                     ),
                     const Gap(4),
@@ -1632,7 +1616,6 @@ class _DetailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1664,7 +1647,7 @@ class _DetailItem extends StatelessWidget {
                   label,
                   style: GoogleFonts.inter(
                     fontSize: 10,
-                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1706,7 +1689,6 @@ class _DetailItemFull extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1738,7 +1720,7 @@ class _DetailItemFull extends StatelessWidget {
                   label,
                   style: GoogleFonts.inter(
                     fontSize: 10,
-                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1912,16 +1894,15 @@ class _AgentChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
+        color: theme.cardTheme.color ?? AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

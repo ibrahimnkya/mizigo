@@ -123,7 +123,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
     super.dispose();
   }
 
-  void _showStationPicker(BuildContext context, bool isDark) async {
+  void _showStationPicker(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     final currentStation = auth.user?.station;
     
@@ -142,7 +142,6 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
   }
 
   void _showStepHelp(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -225,7 +224,6 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
   }
 
   Widget _helpRow(dynamic icon, String title, String body) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -262,7 +260,6 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
     Map<String, String> items,
     String? currentValue,
     ValueChanged<String> onSelect,
-    bool isDark,
   ) {
     showModalBottomSheet(
       context: context,
@@ -386,7 +383,6 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
     String label,
     String? value,
     VoidCallback onTap,
-    bool isDark,
   ) {
     final theme = Theme.of(context);
     return GestureDetector(
@@ -423,7 +419,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
     );
   }
 
-  void _showAdditionalServicesModal(BuildContext context, bool isDark) {
+  void _showAdditionalServicesModal(BuildContext context) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -624,7 +620,6 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final appBarTheme = theme.appBarTheme;
     final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
@@ -715,8 +710,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                   _buildSelectionTile(
                     'Select Destination',
                     _destinationCtrl.text.isEmpty ? null : _destinationCtrl.text,
-                    () => _showStationPicker(context, isDark),
-                    isDark,
+                    () => _showStationPicker(context),
                   ),
 
                   const Gap(32),
@@ -895,8 +889,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                   _buildSelectionTile(
                     'Select Parcel Condition',
                     _condition,
-                    () => _showSelectionSheet(context, 'Parcel Condition', _apiConditions, _condition, (v) => setState(() => _condition = v), isDark),
-                    isDark,
+                    () => _showSelectionSheet(context, 'Parcel Condition', _apiConditions, _condition, (v) => setState(() => _condition = v)),
                   ),
                   
                   const Gap(16),
@@ -912,8 +905,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                   _buildSelectionTile(
                     'Select Parcel Type',
                     _parcelType,
-                    () => _showSelectionSheet(context, 'Parcel Type', _apiParcelTypes, _parcelType, (v) => setState(() => _parcelType = v), isDark),
-                    isDark,
+                    () => _showSelectionSheet(context, 'Parcel Type', _apiParcelTypes, _parcelType, (v) => setState(() => _parcelType = v)),
                   ),
                   
                   const Gap(16),
@@ -929,8 +921,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                   _buildSelectionTile(
                     'Select Delivery Priority',
                     _urgency,
-                    () => _showSelectionSheet(context, 'Delivery Priority', _apiUrgencies, _urgency, (v) => setState(() => _urgency = v), isDark),
-                    isDark,
+                    () => _showSelectionSheet(context, 'Delivery Priority', _apiUrgencies, _urgency, (v) => setState(() => _urgency = v)),
                   ),
                   
                   const Gap(16),
@@ -946,8 +937,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                   _buildSelectionTile(
                     'Select Package Size',
                     _packageSize,
-                    () => _showSelectionSheet(context, 'Package Size', _apiPackageSizes, _packageSize, (v) => setState(() => _packageSize = v), isDark),
-                    isDark,
+                    () => _showSelectionSheet(context, 'Package Size', _apiPackageSizes, _packageSize, (v) => setState(() => _packageSize = v)),
                   ),
                              const Gap(24),
                   Material(
@@ -974,7 +964,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                                 setState(() {
                                   _includeAdditionalServices = val ?? false;
                                   if (_includeAdditionalServices) {
-                                    _showAdditionalServicesModal(context, isDark);
+                                    _showAdditionalServicesModal(context);
                                   } else {
                                     _selectedServices.clear();
                                   }
@@ -1018,7 +1008,7 @@ class _OperatorPackageDetailsScreenState extends State<OperatorPackageDetailsScr
                                     ),
                                   ),
                                   TextButton(
-                                    onPressed: () => _showAdditionalServicesModal(context, isDark),
+                                    onPressed: () => _showAdditionalServicesModal(context),
                                     style: TextButton.styleFrom(
                                       padding: EdgeInsets.zero,
                                       minimumSize: Size.zero,
@@ -1217,8 +1207,6 @@ class _StationPickerSheetState extends State<_StationPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
@@ -1259,7 +1247,7 @@ class _StationPickerSheetState extends State<_StationPickerSheet> {
                   onPressed: () => Navigator.pop(context),
                   icon: Icon(
                     Icons.close_rounded,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],

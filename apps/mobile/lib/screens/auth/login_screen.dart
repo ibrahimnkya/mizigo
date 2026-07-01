@@ -8,7 +8,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/country_selector.dart';
-import '../../providers/theme_provider.dart';
+import '../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -245,11 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-    final isDark = themeProvider.isDarkMode;
-    
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         body: SafeArea(
             child: Column(
@@ -263,15 +261,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       IconButton(
                         icon: HugeIcon(
                           icon: HugeIcons.strokeRoundedArrowLeft01, 
-                          color: theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)), 
+                          color: theme.iconTheme.color ?? AppTheme.textPrimary,
                           size: 28,
                         ),
                         onPressed: () => context.pop(),
                       ),
                       IconButton(
                         icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedInformationCircle, 
-                          color: theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)), 
+                          icon: HugeIcons.strokeRoundedInformationCircle,
+                          color: theme.iconTheme.color ?? AppTheme.textPrimary, 
                           size: 28,
                         ),
                         onPressed: _showHelpModal,
@@ -316,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
-                                color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                                color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -333,7 +331,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   fontSize: 14,
                                   color: _isAvailable == false 
                                       ? Colors.redAccent 
-                                      : (theme.textTheme.bodyMedium?.color ?? (isDark ? Colors.white70 : const Color(0xFF64748B))),
+                                      : (theme.textTheme.bodyMedium?.color ?? AppTheme.textSecondary),
                                   fontWeight: _isAvailable == true ? FontWeight.w600 : FontWeight.w400,
                                 ),
                               ),
@@ -438,7 +436,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _phoneInputField(AuthProvider auth) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     Color borderColor = theme.colorScheme.outline.withValues(alpha: 0.5);
     if (_isAvailable == false) {
       borderColor = Colors.redAccent.withValues(alpha: 0.5);
@@ -497,7 +494,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _selectedCountry.dialCode,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w700, 
-                          color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                          color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                         ),
                       ),
                     ],
@@ -514,16 +511,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     LengthLimitingTextInputFormatter(9),
                   ],
                   style: GoogleFonts.inter(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.w600, 
-                    color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)), 
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary, 
                     letterSpacing: 1,
                   ),
                   cursorColor: theme.colorScheme.primary,
                   decoration: InputDecoration(
                     hintText: '712 345 678',
                     hintStyle: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? (isDark ? Colors.white30 : Colors.black26),
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
                     ),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/parcel_provider.dart';
 import '../../models/parcel_model.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/home/premium_ui_components.dart';
 
 class AvailabilityCheckerScreen extends StatefulWidget {
@@ -100,27 +101,24 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+        backgroundColor: AppTheme.surface,
         body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
             children: [
               const Gap(40),
-              _buildVisualIndicator(isDark),
+              _buildVisualIndicator(),
               const Gap(40),
               Text(
                 _isChecking ? 'Checking Availability...' : 'Space Confirmed!',
                 style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const Gap(12),
@@ -133,7 +131,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 15,
-                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -184,8 +182,8 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3B82F6),
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: isDark ? Colors.white10 : Colors.black12,
-                          disabledForegroundColor: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          disabledBackgroundColor: Colors.black12,
+                          disabledForegroundColor: AppTheme.textMuted,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -240,7 +238,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
     );
   }
 
-  Widget _buildVisualIndicator(bool isDark) {
+  Widget _buildVisualIndicator() {
     if (_isChecking) {
       return AnimatedBuilder(
         animation: _spinController,
@@ -292,7 +290,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -373,7 +371,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],

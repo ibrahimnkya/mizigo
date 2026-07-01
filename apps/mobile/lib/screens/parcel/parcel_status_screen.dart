@@ -52,7 +52,6 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final status = ParcelStatus.fromString(_statusData?['status'] ?? 'PENDING');
     final uiState = _statusData?['uiState'] as Map<String, dynamic>?;
 
@@ -75,15 +74,15 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                   // Status icon
                   _StatusIcon(status: status),
                   const Gap(24),
-                  Text(status.displayLabel, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF0F172A), letterSpacing: -0.5)),
+                  Text(status.displayLabel, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -0.5)),
                   const Gap(8),
-                  Text(uiState?['message'] ?? '', textAlign: TextAlign.center, style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 15)),
+                  Text(uiState?['message'] ?? '', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary, fontSize: 15)),
                   if (status == ParcelStatus.canceled && _statusData?['rejectionReason'] != null) ...[
                     const Gap(16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: AppTheme.danger.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.danger.withValues(alpha: 0.2))),
-                      child: Text('Reason: ${_statusData!['rejectionReason']}', style: const TextStyle(color: AppTheme.danger, fontWeight: FontWeight.w600)),
+                      child: Text('Reason: ${_statusData!['rejectionReason']}', style: TextStyle(color: AppTheme.danger, fontWeight: FontWeight.w600)),
                     ),
                   ],
                   const Gap(40),
@@ -111,7 +110,7 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3B82F6))),
                       const Gap(10),
-                      Text('Auto-refreshing every 10s', style: TextStyle(color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8), fontSize: 13)),
+                      Text('Auto-refreshing every 10s', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                     ]),
                     const Gap(12),
                   ],

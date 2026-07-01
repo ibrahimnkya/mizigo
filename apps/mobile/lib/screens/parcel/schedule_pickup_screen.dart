@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
 
 class SchedulePickupScreen extends StatefulWidget {
   const SchedulePickupScreen({super.key});
@@ -18,7 +19,6 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
   bool _lastMileDelivery = false;
 
   Future<void> _pickDate() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -28,19 +28,12 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: Color(0xFF3B82F6),
-                    onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
-                    onSurface: Colors.white,
-                  )
-                : const ColorScheme.light(
-                    primary: Color(0xFF3B82F6),
-                    onPrimary: Colors.white,
-                    surface: Colors.white,
-                    onSurface: Color(0xFF1E293B),
-                  ),
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF3B82F6),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1E293B),
+            ),
           ),
           child: child!,
         );
@@ -52,26 +45,18 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
   }
 
   Future<void> _pickTime() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: isDark
-                ? const ColorScheme.dark(
-                    primary: Color(0xFF3B82F6),
-                    onPrimary: Colors.white,
-                    surface: Color(0xFF1E293B),
-                    onSurface: Colors.white,
-                  )
-                : const ColorScheme.light(
-                    primary: Color(0xFF3B82F6),
-                    onPrimary: Colors.white,
-                    surface: Colors.white,
-                    onSurface: Color(0xFF1E293B),
-                  ),
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF3B82F6),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1E293B),
+            ),
           ),
           child: child!,
         );
@@ -87,27 +72,23 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
     required String value,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+            color: AppTheme.border,
           ),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -118,13 +99,13 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                 fontSize: 16,
                 fontWeight: value.isNotEmpty ? FontWeight.w600 : FontWeight.w500,
                 color: value.isNotEmpty
-                    ? (isDark ? Colors.white : const Color(0xFF0F172A))
-                    : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                    ? AppTheme.textPrimary
+                    : AppTheme.textMuted,
               ),
             ),
             Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: isDark ? Colors.white54 : const Color(0xFF64748B),
+              color: AppTheme.textSecondary,
             ),
           ],
         ),
@@ -135,14 +116,13 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final appBarTheme = theme.appBarTheme;
     final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
     final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
@@ -169,7 +149,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.close, color: appBarIconColor, size: 20),
@@ -191,7 +171,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: AppTheme.textPrimary,
                           height: 1.3,
                         ),
                       ),
@@ -200,7 +180,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         'Choose a convenient date and time for us to collect your package. Door-to-door delivery is automatically included.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(28),
@@ -211,7 +191,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(8),
@@ -229,7 +209,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(8),
@@ -249,7 +229,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       const Gap(6),
@@ -257,7 +237,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         'Delivery from SGR station to recipient\'s door.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                       const Gap(20),
@@ -276,7 +256,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                                 border: Border.all(
                                   color: _lastMileDelivery
                                       ? const Color(0xFF3B82F6)
-                                      : (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+                                      : AppTheme.border,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(5),
@@ -291,7 +271,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: AppTheme.textPrimary,
                               ),
                             ),
                             const Gap(12),
@@ -339,7 +319,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3B82F6),
-                      disabledBackgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                      disabledBackgroundColor: AppTheme.border,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: const StadiumBorder(),
@@ -351,7 +331,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: (_selectedDate == null || _selectedTime == null)
-                            ? (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8))
+                            ? AppTheme.textMuted
                             : Colors.white,
                       ),
                     ),

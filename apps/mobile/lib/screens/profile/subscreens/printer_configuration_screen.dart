@@ -91,7 +91,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
   }
 
   void _showPrinterOptions(BuildContext context, BluetoothInfo device, PrinterProvider provider) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -127,18 +126,18 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             ),
             const Gap(12),
             Text(
-              device.name.isNotEmpty ? device.name : 'Unknown Printer', 
+              device.name.isNotEmpty ? device.name : 'Unknown Printer',
               style: GoogleFonts.outfit(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
               ),
             ),
             const Gap(4),
             Text(
-              'MAC: ${device.macAdress}', 
+              'MAC: ${device.macAdress}',
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 12,
               ),
             ),
@@ -234,7 +233,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
     final provider = context.watch<PrinterProvider>();
     final lastMac = provider.lastPrinterMac;
     final lastName = provider.lastPrinterName;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: const SettingsAppBar(title: 'Printer Configuration'),
@@ -247,7 +245,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             Text(
               'CONNECTED PRINTERS',
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.5,
@@ -303,23 +301,21 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                     color: AppTheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppTheme.border),
-                    boxShadow: isDark
-                        ? null
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PREVIOUSLY CONNECTED', 
+                        'PREVIOUSLY CONNECTED',
                         style: GoogleFonts.inter(
-                          color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.5,
@@ -342,18 +338,18 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  lastName ?? 'Printer', 
+                                  lastName ?? 'Printer',
                                   style: GoogleFonts.outfit(
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),
                                 ),
                                 const Gap(2),
                                 Text(
-                                  'MAC: $lastMac', 
+                                  'MAC: $lastMac',
                                   style: GoogleFonts.inter(
-                                    color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                                    color: AppTheme.textSecondary,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -414,37 +410,35 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                     border: Border.all(
                       color: AppTheme.border,
                     ),
-                    boxShadow: isDark
-                        ? null
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      HugeIcon(
+                      const HugeIcon(
                         icon: HugeIcons.strokeRoundedPrinter,
-                        color: isDark ? Colors.white38 : const Color(0xFFCBD5E1),
+                        color: Color(0xFFCBD5E1),
                         size: 36,
                       ),
                       const Gap(14),
                       Text(
                         'No printer connected',
                         style: GoogleFonts.inter(
-                          color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                           fontSize: 14,
                         ),
                       ),
                       const Gap(6),
                       Text(
-                        'Pair your thermal printer via Bluetooth settings first.', 
-                        textAlign: TextAlign.center, 
+                        'Pair your thermal printer via Bluetooth settings first.',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
-                          color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                          color: AppTheme.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -488,7 +482,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
     Color statusColor, {
     bool isDefault = false,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -497,18 +490,16 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDefault
-              ? AppTheme.cPrimary.withValues(alpha: isDark ? 0.3 : 0.6)
+              ? AppTheme.cPrimary.withValues(alpha: 0.6)
               : AppTheme.border,
         ),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -520,7 +511,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             ),
             child: HugeIcon(
               icon: icon,
-              color: isDefault ? AppTheme.cPrimary : (isDark ? Colors.white38 : const Color(0xFF64748B)),
+              color: isDefault ? AppTheme.cPrimary : AppTheme.textSecondary,
               size: 24,
             ),
           ),
@@ -534,7 +525,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const Gap(4),
@@ -549,7 +540,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                     Text(
                       status,
                       style: GoogleFonts.inter(
-                        color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -561,9 +552,9 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
           if (isDefault)
             const HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02, color: Colors.green, size: 20)
           else
-            HugeIcon(
+            const HugeIcon(
               icon: HugeIcons.strokeRoundedArrowRight01,
-              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+              color: Color(0xFF94A3B8),
               size: 20,
             ),
         ],
@@ -573,7 +564,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
 
   Widget _buildPrinterHistory(PrinterProvider provider) {
     final history = provider.history;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +574,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             Text(
               'PRINT HISTORY',
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.5,
@@ -604,9 +594,9 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Text(
-                'No print history found.', 
+                'No print history found.',
                 style: GoogleFonts.inter(
-                  color: isDark ? Colors.white24 : const Color(0xFF94A3B8),
+                  color: AppTheme.textMuted,
                   fontSize: 12,
                 ),
               ),
@@ -625,7 +615,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
 
   Widget _buildHistoryItem(BuildContext context, String title, String time, bool success) {
     final successColor = success ? Colors.green : Colors.red;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -636,15 +625,13 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
         border: Border.all(
           color: AppTheme.border,
         ),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -668,7 +655,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                 Text(
                   title,
                   style: GoogleFonts.outfit(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -677,7 +664,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
                 Text(
                   time,
                   style: GoogleFonts.inter(
-                    color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                     fontSize: 11,
                   ),
                 ),
@@ -728,7 +715,6 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
   }
 
   Widget _buildGuideStep(String num, String text) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -743,7 +729,7 @@ class _PrinterConfigurationScreenState extends State<PrinterConfigurationScreen>
             child: Text(
               text,
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 13,
                 height: 1.4,
               ),
@@ -791,7 +777,6 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -823,9 +808,9 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'PAIRED DEVICES', 
+                'PAIRED DEVICES',
                 style: GoogleFonts.inter(
-                  color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.5,
@@ -852,7 +837,7 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
                     child: Text(
                       'No paired devices found.',
                       style: GoogleFonts.inter(
-                        color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -875,15 +860,13 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
                             border: Border.all(
                               color: AppTheme.border,
                             ),
-                            boxShadow: isDark
-                                ? null
-                                : [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.02),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             children: [
@@ -893,9 +876,9 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
                                   color: AppTheme.background,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: HugeIcon(
+                                child: const HugeIcon(
                                   icon: HugeIcons.strokeRoundedBluetooth,
-                                  color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                                  color: Color(0xFF64748B),
                                   size: 24,
                                 ),
                               ),
@@ -905,18 +888,18 @@ class _PairedDevicesModalState extends State<_PairedDevicesModal> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      device.name.isNotEmpty ? device.name : 'Unknown Device', 
+                                      device.name.isNotEmpty ? device.name : 'Unknown Device',
                                       style: GoogleFonts.outfit(
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                        color: AppTheme.textPrimary,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
                                       ),
                                     ),
                                     const Gap(4),
                                     Text(
-                                      'MAC: ${device.macAdress}', 
+                                      'MAC: ${device.macAdress}',
                                       style: GoogleFonts.inter(
-                                        color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                                        color: AppTheme.textSecondary,
                                         fontSize: 12,
                                       ),
                                     ),

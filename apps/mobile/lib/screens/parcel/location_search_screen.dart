@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/parcel_provider.dart';
+import '../../theme/app_theme.dart';
 
 class LocationSearchScreen extends StatefulWidget {
   final String title;
@@ -94,26 +95,21 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor:
-            isDark ? const Color(0xFF0C1220) : const Color(0xFFF5F7FA),
+        backgroundColor: AppTheme.background,
         body: FadeTransition(
           opacity: _fadeAnim,
           child: Column(
             children: [
-              _buildUnifiedHeader(isDark),
-              // thin separator between white header zone and list body
+              _buildUnifiedHeader(),
+              // thin separator between header zone and list body
               Container(
                 height: 1,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : const Color(0xFFEAEEF3),
+                color: AppTheme.border,
               ),
-              Expanded(child: _buildBody(isDark)),
+              Expanded(child: _buildBody()),
             ],
           ),
         ),
@@ -122,23 +118,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
   }
 
   // ── Unified Header Search ──────────────────────────────────────────────
-  Widget _buildUnifiedHeader(bool isDark) {
-    final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.1)
-        : const Color(0xFFDDE2EA);
-    final hintColor = isDark ? Colors.white38 : const Color(0xFFADB5BD);
-    final textColor = isDark ? Colors.white : const Color(0xFF1A2236);
-
+  Widget _buildUnifiedHeader() {
     return SafeArea(
       bottom: false,
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 20, 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0C1220) : Colors.white,
+          color: AppTheme.surface,
           border: Border(
-            bottom: BorderSide(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFEAEEF3),
-            ),
+            bottom: BorderSide(color: AppTheme.border),
           ),
         ),
         child: Row(
@@ -147,7 +135,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               onPressed: () => context.pop(),
               icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowLeft01,
-                color: isDark ? Colors.white : const Color(0xFF1A2236),
+                color: AppTheme.textPrimary,
                 size: 22,
               ),
             ),
@@ -155,14 +143,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1A2436) : const Color(0xFFF1F5F9),
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: borderColor),
+                  border: Border.all(color: AppTheme.border),
                 ),
                 child: Row(
                   children: [
                     const Gap(12),
-                    Icon(Icons.search_rounded, size: 20, color: hintColor),
+                    Icon(Icons.search_rounded, size: 20, color: AppTheme.textMuted),
                     const Gap(10),
                     Expanded(
                       child: TextField(
@@ -172,14 +160,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                         style: GoogleFonts.inter(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
-                          color: textColor,
+                          color: AppTheme.textPrimary,
                         ),
                         decoration: InputDecoration(
                           hintText: widget.title,
                           hintStyle: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: hintColor,
+                            color: AppTheme.textMuted,
                           ),
                           border: InputBorder.none,
                           isCollapsed: true,
@@ -196,7 +184,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.close_rounded, size: 18, color: hintColor),
+                          child: Icon(Icons.close_rounded, size: 18, color: AppTheme.textMuted),
                         ),
                       ),
                   ],
@@ -211,11 +199,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
 
 
   // ── Body / Suggestions ────────────────────────────────────────────────────
-  Widget _buildBody(bool isDark) {
+  Widget _buildBody() {
     if (_hasQuery && _filteredSuggestions.isEmpty) {
       return ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        children: [_buildSearchQueryTile(isDark)],
+        children: [_buildSearchQueryTile()],
       );
     }
 
@@ -226,7 +214,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
         if (!_hasQuery) {
           if (index == 0) {
             return _buildLocationTile(
-              isDark: isDark,
               icon: HugeIcons.strokeRoundedLocation01,
               name: 'Current Location',
               subtitle: 'Using GPS for highest accuracy',
@@ -237,7 +224,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
           }
           if (index == 1) {
             return _buildLocationTile(
-              isDark: isDark,
               icon: HugeIcons.strokeRoundedMapPin,
               name: 'Pick on map',
               subtitle: 'Drop a pin manually',
@@ -246,14 +232,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               onTap: _pickOnMap,
             );
           }
-          if (index == 2) return _buildSectionLabel('Recent', isDark);
+          if (index == 2) return _buildSectionLabel('Recent');
         }
 
         final offset = _hasQuery ? 1 : 3;
 
         // Inline "search for X" first row when query present
         if (_hasQuery && index == 0) {
-          return _buildSearchQueryTile(isDark);
+          return _buildSearchQueryTile();
         }
 
         final suggestionIndex = index - offset;
@@ -261,7 +247,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
 
         final item = _filteredSuggestions[suggestionIndex];
         return _buildLocationTile(
-          isDark: isDark,
           icon: HugeIcons.strokeRoundedLocation01,
           name: item['name']!,
           subtitle: item['address']!.isEmpty ? 'Recent location' : item['address']!,
@@ -271,7 +256,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
     );
   }
 
-  Widget _buildSectionLabel(String label, bool isDark) {
+  Widget _buildSectionLabel(String label) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
       child: Text(
@@ -280,70 +265,26 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.0,
-          color: isDark ? Colors.white24 : const Color(0xFFADB5BD),
+          color: AppTheme.textMuted,
         ),
       ),
     );
   }
 
-  Widget _buildSearchQueryTile(bool isDark) {
+  Widget _buildSearchQueryTile() {
     const accent = Color(0xFF3B82F6);
     return _buildLocationTile(
-      isDark: isDark,
       icon: HugeIcons.strokeRoundedSearch01,
       name: 'Search "${_searchController.text.trim()}"',
       subtitle: 'Tap to look up this location',
       iconColor: accent,
-      iconBgColor: accent.withValues(alpha: isDark ? 0.14 : 0.09),
+      iconBgColor: accent.withValues(alpha: 0.09),
       onTap: () => _submitSearch(_searchController.text),
-    );
-  }
-
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : const Color(0xFFEEF1F6),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.history_rounded,
-              size: 30,
-              color: isDark ? Colors.white24 : const Color(0xFFC8CDD8),
-            ),
-          ),
-          const Gap(20),
-          Text(
-            'No recent locations',
-            style: GoogleFonts.outfit(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white38 : const Color(0xFFADB5BD),
-            ),
-          ),
-          const Gap(6),
-          Text(
-            'Locations you search will appear here',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: isDark ? Colors.white24 : const Color(0xFFC4C9D2),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   // ── Location Tile ─────────────────────────────────────────────────────────
   Widget _buildLocationTile({
-    required bool isDark,
     required dynamic icon,
     required String name,
     required String subtitle,
@@ -351,14 +292,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
     Color? iconColor,
     Color? iconBgColor,
   }) {
-    final defBg = isDark
-        ? Colors.white.withValues(alpha: 0.07)
-        : const Color(0xFFF0F3F7);
-    final defIcon =
-        isDark ? Colors.white54 : const Color(0xFF8B95A3);
-    final titleColor = isDark ? Colors.white : const Color(0xFF1A2236);
-    final subColor = isDark ? Colors.white38 : const Color(0xFF8B95A3);
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -367,9 +300,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
           onTap();
         },
         splashColor: Colors.transparent,
-        highlightColor: isDark
-            ? Colors.white.withValues(alpha: 0.03)
-            : const Color(0xFF3B82F6).withValues(alpha: 0.04),
+        highlightColor: const Color(0xFF3B82F6).withValues(alpha: 0.04),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
@@ -378,13 +309,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: iconBgColor ?? defBg,
+                  color: iconBgColor ?? AppTheme.background,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: HugeIcon(
                     icon: icon,
-                    color: iconColor ?? defIcon,
+                    color: iconColor ?? AppTheme.textSecondary,
                     size: 19,
                   ),
                 ),
@@ -399,7 +330,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: titleColor,
+                        color: AppTheme.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -409,7 +340,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
                       subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: subColor,
+                        color: AppTheme.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -421,7 +352,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               HugeIcon(
                 icon: HugeIcons.strokeRoundedArrowRight01,
                 size: 18,
-                color: isDark ? Colors.white24 : const Color(0xFFCDD1D8),
+                color: AppTheme.border,
               ),
             ],
           ),

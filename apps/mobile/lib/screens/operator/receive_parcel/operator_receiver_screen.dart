@@ -76,7 +76,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
   }
 
   void _showStepHelp(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -155,7 +154,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
   }
 
   Widget _helpRow(dynamic icon, String title, String body) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -164,8 +162,8 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.background, 
-              borderRadius: BorderRadius.circular(12), 
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppTheme.border),
             ),
             child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 18),
@@ -175,9 +173,9 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
                 const Gap(3),
-                Text(body, style: GoogleFonts.inter(fontSize: 13, color: isDark ? Colors.white38 : const Color(0xFF64748B), height: 1.5)),
+                Text(body, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
               ],
             ),
           ),
@@ -191,7 +189,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
     required String label,
     required Country selectedCountry,
     required VoidCallback onSelectCountry,
-    bool isDark = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,16 +198,16 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
           style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
           ),
         ),
         const Gap(10),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+              color: AppTheme.border,
             ),
           ),
           child: Row(
@@ -223,7 +220,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                     color: Colors.transparent,
                     border: Border(
                       right: BorderSide(
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+                        color: AppTheme.border,
                       ),
                     ),
                   ),
@@ -235,7 +232,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                         selectedCountry.dialCode,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ],
@@ -254,7 +251,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.textPrimary,
                     letterSpacing: 1,
                   ),
                   cursorColor: AppTheme.cPrimary,
@@ -262,7 +259,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                     hintText: '712 345 678',
                     hintStyle: GoogleFonts.inter(
                       fontSize: 15,
-                      color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                      color: AppTheme.textMuted,
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -282,7 +279,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
     required String hint,
     required IconData icon,
     TextInputType type = TextInputType.text,
-    bool isDark = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,16 +288,16 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
           style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            color: AppTheme.textPrimary,
           ),
         ),
         const Gap(10),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0),
+              color: AppTheme.border,
             ),
           ),
           child: TextField(
@@ -311,16 +307,16 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              color: AppTheme.textPrimary,
             ),
             cursorColor: AppTheme.cPrimary,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.inter(
                 fontSize: 15,
-                color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+                color: AppTheme.textMuted,
               ),
-              prefixIcon: Icon(icon, color: isDark ? Colors.white38 : const Color(0xFF94A3B8), size: 20),
+              prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 20),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
@@ -333,7 +329,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final appBarTheme = theme.appBarTheme;
     final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
@@ -410,10 +405,10 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE2E8F0)),
-                        boxShadow: isDark ? null : [
+                        border: Border.all(color: AppTheme.border),
+                        boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
@@ -445,7 +440,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary,
                                   ),
                                 ),
                                 const Gap(4),
@@ -453,7 +448,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                                   'Enter precise contact details.',
                                   style: GoogleFonts.inter(
                                     fontSize: 13,
-                                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                    color: AppTheme.textSecondary,
                                   ),
                                 ),
                               ],
@@ -463,13 +458,13 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       ),
                     ),
                     const Gap(32),
-                    
+
                     Text(
                       'Sender Information',
                       style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const Gap(16),
@@ -478,7 +473,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       label: 'Full Name',
                       hint: 'e.g. John Doe',
                       icon: Icons.person_outline,
-                      isDark: isDark,
                     ),
                     const Gap(16),
                     _buildPhoneField(
@@ -486,7 +480,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       label: 'Phone Number',
                       selectedCountry: _senderCountry,
                       onSelectCountry: () => _showCountryPicker(true),
-                      isDark: isDark,
                     ),
 
                     const Gap(40),
@@ -496,7 +489,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const Gap(16),
@@ -505,7 +498,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       label: 'Full Name',
                       hint: 'e.g. Jane Smith',
                       icon: Icons.person_outline,
-                      isDark: isDark,
                     ),
                     const Gap(16),
                     _buildPhoneField(
@@ -513,7 +505,6 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                       label: 'Phone Number',
                       selectedCountry: _receiverCountry,
                       onSelectCountry: () => _showCountryPicker(false),
-                      isDark: isDark,
                     ),
                   ],
                 ),
@@ -526,7 +517,7 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                 20, 14, 20, MediaQuery.of(context).padding.bottom + 14,
               ),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -542,9 +533,9 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
                   onPressed: canProceed ? _onNext : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.cPrimary,
-                    disabledBackgroundColor: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    disabledBackgroundColor: const Color(0xFFE2E8F0),
                     foregroundColor: Colors.white,
-                    disabledForegroundColor: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    disabledForegroundColor: AppTheme.textMuted,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

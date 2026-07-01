@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import '../../theme/app_theme.dart';
 
 class LocationConfirmMapScreen extends StatefulWidget {
   final String title;
@@ -74,9 +75,6 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       body: Stack(
         children: [
@@ -146,9 +144,9 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
             child: CircleAvatar(
-              backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+              backgroundColor: AppTheme.surface,
               child: IconButton(
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: AppTheme.textPrimary),
                 onPressed: () => context.pop(),
               ),
             ),
@@ -160,7 +158,7 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 boxShadow: [
                   BoxShadow(
@@ -181,14 +179,14 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       GestureDetector(
                         onTap: () => context.pop(),
                         child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSearch01, 
-                          color: isDark ? const Color(0xFF3B82F6) : const Color(0xFF3B82F6),
+                          icon: HugeIcons.strokeRoundedSearch01,
+                          color: const Color(0xFF3B82F6),
                           size: 24,
                         ),
                       ),
@@ -201,10 +199,10 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      color: AppTheme.background,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
+                        color: AppTheme.border,
                       ),
                     ),
                     child: Row(
@@ -221,7 +219,7 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              color: AppTheme.textPrimary,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,

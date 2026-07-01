@@ -105,7 +105,6 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     String? currentValue,
     ValueChanged<String> onSelect,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surface,
@@ -126,7 +125,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
+                  color: AppTheme.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -288,9 +287,6 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     final canProceed = _condition != null &&
         _parcelType != null &&
         _urgency != null &&
@@ -569,9 +565,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                   onPressed: canProceed ? _onNext : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
-                    disabledBackgroundColor: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                    disabledBackgroundColor: const Color(0xFFE2E8F0),
                     foregroundColor: Colors.white,
-                    disabledForegroundColor: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    disabledForegroundColor: AppTheme.textMuted,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

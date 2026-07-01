@@ -98,7 +98,6 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
@@ -198,7 +197,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
                         lastDate: DateTime.now(),
                         builder: (context, child) => Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.dark(
+                            colorScheme: ColorScheme.light(
                               primary: AppTheme.cPrimary,
                               surface: AppTheme.surface,
                             ),

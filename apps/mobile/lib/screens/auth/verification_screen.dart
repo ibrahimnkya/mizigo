@@ -7,8 +7,8 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
 import '../../widgets/profile/premium_settings_components.dart';
+import '../../theme/app_theme.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -148,7 +148,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   void _showHelpModal() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
@@ -175,12 +174,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
-                    color: theme.textTheme.titleLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                    color: theme.textTheme.titleLarge?.color ?? AppTheme.textPrimary,
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close_rounded, color: theme.textTheme.bodySmall?.color ?? (isDark ? Colors.white54 : const Color(0xFF64748B))),
+                  icon: Icon(Icons.close_rounded, color: theme.textTheme.bodySmall?.color ?? AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -188,7 +187,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             Text(
               'Follow these instructions for a smooth verification experience.',
               style: GoogleFonts.inter(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? (isDark ? Colors.white38 : const Color(0xFF64748B)),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? AppTheme.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -240,7 +239,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   Widget _helpItem(String title, String desc, dynamic icon) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -265,7 +263,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: theme.textTheme.titleMedium?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                    color: theme.textTheme.titleMedium?.color ?? AppTheme.textPrimary,
                   ),
                 ),
                 const Gap(4),
@@ -273,7 +271,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   desc,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? (isDark ? Colors.white38 : const Color(0xFF64748B)),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? AppTheme.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -287,15 +285,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final isDark = themeProvider.isDarkMode;
-
     final theme = Theme.of(context);
     final auth = context.watch<AuthProvider>();
     final canResend = _secondsLeft == 0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
@@ -334,7 +329,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.w800,
-                            color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                            color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                           ),
                         ),
                         const Gap(12),
@@ -343,7 +338,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 15,
-                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? (isDark ? Colors.white60 : const Color(0xFF64748B)),
+                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? AppTheme.textSecondary,
                             height: 1.5,
                           ),
                         ),
@@ -389,7 +384,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                         style: GoogleFonts.inter(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
-                                          color: theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
+                                          color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
                                         ),
                                       ),
                                     ),
@@ -476,7 +471,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           Text(
                             "Forgot OTP? ",
                             style: GoogleFonts.inter(
-                              color: theme.textTheme.bodySmall?.color ?? (isDark ? Colors.white38 : Colors.black38),
+                              color: theme.textTheme.bodySmall?.color ?? AppTheme.textMuted,
                             ),
                           ),
                           if (canResend)
@@ -494,7 +489,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             Text(
                               'Reset in $_countdownLabel',
                               style: GoogleFonts.inter(
-                                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? (isDark ? Colors.white70 : Colors.black54),
+                                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6) ?? AppTheme.textSecondary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

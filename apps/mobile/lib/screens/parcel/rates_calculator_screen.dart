@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_theme.dart';
 
 class RatesCalculatorScreen extends StatefulWidget {
   const RatesCalculatorScreen({super.key});
@@ -48,11 +49,10 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     const primaryBlue = Color(0xFF3B82F6); // Standardized blue
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: Text('Rates Calculator', style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: theme.appBarTheme.titleTextStyle?.color ?? Colors.white)),
         backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
@@ -73,7 +73,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(8),
@@ -81,7 +81,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
               'Enter locations and vehicle to calculate',
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
               ),
             ),
             const Gap(32),
@@ -89,7 +89,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
             // Location Input Card
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -116,7 +116,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 50),
                     child: Divider(
                       height: 1,
-                      color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
+                      color: AppTheme.border,
                     ),
                   ),
                   _buildLocationItem(
@@ -142,7 +142,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(16),
@@ -156,12 +156,12 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? primaryBlue 
-                          : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                      color: isSelected
+                          ? primaryBlue
+                          : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? primaryBlue : (isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.2)),
+                        color: isSelected ? primaryBlue : AppTheme.border,
                       ),
                     ),
                     child: Row(
@@ -173,7 +173,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                           height: 20,
                           errorBuilder: (context, error, stackTrace) => HugeIcon(
                             icon: HugeIcons.strokeRoundedCar01,
-                            color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                            color: isSelected ? Colors.white : AppTheme.textSecondary,
                             size: 20,
                           ),
                         ),
@@ -182,7 +182,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                           v,
                           style: GoogleFonts.inter(
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                            color: isSelected ? Colors.white : AppTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -279,10 +279,10 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                color: AppTheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.2),
+                  color: AppTheme.border,
                 ),
               ),
               child: Row(
@@ -290,7 +290,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                 children: [
                   HugeIcon(
                     icon: HugeIcons.strokeRoundedInformationCircle,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                     size: 20,
                   ),
                   const Gap(12),
@@ -300,7 +300,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         height: 1.5,
-                        color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -323,9 +323,6 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
     required bool isFirst,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -342,7 +339,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: CustomPaint(
                       painter: _DottedLinePainter(
-                        color: isDark ? Colors.white24 : Colors.grey.withValues(alpha: 0.3),
+                        color: AppTheme.border,
                       ),
                     ),
                   ),
@@ -355,9 +352,9 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: label.contains('location') 
-                      ? (isDark ? Colors.white38 : const Color(0xFF94A3B8))
-                      : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                  color: label.contains('location')
+                      ? AppTheme.textMuted
+                      : AppTheme.textPrimary,
                 ),
               ),
             ),

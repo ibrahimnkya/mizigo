@@ -613,12 +613,11 @@ class MainScaffold extends StatelessWidget {
     final isOperator = auth.user?.isStaff ?? false;
     final tabs = _getTabs(isOperator);
     final currentIndex = navigationShell.currentIndex;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     final navTheme = theme.bottomNavigationBarTheme;
-    final navBgColor = navTheme.backgroundColor ?? (isDark ? AppTheme.cBlackMain : Colors.white);
+    final navBgColor = navTheme.backgroundColor ?? Colors.white;
     final activeColor = navTheme.selectedItemColor ?? AppTheme.cPrimary;
-    final unselectedColor = navTheme.unselectedItemColor ?? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8));
+    final unselectedColor = navTheme.unselectedItemColor ?? const Color(0xFF94A3B8);
     final borderSideColor = theme.dividerColor;
 
     return Scaffold(
@@ -635,7 +634,7 @@ class MainScaffold extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 30,
               offset: const Offset(0, -10),
             ),

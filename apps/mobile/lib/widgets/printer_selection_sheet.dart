@@ -38,7 +38,6 @@ class _PrinterSelectionSheetState extends State<PrinterSelectionSheet> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PrinterProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,

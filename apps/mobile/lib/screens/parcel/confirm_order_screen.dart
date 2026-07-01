@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_theme.dart';
 
 class ConfirmOrderScreen extends StatefulWidget {
   final String pickup;
@@ -52,7 +53,6 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -95,12 +95,12 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                   // ── Order Summary Card ────────────────────────────────
                   Container(
                     decoration: BoxDecoration(
-                      color: theme.cardTheme.color ?? theme.colorScheme.surface,
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: theme.colorScheme.outline),
+                      border: Border.all(color: AppTheme.border),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+                          color: Colors.black.withValues(alpha: 0.06),
                           blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
@@ -123,7 +123,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                     HugeIcon(
                                       icon: HugeIcons.strokeRoundedPackage,
                                       size: 28,
-                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                      color: AppTheme.textPrimary,
                                     ),
                                     const Gap(14),
                                     Column(
@@ -134,7 +134,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                           style: GoogleFonts.outfit(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w800,
-                                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                            color: AppTheme.textPrimary,
                                           ),
                                         ),
                                         Text(
@@ -142,15 +142,15 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                           style: GoogleFonts.inter(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
-                                            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                                            color: AppTheme.textMuted,
                                           ),
                                         ),
                                       ],
                                     ),
                                     const Spacer(),
                                     Icon(
-                                      _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                                      color: isDark ? Colors.white54 : const Color(0xFF1E293B),
+                                      Icons.expand_less_rounded,
+                                      color: AppTheme.textPrimary,
                                       size: 28,
                                     ),
                                   ],
@@ -159,7 +159,6 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 _RouteBar(
                                   pickup: widget.pickup,
                                   delivery: widget.delivery,
-                                  isDark: isDark,
                                 ),
                               ],
                             ),
@@ -167,9 +166,9 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                         ),
 
                         if (_isExpanded) ...[
-                          _Divider(isDark: isDark),
+                          const _Divider(),
                           const Gap(16),
-  
+
                           // Details rows
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -178,70 +177,59 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 _DetailRow(
                                   label: "Receiver's Name",
                                   value: widget.receiverName,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: "Receiver's Number",
                                   value: widget.receiverPhone,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Package Name',
                                   value: widget.packageName,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Package Value',
                                   value: 'TZS ${widget.packageValue}',
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Description',
                                   value: widget.parcelDescription.isEmpty ? '—' : widget.parcelDescription,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Parcel Type',
                                   value: widget.parcelType,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Size',
                                   value: widget.packageSize,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Condition',
                                   value: widget.condition,
-                                  isDark: isDark,
                                 ),
                                 const Gap(14),
                                 _DetailRow(
                                   label: 'Delivery Priority',
                                   value: widget.urgency,
-                                  isDark: isDark,
                                 ),
                               ],
                             ),
                           ),
-  
+
                           const Gap(20),
-  
+
                           // Total amount box
                           Container(
                             margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : const Color(0xFFF8FAFC),
+                              color: AppTheme.background,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Center(
@@ -250,7 +238,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                  color: AppTheme.textPrimary,
                                 ),
                               ),
                             ),
@@ -280,7 +268,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                             border: Border.all(
                               color: _confirmed
                                   ? theme.colorScheme.primary
-                                  : theme.colorScheme.outline,
+                                  : AppTheme.border,
                               width: 1.5,
                             ),
                           ),
@@ -294,7 +282,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                             text: TextSpan(
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                color: const Color(0xFF475569),
                               ),
                               children: [
                                 const TextSpan(
@@ -304,7 +292,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
                                   child: GestureDetector(
-                                    onTap: () => _showProhibitedItems(context, isDark),
+                                    onTap: () => _showProhibitedItems(context),
                                     child: Text(
                                       'View list',
                                       style: GoogleFonts.inter(
@@ -335,11 +323,11 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
               20, 14, 20, MediaQuery.of(context).padding.bottom + 14,
             ),
             decoration: BoxDecoration(
-              color: theme.cardTheme.color ?? theme.colorScheme.surface,
-              border: Border(top: BorderSide(color: theme.colorScheme.outline)),
+              color: AppTheme.surface,
+              border: Border(top: BorderSide(color: AppTheme.border)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, -4),
                 ),
@@ -355,7 +343,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                       'Total Cost',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     Text(
@@ -363,7 +351,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ],
@@ -396,11 +384,9 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
-                      disabledBackgroundColor:
-                          isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                      disabledBackgroundColor: const Color(0xFFE2E8F0),
                       foregroundColor: Colors.white,
-                      disabledForegroundColor:
-                          isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      disabledForegroundColor: AppTheme.textMuted,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -421,16 +407,16 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
     );
   }
 
-  void _showProhibitedItems(BuildContext context, bool isDark) {
+  void _showProhibitedItems(BuildContext context) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: theme.cardTheme.color ?? theme.colorScheme.surface,
+          color: AppTheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: theme.colorScheme.outline),
+          border: Border.all(color: AppTheme.border),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -445,14 +431,14 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Icon(
                     Icons.close,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -491,7 +477,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                           item,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            color: const Color(0xFF475569),
                           ),
                         ),
                       ),
@@ -531,8 +517,7 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
 class _RouteBar extends StatelessWidget {
   final String pickup;
   final String delivery;
-  final bool isDark;
-  const _RouteBar({required this.pickup, required this.delivery, required this.isDark});
+  const _RouteBar({required this.pickup, required this.delivery});
 
   @override
   Widget build(BuildContext context) {
@@ -546,7 +531,7 @@ class _RouteBar extends StatelessWidget {
               height: 16,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 border: Border.all(color: const Color(0xFF3B82F6), width: 4.5),
               ),
             ),
@@ -567,7 +552,7 @@ class _RouteBar extends StatelessWidget {
               height: 16,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 border: Border.all(color: const Color(0xFF10B981), width: 4.5),
               ),
             ),
@@ -586,7 +571,7 @@ class _RouteBar extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                   ),
                 ),
                 Text(
@@ -596,7 +581,7 @@ class _RouteBar extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -609,7 +594,7 @@ class _RouteBar extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    color: AppTheme.textMuted,
                   ),
                 ),
                 Text(
@@ -619,7 +604,7 @@ class _RouteBar extends StatelessWidget {
                   style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
               ],
@@ -632,15 +617,14 @@ class _RouteBar extends StatelessWidget {
 }
 
 class _Divider extends StatelessWidget {
-  final bool isDark;
-  const _Divider({required this.isDark});
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+      color: AppTheme.border,
     );
   }
 }
@@ -648,8 +632,7 @@ class _Divider extends StatelessWidget {
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final bool isDark;
-  const _DetailRow({required this.label, required this.value, required this.isDark});
+  const _DetailRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -660,7 +643,7 @@ class _DetailRow extends StatelessWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 13,
-            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+            color: AppTheme.textMuted,
           ),
         ),
         Text(
@@ -668,7 +651,7 @@ class _DetailRow extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            color: AppTheme.textPrimary,
           ),
         ),
       ],

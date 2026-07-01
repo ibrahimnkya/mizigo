@@ -7,7 +7,6 @@ import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
 import '../../widgets/profile/premium_settings_components.dart';
 import '../../theme/app_theme.dart';
 
@@ -580,9 +579,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           child: TabBar(
             controller: _tabController,
             indicator: BoxDecoration(
-              color: theme.brightness == Brightness.dark
-                  ? theme.primaryColor.withValues(alpha: 0.2)
-                  : Colors.white,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
@@ -1022,14 +1019,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           child: Container(
             width: 96,
             height: 96,
-            decoration: BoxDecoration(
-              color: theme.brightness == Brightness.dark
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : const Color(0xFFF0FDF4),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF0FDF4),
               shape: BoxShape.circle,
             ),
-            child: HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                size: 48, color: theme.brightness == Brightness.dark ? Colors.green : const Color(0xFF10B981)),
+            child: const HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                size: 48, color: Color(0xFF10B981)),
           ),
         ),
         const Gap(28),
@@ -1064,12 +1059,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-    final isDark = themeProvider.isDarkMode;
     final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         extendBodyBehindAppBar: false,
             resizeToAvoidBottomInset: true,

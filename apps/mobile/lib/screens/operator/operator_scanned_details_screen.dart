@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/parcel_model.dart';
 import '../../services/api_service.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/common/neo_container.dart';
 
 
@@ -26,7 +27,6 @@ class _OperatorScannedDetailsScreenState
   bool _isLoading = false;
 
   Future<void> _showDispatchDialog() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     String? selectedTrain;
     String? selectedGuard;
     final List<String> mockTrains = ['SGR Express 01', 'Cargo Liner 402', 'LRT Shuttle 09'];
@@ -36,12 +36,12 @@ class _OperatorScannedDetailsScreenState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          backgroundColor: AppTheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Text(
-            'Dispatch Assignment', 
+            'Dispatch Assignment',
             style: GoogleFonts.outfit(
-              color: isDark ? Colors.white : const Color(0xFF0F172A), 
+              color: AppTheme.textPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -70,8 +70,8 @@ class _OperatorScannedDetailsScreenState
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel', 
-                style: TextStyle(
-                  color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
                 ),
               ),
             ),
@@ -100,34 +100,31 @@ class _OperatorScannedDetailsScreenState
     required List<String> items,
     required Function(String?) onChanged,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
+        color: AppTheme.background,
         borderRadius: BorderRadius.circular(12),
-        border: isDark 
-            ? null 
-            : Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           hint: Text(
-            hint, 
-            style: TextStyle(
-              color: isDark ? Colors.white38 : const Color(0xFF94A3B8), 
+            hint,
+            style: const TextStyle(
+              color: Color(0xFF94A3B8),
               fontSize: 14,
             ),
           ),
-          dropdownColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+          dropdownColor: AppTheme.surface,
           isExpanded: true,
           items: items.map((c) => DropdownMenuItem(
             value: c,
             child: Text(
-              c, 
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF0F172A), 
+              c,
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
                 fontSize: 14,
               ),
             ),
@@ -147,17 +144,16 @@ class _OperatorScannedDetailsScreenState
   Future<void> _showOffloadDialog() async {
     String? selectedClerk;
     final List<String> mockClerks = ['Kassim Majaliwa', 'Neema Shayo', 'Said Mwema'];
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: AppTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          'Assign Clerk', 
+          'Assign Clerk',
           style: GoogleFonts.outfit(
-            color: isDark ? Colors.white : const Color(0xFF0F172A), 
+            color: AppTheme.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -165,9 +161,9 @@ class _OperatorScannedDetailsScreenState
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Select the destination clerk who will receive this parcel.', 
+              'Select the destination clerk who will receive this parcel.',
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white60 : const Color(0xFF64748B), 
+                color: AppTheme.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -175,29 +171,27 @@ class _OperatorScannedDetailsScreenState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
+                color: AppTheme.background,
                 borderRadius: BorderRadius.circular(16),
-                border: isDark 
-                    ? null 
-                    : Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: AppTheme.border),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: selectedClerk,
-                  hint: Text(
-                    'Select Clerk', 
+                  hint: const Text(
+                    'Select Clerk',
                     style: TextStyle(
-                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      color: Color(0xFF94A3B8),
                     ),
                   ),
-                  dropdownColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                  dropdownColor: AppTheme.surface,
                   isExpanded: true,
                   items: mockClerks.map((c) => DropdownMenuItem(
                     value: c,
                     child: Text(
-                      c, 
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      c,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
                       ),
                     ),
                   )).toList(),
@@ -253,12 +247,11 @@ class _OperatorScannedDetailsScreenState
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
         return StatefulBuilder(builder: (ctx, setSheetState) {
-          final isDark = Theme.of(ctx).brightness == Brightness.dark;
           return Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: AppTheme.surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -269,7 +262,7 @@ class _OperatorScannedDetailsScreenState
                   Container(
                     width: 40, height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                      color: AppTheme.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -288,7 +281,7 @@ class _OperatorScannedDetailsScreenState
                     style: GoogleFonts.outfit(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                   const Gap(8),
@@ -310,10 +303,10 @@ class _OperatorScannedDetailsScreenState
                         width: 60,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          color: AppTheme.background,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            color: AppTheme.border,
                             width: 1.5,
                           ),
                         ),
@@ -326,7 +319,7 @@ class _OperatorScannedDetailsScreenState
                           style: GoogleFonts.outfit(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: AppTheme.textPrimary,
                           ),
                           decoration: const InputDecoration(
                             border: InputBorder.none,
@@ -479,7 +472,6 @@ class _OperatorScannedDetailsScreenState
     bool isLast = false,
     bool isFailed = false,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isFailed
         ? const Color(0xFFE11D48)
         : done
@@ -501,7 +493,7 @@ class _OperatorScannedDetailsScreenState
                     shape: BoxShape.circle,
                     color: done || isFailed
                         ? color.withValues(alpha: 0.2)
-                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                        : AppTheme.background,
                     border: Border.all(
                       color: done || isFailed
                           ? color
@@ -538,7 +530,7 @@ class _OperatorScannedDetailsScreenState
                       fontSize: 16,
                       fontWeight: done ? FontWeight.w600 : FontWeight.w500,
                       color: done
-                          ? (isDark ? Colors.white : Colors.black)
+                          ? AppTheme.textPrimary
                           : const Color(0xFF94A3B8),
                     ),
                   ),
@@ -561,17 +553,11 @@ class _OperatorScannedDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     final Color statusBg = switch (parcel.status) {
-      ParcelStatus.delivered =>
-        isDark ? const Color(0xFF052E16) : const Color(0xFFF0FDF4),
-      ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded =>
-        isDark ? const Color(0xFF1E3A5F) : const Color(0xFFEFF6FF),
-      ParcelStatus.canceled =>
-        isDark ? const Color(0xFF3B0764) : const Color(0xFFFFF1F2),
-      ParcelStatus.received =>
-        isDark ? const Color(0xFF1C1917) : const Color(0xFFF8FAFC),
+      ParcelStatus.delivered => const Color(0xFFF0FDF4),
+      ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFFEFF6FF),
+      ParcelStatus.canceled => const Color(0xFFFFF1F2),
+      ParcelStatus.received => const Color(0xFFF8FAFC),
     };
 
     final Color statusFg = switch (parcel.status) {
@@ -621,9 +607,9 @@ class _OperatorScannedDetailsScreenState
                   ),
                 ),
               ],
-              icon: HugeIcon(
+              icon: const HugeIcon(
                 icon: HugeIcons.strokeRoundedMoreVerticalCircle01,
-                color: isDark ? Colors.white : Colors.black,
+                color: Colors.black,
               ),
             ),
         ],
@@ -785,8 +771,8 @@ class _OperatorScannedDetailsScreenState
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _printReceipt,
-                            icon: HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: isDark ? Colors.white : Colors.black, size: 20),
-                            label: Text('Print Receipt', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                            icon: const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.black, size: 20),
+                            label: const Text('Print Receipt', style: TextStyle(color: Colors.black)),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

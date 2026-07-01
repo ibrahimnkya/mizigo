@@ -47,7 +47,6 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final role = auth.user?.role?.toUpperCase() ?? '';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final List<_HubAction> actions = [];
 
@@ -173,7 +172,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 32,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                    color: AppTheme.textPrimary,
                                   ),
                                 ),
                                 const Gap(4),
@@ -181,7 +180,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                   'Manage your daily parcel workflows',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    color: AppTheme.textSecondary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -207,7 +206,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                         children: [
                                           HugeIcon(
                                             icon: HugeIcons.strokeRoundedPrinter,
-                                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                            color: AppTheme.textPrimary,
                                             size: 20,
                                           ),
                                           Positioned(
@@ -251,7 +250,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                     child: Center(
                                       child: HugeIcon(
                                         icon: HugeIcons.strokeRoundedHelpCircle,
-                                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                        color: AppTheme.textPrimary,
                                         size: 20,
                                       ),
                                     ),
@@ -327,7 +326,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                       Text(
                                         'Overall Performance',
                                         style: GoogleFonts.inter(
-                                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                          color: AppTheme.textPrimary,
                                           fontWeight: FontWeight.w700,
                                           fontSize: 16,
                                         ),
@@ -335,16 +334,16 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                                       Text(
                                         'You have processed 120 parcels overall',
                                         style: GoogleFonts.inter(
-                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                          color: AppTheme.textSecondary,
                                           fontSize: 13,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                HugeIcon(
+                                const HugeIcon(
                                   icon: HugeIcons.strokeRoundedArrowRight01,
-                                  color: isDark ? Colors.white24 : const Color(0xFF64748B),
+                                  color: Color(0xFF64748B),
                                   size: 20,
                                 ),
                               ],
@@ -368,7 +367,6 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -380,15 +378,13 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
           border: Border.all(
             color: AppTheme.border,
           ),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +401,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
             Text(
               title,
               style: GoogleFonts.outfit(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               ),
@@ -414,7 +410,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
             Text(
               subtitle,
               style: GoogleFonts.inter(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 12,
                 height: 1.2,
               ),
@@ -426,7 +422,6 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
   }
 
   void _showHubHelp(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -441,15 +436,13 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
             left: BorderSide(color: AppTheme.border),
             right: BorderSide(color: AppTheme.border),
           ),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -472,14 +465,14 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: AppTheme.textPrimary,
               ),
             ),
             const Gap(8),
             Text(
               'Learn how to manage parcel efficiently.',
               style: GoogleFonts.inter(
-                color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                color: AppTheme.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -534,7 +527,6 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
   }
 
   Widget _helpItem(BuildContext context, String title, String desc, dynamic icon) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -561,7 +553,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.textPrimary,
                   ),
                 ),
                 const Gap(4),
@@ -569,7 +561,7 @@ class _OperationsHubScreenState extends State<OperationsHubScreen> {
                   desc,
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: isDark ? Colors.white38 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                     height: 1.5,
                   ),
                 ),

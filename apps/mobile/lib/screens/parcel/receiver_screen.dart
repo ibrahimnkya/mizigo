@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_theme.dart';
 
 class ReceiverScreen extends StatefulWidget {
   final String pickup;
@@ -102,7 +103,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -143,7 +143,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Receiver Information ─────────────────────────────
-                  _SectionHeader(title: 'Receiver Information', isDark: isDark),
+                  const _SectionHeader(title: 'Receiver Information'),
                   const Gap(12),
                   Column(
                     children: [
@@ -151,7 +151,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                         controller: _nameCtrl,
                         hint: 'Full Name',
                         icon: Icons.person_outline_rounded,
-                        isDark: isDark,
                         onChanged: (v) => setState(() {}),
                       ),
                       const Gap(12),
@@ -160,7 +159,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                         hint: 'Phone Number',
                         icon: Icons.phone_android_rounded,
                         keyType: TextInputType.phone,
-                        isDark: isDark,
                         onChanged: (v) => setState(() {}),
                       ),
                       const Gap(16),
@@ -172,7 +170,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
-                              _CheckBox(checked: _receiverPays, isDark: isDark,
+                              _CheckBox(checked: _receiverPays,
                                   onTap: () => setState(() => _receiverPays = !_receiverPays)),
                               const Gap(12),
                               Text(
@@ -180,7 +178,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                  color: AppTheme.textSecondary,
                                 ),
                               ),
                             ],
@@ -193,7 +191,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                   const Gap(24),
 
                   // ── Additional Services ─────────────────────────────────
-                  _SectionHeader(title: 'Additional Services', isDark: isDark),
+                  const _SectionHeader(title: 'Additional Services'),
                   const Gap(12),
                   Container(
                     decoration: BoxDecoration(
@@ -202,7 +200,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       border: Border.all(color: theme.colorScheme.outline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -214,7 +212,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Insurance',
                           cost: _insuranceCost,
                           checked: _insurance,
-                          isDark: isDark,
                           onTap: () => setState(() => _insurance = !_insurance),
                           showDivider: true,
                         ),
@@ -222,7 +219,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Fragile handling',
                           cost: _fragileCost,
                           checked: _fragile,
-                          isDark: isDark,
                           onTap: () => setState(() => _fragile = !_fragile),
                           showDivider: true,
                         ),
@@ -230,7 +226,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Express delivery',
                           cost: _expressCost,
                           checked: _express,
-                          isDark: isDark,
                           isRadio: true,
                           onTap: () => setState(() {
                             _express = true;
@@ -242,7 +237,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Standard delivery',
                           cost: _standardCost,
                           checked: _standard,
-                          isDark: isDark,
                           isRadio: true,
                           onTap: () => setState(() {
                             _standard = true;
@@ -257,7 +251,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                   const Gap(24),
 
                   // ── Pickup Type ──────────────────────────────────────────
-                  _SectionHeader(title: 'Pickup', isDark: isDark),
+                  const _SectionHeader(title: 'Pickup'),
                   const Gap(12),
                   Container(
                     decoration: BoxDecoration(
@@ -266,7 +260,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       border: Border.all(color: theme.colorScheme.outline),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -278,7 +272,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Pickup at SGR Station',
                           cost: 0,
                           checked: _pickupAtStation,
-                          isDark: isDark,
                           onTap: () => setState(() {
                             _pickupAtStation = true;
                             _deliverToLocation = false;
@@ -289,7 +282,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                           label: 'Deliver to Location',
                           cost: _deliveryCost,
                           checked: _deliverToLocation,
-                          isDark: isDark,
                           onTap: () => setState(() {
                             _deliverToLocation = true;
                             _pickupAtStation = false;
@@ -315,7 +307,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
               border: Border(top: BorderSide(color: theme.colorScheme.outline)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, -4),
                 ),
@@ -331,7 +323,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       'Total',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                       ),
                     ),
                     Text(
@@ -339,7 +331,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                   ],
@@ -393,8 +385,7 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final bool isDark;
-  const _SectionHeader({required this.title, required this.isDark});
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +394,7 @@ class _SectionHeader extends StatelessWidget {
       style: GoogleFonts.outfit(
         fontSize: 17,
         fontWeight: FontWeight.w700,
-        color: isDark ? Colors.white : const Color(0xFF1E293B),
+        color: AppTheme.textPrimary,
       ),
     );
   }
@@ -414,7 +405,6 @@ class _InputField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final TextInputType keyType;
-  final bool isDark;
   final Function(String)? onChanged;
 
   const _InputField({
@@ -422,7 +412,6 @@ class _InputField extends StatelessWidget {
     required this.hint,
     required this.icon,
     this.keyType = TextInputType.text,
-    required this.isDark,
     this.onChanged,
   });
 
@@ -445,18 +434,18 @@ class _InputField extends StatelessWidget {
         style: GoogleFonts.inter(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : const Color(0xFF1E293B),
+          color: AppTheme.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(
             icon,
             size: 20,
-            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+            color: AppTheme.textMuted,
           ),
           hintStyle: GoogleFonts.inter(
             fontSize: 15,
-            color: isDark ? Colors.white30 : const Color(0xFF94A3B8),
+            color: AppTheme.textMuted,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           border: InputBorder.none,
@@ -468,9 +457,8 @@ class _InputField extends StatelessWidget {
 
 class _CheckBox extends StatelessWidget {
   final bool checked;
-  final bool isDark;
   final VoidCallback onTap;
-  const _CheckBox({required this.checked, required this.isDark, required this.onTap});
+  const _CheckBox({required this.checked, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -501,9 +489,8 @@ class _CheckBox extends StatelessWidget {
 
 class _RadioBox extends StatelessWidget {
   final bool checked;
-  final bool isDark;
   final VoidCallback onTap;
-  const _RadioBox({required this.checked, required this.isDark, required this.onTap});
+  const _RadioBox({required this.checked, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -545,7 +532,6 @@ class _ServiceRow extends StatelessWidget {
   final String label;
   final int cost;
   final bool checked;
-  final bool isDark;
   final VoidCallback onTap;
   final bool showDivider;
   final bool isRadio;
@@ -554,7 +540,6 @@ class _ServiceRow extends StatelessWidget {
     required this.label,
     required this.cost,
     required this.checked,
-    required this.isDark,
     required this.onTap,
     required this.showDivider,
     this.isRadio = false,
@@ -571,8 +556,8 @@ class _ServiceRow extends StatelessWidget {
             child: Row(
               children: [
                 isRadio
-                    ? _RadioBox(checked: checked, isDark: isDark, onTap: onTap)
-                    : _CheckBox(checked: checked, isDark: isDark, onTap: onTap),
+                    ? _RadioBox(checked: checked, onTap: onTap)
+                    : _CheckBox(checked: checked, onTap: onTap),
                 const Gap(14),
                 Expanded(
                   child: Text(
@@ -580,7 +565,7 @@ class _ServiceRow extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                 ),
@@ -589,7 +574,7 @@ class _ServiceRow extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -599,7 +584,7 @@ class _ServiceRow extends StatelessWidget {
         if (showDivider)
           Divider(
             height: 1,
-            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+            color: AppTheme.border,
             indent: 20,
             endIndent: 20,
           ),
@@ -612,7 +597,6 @@ class _PickupRow extends StatelessWidget {
   final String label;
   final int cost;
   final bool checked;
-  final bool isDark;
   final VoidCallback onTap;
   final bool showDivider;
 
@@ -620,7 +604,6 @@ class _PickupRow extends StatelessWidget {
     required this.label,
     required this.cost,
     required this.checked,
-    required this.isDark,
     required this.onTap,
     required this.showDivider,
   });
@@ -651,7 +634,7 @@ class _PickupRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               child: Row(
                 children: [
-                  _CheckBox(checked: checked, isDark: isDark, onTap: onTap),
+                  _CheckBox(checked: checked, onTap: onTap),
                   const Gap(14),
                   Expanded(
                     child: Text(
@@ -661,7 +644,7 @@ class _PickupRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: checked
                             ? theme.colorScheme.primary
-                            : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                            : AppTheme.textPrimary,
                       ),
                     ),
                   ),
@@ -672,7 +655,7 @@ class _PickupRow extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: checked
                           ? theme.colorScheme.primary
-                          : (isDark ? Colors.white54 : const Color(0xFF64748B)),
+                          : AppTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -683,7 +666,7 @@ class _PickupRow extends StatelessWidget {
         if (showDivider)
           Divider(
             height: 1,
-            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+            color: AppTheme.border,
             indent: 12,
             endIndent: 12,
           ),
