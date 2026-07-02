@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { logout } from "@/app/lib/actions";
+import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { usePathname } from "next/navigation";
@@ -163,7 +163,7 @@ export function Topbar() {
               <DropdownMenuSeparator className="bg-slate-100 mx-2" />
               <DropdownMenuItem
                 className="hover:bg-rose-50 hover:text-rose-600 focus:bg-rose-50 focus:text-rose-600 cursor-pointer rounded-xl transition-all py-3 px-4 m-1 flex items-center gap-3 text-rose-500"
-                onClick={() => logout()}
+                onClick={() => signOut({ callbackUrl: "/login" })}
               >
                 <div className="h-8 w-8 rounded-[10px] bg-rose-50 flex items-center justify-center border border-rose-100">
                   <LogOut className="h-4 w-4" />
