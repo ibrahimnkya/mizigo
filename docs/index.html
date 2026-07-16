@@ -116,7 +116,7 @@
 
     /* ─── PAGE OFFSET ─── */
     body { padding-top: var(--nav-h); }
-    section { scroll-margin-top: var(--nav-h); }
+    section, #overview, #stakeholders, #workflow, #integrations, #pricing { scroll-margin-top: var(--nav-h); }
 
     /* ─── HERO ─── */
     .hero {
@@ -660,11 +660,15 @@
       transform: translateY(0) scale(1);
       pointer-events: auto;
     }
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       .chat-container {
-        width: calc(100vw - 32px);
-        height: calc(100vh - 120px);
-        right: -12px;
+        position: fixed !important;
+        bottom: 80px !important;
+        left: 16px !important;
+        right: 16px !important;
+        width: auto !important;
+        height: calc(100dvh - 160px) !important;
+        border-radius: 16px !important;
       }
     }
     .chat-header {
@@ -2340,6 +2344,29 @@
     }
   }
 
+  const chatbotQuestions = {
+    otp: {
+      en: "How does the SMS OTP workflow work?",
+      sw: "Jinsi gani utaratibu wa OTP na SMS unavyofanya kazi?"
+    },
+    pricing: {
+      en: "How is pricing calculated?",
+      sw: "Jinsi gani gharama za usafirishaji zinavyokokotolewa?"
+    },
+    sgr: {
+      en: "How does SGR Railways integration work?",
+      sw: "Jinsi gani muunganiko wa reli ya SGR unavyofanya kazi?"
+    },
+    payment: {
+      en: "What payment networks are supported?",
+      sw: "Ni mitandao gani ya malipo inayokubaliwa?"
+    },
+    tracking: {
+      en: "How does live tracking work?",
+      sw: "Jinsi gani kufuatilia mzigo moja kwa moja kunavyofanya kazi?"
+    }
+  };
+
   function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('mizigo-lang', lang);
@@ -2374,28 +2401,27 @@
       if (isWelcome) {
         welcomeText.innerHTML = (lang === 'sw')
           ? 'Habari! Mimi ni Msaidizi wa MiziGO. Niulize chochote kuhusu mzunguko wa mizigo yetu, kusanidi SMS, uunganishaji wa reli ya SGR, malipo, au majukumu ya wadau wetu.'
-          : 'Habari! I am the MiziGO Assistant. Ask me anything about our workflows, SMS configurations, SGR railway portal integration, payments, or roles.';
+          : 'Hello! I am the MiziGO Assistant. Ask me anything about our workflows, SMS configurations, SGR railway portal integration, payments, or roles.';
       }
     }
 
     // Translate suggested pills
     const pillsMap = {
-      "OTP Security Flow": "Usalama wa Namba ya Siri (OTP)",
-      "Pricing formulas": "Mfumo wa Bei na Ushuru",
-      "SGR Railways Integration": "Uunganishaji wa Reli ya SGR",
-      "Payment Gateway": "Njia ya Malipo",
-      "Parcel tracking UI": "Kufuatilia Mzigo"
+      "otp": { en: "OTP Security Flow", sw: "Usalama wa Namba ya Siri (OTP)" },
+      "pricing": { en: "Pricing formulas", sw: "Mfumo wa Bei na Ushuru" },
+      "sgr": { en: "SGR Railways Integration", sw: "Uunganishaji wa Reli ya SGR" },
+      "payment": { en: "Payment Gateway", sw: "Njia ya Malipo" },
+      "tracking": { en: "Parcel tracking UI", sw: "Kufuatilia Mzigo" }
     };
 
     document.querySelectorAll('.chat-sug-pill').forEach(pill => {
-      const orig = pill.getAttribute('data-orig') || pill.textContent;
-      if (!pill.getAttribute('data-orig')) {
-        pill.setAttribute('data-orig', orig);
-      }
-      if (lang === 'sw') {
-        if (pillsMap[orig]) pill.textContent = pillsMap[orig];
-      } else {
-        pill.textContent = orig;
+      const onclickAttr = pill.getAttribute('onclick') || '';
+      const match = onclickAttr.match(/askSuggested\('([^']+)'\)/);
+      if (match) {
+        const key = match[1];
+        if (pillsMap[key]) {
+          pill.textContent = pillsMap[key][lang];
+        }
       }
     });
 
@@ -2416,12 +2442,14 @@
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       setLanguage(currentLang);
+      updateActiveNavLinks();
     }, 100);
   });
 
   // ── Navbar scroll state
   const nav = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
+  
+  function updateActiveNavLinks() {
     nav.classList.toggle('scrolled', window.scrollY > 40);
 
     // Active nav link based on scroll position
@@ -2429,7 +2457,12 @@
     let current = 'overview';
     for (const id of sections) {
       const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top <= 120) current = id;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= window.innerHeight / 2 && rect.bottom >= 120) {
+          current = id;
+        }
+      }
     }
     document.querySelectorAll('.nav-link').forEach(l => {
       l.classList.toggle('active', l.dataset.section === current);
@@ -2437,7 +2470,9 @@
     document.querySelectorAll('.mobile-nav-link').forEach(l => {
       l.classList.toggle('active', l.dataset.section === current);
     });
-  });
+  }
+
+  window.addEventListener('scroll', updateActiveNavLinks);
 
   // ── Stakeholder explorer
   function selectSH(id, btn) {
@@ -2603,12 +2638,13 @@
     }, 900 + Math.random() * 600);
   }
 
-  function askSuggested(question) {
-    appendMessage(question, 'user');
+  function askSuggested(key) {
+    const questionText = chatbotQuestions[key]?.[currentLang] || chatbotQuestions[key]?.['en'] || key;
+    appendMessage(questionText, 'user');
     showTypingIndicator();
     setTimeout(() => {
       removeTypingIndicator();
-      const botResponse = getKnowledgeBaseAnswer(question);
+      const botResponse = getKnowledgeBaseAnswer(key);
       appendMessage(botResponse, 'bot');
     }, 800 + Math.random() * 400);
   }
@@ -2786,11 +2822,11 @@ Inashughulikia makusanyo ya gharama na mgawanyo wa mapato kiotomatiki:<br>
 
     <!-- Suggested questions horizontal bar -->
     <div class="chat-suggestions-bar">
-      <button class="chat-sug-pill" onclick="askSuggested('How does the SMS OTP workflow work?')">OTP Security Flow</button>
-      <button class="chat-sug-pill" onclick="askSuggested('How is pricing calculated?')">Pricing formulas</button>
-      <button class="chat-sug-pill" onclick="askSuggested('How does SGR Railways integration work?')">SGR Railways Integration</button>
-      <button class="chat-sug-pill" onclick="askSuggested('What payment networks are supported?')">Payment Gateway</button>
-      <button class="chat-sug-pill" onclick="askSuggested('How does live tracking work?')">Parcel tracking UI</button>
+      <button class="chat-sug-pill" onclick="askSuggested('otp')">OTP Security Flow</button>
+      <button class="chat-sug-pill" onclick="askSuggested('pricing')">Pricing formulas</button>
+      <button class="chat-sug-pill" onclick="askSuggested('sgr')">SGR Railways Integration</button>
+      <button class="chat-sug-pill" onclick="askSuggested('payment')">Payment Gateway</button>
+      <button class="chat-sug-pill" onclick="askSuggested('tracking')">Parcel tracking UI</button>
     </div>
 
     <div class="chat-footer">
