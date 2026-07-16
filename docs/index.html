@@ -2137,9 +2137,18 @@
 <script>
   // ─── TRANSLATIONS DICTIONARY ───
   let currentLang = localStorage.getItem('mizigo-lang') || 'en';
+  let currentTrackState = 'received';
 
   const swTranslations = {
     // English -> Swahili translations
+    "Overview": "Maelezo ya Jumla",
+    "Stakeholders": "Wadau wa Mfumo",
+    "Parcel Flow": "Mzunguko wa Mzigo",
+    "Integrations": "Muunganiko wa Mifumo",
+    "Pricing": "Mfumo wa Gharama",
+    "Regular (1.0x)": "Kawaida (1.0x)",
+    "Express (1.5x)": "Haraka (1.5x)",
+    "Same-day SGR Train (2.0x)": "Treni ya SGR Siku Hiyohiyo (2.0x)",
     "Smart Logistics,": "Usafirishaji wa Kisasa,",
     "Simplified.": "Uliorahisishwa.",
     "MiziGO is an end-to-end cargo booking and tracking platform that connects depots, customers, operators, and railway networks — all under one intelligent system.": "MiziGO ni mfumo thabiti wa kusajili na kufuatilia mizigo unaounganisha vituo, wateja, waendeshaji na reli ya SGR — yote chini ya mfumo mmoja mahiri.",
@@ -2297,30 +2306,32 @@
     "Asante kwa kutuma Mzigo kupitia MiziGO.": "Thank you for shipping with MiziGO."
   };
 
-  const textCache = {}; // Cache of all text elements to switch back and forth
+  const originalTexts = new WeakMap();
 
   function translateNode(node, lang) {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.nodeValue.trim();
       if (!text) return;
 
-      if (!textCache[text]) {
-        textCache[text] = text;
+      if (!originalTexts.has(node)) {
+        originalTexts.set(node, text);
       }
 
+      const originalText = originalTexts.get(node);
+
       if (lang === 'sw') {
-        if (swTranslations[text]) {
-          node.nodeValue = node.nodeValue.replace(text, swTranslations[text]);
+        if (swTranslations[originalText]) {
+          node.nodeValue = node.nodeValue.replace(text, swTranslations[originalText]);
         }
       } else {
-        if (enTranslations[text]) {
-          node.nodeValue = node.nodeValue.replace(text, enTranslations[text]);
-        } else if (textCache[text]) {
-          node.nodeValue = node.nodeValue.replace(text, textCache[text]);
+        if (enTranslations[originalText]) {
+          node.nodeValue = node.nodeValue.replace(text, enTranslations[originalText]);
+        } else {
+          node.nodeValue = node.nodeValue.replace(text, originalText);
         }
       }
     } else {
-      if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE' || node.id === 'chat-input') return;
+      if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE' || node.id === 'chat-input' || node.classList?.contains('lang-selector')) return;
       for (let child of node.childNodes) {
         translateNode(child, lang);
       }
@@ -2387,9 +2398,15 @@
     });
 
     // Run active track state switcher to refresh its language
-    const activeTrackBtn = document.querySelector('.track-switcher[style*="rgba(74, 108, 247, 0.12)"]');
+    const activeTrackBtn = document.querySelector('.track-switcher.active');
     if (activeTrackBtn) {
-      activeTrackBtn.click();
+      switchTrackState(currentTrackState, activeTrackBtn);
+    }
+
+    // Run delivery result refresh to update its language
+    const box = document.getElementById('r4');
+    if (box && box.classList.contains('show')) {
+      doDeliver();
     }
   }
 
@@ -2491,15 +2508,18 @@
 
   // ── Step 5: Track state switcher
   function switchTrackState(state, btn) {
+    currentTrackState = state;
     // Update button styles
     document.querySelectorAll('.track-switcher').forEach(b => {
       b.style.background = 'transparent';
       b.style.color = 'var(--text-mid)';
       b.style.borderColor = 'rgba(74,108,247,0.4)';
+      b.classList.remove('active');
     });
     btn.style.background = 'rgba(74,108,247,0.12)';
     btn.style.color = 'var(--blue)';
     btn.style.borderColor = 'rgba(74,108,247,0.5)';
+    btn.classList.add('active');
 
     const fill = document.getElementById('track-fill');
     const dot  = document.getElementById('track-dot');
