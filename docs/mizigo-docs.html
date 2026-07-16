@@ -2197,6 +2197,24 @@
     const chatInput = document.getElementById('chat-input');
     if (chatInput) chatInput.placeholder = (lang === 'sw') ? 'Andika ujumbe...' : 'Type a message...';
 
+    // Translate Chatbot Header elements
+    const chatHdrTitle = document.querySelector('.chat-hdr-title');
+    if (chatHdrTitle) chatHdrTitle.textContent = (lang === 'sw') ? 'Msaidizi wa MiziGO' : 'MiziGO Assistant';
+
+    const chatHdrStatus = document.querySelector('.chat-hdr-status');
+    if (chatHdrStatus) chatHdrStatus.textContent = (lang === 'sw') ? 'Yuko Hewani' : 'Online';
+
+    // Translate Chatbot Welcome Message (first bot bubble)
+    const welcomeText = document.querySelector('.chat-body .chat-msg.bot .chat-msg-text');
+    if (welcomeText) {
+      const isWelcome = welcomeText.textContent.includes('workflows') || welcomeText.textContent.includes('mzunguko') || welcomeText.textContent.includes('Assistant');
+      if (isWelcome) {
+        welcomeText.innerHTML = (lang === 'sw')
+          ? 'Habari! Mimi ni Msaidizi wa MiziGO. Niulize chochote kuhusu mzunguko wa mizigo yetu, kusanidi SMS, uunganishaji wa reli ya SGR, malipo, au majukumu ya wadau wetu.'
+          : 'Habari! I am the MiziGO Assistant. Ask me anything about our workflows, SMS configurations, SGR railway portal integration, payments, or roles.';
+      }
+    }
+
     // Translate suggested pills
     const pillsMap = {
       "OTP Security Flow": "Usalama wa Namba ya Siri (OTP)",
@@ -2451,58 +2469,92 @@
 
   function getKnowledgeBaseAnswer(query) {
     const q = query.toLowerCase();
+    const isEn = (currentLang === 'en');
     
-    if (q.includes('sms') || q.includes('otp') || q.includes('siri') || q.includes('code') || q.includes('verification') || q.includes('handover') || q.includes('security')) {
-      return `<strong>Namba ya Siri (OTP) &amp; Security Flow:</strong><br><br>
+    if (q.includes('sms') || q.includes('otp') || q.includes('siri') || q.includes('code') || q.includes('verification') || q.includes('handover') || q.includes('security') || q.includes('usalama')) {
+      return isEn ? `<strong>Namba ya Siri (OTP) &amp; Security Flow:</strong><br><br>
 MiziGO implements a secure parcel handover protocol:<br>
 1. <strong>Booking:</strong> A 4-digit OTP is generated. It is sent via SMS to the <strong>Sender only</strong>.<br>
 2. <strong>Transit:</strong> When the operator logs a dispatch, the <strong>Receiver</strong> gets an SMS with carrier details, the tracking link, and the OTP.<br>
 3. <strong>Arrival:</strong> On offloading at destination station, the Receiver gets a pickup alert. For security, <em>the OTP is not re-sent</em>. The message instructs the receiver to contact the sender for OTP if they don't have it.<br>
-4. <strong>Delivery:</strong> The receiver must present this OTP at the depot. The operator inputs it, validating and marking it as delivered in the audit log.`;
+4. <strong>Delivery:</strong> The receiver must present this OTP at the depot. The operator inputs it, validating and marking it as delivered in the audit log.`
+: `<strong>Namba ya Siri (OTP) &amp; Usalama:</strong><br><br>
+MiziGO inatumia utaratibu salama wa kukabidhi mizigo:<br>
+1. <strong>Kusajili:</strong> OTP ya tarakimu 4 inatengenezwa na kutumwa kwa SMS kwa <strong>Mtumaji tu</strong>.<br>
+2. <strong>Kusafirisha:</strong> Mhudumu anaposajili safari, <strong>Mpokeaji</strong> anapata SMS yenye maelezo ya msafirishaji, kiungo cha kufuatilia, na OTP.<br>
+3. <strong>Kupakua:</strong> Mzigo ukifika kituo cha mwisho, Mpokeaji anapata arifa ya kuchukua mzigo. Kwa usalama, <em>OTP haitumwi tena</em>. Ujumbe unamuelekeza mpokeaji kuwasiliana na mtumaji kupata OTP.<br>
+4. <strong>Makabidhiano:</strong> Mpokeaji lazima awasilishe OTP hii kituoni ili mhudumu aithibitishe kwenye mfumo na kuruhusu makabidhiano.`;
     }
     
-    if (q.includes('price') || q.includes('pricing') || q.includes('engine') || q.includes('fare') || q.includes('cost') || q.includes('calculate') || q.includes('fee')) {
-      return `<strong>Intelligent Pricing Engine:</strong><br><br>
+    if (q.includes('price') || q.includes('pricing') || q.includes('engine') || q.includes('fare') || q.includes('cost') || q.includes('calculate') || q.includes('fee') || q.includes('bei') || q.includes('gharama')) {
+      return isEn ? `<strong>Intelligent Pricing Engine:</strong><br><br>
 Mzigo calculates shipment costs dynamically:<br>
 - <strong>Formula:</strong> Base Shipping Fee (TZS 5,000) + (Weight in kg * TZS 1,500) + Value Protection Fee (TZS 2,000).<br>
 - <strong>Urgency Multipliers:</strong> Regular (1.0x), Express (1.5x), Same-day SGR Train (2.0x).<br>
-- <strong>Custom Rate Rules:</strong> Organization Admins can configure custom tariffs for specific routes, wagon containers, or corporate clients, overriding default system formulas.`;
+- <strong>Custom Rate Rules:</strong> Organization Admins can configure custom tariffs for specific routes, wagon containers, or corporate clients, overriding default system formulas.`
+: `<strong>Kikokotoo cha Bei cha Kisasa:</strong><br><br>
+MiziGO inakokotoa gharama za usafirishaji kiotomatiki:<br>
+- <strong>Fomula:</strong> Ada ya Msingi (TZS 5,000) + (Uzito kwa kilo * TZS 1,500) + Ada ya Ulinzi wa Thamani (TZS 2,000).<br>
+- <strong>Viwango vya Uharaka:</strong> Kawaida (1.0x), Haraka/Express (1.5x), SGR Treni Siku Hiyohiyo (2.0x).<br>
+- <strong>Sheria Maalum za Bei:</strong> Wasimamizi wa Shirika wanaweza kuweka viwango vyao maalum kwa wateja au njia fulani, ambazo zinachukua nafasi ya fomula ya kawaida ya mfumo.`;
     }
     
-    if (q.includes('sgr') || q.includes('train') || q.includes('railway') || q.includes('trc') || q.includes('wagon')) {
-      return `<strong>TRC SGR Railway Portal Integration:</strong><br><br>
+    if (q.includes('sgr') || q.includes('train') || q.includes('railway') || q.includes('trc') || q.includes('wagon') || q.includes('reli') || q.includes('treni')) {
+      return isEn ? `<strong>TRC SGR Railway Portal Integration:</strong><br><br>
 MiziGO integrates directly with Tanzania Railways Corporation (TRC) SGR infrastructure:<br>
 - <strong>Fare lookup:</strong> Queries e-cargo tariffs dynamically for weight-based billing.<br>
 - <strong>Booking Registration:</strong> Registers freight on wagon lists synchronously.<br>
-- <strong>Live tracking:</strong> Automatically syncs with railway tracking references when dispatched onto train wagons (e.g. Wagon TRC-041).`;
+- <strong>Live tracking:</strong> Automatically syncs with railway tracking references when dispatched onto train wagons (e.g. Wagon TRC-041).`
+: `<strong>Muunganiko na Reli ya SGR (TRC):</strong><br><br>
+MiziGO inaungana moja kwa moja na mfumo wa reli wa TRC SGR:<br>
+- <strong>Kuangalia Ushuru:</strong> Huuliza bei za usafirishaji wa mizigo za TRC moja kwa moja kulingana na uzito.<br>
+- <strong>Kusajili Mzigo Reli:</strong> Husajili shehena kwenye orodha ya behewa shehena husika kiotomatiki.<br>
+- <strong>Kufuatilia Moja kwa Moja:</strong> Inasawazisha taarifa na behewa la treni lililopakiwa (mfano. Wagon TRC-041).`;
     }
     
-    if (q.includes('payment') || q.includes('gateway') || q.includes('pay') || q.includes('money') || q.includes('ussd') || q.includes('pesa') || q.includes('split') || q.includes('money')) {
-      return `<strong>MiziGO Payment Gateway:</strong><br><br>
+    if (q.includes('payment') || q.includes('gateway') || q.includes('pay') || q.includes('money') || q.includes('ussd') || q.includes('pesa') || q.includes('split') || q.includes('malipo')) {
+      return isEn ? `<strong>MiziGO Payment Gateway:</strong><br><br>
 Handles automated revenue collection and distribution:<br>
 - <strong>Mobile Money:</strong> Supports M-Pesa, Tigo Pesa, Airtel Money, and Halopesa.<br>
 - <strong>Push Payment:</strong> Integrates directly with USSD Push triggers (STK Push) on checkout.<br>
-- <strong>Automated Revenue Splits:</strong> Fares are split in real-time according to system formulas (station cut, railway tariff, and agent commission).`;
+- <strong>Automated Revenue Splits:</strong> Fares are split in real-time according to system formulas (station cut, railway tariff, and agent commission).`
+: `<strong>Njia ya Malipo ya MiziGO:</strong><br><br>
+Inashughulikia makusanyo ya gharama na mgawanyo wa mapato kiotomatiki:<br>
+- <strong>Malipo ya Simu:</strong> Inasaidia M-Pesa, Tigo Pesa, Airtel Money, na Halopesa.<br>
+- <strong>Malipo ya Kusukuma:</strong> Inatuma USSD Push (STK Push) moja kwa moja kwenye simu ya mteja wakati wa kulipia.<br>
+- <strong>Mgawanyo vya Papo kwa Papo:</strong> Mapato yanagawanywa kiotomatiki kati ya mwendeshaji wa kituo, TRC (kama inatumia reli), na kamisheni ya wakala.`;
     }
     
-    if (q.includes('agent') || q.includes('partner') || q.includes('kyc') || q.includes('commission')) {
-      return `<strong>Platform Agents &amp; Partners:</strong><br><br>
+    if (q.includes('agent') || q.includes('partner') || q.includes('kyc') || q.includes('commission') || q.includes('wakala') || q.includes('kamisheni')) {
+      return isEn ? `<strong>Platform Agents &amp; Partners:</strong><br><br>
 - <strong>Onboarding:</strong> Agents go through a formal KYC verification process.<br>
 - <strong>Capabilities:</strong> They can search shipping rates, book parcels for walk-in clients, and print receipts.<br>
-- <strong>Commissions:</strong> Agents earn a percentage commission on every booking they facilitate. Their payouts are handled via the Payment Gateway.`;
+- <strong>Commissions:</strong> Agents earn a percentage commission on every booking they facilitate. Their payouts are handled via the Payment Gateway.`
+: `<strong>Mawakala wa Mfumo &amp; Washirika:</strong><br><br>
+- <strong>Kusajiliwa:</strong> Mawakala wanapitia utaratibu rasmi wa uhakiki wa utambulisho (KYC).<br>
+- <strong>Uwezo wao:</strong> Wanaweza kuangalia gharama, kusajili shehena za wateja wanaofika kituo cha usajili, na kuchapa risiti.<br>
+- <strong>Kamisheni:</strong> Mawakala wanapata asilimia fulani ya kamisheni kwa kila mzigo wanaosajili, na malipo yanatumwa kiotomatiki kwenye akaunti zao.`;
     }
     
-    if (q.includes('track') || q.includes('tracking') || q.includes('live') || q.includes('status')) {
-      return `<strong>Live Parcel Tracking:</strong><br><br>
+    if (q.includes('track') || q.includes('tracking') || q.includes('live') || q.includes('status') || q.includes('fuatilia') || q.includes('hali')) {
+      return isEn ? `<strong>Live Parcel Tracking:</strong><br><br>
 - <strong>Public Portal:</strong> Anyone can track their parcel using the public URL: <code>mizigo.akiliapp.co.tz/track/[tracking-number]</code> without logging in.<br>
-- <strong>Timeline Updates:</strong> Shows real-time progress through 4 statuses: <em>RECEIVED</em> ➔ <em>DISPATCHED</em> ➔ <em>OFFLOADED</em> ➔ <em>DELIVERED</em>.`;
+- <strong>Timeline Updates:</strong> Shows real-time progress through 4 statuses: <em>RECEIVED</em> ➔ <em>DISPATCHED</em> ➔ <em>OFFLOADED</em> ➔ <em>DELIVERED</em>.`
+: `<strong>Kufuatilia Mzigo Moja kwa Moja:</strong><br><br>
+- <strong>Tovuti ya Umma:</strong> Mtu yeyote anaweza kufuatilia shehena yake kupitia kiungo: <code>mizigo.akiliapp.co.tz/track/[namba-ya-mzigo]</code> bila kulazimika kuingia kwenye mfumo.<br>
+- <strong>Kusasishwa kwa Hali:</strong> Inaonyesha safari ya mzigo kupitia hatua 4: <em>RECEIVED</em> ➔ <em>DISPATCHED</em> ➔ <em>OFFLOADED</em> ➔ <em>DELIVERED</em>.`;
     }
     
-    return `I can help you understand the Mizigo logistics workflows. Try asking about:<br>
+    return isEn ? `I can help you understand the Mizigo logistics workflows. Try asking about:<br>
 - <strong>"How does the SMS OTP workflow work?"</strong><br>
 - <strong>"How is pricing calculated?"</strong><br>
 - <strong>"How does SGR Railways integration work?"</strong><br>
-- <strong>"What payment networks are supported?"</strong>`;
+- <strong>"What payment networks are supported?"</strong>`
+: `Ninaweza kukusaidia kuelewa taratibu za MiziGO. Jaribu kuuliza kuhusu:<br>
+- <strong>"Jinsi OTP na SMS zinavyofanya kazi"</strong><br>
+- <strong>"Jinsi ya kuhesabu bei ya mzigo"</strong><br>
+- <strong>"Muunganiko wa reli ya SGR"</strong><br>
+- <strong>"Njia za malipo zinazokubaliwa"</strong>`;
   }
 
   function show(id) {
