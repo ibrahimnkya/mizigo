@@ -427,6 +427,35 @@
       .int-grid { grid-template-columns:1fr; }
     }
 
+    /* ─── LANG SELECTOR ─── */
+    .lang-selector {
+      display: flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 100px;
+      padding: 2px;
+      margin-right: 12px;
+      align-items: center;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-btn:hover {
+      color: white;
+    }
+    .lang-btn.active {
+      background: var(--blue);
+      color: white;
+    }
+
     /* ─── CHATBOT WIDGET ─── */
     .chat-widget {
       position: fixed;
@@ -745,6 +774,10 @@
     </a>
   </div>
   <div class="nav-right">
+    <div class="lang-selector">
+      <button class="lang-btn active" id="lang-btn-en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-btn" id="lang-btn-sw" onclick="setLanguage('sw')">SW</button>
+    </div>
     <span class="nav-badge">v1.0 · Business Docs</span>
   </div>
 </nav>
@@ -1911,7 +1944,7 @@
           </div>
           <div style="margin-top:22px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.07);">
             <div class="formula-ttl">
-              <svg width="15" height="15" fill="none" stroke="var(--cyan)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="15" height="15" fill="none" stroke="var(--cyan)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M8 8h8"/><path d="M10 16h4"/></svg>
               Revenue Split per Shipment
             </div>
             <div class="f-row"><span class="f-k">Gross Revenue</span><span class="f-v">TZS 37,500</span></div>
@@ -1928,7 +1961,7 @@
           </div>
           <div class="pm-row">
             <div class="pm-icon" style="background:#EEF1FF;">
-              <svg width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="18" height="18" fill="none" stroke="var(--blue)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M8 8h8"/><path d="M10 16h4"/></svg>
             </div>
             <div><div class="pm-name">Pay-As-You-Go</div><div class="pm-desc">Full fee collected from the sender at origin depot before dispatch.</div></div>
           </div>
@@ -1952,6 +1985,253 @@
 </footer>
 
 <script>
+  // ─── TRANSLATIONS DICTIONARY ───
+  let currentLang = localStorage.getItem('mizigo-lang') || 'en';
+
+  const swTranslations = {
+    // English -> Swahili translations
+    "Smart Logistics,": "Usafirishaji wa Kisasa,",
+    "Simplified.": "Uliorahisishwa.",
+    "MiziGO is an end-to-end cargo booking and tracking platform that connects depots, customers, operators, and railway networks — all under one intelligent system.": "MiziGO ni mfumo thabiti wa kusajili na kufuatilia mizigo unaounganisha vituo, wateja, waendeshaji na reli ya SGR — yote chini ya mfumo mmoja mahiri.",
+    "Stakeholder Roles": "Majukumu ya Wadau",
+    "Lifecycle Stages": "Hatua za Safari",
+    "Live Integrations": "Mifumo Iliyounganishwa",
+    "Platform Overview": "Maelezo ya Mfumo",
+    "What's inside this document?": "Kuna nini ndani ya mwongozo huu?",
+    "Stakeholders & Roles": "Wadau & Majukumu yao",
+    "Parcel Lifecycle Simulation": "Uigizaji wa Safari ya Mzigo",
+    "System Integrations": "Mifumo Iliyounganishwa",
+    "Intelligent Pricing Engine": "Mfumo wa Bei na Ushuru",
+    "Who uses MiziGO?": "Nani anatumia MiziGO?",
+    "Each role has a clearly defined access boundary and operational scope, ensuring data security and process integrity.": "Kila nafasi ina mipaka na uwezo maalum wa kiutendaji, kuhakikisha usalama wa data na uaminifu wa kazi.",
+    "Super Admin": "Msimamizi Mkuu",
+    "Organization Admin": "Msimamizi wa Shirika",
+    "Station Operator": "Mhudumu wa Kituo",
+    "Platform Agent": "Wakala wa Mfumo",
+    "Regular Customer": "Mteja wa Kawaida",
+    "Global Scope": "Upeo wa Dunia",
+    "Tenant Scope": "Upeo wa Shirika",
+    "Depot Scope": "Upeo wa Kituo",
+    "Partner Scope": "Upeo wa Wakala",
+    "Public Access": "Ufikiaji wa Umma",
+    "Platform Super Admin": "Msimamizi Mkuu wa Mfumo",
+    "Tenant / Org Scope": "Upeo wa Shirika",
+    "Oversees the entire MiziGO platform — all tenants, organizations, and global system parameters. Has unrestricted access to every feature, configuration, and log in the system.": "Husimamia mfumo mzima wa MiziGO — mashirika yote, watumiaji, na vigezo vya kimataifa vya mfumo. Ana uwezo wa kuona na kubadilisha kila kitu bila vizuizi.",
+    "Capabilities": "Uwezo wa Kiutendaji",
+    "Organization management": "Usimamizi wa mashirika",
+    "Global audit logs": "Kumbukumbu za mfumo mzima",
+    "Gateway configuration": "Kusanidi Njia za Malipo/SMS",
+    "Agent onboarding": "Kusajili mawakala",
+    "System-wide pricing rules": "Sheria kuu za bei",
+    "Integration setup": "Kusanidi mifumo ya nje",
+    "Full platform access — no restrictions": "Uwezo kamili kwenye mfumo — bila vizuizi",
+    "Manages a single logistics organization — controls depot setup, staff roles, custom pricing rules, and monitors financial performance reports across all their stations.": "Husimamia shirika moja la usafirishaji — hudhibiti vituo vya kupokelea mizigo, majukumu ya wafanyakazi, sheria maalum za bei, na kufuatilia ripoti za kifedha katika vituo vyao vyote.",
+    "Depot management": "Usimamizi wa vituo",
+    "Custom pricing rules": "Sheria maalum za bei",
+    "User management": "Usimamizi wa watumiaji",
+    "Reports & Finance": "Ripoti & Fedha",
+    "Fleet configuration": "Usimamizi wa magari/treni",
+    "Agent oversight": "Usimamizi wa mawakala",
+    "Scoped to their organization only": "Uwezo umepakana na shirika lake tu",
+    "Handles all physical parcel operations at a single depot. They are the frontline staff who receive cargo, dispatch to vehicles, offload arriving shipments, and verify handovers with OTP.": "Hushughulikia shughuli zote za kimwili za mizigo kwenye kituo kimoja. Ni wafanyakazi wa msitari wa mbele wanaopokea mizigo, kupakia kwenye vyombo vya usafiri, kupakua mizigo inayowasili, na kuhakikisha makabidhiano kwa kutumia OTP.",
+    "Receive cargo at depot": "Kupokea mzigo kituoni",
+    "Dispatch to vehicle": "Kusafirisha mzigo kwenye gari/treni",
+    "Offload arrivals": "Kupakua mzigo uliowasili",
+    "OTP delivery verification": "Kuhakiki OTP wakati wa makabidhiano",
+    "Print receipts": "Kuchapa risiti",
+    "Parcel status updates": "Kusasisha hali ya mzigo",
+    "Operational access — single depot only": "Ufikiaji wa kiutendaji — kituo chake tu",
+    "Independent or business partners who book shipments on behalf of customers. Agents go through KYC verification and earn commissions on every booking they facilitate through the platform.": "Wafanyabiashara huru au washirika wanaosajili mizigo kwa niaba ya wateja. Mawakala hupitia uhakiki wa utambulisho (KYC) na kupata kamisheni kwa kila mzigo wanaosajili kupitia mfumo.",
+    "KYC & identity verification": "KYC & uhakiki wa utambulisho",
+    "Book parcels for clients": "Kusajili mizigo ya wateja",
+    "Commission tracking": "Kufuatilia kamisheni",
+    "Parcel status lookup": "Kuangalia hali ya mzigo",
+    "Partner access — booking & commissions only": "Ufikiaji wa wakala — usajili & kamisheni tu",
+    "End-users who use MiziGO to send and receive parcels. They can book door-to-door deliveries, check shipping rates with the rate calculator, and follow their parcels in real-time via the tracking portal.": "Watumiaji wa mwisho wanaotumia MiziGO kutuma na kupokea mizigo. Wanaweza kusajili mizigo ya mlango kwa mlango, kuhesabu gharama za usafirishaji, na kufuatilia mizigo yao moja kwa moja.",
+    "Self-service booking": "Kusajili mzigo mwenyewe",
+    "Rate calculator": "Kikokotoo cha gharama",
+    "Real-time tracking": "Kufuatilia mzigo moja kwa moja",
+    "SMS notifications": "Kupokea ujumbe wa SMS",
+    "Public portal — no admin access": "Ufikiaji wa umma — hana uwezo wa usimamizi",
+    "Access Permission Matrix": "Jedwali la Ruhusa za Ufikiaji",
+    "Capability": "Uwezo wa Kiutendaji",
+    "Manage Organizations": "Kusimamia Mashirika",
+    "Create & Manage Depots": "Kuunda & Kusimamia Vituo",
+    "Configure Pricing Rules": "Kuweka Sheria za Bei",
+    "Receive Cargo at Depot": "Kupokea Mzigo Kituoni",
+    "Dispatch & Load Vehicles": "Kupakia & Kusafirisha Mzigo",
+    "OTP Delivery Verification": "Uhakiki wa OTP Wakati wa Kutupa",
+    "Book Parcel (Self-Service)": "Usajili wa Mzigo (Mteja)",
+    "View Reports & Finance": "Kuangalia Ripoti & Fedha",
+    "Configure Integrations": "Kusanidi Mifumo ya Nje",
+    "View Global Audit Logs": "Kuangalia Ripoti za Mfumo",
+    "If granted": "Ikikubaliwa",
+    "Interactive Lifecycle Simulator": "Uigizaji wa Safari ya Mzigo",
+    "Follow a parcel's step-by-step journey from booking to destination handover.": "Fuatilia safari ya mzigo hatua kwa hatua kutoka usajili hadi makabidhiano mwisho.",
+    "Step 1: Booking & Payment": "Hatua 1: Usajili na Malipo",
+    "Step 2: Dispatch from Origin": "Hatua 2: Kusafirisha kutoka Kituoni",
+    "Step 3: Offloaded at Destination": "Hatua 3: Kupakuliwa Kituo cha Mwisho",
+    "Step 4: Secure Delivery Handover": "Hatua 4: Makabidhiano Salama ya Mzigo",
+    "Step 5: Live Tracking View": "Hatua 5: Muonekano wa Kufuatilia Mzigo",
+    "Sender Mobile": "Namba ya Mtumaji",
+    "Receiver Mobile": "Namba ya Mpokeaji",
+    "Parcel Weight (kg)": "Uzito wa Mzigo (kg)",
+    "Urgency Multiplier": "Kiwango cha Uharaka",
+    "Book Parcel & Pay": "Sajili Mzigo & Lipa",
+    "Calculated Price:": "Bei Iliyokokotolewa:",
+    "Dispatch to Vehicle (DSM Central)": "Safirisha Kuelekea Dodoma",
+    "Offload at Dodoma Depot": "Pakua Mzigo Dodoma",
+    "Enter 4-digit Handover OTP:": "Ingiza Namba ya Siri (OTP) ya tarakimu 4:",
+    "Verify & Handover": "Hakiki & Kabidhi",
+    "Automated Bridges": "Uunganishaji Mifumo",
+    "System Integrations": "Uunganishaji wa Mifumo ya Nje",
+    "MiziGO integrates with critical third-party systems to automate pricing, payments, and communication without human intervention.": "MiziGO huungana na mifumo mingine muhimu ili kuendesha bei, malipo na mawasiliano bila kuingiliwa na binadamu.",
+    "TRC SGR Railway Portal": "Mfumo wa SGR (TRC)",
+    "MiziGO automatically syncs cargo bookings with TRC's official e-cargo portal, ensuring every shipment gets a valid railway tracking reference.": "MiziGO inasawazisha usajili wa mizigo na mfumo wa e-Cargo wa TRC, ikihakikisha kila mzigo unaopakiwa kwenye treni unapata namba rasmi ya usafiri wa reli.",
+    "SMS Communication Gateway": "Njia ya Mawasiliano ya SMS",
+    "Sends real-time updates and secure OTP codes to senders and receivers during key transit events.": "Hutuma ujumbe wa papo hapo na namba za siri (OTP) kwa watumaji na wapokeaji wakati wa hatua zote za safari ya mzigo.",
+    "MiziGO Payment Gateway": "Njia ya Malipo ya MiziGO",
+    "Initiates USSD pushes (STK Push) for M-Pesa, Airtel Money, and Tigo Pesa, splitting revenue between partners in real-time.": "Huendesha malipo kwa njia ya mitandao ya simu (M-Pesa, Airtel Money, Tigo Pesa) kwa kutuma USSD push (STK Push) kwa mteja.",
+    "Intelligent, Multi-Tier Pricing": "Mfumo wa Bei wa Kisasa na Viwango",
+    "MiziGO calculates shipment costs dynamically using a hierarchical rules engine — ensuring fair, accurate pricing that can be customised per operator.": "MiziGO inakokotoa gharama za usafirishaji kwa kutumia mfumo wa viwango thabiti — kuhakikisha bei ya haki na sahihi kwa kila chombo.",
+    "Organisation-Specific Overrides": "Sheria Maalum za Bei za Shirika",
+    "Custom pricing rules set by the organisation admin for specific clients or routes always take highest precedence.": "Bei maalum zilizowekwa na msimamizi wa shirika kwa wateja au njia fulani daima huchukua kipaumbele cha juu.",
+    "Physical & Urgency Parameters": "Vigezo vya Kimwili & Uharaka",
+    "Standard platform-wide rates computed from cargo attributes and the urgency selected by the sender.": "Bei za kawaida za mfumo zinazotegemea uzito, thamani ya mzigo, na haraka iliyochaguliwa na mtumaji.",
+    "SGR Railway Tariffs": "Ushuru wa Reli ya SGR (TRC)",
+    "For railway-linked cargo, live distance-based tariffs from TRC are applied automatically.": "Kwa mizigo inayotumia reli, ushuru unaotegemea umbali kutoka TRC unatumika moja kwa moja.",
+    "How the Fee is Calculated": "Jinsi Bei Inavyokokotolewa",
+    "Base Fee": "Bei ya Msingi",
+    "+ Weight Fee": "+ Gharama ya Uzito",
+    "+ Value Fee": "+ Gharama ya Thamani",
+    "× Urgency Multiplier": "× Kiwango cha Uharaka",
+    "Estimated Total": "Jumla ya Makadirio",
+    "Revenue Split per Shipment": "Mgawanyo wa Mapato kwa Kila Mzigo",
+    "Gross Revenue": "Mapato Ghafi",
+    "System Fee": "Ada ya Mfumo",
+    "Agent Commission": "Kamisheni ya Wakala",
+    "Net to Operator": "Mapato ya Mwendeshaji",
+    "Payment Collection Modes": "Njia za Kupokea Malipo",
+    "Pay-As-You-Go": "Lipa Ukituma (PAYG)",
+    "Full fee collected from the sender at origin depot before dispatch.": "Gharama zote zinalipwa na mtumaji kwenye kituo cha mwanzo kabla ya mzigo kusafirishwa.",
+    "To-Pay (Cash on Delivery)": "Lipa Ukipokea (COD)",
+    "Half collected at origin, remaining half from the receiver at delivery.": "Nusu inalipwa mtumaji anaposajili, nusu inayobaki inalipwa na mpokeaji wakati wa kuchukua mzigo.",
+    "End-to-End Logistics Platform · Business Documentation": "Mfumo wa Usafirishaji wa Mizigo · Nyaraka za Biashara",
+    "© 2026 MiziGO. All rights reserved. Confidential & Proprietary.": "© 2026 MiziGO. Haki zote zimehifadhiwa. Siri ya Mfumo."
+  };
+
+  const enTranslations = {
+    // Swahili -> English translations (specifically for simulated SMS alerts)
+    "Mzigo wako umepokelewa": "Your parcel has been received at origin.",
+    "Namba ya Mzigo:": "Tracking Number:",
+    "Aina ya Mzigo: Parcel (Box)": "Category: Parcel (Box)",
+    "Jina la Mpokeaji: Amani Kibwana": "Receiver Name: Amani Kibwana",
+    "Namba ya Siri: 7421": "Security Code: 7421",
+    "Usishirikishe mtu OTP hii": "Do not share this OTP with anyone",
+    "Habari Amani!": "Hello Amani!",
+    "Umetumiwa mzigo wa Parcel (Box).": "You have been sent a Parcel (Box).",
+    "Mtumaji: Saidi Omari": "Sender: Saidi Omari",
+    "Safari: DSM → Dodoma": "Route: DSM → Dodoma",
+    "Tafadhali fika na OTP kupokea mzigo wako. Wasiliana na mtumaji kwa OTP.": "Please present the OTP to receive your parcel. Contact the sender to get the OTP.",
+    "Fuatilia:": "Track:",
+    "Mzigo Umetumwa": "Parcel Dispatched",
+    "Mpendwa Amani, mzigo namba MZG-AAC-114 umetoka DSM Central kwenda Dodoma Depot na gari la TRC-041.": "Dear Amani, parcel MZG-AAC-114 has departed DSM Central for Dodoma Depot on SGR Wagon TRC-041.",
+    "Msafirishaji: Juma Mselem &nbsp;|&nbsp; Simu: 0736 699 593": "Driver: Juma Mselem | Phone: 0736 699 593",
+    "Namba ya Siri (OTP): 7421": "Security Code (OTP): 7421",
+    "Usishirikishe OTP hii na mtu yeyote": "Do not share this OTP with anyone",
+    "Kwa msaada: 0736 699 593": "For support: 0736 699 593",
+    "Mzigo wako umewasili.": "Your parcel has arrived.",
+    "Jina la Mtumaji: Saidi Omari": "Sender Name: Saidi Omari",
+    "Kwa usalama, OTP ya kupokea mzigo imehifadhiwa kwa mtumaji. Tafadhali wasiliana na mtumaji kabla ya kuchukua mzigo wako.": "For security, the pickup OTP has been kept with the sender. Please contact the sender before picking up your parcel.",
+    "Fuatilia Safari ya Mzigo:": "Track Parcel Journey:",
+    "Asante kwa kutuma Mzigo kupitia MiziGO.": "Thank you for shipping with MiziGO."
+  };
+
+  const textCache = {}; // Cache of all text elements to switch back and forth
+
+  function translateNode(node, lang) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.nodeValue.trim();
+      if (!text) return;
+
+      if (!textCache[text]) {
+        textCache[text] = text;
+      }
+
+      if (lang === 'sw') {
+        if (swTranslations[text]) {
+          node.nodeValue = node.nodeValue.replace(text, swTranslations[text]);
+        }
+      } else {
+        if (enTranslations[text]) {
+          node.nodeValue = node.nodeValue.replace(text, enTranslations[text]);
+        } else if (textCache[text]) {
+          node.nodeValue = node.nodeValue.replace(text, textCache[text]);
+        }
+      }
+    } else {
+      if (node.nodeName === 'SCRIPT' || node.nodeName === 'STYLE' || node.id === 'chat-input') return;
+      for (let child of node.childNodes) {
+        translateNode(child, lang);
+      }
+    }
+  }
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('mizigo-lang', lang);
+
+    // Toggle active state of language buttons
+    const btnEn = document.getElementById('lang-btn-en');
+    const btnSw = document.getElementById('lang-btn-sw');
+    if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+    if (btnSw) btnSw.classList.toggle('active', lang === 'sw');
+
+    // Traverse body and replace texts
+    translateNode(document.body, lang);
+
+    // Translate placeholders
+    const wtInput = document.getElementById('wt');
+    if (wtInput) wtInput.placeholder = (lang === 'sw') ? 'Uzito (kilo)...' : 'Weight (kg)...';
+
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) chatInput.placeholder = (lang === 'sw') ? 'Andika ujumbe...' : 'Type a message...';
+
+    // Translate suggested pills
+    const pillsMap = {
+      "OTP Security Flow": "Usalama wa Namba ya Siri (OTP)",
+      "Pricing formulas": "Mfumo wa Bei na Ushuru",
+      "SGR Railways Integration": "Uunganishaji wa Reli ya SGR",
+      "Payment Gateway": "Njia ya Malipo",
+      "Parcel tracking UI": "Kufuatilia Mzigo"
+    };
+
+    document.querySelectorAll('.chat-sug-pill').forEach(pill => {
+      const orig = pill.getAttribute('data-orig') || pill.textContent;
+      if (!pill.getAttribute('data-orig')) {
+        pill.setAttribute('data-orig', orig);
+      }
+      if (lang === 'sw') {
+        if (pillsMap[orig]) pill.textContent = pillsMap[orig];
+      } else {
+        pill.textContent = orig;
+      }
+    });
+
+    // Run active track state switcher to refresh its language
+    const activeTrackBtn = document.querySelector('.track-switcher[style*="rgba(74, 108, 247, 0.12)"]');
+    if (activeTrackBtn) {
+      activeTrackBtn.click();
+    }
+  }
+
+  // Run on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      setLanguage(currentLang);
+    }, 100);
+  });
+
   // ── Navbar scroll state
   const nav = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
@@ -2011,14 +2291,23 @@
   // ── Step 4: Deliver
   function doDeliver() {
     const otp = ['o1','o2','o3','o4'].map(i => document.getElementById(i).value).join('');
+    const box = document.getElementById('r4');
+    const isEn = (currentLang === 'en');
     if (otp === '7421') {
-      show('r4');
+      box.className = 'sim-res show';
+      box.style.background = 'linear-gradient(135deg,#D1FAE5,#A7F3D0)';
+      box.style.borderColor = 'rgba(16,185,129,0.3)';
+      box.innerHTML = isEn 
+        ? `<div class="sim-res-title"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> OTP Verified — Handover Approved. Parcel Status: DELIVERED</div>`
+        : `<div class="sim-res-title"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Uhakiki Umefanikiwa — Mzigo Umekabidhiwa. Hali ya Mzigo: UMEKABIDHIWA</div>`;
     } else {
-      const box = document.getElementById('r4');
       box.style.display = 'block';
+      box.className = 'sim-res show';
       box.style.background = 'linear-gradient(135deg,#FEE2E2,#FECACA)';
       box.style.borderColor = 'rgba(239,68,68,0.3)';
-      box.innerHTML = '<div class="sim-res-title" style="color:#DC2626"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Invalid OTP — Handover Denied. Try <b>7421</b></div>';
+      box.innerHTML = isEn
+        ? `<div class="sim-res-title" style="color:#DC2626"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Invalid OTP — Handover Denied. Try <b>7421</b></div>`
+        : `<div class="sim-res-title" style="color:#DC2626"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Namba ya Siri Sio Sahihi. Jaribu <b>7421</b></div>`;
     }
   }
 
@@ -2044,15 +2333,16 @@
     const delTime = document.getElementById('tl-delivered-time');
     const delPlace= document.getElementById('tl-delivered-place');
 
+    const isEn = (currentLang === 'en');
     const states = {
-      received:  { w:'25%', l:'calc(25% - 5px)', bg:'rgba(0,212,170,0.12)', col:'#006064', label:'RECEIVED AT DEPOT',
-        tTDot:'pend', tTTime:'Pending', tTPlace:'–', tDDot:'pend', tDTime:'Pending', tDPlace:'–' },
-      dispatched:{ w:'55%', l:'calc(55% - 5px)', bg:'rgba(74,108,247,0.12)', col:'var(--blue)', label:'IN TRANSIT — SGR TRC-041',
-        tTDot:'active', tTTime:'17 Jul · 07:00 AM', tTPlace:'DSM Central → Dodoma', tDDot:'pend', tDTime:'Pending', tDPlace:'–' },
-      offloaded: { w:'80%', l:'calc(80% - 5px)', bg:'rgba(234,88,12,0.12)', col:'#C2410C', label:'ARRIVED — AWAITING COLLECTION',
-        tTDot:'done', tTTime:'17 Jul · 07:00 AM', tTPlace:'SGR Wagon TRC-041', tDDot:'active', tDTime:'17 Jul · 04:22 PM', tDPlace:'Dodoma Depot (awaiting OTP)' },
-      delivered: { w:'100%', l:'calc(100% - 10px)', bg:'rgba(5,150,105,0.12)', col:'#059669', label:'DELIVERED ✓',
-        tTDot:'done', tTTime:'17 Jul · 07:00 AM', tTPlace:'SGR Wagon TRC-041', tDDot:'done', tDTime:'17 Jul · 05:11 PM', tDPlace:'Dodoma Depot — OTP verified' },
+      received:  { w:'25%', l:'calc(25% - 5px)', bg:'rgba(0,212,170,0.12)', col:'#006064', label: isEn ? 'RECEIVED AT DEPOT' : 'UMEPOKELEWA KITUONI',
+        tTDot:'pend', tTTime: isEn ? 'Pending' : 'Bado', tTPlace:'–', tDDot:'pend', tDTime: isEn ? 'Pending' : 'Bado', tDPlace:'–' },
+      dispatched:{ w:'55%', l:'calc(55% - 5px)', bg:'rgba(74,108,247,0.12)', col:'var(--blue)', label: isEn ? 'IN TRANSIT — SGR TRC-041' : 'NJIANI — SGR TRC-041',
+        tTDot:'active', tTTime:'17 Jul · 07:00 AM', tTPlace: isEn ? 'DSM Central → Dodoma' : 'Dar es Salaam → Dodoma', tDDot:'pend', tDTime: isEn ? 'Pending' : 'Bado', tDPlace:'–' },
+      offloaded: { w:'80%', l:'calc(80% - 5px)', bg:'rgba(234,88,12,0.12)', col:'#C2410C', label: isEn ? 'ARRIVED — AWAITING COLLECTION' : 'UMEWASILI — USUBIRI KUCHUKULIWA',
+        tTDot:'done', tTTime:'17 Jul · 07:00 AM', tTPlace: isEn ? 'SGR Wagon TRC-041' : 'Mabehewa ya SGR TRC-041', tDDot:'active', tDTime:'17 Jul · 04:22 PM', tDPlace: isEn ? 'Dodoma Depot (awaiting OTP)' : 'Kituo cha Dodoma (inahitaji OTP)' },
+      delivered: { w:'100%', l:'calc(100% - 10px)', bg:'rgba(5,150,105,0.12)', col:'#059669', label: isEn ? 'DELIVERED ✓' : 'UMEKABIDHIWA ✓',
+        tTDot:'done', tTTime:'17 Jul · 07:00 AM', tTPlace: isEn ? 'SGR Wagon TRC-041' : 'Mabehewa ya SGR TRC-041', tDDot:'done', tDTime:'17 Jul · 05:11 PM', tDPlace: isEn ? 'Dodoma Depot — OTP verified' : 'Kituo cha Dodoma — OTP imethibitishwa' },
     };
     const s = states[state] || states.received;
     fill.style.width  = s.w;
