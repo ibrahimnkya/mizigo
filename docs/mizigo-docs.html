@@ -425,6 +425,86 @@
       .flow-wrap { grid-template-columns:1fr; }
       .price-grid { grid-template-columns:1fr; }
       .int-grid { grid-template-columns:1fr; }
+
+      /* Mobile bottom spacing and nav adjustments */
+      body { padding-bottom: 74px !important; }
+      .chat-widget { bottom: 82px !important; right: 16px !important; }
+
+      /* Horizontal scrollable workflow step list */
+      .flow-sidebar {
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        padding: 4px;
+        margin-bottom: 16px;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+      }
+      .step-btn {
+        flex: 0 0 auto !important;
+        padding: 10px 14px !important;
+        gap: 8px !important;
+      }
+      .legend-box {
+        display: none !important;
+      }
+    }
+
+    @media(max-width:480px) {
+      .toc-grid { grid-template-columns:1fr !important; }
+      .navbar { padding:0 16px; }
+      .lang-selector { margin-right: 6px; }
+      .nav-badge { display: none !important; }
+    }
+
+    /* ─── MOBILE BOTTOM NAV ─── */
+    .mobile-nav-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: rgba(13, 27, 53, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      z-index: 999;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+    }
+    .mobile-nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      gap: 5px;
+      transition: all 0.2s;
+      flex: 1;
+      height: 100%;
+    }
+    .mobile-nav-link:hover, .mobile-nav-link.active {
+      color: var(--white);
+    }
+    .mobile-nav-link.active {
+      color: var(--cyan);
+    }
+    .mobile-nav-link svg {
+      opacity: 0.8;
+      transition: transform 0.2s;
+    }
+    .mobile-nav-link.active svg {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+
+    @media (min-width: 769px) {
+      .mobile-nav-bar {
+        display: none !important;
+      }
     }
 
     /* ─── LANG SELECTOR ─── */
@@ -2260,9 +2340,12 @@
     let current = 'overview';
     for (const id of sections) {
       const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top <= 100) current = id;
+      if (el && el.getBoundingClientRect().top <= 120) current = id;
     }
     document.querySelectorAll('.nav-link').forEach(l => {
+      l.classList.toggle('active', l.dataset.section === current);
+    });
+    document.querySelectorAll('.mobile-nav-link').forEach(l => {
       l.classList.toggle('active', l.dataset.section === current);
     });
   });
@@ -2273,7 +2356,14 @@
     btn.classList.add('sh-active');
     document.querySelectorAll('.sh-detail-pane').forEach(d => d.classList.remove('sh-visible'));
     const pane = document.getElementById('shp-' + id);
-    if (pane) pane.classList.add('sh-visible');
+    if (pane) {
+      pane.classList.add('sh-visible');
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          pane.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 80);
+      }
+    }
   }
 
 
@@ -2612,6 +2702,30 @@ Inashughulikia makusanyo ya gharama na mgawanyo wa mapato kiotomatiki:<br>
       </button>
     </div>
   </div>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<div class="mobile-nav-bar">
+  <a href="#overview" class="mobile-nav-link active" data-section="overview">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="mobile-nav-txt">Overview</span>
+  </a>
+  <a href="#stakeholders" class="mobile-nav-link" data-section="stakeholders">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span class="mobile-nav-txt">Stakeholders</span>
+  </a>
+  <a href="#workflow" class="mobile-nav-link" data-section="workflow">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span class="mobile-nav-txt">Parcel Flow</span>
+  </a>
+  <a href="#integrations" class="mobile-nav-link" data-section="integrations">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span class="mobile-nav-txt">Integrations</span>
+  </a>
+  <a href="#pricing" class="mobile-nav-link" data-section="pricing">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M8 8h8"/><path d="M10 16h4"/></svg>
+    <span class="mobile-nav-txt">Pricing</span>
+  </a>
 </div>
 
 </body>
