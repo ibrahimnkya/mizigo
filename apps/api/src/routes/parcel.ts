@@ -277,13 +277,11 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       try {
         // Resolve tariff fields from the local rule if found, otherwise use safe defaults
         let sgrTariffId = tariffRule?.id ?? "default";
-        let sgrTariffCode = "TRCPN";
         let sgrTariffName = tariffRule?.name ?? String(packageName || "Standard");
         if (tariffRule?.condition) {
           try {
             const meta = JSON.parse(tariffRule.condition);
             if (meta.sgrId) sgrTariffId = meta.sgrId;
-            if (meta.parcelCategory?.code) sgrTariffCode = meta.parcelCategory.code;
           } catch (_) {}
         }
 
@@ -292,14 +290,21 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
           originStation: {
             id: originStation.id,
             name: originStation.name,
-            code: originStation.code,
           },
           destinationStation: {
             id: destinationStation.id,
             name: destinationStation.name,
-            code: destinationStation.code,
           },
           weightInKg: Number(weight || 0.1),
+          tariffId: {
+            id: sgrTariffId,
+            name: sgrTariffName,
+          },
+          declaration: {
+            itemName: String(packageName || parcelType || "Parcel"),
+            currency: "TZS",
+            declaredPrice: Number(declaredValue || 0),
+          },
         });
 
         if (sgrCost && sgrCost.totalCharge) {
@@ -310,25 +315,35 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
         const sgrBooking = await bookSgrParcel({
           sourceRef: `MZG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
           senderName: String(senderName || "Sender"),
+          senderAddress: originStation.name,
           senderPhoneNumber: String(senderPhone || ""),
+          sameAsSender: false,
+          receiverName: String(receiverName || "Receiver"),
+          receiverAddress: destinationStation.name,
+          receiverPhoneNumber: String(receiverPhone || ""),
           parcelName: String(parcelType || "Parcel"),
           parcelDescription: String(description || "No description"),
+          totalItems: 1,
+          declaredWeightInKg: Number(weight || 0),
+          declaredLengthInCm: 0,
+          declaredWidthInCm: 0,
+          declaredHeightInCm: 0,
+          declaredCubicVolume: 0,
           originStation: {
             id: originStation.id,
             name: originStation.name,
-            code: originStation.code,
           },
           destinationStation: {
             id: destinationStation.id,
             name: destinationStation.name,
-            code: destinationStation.code,
           },
           tariff: {
             id: sgrTariffId,
             name: sgrTariffName,
-            code: sgrTariffCode,
           },
           declaration: {
+            itemName: String(packageName || parcelType || "Parcel"),
+            currency: "TZS",
             declaredPrice: Number(declaredValue || 0),
           },
         });
