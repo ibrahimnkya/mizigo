@@ -5,9 +5,6 @@ import { useUIStore } from "@/store/ui-store";
 import {
   Bell,
   Menu,
-  Search,
-  History,
-  Clock,
   LayoutGrid,
   ChevronDown,
   Lock,
@@ -22,159 +19,119 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { format } from "date-fns";
 import { usePathname } from "next/navigation";
-import { sidebarItems, SidebarItem } from "./sidebar";
+import { sidebarItems } from "./sidebar";
+import { Breadcrumbs } from "./breadcrumbs";
 
 export function Topbar() {
   const { data: session } = useSession();
   const { toggleSidebar } = useUIStore();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    setMounted(true);
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const user = session?.user as any;
 
-  // Find the active item for context
   const activeItem = sidebarItems.find((item) => {
     if (item.href === pathname) return true;
-    // Check if the current pathname starts with the item's href (for nested detail pages)
     if (item.href !== "/" && pathname.startsWith(item.href + "/")) return true;
-    // Check children
     if (item.children?.some((child) => child.href === pathname)) return true;
     return false;
   });
 
   return (
-    <header className="h-20 border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-8 shadow-sm">
-      <div className="flex items-center gap-6">
+    <header className="h-16 border-b border-[#E2E2E2] bg-white/85 backdrop-blur-xl sticky top-0 z-30 flex items-center justify-between px-5">
+      {/* Left */}
+      <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
-          className="lg:hidden p-2 hover:bg-slate-100 rounded-[10px] transition-colors"
+          className="lg:hidden p-1.5 hover:bg-slate-100 rounded-xl transition-colors"
         >
           <Menu className="h-5 w-5 text-slate-600" />
         </button>
 
-        <div className="hidden lg:flex items-center gap-4">
-          <div className="h-10 w-10 rounded-[10px] bg-slate-900 flex items-center justify-center border border-white/10 shadow-lg shrink-0">
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
             {activeItem?.icon ? (
-              <activeItem.icon className="h-5 w-5 text-blue-400" />
+              <activeItem.icon className="h-5 w-5 text-orange-500" />
             ) : (
-              <LayoutGrid className="h-5 w-5 text-slate-400" />
+              <LayoutGrid className="h-5 w-5 text-orange-500" />
             )}
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 text-lg tracking-tight">
-                {activeItem?.title ||
-                  user?.organization?.name ||
-                  "Mizigo Platform"}
+              <span className="text-[17px] font-semibold text-[#1C1C1E] leading-none">
+                {activeItem?.title || user?.organization?.name || "Mizigo Platform"}
               </span>
               {user?.station?.name && (
-                <>
-                  <span className="h-4 w-[1px] bg-slate-300 mx-1" />
-                  <span className="text-blue-600 font-bold text-[10px] uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-[10px] border border-blue-100">
-                    {user.station.name}
-                  </span>
-                </>
+                <span className="text-[10px] font-semibold text-white bg-orange-500 px-2 py-0.5 rounded-full leading-none">
+                  {user.station.name}
+                </span>
               )}
             </div>
-            <span className="text-[11px] text-slate-500 font-medium leading-none mt-0.5">
-              {activeItem?.subtitle || `Mizigo`}
-            </span>
+            <Breadcrumbs className="mt-0.5" />
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Activity Watchdog Display */}
-        <div className="hidden lg:flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-full px-4 py-1.5 mr-2">
-          <Clock className="h-3.5 w-3.5 text-slate-400" />
-          <span className="text-xs font-mono text-slate-500 tabular-nums">
-            {mounted ? format(time, "HH:mm:ss") : "--:--:--"}
-          </span>
-        </div>
+      {/* Right */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => useUIStore.getState().setLocked(true)}
+          className="hidden lg:flex h-9 w-9 flex items-center justify-center bg-slate-100 hover:bg-orange-50 hover:text-orange-500 rounded-full transition-colors text-slate-500"
+          title="Lock Session"
+        >
+          <Lock className="h-4 w-4" />
+        </button>
 
-        <div className="flex items-center gap-1 lg:border-l lg:border-slate-200 lg:pl-4">
-          <div className="hidden lg:flex items-center gap-1">
-            <button
-              onClick={() => useUIStore.getState().setLocked(true)}
-              className="p-2.5 hover:bg-slate-100 rounded-full transition-all text-slate-500 relative group"
-              title="Lock Session"
-            >
-              <Lock className="h-5 w-5 group-hover:scale-110 transition-transform" />
-            </button>
+        <button className="relative h-9 w-9 flex items-center justify-center bg-slate-100 hover:bg-orange-50 hover:text-orange-500 rounded-full transition-colors text-slate-500">
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-red-500 border border-white rounded-full" />
+        </button>
 
-            <button className="p-2.5 hover:bg-slate-100 rounded-full transition-all text-slate-500 relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 border-2 border-white rounded-full" />
-            </button>
-          </div>
+        <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 ml-2 hover:bg-slate-50 p-1.5 pr-3 rounded-[10px] cursor-pointer transition-all border border-transparent hover:border-slate-100 outline-none">
-                <div className="h-9 w-9 rounded-[10px] bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">
-                  {user?.name?.charAt(0) || "U"}
-                </div>
-                <div className="hidden sm:flex flex-col items-start leading-none">
-                  <span className="text-sm font-bold text-slate-700">
-                    {user?.name || "User"}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    {user?.email || ""}
-                  </span>
-                </div>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 transition-colors outline-none">
+              <div className="h-8 w-8 rounded-full bg-[#5C0B19] flex items-center justify-center text-white font-bold text-[11px] shrink-0">
+                {user?.name?.charAt(0) || "U"}
               </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-64 bg-white border border-slate-100 text-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-2 z-50 animate-in fade-in-50 duration-200"
-              align="end"
-              sideOffset={10}
+              <div className="hidden sm:flex flex-col items-start leading-none">
+                <span className="text-[13px] font-semibold text-slate-700">
+                  {user?.name || "User"}
+                </span>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-56 bg-white border border-[#E2E2E2] text-slate-600 shadow-premium rounded-2xl p-1.5 z-50"
+            align="end"
+            sideOffset={8}
+          >
+            <DropdownMenuLabel className="px-3 py-2 flex flex-col gap-0.5">
+              <span className="text-[13px] font-semibold text-slate-800">
+                {user?.name || "User"}
+              </span>
+              <span className="text-[11px] text-slate-400">{user?.email || ""}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-slate-100 mx-1" />
+            <DropdownMenuItem
+              className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2 m-0.5"
+              onClick={() => useUIStore.getState().setLocked(true)}
             >
-              <DropdownMenuLabel className="text-slate-900 flex items-center gap-3 p-3">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-bold text-[10px] uppercase tracking-[0.2em] text-slate-400">
-                  Signed In
-                </span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-slate-100 mx-2" />
-
-              <DropdownMenuItem
-                className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer rounded-xl transition-all py-3 px-4 m-1 flex items-center gap-3 text-slate-700 hover:text-blue-600"
-                onClick={() => useUIStore.getState().setLocked(true)}
-              >
-                <div className="h-8 w-8 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100">
-                  <Lock className="h-4 w-4 text-slate-400" />
-                </div>
-                <span className="font-semibold text-xs uppercase tracking-wider">
-                  Lock Screen
-                </span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator className="bg-slate-100 mx-2" />
-              <DropdownMenuItem
-                className="hover:bg-rose-50 hover:text-rose-600 focus:bg-rose-50 focus:text-rose-600 cursor-pointer rounded-xl transition-all py-3 px-4 m-1 flex items-center gap-3 text-rose-500"
-                onClick={() => signOut({ callbackUrl: "/login" })}
-              >
-                <div className="h-8 w-8 rounded-[10px] bg-rose-50 flex items-center justify-center border border-rose-100">
-                  <LogOut className="h-4 w-4" />
-                </div>
-                <span className="font-bold text-xs uppercase tracking-wider">
-                  Sign out
-                </span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <Lock className="h-4 w-4 text-slate-400" />
+              Lock Screen
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-slate-100 mx-1" />
+            <DropdownMenuItem
+              className="hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2 m-0.5 text-red-500"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

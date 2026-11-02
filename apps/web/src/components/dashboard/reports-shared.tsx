@@ -16,19 +16,19 @@ export function StatPill({
   subUp?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-5 flex flex-col gap-3">
+    <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
           {label}
         </span>
         <div
-          className="w-7 h-7 rounded-[10px] flex items-center justify-center"
+          className="w-7 h-7 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${accent}15` }}
         >
           <Icon size={13} style={{ color: accent }} strokeWidth={2.5} />
         </div>
       </div>
-      <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
+      <p className="text-[20px] font-semibold text-slate-800 tracking-tight tabular-nums">
         {value}
       </p>
       <p
@@ -53,15 +53,15 @@ export function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+    <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
       <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-50">
         <div
-          className="w-7 h-7 rounded-[10px] flex items-center justify-center"
+          className="w-7 h-7 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${accent}15` }}
         >
           <Icon size={13} style={{ color: accent }} strokeWidth={2.5} />
         </div>
-        <span className="text-[14px] font-extrabold text-slate-800">
+        <span className="text-[14px] font-semibold text-slate-800">
           {title}
         </span>
       </div>

@@ -69,7 +69,7 @@ export function CreateVehicleModal() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-[10px] font-black text-[11px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 group shadow-lg shadow-slate-900/10">
+        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center gap-3 transition-all active:scale-95 group  shadow-slate-900/10">
           <Plus
             size={14}
             strokeWidth={3}
@@ -79,18 +79,18 @@ export function CreateVehicleModal() {
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white shadow-2xl rounded-2xl flex flex-col">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white  rounded-xl flex flex-col">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-          <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
             <TrainFront className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               Rail Asset Registration
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Add a new wagon to the tracking network
             </SheetDescription>
           </div>
@@ -103,7 +103,7 @@ export function CreateVehicleModal() {
           className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar"
         >
           {error && (
-            <div className="p-4 bg-rose-50 border border-rose-100 rounded-[10px] text-rose-600 text-[12px] font-bold flex items-center gap-3">
+            <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-[12px] font-bold flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
               {error}
             </div>
@@ -111,19 +111,19 @@ export function CreateVehicleModal() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                 Asset Serial Number
               </Label>
               <Input
                 name="plateNumber"
-                className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all uppercase"
+                className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all uppercase"
                 placeholder="e.g. TRC-9021"
                 required
               />
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                 Service Tier
               </Label>
               <SelectInput name="type" required>
@@ -137,7 +137,7 @@ export function CreateVehicleModal() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                 Asset Classification
               </Label>
               <SelectInput name="class" required>
@@ -151,12 +151,12 @@ export function CreateVehicleModal() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                 Operator (Optional)
               </Label>
               <Input
                 name="carrier"
-                className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
+                className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
                 placeholder="e.g. TRC, TAZARA"
               />
             </div>
@@ -184,7 +184,7 @@ export function CreateVehicleModal() {
           {/* Metadata */}
           <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                 Asset Security
               </span>
               <p className="text-[10px] font-bold text-slate-400 leading-tight max-w-[280px]">
@@ -194,7 +194,7 @@ export function CreateVehicleModal() {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100">
               <ShieldCheck size={12} strokeWidth={3} />
-              <span className="text-[9px] font-black uppercase tracking-widest">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                 Verified Entry
               </span>
             </div>
@@ -206,7 +206,7 @@ export function CreateVehicleModal() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
           >
             Cancel
           </button>
@@ -214,7 +214,7 @@ export function CreateVehicleModal() {
             type="submit"
             form="rail-asset-form"
             disabled={isPending}
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -245,7 +245,7 @@ function SelectInput({
       <select
         name={name}
         required={required}
-        className="w-full h-14 px-5 rounded-[10px] border border-slate-100 bg-slate-50 text-[14px] font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all appearance-none cursor-pointer uppercase tracking-widest"
+        className="w-full h-14 px-5 rounded-xl border border-slate-100 bg-slate-50 text-[14px] font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all appearance-none cursor-pointer uppercase tracking-[0.05em]"
       >
         {children}
       </select>

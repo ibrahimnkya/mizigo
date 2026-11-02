@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Import Inter font
+import { Outfit } from "next/font/google";
 import { Toaster } from "@repo/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import QueryProvider from "@/lib/api/query-provider";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] }); // Configure Inter font
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "Mizigo Portal",
+  title: "MiziGO Portal",
   description: "Enterprise Logistics Management System",
   icons: {
-    icon: "/icon.png",
+    icon: "/brand/logo_icon.png",
   },
 };
 
@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${outfit.variable} ${outfit.className}`} suppressHydrationWarning>
         <SessionProvider>
           <QueryProvider>
             {children}

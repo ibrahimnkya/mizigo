@@ -2,14 +2,14 @@ import { PaymentList } from "@/components/dashboard/payment-list";
 
 export default function FailedPaymentsPage() {
   return (
-    <div className="max-w-[1520px] mx-auto w-full flex flex-col gap-6 animate-in fade-in duration-700 py-4">
+    <div className="flex flex-col gap-5">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">
             Failed
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
           Failed Payments
         </h1>
         <p className="text-sm text-slate-400 font-medium mt-0.5">

@@ -52,7 +52,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-start justify-between py-3 border-b border-slate-50 last:border-0 group">
-      <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+      <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
         {Icon && (
           <Icon
             size={12}
@@ -91,7 +91,7 @@ function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-black uppercase tracking-wider",
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase tracking-wider",
         colors[color],
       )}
     >
@@ -134,19 +134,19 @@ export function PricingDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-5 relative z-10 pr-16">
-            <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
               <Calculator className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col relative z-10 text-left">
-              <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+              <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
                 Tariff Details
               </SheetTitle>
-              <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+              <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
                 Pricing rule configuration
               </SheetDescription>
             </div>
@@ -160,9 +160,9 @@ export function PricingDetailSheet({
               id="pricing-tab-details"
               onClick={() => setActiveTab("details")}
               className={cn(
-                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all",
                 activeTab === "details"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  ? "bg-white text-slate-900  border border-slate-200"
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
@@ -172,9 +172,9 @@ export function PricingDetailSheet({
               id="pricing-tab-transactions"
               onClick={() => setActiveTab("transactions")}
               className={cn(
-                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5",
+                "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5",
                 activeTab === "transactions"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  ? "bg-white text-slate-900  border border-slate-200"
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
@@ -219,8 +219,8 @@ export function PricingDetailSheet({
                   </div>
 
                   {/* Core Info */}
-                  <div className="bg-slate-50 rounded-[12px] px-5 py-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-4 pb-2 text-left">
+                  <div className="bg-slate-50 rounded-xl px-5 py-1">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] pt-4 pb-2 text-left">
                       Core Info
                     </p>
                     <DetailRow
@@ -239,7 +239,7 @@ export function PricingDetailSheet({
                       label="Minimum Charge"
                       icon={Coins}
                       value={
-                        <span className="text-emerald-700 font-black">
+                        <span className="text-emerald-700 font-semibold">
                           TSh {fmt(rule.minimumCharge ?? rule.value)}
                         </span>
                       }
@@ -281,8 +281,8 @@ export function PricingDetailSheet({
 
                   {/* Parcel Category (SGR only) */}
                   {isSgr && cat && (
-                    <div className="bg-blue-50/60 rounded-[12px] px-5 py-1 border border-blue-100">
-                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest pt-4 pb-2 text-left">
+                    <div className="bg-blue-50/60 rounded-xl px-5 py-1 border border-blue-100">
+                      <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-[0.05em] pt-4 pb-2 text-left">
                         Parcel Category
                       </p>
                       <DetailRow
@@ -340,8 +340,8 @@ export function PricingDetailSheet({
                   )}
 
                   {/* Metadata */}
-                  <div className="bg-slate-50 rounded-[12px] px-5 py-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-4 pb-2 text-left">
+                  <div className="bg-slate-50 rounded-xl px-5 py-1">
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] pt-4 pb-2 text-left">
                       Metadata
                     </p>
                     <DetailRow
@@ -385,27 +385,27 @@ export function PricingDetailSheet({
                 <div className="space-y-6 animate-in fade-in duration-200">
                   {/* Stats Grid */}
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-slate-50 border border-slate-100 rounded-[10px] p-3 text-center">
-                      <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                         Usage Count
                       </span>
-                      <span className="text-[16px] font-black text-slate-900">
+                      <span className="text-[16px] font-semibold text-slate-900">
                         {txList.length}
                       </span>
                     </div>
-                    <div className="bg-slate-50 border border-slate-100 rounded-[10px] p-3 text-center">
-                      <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                         Total Revenue
                       </span>
-                      <span className="text-[13px] font-black text-emerald-600 truncate block">
+                      <span className="text-[13px] font-semibold text-emerald-600 truncate block">
                         TSh {fmt(totalRevenue)}
                       </span>
                     </div>
-                    <div className="bg-slate-50 border border-slate-100 rounded-[10px] p-3 text-center">
-                      <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center">
+                      <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                         Success Rate
                       </span>
-                      <span className="text-[16px] font-black text-blue-600">
+                      <span className="text-[16px] font-semibold text-blue-600">
                         {successRate}
                       </span>
                     </div>
@@ -415,17 +415,17 @@ export function PricingDetailSheet({
                   {isTxLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400 animate-pulse">
                       <RefreshCw size={20} className="animate-spin text-blue-500" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                         Loading Transactions...
                       </span>
                     </div>
                   ) : txList.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-slate-200 rounded-[12px] bg-slate-50/20 gap-3">
+                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/20 gap-3">
                       <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                         <FileText size={20} />
                       </div>
                       <div>
-                        <h4 className="text-[12px] font-black text-slate-700 uppercase tracking-wider">
+                        <h4 className="text-[12px] font-semibold text-slate-700 uppercase tracking-wider">
                           No Usage Records
                         </h4>
                         <p className="text-[11px] text-slate-400 font-medium max-w-[240px] mt-1 mx-auto">
@@ -435,10 +435,10 @@ export function PricingDetailSheet({
                     </div>
                   ) : (
                     <div className="space-y-3 text-left">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                         Transactions Breakdown
                       </p>
-                      <div className="divide-y divide-slate-100 border border-slate-100 rounded-[12px] overflow-hidden bg-white shadow-sm">
+                      <div className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden bg-white ">
                         {txList.map((tx: any) => {
                           const isPaid = tx.status === "SUCCESS" || tx.status === "PAID";
                           return (
@@ -447,13 +447,13 @@ export function PricingDetailSheet({
                               className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
                             >
                               <div className="flex flex-col gap-1">
-                                <span className="text-[12px] font-black text-slate-900 tracking-tight">
+                                <span className="text-[12px] font-semibold text-slate-900 tracking-tight">
                                   #{tx.trackingNumber?.toUpperCase() || tx.id.slice(-8).toUpperCase()}
                                 </span>
                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                                   {tx.senderName} → {tx.receiverName}
                                 </span>
-                                <span className="text-[9px] text-slate-300 font-black uppercase tracking-widest mt-0.5">
+                                <span className="text-[9px] text-slate-300 font-semibold uppercase tracking-[0.05em] mt-0.5">
                                   {new Date(tx.createdAt).toLocaleDateString("en-TZ", {
                                     day: "2-digit",
                                     month: "short",
@@ -464,12 +464,12 @@ export function PricingDetailSheet({
                                 </span>
                               </div>
                               <div className="text-right flex flex-col items-end gap-1">
-                                <span className="text-[13px] font-black text-slate-900 tabular-nums">
+                                <span className="text-[13px] font-semibold text-slate-900 tabular-nums">
                                   TSh {fmt(tx.amount)}
                                 </span>
                                 <span
                                   className={cn(
-                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border",
+                                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-semibold uppercase tracking-[0.05em] border",
                                     isPaid
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                       : "bg-amber-50 text-amber-700 border-amber-100",
@@ -494,7 +494,7 @@ export function PricingDetailSheet({
         <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
+            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl transition-all active:scale-[0.98]"
           >
             Close
           </button>

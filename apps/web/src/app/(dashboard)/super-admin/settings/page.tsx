@@ -48,7 +48,7 @@ export default function PlatformSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex flex-col gap-5">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
@@ -57,13 +57,12 @@ export default function PlatformSettingsPage() {
   const currentSettings = { ...settings, ...form };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 space-y-10">
-      <div className="max-w-[1520px] mx-auto space-y-10">
+    <div className="flex flex-col gap-5">
         {/* Action Bar */}
-        <div className="flex items-center justify-between gap-6 bg-white border border-slate-100 rounded-[10px] p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-6 bg-white border border-[#E2E2E2] rounded-[20px] p-4 ">
           <div className="flex items-center gap-3 text-blue-600">
             <Settings size={18} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">
               Platform Configuration
             </span>
           </div>
@@ -71,10 +70,10 @@ export default function PlatformSettingsPage() {
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex items-center gap-6 pr-6 border-r border-slate-100">
               <div className="text-right">
-                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">
+                <p className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em] leading-none mb-1">
                   Environment
                 </p>
-                <h3 className="text-[16px] font-black text-slate-900 uppercase">
+                <h3 className="text-[16px] font-semibold text-slate-900 uppercase">
                   Production
                 </h3>
               </div>
@@ -82,7 +81,7 @@ export default function PlatformSettingsPage() {
             <button
               onClick={() => updateSettings(form)}
               disabled={isUpdating || Object.keys(form).length === 0}
-              className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+              className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
             >
               {isUpdating ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -97,9 +96,9 @@ export default function PlatformSettingsPage() {
         {/* Settings Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Operational Settings */}
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-10 space-y-10">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-10 space-y-10">
             <div>
-              <h3 className="text-[20px] font-black text-slate-900 tracking-tight mb-2">
+              <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight mb-2">
                 General Settings
               </h3>
               <p className="text-slate-500 font-bold text-[14px]">
@@ -110,11 +109,11 @@ export default function PlatformSettingsPage() {
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1 flex items-center gap-2">
                     <DollarSign size={12} /> Default Currency
                   </label>
                   <select
-                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-black text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
+                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
                     value={currentSettings.DEFAULT_CURRENCY || "TZS"}
                     onChange={(e) =>
                       setForm({ ...form, DEFAULT_CURRENCY: e.target.value })
@@ -126,11 +125,11 @@ export default function PlatformSettingsPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1 flex items-center gap-2">
                     <Scale size={12} /> Weight Unit
                   </label>
                   <select
-                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-black text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
+                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
                     value={currentSettings.WEIGHT_UNIT || "KG"}
                     onChange={(e) =>
                       setForm({ ...form, WEIGHT_UNIT: e.target.value })
@@ -144,11 +143,11 @@ export default function PlatformSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1 flex items-center gap-2">
                   <Globe size={12} /> Timezone
                 </label>
                 <select
-                  className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-black text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
+                  className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none appearance-none"
                   value={currentSettings.TIMEZONE || "Africa/Dar_es_Salaam"}
                   onChange={(e) =>
                     setForm({ ...form, TIMEZONE: e.target.value })
@@ -165,9 +164,9 @@ export default function PlatformSettingsPage() {
           </div>
 
           {/* Security Settings */}
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-10 space-y-10">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-10 space-y-10">
             <div>
-              <h3 className="text-[20px] font-black text-slate-900 tracking-tight mb-2">
+              <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight mb-2">
                 Security Settings
               </h3>
               <p className="text-slate-500 font-bold text-[14px]">
@@ -178,12 +177,12 @@ export default function PlatformSettingsPage() {
             <div className="space-y-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1 flex items-center gap-2">
                     <Clock size={12} /> OTP Expiry (seconds)
                   </label>
                   <input
                     type="number"
-                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-black text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none"
+                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none"
                     value={currentSettings.OTP_EXPIRY || 300}
                     onChange={(e) =>
                       setForm({ ...form, OTP_EXPIRY: parseInt(e.target.value) })
@@ -191,12 +190,12 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1 flex items-center gap-2">
                     <Lock size={12} /> Max Login Attempts
                   </label>
                   <input
                     type="number"
-                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-black text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none"
+                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:ring-4 ring-blue-500/5 focus:border-blue-500 transition-all outline-none"
                     value={currentSettings.LOGIN_RETRIES || 5}
                     onChange={(e) =>
                       setForm({
@@ -208,10 +207,10 @@ export default function PlatformSettingsPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-950 rounded-[10px] border border-white/10 relative overflow-hidden group">
+              <div className="p-6 bg-slate-950 rounded-xl border border-slate-200 relative overflow-hidden group">
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
-                    <h4 className="text-white font-black text-[14px]">
+                    <h4 className="text-white font-semibold text-[14px]">
                       Maintenance Mode
                     </h4>
                     <p className="text-slate-500 text-[11px] font-bold mt-0.5">
@@ -277,33 +276,32 @@ export default function PlatformSettingsPage() {
           ].map((stat, i) => (
             <div
               key={i}
-              className="bg-white p-8 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-8 group hover:border-slate-200 transition-all"
+              className="bg-white p-8 rounded-xl border border-slate-100  flex flex-col gap-8 group hover:border-slate-200 transition-all"
             >
               <div className="flex items-center justify-between">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
+                    "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
                     stat.color,
                   )}
                 >
                   <stat.icon size={22} strokeWidth={2.5} />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600">
                   {stat.tag}
                 </span>
               </div>
               <div>
-                <h4 className="text-[32px] font-black tracking-tight text-slate-900 leading-none">
+                <h4 className="text-[20px] font-semibold tracking-tight text-slate-900 leading-none">
                   {stat.value}
                 </h4>
-                <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
+                <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-3">
                   {stat.label}
                 </p>
               </div>
             </div>
           ))}
         </div>
-      </div>
     </div>
   );
 }

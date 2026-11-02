@@ -1,21 +1,8 @@
 "use client";
 
-import {
-  PackagePlus,
-  Package,
-  TrainFront,
-  ShieldCheck,
-  Search,
-  ArrowRight,
-  Navigation,
-  Activity,
-  FileText,
-  Zap,
-  CheckCircle2,
-} from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 interface UnifiedDashboardContentProps {
   role: string;
@@ -33,7 +20,7 @@ export function UnifiedDashboardContent({
     e?.preventDefault();
     if (trackingNumber.trim()) {
       const target =
-        role === "OPERATOR"
+        ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(role)
           ? `/operator/operations?tab=track&q=${trackingNumber}`
           : `/parcel/track?q=${trackingNumber}`;
       router.push(target);
@@ -41,123 +28,72 @@ export function UnifiedDashboardContent({
   };
 
   const quickActions = [
-    {
-      title: "Parcel Management",
-      desc: "Unified view of all logistics",
-      icon: Package,
-      color: "bg-blue-600",
-      textColor: "text-blue-700",
-      href: "/parcel",
-    },
-    {
-      title: "Logistics Reports",
-      desc: "View today's performance",
-      icon: FileText,
-      color: "bg-emerald-600",
-      textColor: "text-emerald-700",
-      href: "/reports",
-    },
-    {
-      title: "Financials",
-      desc: "Revenue and settlements",
-      icon: Activity,
-      color: "bg-indigo-600",
-      textColor: "text-indigo-700",
-      href: "/admin/finance",
-    },
-    {
-      title: "Track Parcel",
-      desc: "Global real-time locator",
-      icon: Search,
-      color: "bg-amber-600",
-      textColor: "text-amber-700",
-      href: "/parcel",
-    },
+    { title: "Parcels", desc: "Every parcel across your network", image: "/brand/staff_parcel.png", href: "/parcel" },
+    { title: "Reports", desc: "Today's performance at a glance", image: "/brand/staff_reports.png", href: "/reports" },
+    { title: "Finance", desc: "Revenue and settlements", image: "/brand/3d_send.png", href: "/admin/finance" },
+    { title: "Track parcel", desc: "Find any parcel in seconds", image: "/brand/3d_track.png", href: "/parcel" },
   ];
 
-  return (
-    <div className="space-y-12 pb-4">
-      {/* 1. HERO TRACKING SECTION - PURSUIT MODE */}
-      <section className="relative overflow-hidden bg-slate-900 rounded-[10px] p-8 md:p-12 shadow-2xl shadow-blue-900/10 border border-white/5">
-        <div className="absolute top-[-50px] right-[-50px] p-12 opacity-5 pointer-events-none text-white">
-          <Navigation size={300} strokeWidth={1} />
-        </div>
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-        <div className="relative z-10 max-w-2xl space-y-8">
+  return (
+    <div className="space-y-8 pb-4">
+      {/* Hero — same maroon bridge card as the mobile app */}
+      <section className="bridge-card p-7 md:p-10">
+        <div className="max-w-2xl space-y-6 pb-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300">
-                Operational Pursuit Mode Active
-              </span>
-            </div>
-            <h1 className="text-3xl font-black text-white tracking-tight leading-none">
-              Pursuit Mode: Global Parcel Tracking
+            <span className="accent-pill">
+              <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+              Live tracking
+            </span>
+            <h1 className="text-[28px] md:text-[34px] font-semibold tracking-tight leading-tight">
+              {greeting}
+              {userName ? `, ${userName.split(" ")[0]}` : ""}
             </h1>
-            <p className="text-slate-400 text-sm font-bold opacity-80">
-              Intercept any shipment node within the active network protocol.
-            </p>
+            <p className="text-white/70 text-[15px]">Track any parcel by its tracking number.</p>
           </div>
 
-          <form onSubmit={handleTrack} className="relative group">
+          <form onSubmit={handleTrack} className="relative">
+            <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" />
             <input
               value={trackingNumber}
               onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="Enter Terminal Tracking ID..."
-              className="h-16 w-full bg-white/5 border-2 border-white/10 rounded-[10px] px-6 pr-40 text-lg font-black text-white placeholder:text-slate-600 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all outline-none uppercase tracking-widest"
+              placeholder="e.g. MZG-AAA001"
+              className="h-14 w-full rounded-full bg-white/10 border border-white/20 pl-12 pr-36 text-[15px] font-medium text-white placeholder:text-white/40 outline-none backdrop-blur-md transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 uppercase tracking-wide"
             />
             <button
               type="submit"
-              className="absolute right-2 top-2 bottom-2 px-8 bg-blue-600 hover:bg-blue-500 text-white rounded-[10px] flex items-center gap-3 text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-600/20"
+              className="absolute right-1.5 top-1.5 bottom-1.5 px-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold flex items-center gap-2 transition active:scale-95"
             >
-              Intercept
-              <Search size={16} strokeWidth={3} />
+              Track
+              <ArrowRight size={16} strokeWidth={2.5} />
             </button>
           </form>
         </div>
       </section>
 
-      {/* 2. OPERATIONAL QUICK ACTION GRID */}
+      {/* Quick actions — illustrated tiles like the app's action grid */}
       <div>
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 mb-6">
-          Execution Suite
-        </p>
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {quickActions.map((action, idx) => (
+        <div className="flex items-end justify-between mb-4">
+          <h2 className="text-[19px] font-semibold text-[#1C1C1E]">Quick actions</h2>
+        </div>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => (
             <button
-              key={idx}
+              key={action.title}
               onClick={() => router.push(action.href)}
-              className="group relative flex flex-col items-start p-6 bg-white border border-slate-100 rounded-[10px] text-left transition-all hover:bg-slate-50 hover:shadow-2xl hover:shadow-slate-200/50 active:scale-95 overflow-hidden"
+              className="group relative flex items-center gap-4 p-5 bg-white border border-[#E2E2E2] rounded-[24px] text-left transition hover:-translate-y-0.5 hover:shadow-premium active:scale-[0.98]"
             >
-              <div
-                className={cn(
-                  "inline-flex h-12 w-12 items-center justify-center rounded-[10px] mb-4 shadow-xl transition-transform group-hover:scale-110 duration-300 text-white",
-                  action.color,
-                )}
-              >
-                <action.icon size={20} strokeWidth={2.5} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={action.image} alt="" className="h-14 w-14 object-contain shrink-0 transition-transform group-hover:scale-110" />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[15px] font-semibold text-[#1C1C1E]">{action.title}</h3>
+                <p className="text-[13px] text-slate-500 mt-0.5 leading-snug">{action.desc}</p>
               </div>
-
-              <h3 className="text-sm font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors uppercase">
-                {action.title}
-              </h3>
-              <p className="text-slate-400 font-bold text-[10px] mt-1 uppercase leading-tight tracking-wider">
-                {action.desc}
-              </p>
-
-              <div className="mt-6 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-300 group-hover:text-blue-500 transition-colors">
-                Launch Node
-                <ArrowRight size={12} strokeWidth={3} />
-              </div>
-
-              <div
-                className={cn(
-                  "absolute bottom-[-10%] right-[-5%] opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none",
-                  action.textColor,
-                )}
-              >
-                <action.icon size={100} strokeWidth={1} />
-              </div>
+              <span className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 transition group-hover:bg-orange-500 group-hover:text-white">
+                <ArrowRight size={16} />
+              </span>
             </button>
           ))}
         </section>

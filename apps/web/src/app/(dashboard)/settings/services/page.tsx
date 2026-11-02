@@ -27,29 +27,28 @@ export default async function ServicesPage() {
   const services = await getServices();
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
                 Configuration
               </span>
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
               Service Types
             </h1>
             <p className="text-sm text-slate-400 font-medium mt-0.5">
               Configure logistics service levels and base pricing.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-extrabold px-5 py-2.5 rounded-[10px] shadow-lg shadow-slate-900/10 transition-all hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
+          <button className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl  shadow-slate-900/10 transition-all  active:translate-y-0 whitespace-nowrap">
             <Plus size={14} strokeWidth={2.5} /> Add Service
           </button>
         </div>
 
         {services.length === 0 ? (
-          <div className="h-60 rounded-[10px] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-slate-300">
+          <div className="h-60 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-slate-300">
             <Truck size={32} strokeWidth={1.5} />
             <p className="text-sm font-semibold text-slate-400">
               No services configured yet
@@ -63,7 +62,7 @@ export default async function ServicesPage() {
               return (
                 <div
                   key={service.id}
-                  className="group relative bg-white rounded-[10px] border border-slate-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col gap-4"
+                  className="group relative bg-white rounded-[20px] border border-[#E2E2E2] p-5  hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]  transition-all duration-200 overflow-hidden flex flex-col gap-4"
                 >
                   <div
                     className="absolute -top-6 -right-6 w-24 h-24 rounded-full blur-2xl pointer-events-none"
@@ -73,7 +72,7 @@ export default async function ServicesPage() {
                   {/* Top */}
                   <div className="flex items-start justify-between">
                     <div
-                      className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: accent.bg }}
                     >
                       <Icon
@@ -84,10 +83,10 @@ export default async function ServicesPage() {
                     </div>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-[11px] font-bold border tracking-wide",
+                        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border tracking-wide",
                         service.isActive
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
-                          : "bg-slate-50 text-slate-500 border-slate-200/60",
+                          : "bg-slate-50 text-slate-500 border-slate-200",
                       )}
                     >
                       <span
@@ -102,7 +101,7 @@ export default async function ServicesPage() {
 
                   {/* Info */}
                   <div className="flex-1">
-                    <h3 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
+                    <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight">
                       {service.name}
                     </h3>
                     <p className="text-[12px] text-slate-400 font-medium mt-1 leading-relaxed line-clamp-2">
@@ -113,18 +112,18 @@ export default async function ServicesPage() {
                   {/* Footer */}
                   <div className="pt-4 border-t border-slate-50 flex items-end justify-between">
                     <div>
-                      <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-400 mb-1">
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400 mb-1">
                         Base Rate
                       </p>
-                      <p className="text-[18px] font-extrabold text-slate-900 tabular-nums">
+                      <p className="text-[18px] font-semibold text-slate-900 tabular-nums">
                         TZS {service.basePrice.toLocaleString()}
                       </p>
                     </div>
                     <div className="flex gap-1.5">
-                      <button className="w-8 h-8 rounded-[10px] flex items-center justify-center text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
+                      <button className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
                         <Edit2 size={13} />
                       </button>
-                      <button className="w-8 h-8 rounded-[10px] flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                      <button className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors">
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -134,7 +133,6 @@ export default async function ServicesPage() {
             })}
           </div>
         )}
-      </div>
     </div>
   );
 }

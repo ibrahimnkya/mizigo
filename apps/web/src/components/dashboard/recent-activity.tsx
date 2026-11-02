@@ -24,11 +24,11 @@ export function RecentActivity({ activities }: RecentActivityProps) {
       {activities.map((item, idx) => (
         <div
           key={item.id}
-          className="relative pl-12 pr-2 py-4 hover:bg-slate-50/50 transition-all group rounded-[10px]"
+          className="relative pl-12 pr-2 py-4 hover:bg-slate-50/50 transition-all group rounded-xl"
         >
           {/* Glowing indicator */}
           <div className="absolute left-5 -translate-x-1/2 top-[26px]">
-            <div className="h-2.5 w-2.5 rounded-full bg-slate-200 border-2 border-white ring-2 ring-transparent group-hover:ring-indigo-100 group-hover:bg-indigo-500 transition-all duration-300 shadow-sm" />
+            <div className="h-2.5 w-2.5 rounded-full bg-slate-200 border-2 border-white ring-2 ring-transparent group-hover:ring-indigo-100 group-hover:bg-indigo-500 transition-all duration-300 " />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -39,7 +39,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
               <Badge
                 variant="secondary"
                 className={cn(
-                  "capitalize text-[9px] font-extrabold px-1.5 py-0 rounded-[10px] border-none shadow-none",
+                  "capitalize text-[9px] font-semibold px-1.5 py-0 rounded-xl border-none shadow-none",
                   item.status === "PENDING" && "bg-amber-50 text-amber-600",
                   item.status === "APPROVED" &&
                     "bg-emerald-50 text-emerald-600",

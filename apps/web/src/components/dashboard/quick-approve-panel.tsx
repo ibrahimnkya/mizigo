@@ -23,7 +23,7 @@ export function ActionRequiredPanel({
   requests: ParcelRequest[];
   role: string;
 }) {
-  const isAdminOrOps = ["ADMIN", "SUPER_ADMIN", "OPERATOR"].includes(role);
+  const isAdminOrOps = ["ADMIN", "SUPER_ADMIN", "CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(role);
 
   if (!requests || requests.length === 0) {
     return (

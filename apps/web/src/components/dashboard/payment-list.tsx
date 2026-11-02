@@ -132,13 +132,13 @@ function PaymentStatCard({
       : counted.toLocaleString();
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+    <div className="group bg-white rounded-[20px] border border-[#E2E2E2] p-5 flex flex-col justify-between hover: hover:border-slate-200  transition-all duration-300 h-full relative overflow-hidden">
       {/* Top Row */}
       <div className="flex items-start justify-between">
-        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
+        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ", iconBg, iconColor)}>
           <Icon size={16} strokeWidth={2.5} />
         </div>
-        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+        <span className={cn("text-[9px] font-bold uppercase tracking-[0.05em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
           {tag}
         </span>
       </div>
@@ -147,12 +147,12 @@ function PaymentStatCard({
       <div className="mt-4 flex-1 flex flex-col justify-between">
         <div>
           {/* Primary value */}
-          <p className={cn("text-[24px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
+          <p className={cn("text-[24px] font-semibold tracking-tight leading-none tabular-nums", iconColor)}>
             {displayValue}
           </p>
           
           {/* Title & Description */}
-          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
+          <h3 className="text-[13px] font-semibold text-slate-800 tracking-tight mt-3">
             {label}
           </h3>
           <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
@@ -235,7 +235,7 @@ export function PaymentList({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg",
+              "h-10 w-10 rounded-xl flex items-center justify-center ",
               pay.status === "SUCCESS"
                 ? "bg-slate-900"
                 : "bg-slate-200 grayscale",
@@ -244,7 +244,7 @@ export function PaymentList({
             <FileText className="h-5 w-5 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[14px] uppercase">
+            <span className="font-semibold text-slate-900 text-[14px] uppercase">
               #
               {pay.parcel?.id?.slice(-8).toUpperCase() ||
                 pay.transactionReference?.slice(-8).toUpperCase() ||
@@ -304,7 +304,7 @@ export function PaymentList({
       accessor: (pay: any) => (
         <div className="flex items-center gap-1 text-slate-900">
           <Wallet className="w-4 h-4 text-slate-400" />
-          <span className="text-[14px] font-black">
+          <span className="text-[14px] font-semibold">
             TSh {pay.amount.toLocaleString()}
           </span>
         </div>
@@ -328,14 +328,14 @@ export function PaymentList({
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-700">
       {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-100 rounded-[12px] px-6 py-4 shadow-sm flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E2E2E2] rounded-[20px] px-6 py-4  flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center text-blue-600">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
             <Database size={18} strokeWidth={2.5} />
           </div>
           <div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Filter Location</span>
-            <h4 className="text-[14px] font-black text-slate-900 leading-none mt-1">Origin Station</h4>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Filter Location</span>
+            <h4 className="text-[14px] font-semibold text-slate-900 leading-none mt-1">Origin Station</h4>
           </div>
         </div>
         
@@ -343,7 +343,7 @@ export function PaymentList({
           <select
             value={selectedStationId}
             onChange={(e) => setSelectedStationId(e.target.value)}
-            className="w-full h-11 px-4 bg-slate-50 border border-slate-200/60 rounded-[10px] text-xs font-bold text-slate-700 outline-none focus:border-blue-500 hover:bg-slate-100/50 transition-all cursor-pointer shadow-sm"
+            className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500 hover:bg-slate-100/50 transition-all cursor-pointer "
           >
             <option value="">All Stations</option>
             {stationList.map((st: any) => (
@@ -418,14 +418,14 @@ export function PaymentList({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* How It Works Section */}
-            <div className="lg:col-span-1 bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[320px]">
+            <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[320px]">
               <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
 
               <div className="relative z-10">
-                <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
+                <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200   shadow-blue-500/10">
                   <Wallet className="h-6 w-6 text-blue-400" strokeWidth={2.5} />
                 </div>
-                <h3 className="text-[20px] font-black tracking-tight leading-none mb-3">
+                <h3 className="text-[20px] font-semibold tracking-tight leading-none mb-3">
                   Payment Flow
                 </h3>
                 <p className="text-slate-400 text-[12px] font-bold leading-relaxed opacity-80 mb-6">
@@ -436,29 +436,29 @@ export function PaymentList({
               </div>
 
               <div className="relative z-10 space-y-3">
-                <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 group-hover:text-white transition-colors">
                       Total Verified
                     </span>
                     <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
                       Paid Volume
                     </span>
                   </div>
-                  <span className="text-[14px] font-black text-emerald-400 tabular-nums">
+                  <span className="text-[14px] font-semibold text-emerald-400 tabular-nums">
                     {formatAmount(totalPaidAmount)}
                   </span>
                 </div>
-                <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 group-hover:text-white transition-colors">
                       Pending
                     </span>
                     <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
                       Awaiting
                     </span>
                   </div>
-                  <span className="text-[14px] font-black text-amber-400 tabular-nums">
+                  <span className="text-[14px] font-semibold text-amber-400 tabular-nums">
                     {formatAmount(totalPendingAmount)}
                   </span>
                 </div>
@@ -466,11 +466,11 @@ export function PaymentList({
             </div>
 
             {/* Placeholder for Graphs or other analytical tools */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center min-h-[320px]">
+            <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2]  p-8 flex flex-col items-center justify-center text-center min-h-[320px]">
               <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
                 <TrendingUp className="w-8 h-8 text-blue-500" />
               </div>
-              <h4 className="text-[16px] font-black text-slate-900 mb-2">
+              <h4 className="text-[16px] font-semibold text-slate-900 mb-2">
                 Revenue Activity Graph
               </h4>
               <p className="text-[13px] text-slate-400 max-w-md">
@@ -485,7 +485,7 @@ export function PaymentList({
 
       {/* Table Tab */}
       {tab.toLowerCase() === "all" && (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden p-4">
+        <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden p-4">
           <DataTable
             title="Payments"
             data={rawPayments}

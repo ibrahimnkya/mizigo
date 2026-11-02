@@ -7,31 +7,26 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({
-  title,
-  description,
-  children,
-  className,
-}: PageHeaderProps) {
+export function PageHeader({ title, description, children, className }: PageHeaderProps) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8",
+        "flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-5 mb-6 border-b border-slate-200",
         className,
       )}
     >
-      <div className="flex flex-col gap-1 text-left">
-        <h1 className="text-2xl font-black tracking-tighter text-slate-900 sm:text-4xl md:text-5xl">
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <h1 className="text-[20px] font-semibold text-slate-800 leading-tight tracking-tight">
           {title}
         </h1>
         {description && (
-          <p className="text-sm md:text-base lg:text-lg text-slate-500 font-medium max-w-[600px] leading-relaxed">
+          <p className="text-[13px] text-slate-500 leading-normal max-w-[540px]">
             {description}
           </p>
         )}
       </div>
       {children && (
-        <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {children}
         </div>
       )}

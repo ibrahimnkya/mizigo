@@ -6,15 +6,15 @@ import { useSession } from "next-auth/react";
 import {
   CheckCircle2,
   XCircle,
-  Eye,
   Loader2,
   ArrowUpRight,
   Package,
-  Info,
   Filter,
   Building2,
   Layers,
   Zap,
+  Search,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/shared/data-table";
@@ -88,7 +88,7 @@ const STATUS_META: Record<
   CANCELED: {
     label: "Cancelled",
     dot: "bg-slate-300",
-    className: "bg-slate-50 text-slate-500 border-slate-200/60",
+    className: "bg-slate-50 text-slate-500 border-slate-200",
   },
   LOST: {
     label: "Lost",
@@ -106,7 +106,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-[10px] font-black border tracking-widest uppercase",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-semibold border whitespace-nowrap",
         meta.className,
       )}
     >
@@ -120,6 +120,8 @@ function StatusBadge({ status }: { status: string }) {
 
 export interface ParcelItem {
   id: string;
+  trackingNumber?: string;
+  weight?: number | null;
   fromAddress: string;
   toAddress: string;
   serviceType: string;
@@ -183,17 +185,17 @@ function ApproveModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-900/50 -[2px]"
         onClick={onClose}
       />
-      <div className="relative z-10 bg-white rounded-[12px] shadow-[0_24px_64px_rgba(0,0,0,0.14)] w-full max-w-md overflow-hidden">
+      <div className="relative z-10 bg-white rounded-xl shadow-[0_24px_64px_rgba(0,0,0,0.14)] w-full max-w-md overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
         <div className="px-6 pt-5 pb-4 border-b border-slate-50 flex items-center gap-3">
-          <div className="w-9 h-9 bg-emerald-50 rounded-[10px] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
             <CheckCircle2 size={17} className="text-emerald-600" />
           </div>
           <div>
-            <h2 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-[15px] font-semibold text-slate-900 tracking-tight">
               Approve Request
             </h2>
             <p className="text-[12px] text-slate-400 font-mono mt-0.5">
@@ -202,7 +204,7 @@ function ApproveModal({
           </div>
         </div>
         <div className="px-6 py-5 space-y-4">
-          <div className="bg-slate-50 rounded-[10px] p-4 flex flex-col gap-2">
+          <div className="bg-slate-50 rounded-xl p-4 flex flex-col gap-2">
             <div className="flex items-center gap-2.5 text-[13px] font-semibold text-slate-700">
               <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
               {parcel.fromAddress}
@@ -214,23 +216,23 @@ function ApproveModal({
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Payment Amount (TZS) *
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[12px] font-extrabold text-slate-400">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-slate-400">
                 TZS
               </span>
               <input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors"
+                className="w-full pl-14 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors"
               />
             </div>
           </div>
           {error && (
-            <p className="text-[12px] text-rose-600 bg-rose-50 px-3 py-2 rounded-[10px] font-semibold">
+            <p className="text-[12px] text-rose-600 bg-rose-50 px-3 py-2 rounded-xl font-semibold">
               {error}
             </p>
           )}
@@ -238,14 +240,14 @@ function ApproveModal({
         <div className="px-6 pb-6 flex gap-2.5">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-slate-200 rounded-[10px] text-[13px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+            className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleApprove}
             disabled={loading}
-            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-[10px] text-[13px] font-extrabold transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl text-[13px] font-semibold transition-colors flex items-center justify-center gap-2"
           >
             {loading ? (
               <Loader2 size={14} className="animate-spin" />
@@ -300,17 +302,17 @@ function RejectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-900/50 -[2px]"
         onClick={onClose}
       />
-      <div className="relative z-10 bg-white rounded-[12px] shadow-[0_24px_64px_rgba(0,0,0,0.14)] w-full max-w-md overflow-hidden">
+      <div className="relative z-10 bg-white rounded-xl shadow-[0_24px_64px_rgba(0,0,0,0.14)] w-full max-w-md overflow-hidden">
         <div className="h-1 bg-gradient-to-r from-rose-400 to-rose-500" />
         <div className="px-6 pt-5 pb-4 border-b border-slate-50 flex items-center gap-3">
-          <div className="w-9 h-9 bg-rose-50 rounded-[10px] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
             <XCircle size={17} className="text-rose-600" />
           </div>
           <div>
-            <h2 className="text-[15px] font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-[15px] font-semibold text-slate-900 tracking-tight">
               Reject Request
             </h2>
             <p className="text-[12px] text-slate-400 font-mono mt-0.5">
@@ -324,10 +326,10 @@ function RejectModal({
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder="Provide a clear reason for the customer..."
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-slate-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none transition-colors"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-rose-400 resize-none transition-colors"
           />
           {error && (
-            <p className="text-[12px] text-rose-600 bg-rose-50 px-3 py-2 rounded-[10px] font-semibold">
+            <p className="text-[12px] text-rose-600 bg-rose-50 px-3 py-2 rounded-xl font-semibold">
               {error}
             </p>
           )}
@@ -335,14 +337,14 @@ function RejectModal({
         <div className="px-6 pb-6 flex gap-2.5">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 border border-slate-200 rounded-[10px] text-[13px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+            className="flex-1 py-2.5 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleReject}
             disabled={loading}
-            className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white rounded-[10px] text-[13px] font-extrabold transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white rounded-xl text-[13px] font-semibold transition-colors flex items-center justify-center gap-2"
           >
             {loading ? (
               <Loader2 size={14} className="animate-spin" />
@@ -373,12 +375,12 @@ function FilterSelect({
   options: { label: string; value: string }[];
 }) {
   return (
-    <div className="relative flex items-center h-9 bg-slate-50 border border-slate-200 rounded-[10px] min-w-[180px]">
-      <Icon size={12} className="absolute left-3 text-slate-400 pointer-events-none" />
+    <div className="relative flex items-center h-10 bg-white border border-[#E2E2E2] rounded-full min-w-[160px] focus-within:border-orange-500">
+      <Icon size={14} className="absolute left-3.5 text-slate-400 pointer-events-none" />
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-full pl-8 pr-8 bg-transparent border-none text-[12px] font-bold text-slate-600 outline-none cursor-pointer appearance-none"
+        className="w-full h-full pl-9 pr-8 bg-transparent border-none text-[13px] font-medium text-slate-600 outline-none cursor-pointer appearance-none"
       >
         <option value="" className="text-slate-900 bg-white font-normal normal-case tracking-normal">
           {label}
@@ -428,10 +430,11 @@ export function ParcelAdminTable({
 
   // ── Filters ────────────────────────────────────────────────────────────────
   const [filterCompany, setFilterCompany] = useState("");
-  const [filterService, setFilterService] = useState("");
+  const [filterPriority, setFilterPriority] = useState("");
   const [filterParcelType, setFilterParcelType] = useState("");
   const [filterOrigin, setFilterOrigin] = useState("");
   const [filterDestination, setFilterDestination] = useState("");
+  const [query, setQuery] = useState("");
 
   // Derive unique values for filter options from data
   const companyOptions = useMemo(() => {
@@ -443,11 +446,12 @@ export function ParcelAdminTable({
     return names.map((n) => ({ label: n, value: n }));
   }, [initialItems]);
 
-  const serviceOptions = useMemo(() => {
-    const types = [
-      ...new Set(initialItems.map((i) => i.serviceType).filter(Boolean)),
+  // Delivery priority options (urgency field, e.g. Standard, Express, Economy)
+  const priorityOptions = useMemo(() => {
+    const priorities = [
+      ...new Set(initialItems.map((i) => i.urgency).filter(Boolean)),
     ];
-    return types.map((t) => ({ label: t, value: t }));
+    return priorities.map((p) => ({ label: p as string, value: p as string }));
   }, [initialItems]);
 
   const parcelTypeOptions = useMemo(() => {
@@ -457,50 +461,62 @@ export function ParcelAdminTable({
     return types.map((t) => ({ label: t, value: t }));
   }, [initialItems]);
 
+  // Use station name as label but station ID as value for accurate filtering
   const originOptions = useMemo(() => {
-    const origins = [
-      ...new Set(initialItems.map((i) => i.fromAddress).filter(Boolean)),
-    ];
-    return origins.map((o) => ({ label: o, value: o }));
+    const map = new Map<string, string>();
+    initialItems.forEach((i) => {
+      if (i.fromAddress) map.set(i.fromAddress, (i as any).origin?.name || i.fromAddress);
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({ label, value }));
   }, [initialItems]);
 
   const destinationOptions = useMemo(() => {
-    const destinations = [
-      ...new Set(initialItems.map((i) => i.toAddress).filter(Boolean)),
-    ];
-    return destinations.map((d) => ({ label: d, value: d }));
+    const map = new Map<string, string>();
+    initialItems.forEach((i) => {
+      if (i.toAddress) map.set(i.toAddress, (i as any).destination?.name || i.toAddress);
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({ label, value }));
   }, [initialItems]);
 
   const activeFilterCount = [
+    query,
     filterCompany,
-    filterService,
+    filterPriority,
     filterParcelType,
     filterOrigin,
     filterDestination,
   ].filter(Boolean).length;
 
   const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return initialItems.filter((item) => {
-      if (filterCompany && (item as any).organization?.name !== filterCompany && item.user?.name !== filterCompany) return false;
-      if (filterService && item.serviceType !== filterService) return false;
-      if (filterParcelType && item.parcelType !== filterParcelType)
+      if (
+        q &&
+        ![item.trackingNumber, item.receiverName, item.receiverPhone, item.origin?.name, item.destination?.name]
+          .some((v) => v?.toLowerCase().includes(q))
+      )
         return false;
+      if (filterCompany && (item as any).organization?.name !== filterCompany && item.user?.name !== filterCompany) return false;
+      if (filterPriority && item.urgency !== filterPriority) return false;
+      if (filterParcelType && item.parcelType !== filterParcelType) return false;
       if (filterOrigin && item.fromAddress !== filterOrigin) return false;
       if (filterDestination && item.toAddress !== filterDestination) return false;
       return true;
     });
   }, [
     initialItems,
+    query,
     filterCompany,
-    filterService,
+    filterPriority,
     filterParcelType,
     filterOrigin,
     filterDestination,
   ]);
 
   const clearFilters = () => {
+    setQuery("");
     setFilterCompany("");
-    setFilterService("");
+    setFilterPriority("");
     setFilterParcelType("");
     setFilterOrigin("");
     setFilterDestination("");
@@ -508,124 +524,87 @@ export function ParcelAdminTable({
 
   // ── Columns ────────────────────────────────────────────────────────────────
 
+  const tsh = (n: number) => `TSh ${Math.round(n).toLocaleString("en-US")}`;
+  const when = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} · ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+  };
+
   const columns = [
     {
-      header: "Tracking ID",
+      header: "Parcel",
       accessor: (item: ParcelItem) => (
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center shrink-0">
-            <Package className="h-4 w-4" />
+          <div className="h-11 w-11 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/staff_parcel.png" alt="" className="h-8 w-8 object-contain" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight font-mono">
-              #{item.id.slice(-8).toUpperCase()}
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-[#1C1C1E] text-[14px] tracking-wide">
+              {item.trackingNumber || `#${item.id.slice(-8).toUpperCase()}`}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {new Date(item.createdAt).toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
+            <span className="text-[12px] text-slate-400">{when(item.createdAt)}</span>
           </div>
         </div>
       ),
-    },
-    {
-      header: "Company / Sender",
-      accessor: (item: ParcelItem) => {
-        const orgName = (item as any).organization?.name || null;
-        const senderName = item.user?.name || "Customer";
-        return (
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[8px] bg-blue-50 border border-blue-100 flex items-center justify-center text-[12px] font-black text-blue-600 shrink-0">
-              {(orgName || senderName).charAt(0).toUpperCase()}
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-slate-900 text-[13px] tracking-tight">
-                {orgName || senderName}
-              </span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                {orgName ? "Organization" : (item.user?.phone ?? item.user?.email ?? "Walk-in")}
-              </span>
-            </div>
-          </div>
-        );
-      },
     },
     {
       header: "Route",
       accessor: (item: ParcelItem) => {
-        const originName = (item as any).origin?.name || item.fromAddress;
-        const destName = (item as any).destination?.name || item.toAddress;
+        const originName = item.origin?.name || item.fromAddress;
+        const destName = item.destination?.name || item.toAddress;
         return (
-          <div className="flex flex-col gap-1.5 relative pl-4">
-            <div className="absolute left-0.5 top-1 bottom-1 w-[1.5px] bg-slate-100 rounded-full" />
-            <div className="flex items-center gap-2 text-[12px] font-bold text-slate-700">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-              <span className="truncate max-w-[140px]">{originName}</span>
-            </div>
-            <div className="flex items-center gap-2 text-[12px] font-bold text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
-              <span className="truncate max-w-[140px]">{destName}</span>
-            </div>
+          <div className="flex items-center gap-2 text-[13px] font-medium text-slate-700">
+            <span className="truncate max-w-[130px]">{originName}</span>
+            <ArrowUpRight size={14} className="rotate-45 text-orange-500 shrink-0" />
+            <span className="truncate max-w-[130px]">{destName}</span>
           </div>
         );
       },
     },
+    ...(isSuperAdmin
+      ? [
+          {
+            header: "Company",
+            accessor: (item: ParcelItem) => (
+              <span className="text-[13px] font-medium text-slate-700">
+                {item.organization?.name || item.user?.name || "—"}
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       header: "Receiver",
       accessor: (item: ParcelItem) => (
         <div className="flex flex-col">
-          <span className="font-black text-slate-900 text-[13px] tracking-tight">
-            {item.receiverName}
-          </span>
-          {item.receiverPhone && (
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {item.receiverPhone}
-            </span>
-          )}
+          <span className="font-medium text-[#1C1C1E] text-[13px]">{item.receiverName || "—"}</span>
+          {item.receiverPhone && <span className="text-[12px] text-slate-400">{item.receiverPhone}</span>}
         </div>
       ),
     },
     {
-      header: "Service / Type",
+      header: "Parcel details",
       accessor: (item: ParcelItem) => (
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest leading-none">
-            {item.serviceType}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[9px] font-black text-white bg-slate-900 px-1.5 py-0.5 rounded-[6px] uppercase">
-              {item.parcelType}
-            </span>
-            <span className="text-[9px] font-black text-slate-400 uppercase">
-              {item.parcelSize}
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {item.urgency === "Express" && (
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">Express</span>
+          )}
+          {item.parcelType && (
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{item.parcelType}</span>
+          )}
+          {item.weight ? <span className="text-[12px] text-slate-400">{item.weight} kg</span> : null}
         </div>
       ),
     },
     {
-      header: "Settlement",
+      header: "Amount",
+      align: "right" as const,
       accessor: (item: ParcelItem) =>
         item.amount != null ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[14px] font-black tracking-tighter tabular-nums text-slate-900">
-              {new Intl.NumberFormat("en-TZ", {
-                style: "currency",
-                currency: "TZS",
-                maximumSignificantDigits: 4,
-              }).format(item.amount)}
-            </span>
-            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">
-              Verified
-            </span>
-          </div>
+          <span className="text-[14px] font-semibold tabular-nums text-[#1C1C1E]">{tsh(item.amount)}</span>
         ) : (
-          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-[8px] bg-amber-50 border border-amber-100 text-[10px] font-black uppercase tracking-widest text-amber-600">
-            <Info size={9} strokeWidth={3} /> Pending
-          </div>
+          <span className="text-[12px] text-slate-400">Not priced</span>
         ),
     },
     {
@@ -633,37 +612,37 @@ export function ParcelAdminTable({
       accessor: (item: ParcelItem) => <StatusBadge status={item.status} />,
     },
     {
-      header: "Actions",
+      header: "",
       align: "right" as const,
       accessor: (item: ParcelItem) => {
         const canApprove = item.status === "PENDING";
-        const canReject = ["PENDING", "APPROVED", "PAYMENT_PENDING"].includes(
-          item.status,
-        );
+        const canReject = ["PENDING", "APPROVED", "PAYMENT_PENDING"].includes(item.status);
         return (
-          <div className="flex items-center justify-end gap-2 pr-2">
-            <button
-              onClick={() => router.push(`/parcel/${item.id}`)}
-              className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2"
-            >
-              View <ArrowUpRight size={12} strokeWidth={3} />
-            </button>
+          <div className="flex items-center justify-end gap-2">
             {canApprove && (
               <button
                 onClick={() => setApproveTarget(item)}
-                className="h-9 px-3 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-[10px] text-[10px] font-black transition-all active:scale-95"
+                title="Approve"
+                className="h-9 w-9 flex items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition"
               >
-                <CheckCircle2 size={13} />
+                <CheckCircle2 size={16} />
               </button>
             )}
             {canReject && (
               <button
                 onClick={() => setRejectTarget(item)}
-                className="h-9 px-3 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 rounded-[10px] text-[10px] font-black transition-all active:scale-95"
+                title="Reject"
+                className="h-9 w-9 flex items-center justify-center rounded-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition"
               >
-                <XCircle size={13} />
+                <XCircle size={16} />
               </button>
             )}
+            <button
+              onClick={() => router.push(`/parcel/${item.id}`)}
+              className="h-9 px-4 rounded-full bg-[#5C0B19] hover:bg-[#4F0A0C] text-white text-[13px] font-semibold flex items-center gap-1.5 transition active:scale-95"
+            >
+              View <ArrowUpRight size={14} />
+            </button>
           </div>
         );
       },
@@ -673,16 +652,20 @@ export function ParcelAdminTable({
   return (
     <div>
       {/* Filter Bar */}
-      <div className="px-6 py-3 border-b border-slate-100 bg-white flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
-          <Filter size={11} />
-          Filters
+      <div className="px-5 py-4 border-b border-slate-100 bg-white flex items-center gap-2.5 flex-wrap">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tracking number, receiver, phone or station"
+            className="h-10 w-full rounded-full border border-[#E2E2E2] bg-white pl-10 pr-4 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+          />
         </div>
-        <div className="h-5 w-px bg-slate-100" />
         {isSuperAdmin && (
           <FilterSelect
             icon={Building2}
-            label="All Companies"
+            label="All companies"
             value={filterCompany}
             onChange={setFilterCompany}
             options={companyOptions}
@@ -690,28 +673,28 @@ export function ParcelAdminTable({
         )}
         <FilterSelect
           icon={Zap}
-          label="All Services"
-          value={filterService}
-          onChange={setFilterService}
-          options={serviceOptions}
+          label="All priorities"
+          value={filterPriority}
+          onChange={setFilterPriority}
+          options={priorityOptions}
         />
         <FilterSelect
           icon={Layers}
-          label="All Types"
+          label="All types"
           value={filterParcelType}
           onChange={setFilterParcelType}
           options={parcelTypeOptions}
         />
         <FilterSelect
-          icon={Package}
-          label="All Origins"
+          icon={MapPin}
+          label="All origins"
           value={filterOrigin}
           onChange={setFilterOrigin}
           options={originOptions}
         />
         <FilterSelect
-          icon={Package}
-          label="All Destinations"
+          icon={MapPin}
+          label="All destinations"
           value={filterDestination}
           onChange={setFilterDestination}
           options={destinationOptions}
@@ -719,19 +702,17 @@ export function ParcelAdminTable({
 
         {activeFilterCount > 0 && (
           <>
-            <div className="h-5 w-px bg-slate-100" />
             <button
               onClick={clearFilters}
-              className="h-9 px-3 text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50 rounded-[10px] transition-all border border-rose-100 flex items-center gap-1.5"
+              className="h-10 px-4 text-[13px] font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-full transition flex items-center gap-1.5"
             >
-              <XCircle size={11} /> Clear ({activeFilterCount})
+              <XCircle size={14} /> Clear ({activeFilterCount})
             </button>
           </>
         )}
 
-        <div className="ml-auto text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          <span className="text-slate-900">{filteredItems.length}</span> of{" "}
-          {initialItems.length} parcels
+        <div className="ml-auto text-[13px] text-slate-500">
+          <span className="font-semibold text-[#1C1C1E]">{filteredItems.length}</span> of {initialItems.length} parcels
         </div>
       </div>
 
@@ -741,7 +722,7 @@ export function ParcelAdminTable({
         columns={columns as any}
         hideActions={true}
         hideInternalSearch={true}
-        emptyMessage="No parcels match the selected filters."
+        emptyMessage={initialItems.length === 0 ? "No parcels here yet." : "No parcels match your search or filters."}
       />
 
       {approveTarget && (

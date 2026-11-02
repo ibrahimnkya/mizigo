@@ -43,7 +43,7 @@ function ParcelStatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0",
+        "text-[8px] font-semibold px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0",
         colors[status] || "bg-slate-50 text-slate-700 border-slate-100",
       )}
     >
@@ -122,12 +122,12 @@ export function UpdateStationModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 rounded-2xl shadow-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-[#E2E2E2] rounded-[20px] ">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-5 relative z-10 pr-24">
-            <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
               {isEditing ? (
                 <Edit3 className="w-6 h-6 text-white" strokeWidth={2.5} />
               ) : (
@@ -135,10 +135,10 @@ export function UpdateStationModal({
               )}
             </div>
             <div className="flex flex-col relative z-10 text-left">
-              <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+              <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
                 {isEditing ? "Edit Station" : "Station Details"}
               </SheetTitle>
-              <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+              <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
                 {isEditing
                   ? "Update rail network connection point"
                   : "Verify physical operational hub node"}
@@ -152,10 +152,10 @@ export function UpdateStationModal({
               type="button"
               onClick={() => setIsEditing(!isEditing)}
               className={cn(
-                "absolute right-20 top-8 w-10 h-10 rounded-[10px] flex items-center justify-center z-20 transition-all hover:scale-105 active:scale-95 shadow-md",
+                "absolute right-20 top-8 w-10 h-10 rounded-xl flex items-center justify-center z-20 transition-all hover:scale-105 active:scale-95 shadow-md",
                 isEditing
                   ? "bg-blue-600 text-white border border-blue-500 animate-in spin-in-12 duration-200"
-                  : "bg-white/10 text-white/80 border border-white/10 hover:bg-white/20 hover:text-white",
+                  : "bg-white/10 text-slate-700 border border-slate-200 hover:bg-white/20 hover:text-white",
               )}
               title={isEditing ? "View Details" : "Edit Station"}
             >
@@ -171,9 +171,9 @@ export function UpdateStationModal({
               id="station-tab-overview"
               onClick={() => setActiveSubTab("overview")}
               className={cn(
-                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all",
                 activeSubTab === "overview"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  ? "bg-white text-slate-900  border border-slate-200"
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
@@ -183,9 +183,9 @@ export function UpdateStationModal({
               id="station-tab-staffs"
               onClick={() => setActiveSubTab("staffs")}
               className={cn(
-                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5",
+                "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5",
                 activeSubTab === "staffs"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  ? "bg-white text-slate-900  border border-slate-200"
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
@@ -198,9 +198,9 @@ export function UpdateStationModal({
               id="station-tab-parcels"
               onClick={() => setActiveSubTab("parcels")}
               className={cn(
-                "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5",
+                "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5",
                 activeSubTab === "parcels"
-                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  ? "bg-white text-slate-900  border border-slate-200"
                   : "text-slate-400 hover:text-slate-600",
               )}
             >
@@ -219,7 +219,7 @@ export function UpdateStationModal({
               className="w-8 h-8 animate-spin text-blue-500"
               strokeWidth={2.5}
             />
-            <span className="text-[11px] font-black uppercase tracking-widest">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.05em]">
               Fetching Network Stats...
             </span>
           </div>
@@ -230,10 +230,10 @@ export function UpdateStationModal({
               <div className="space-y-8 animate-in fade-in duration-300">
                 {/* Station Specs */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">
+                  <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-left">
                     Station Specs
                   </h3>
-                  <div className="grid grid-cols-1 gap-3.5 bg-slate-50 p-5 rounded-[12px] border border-slate-100">
+                  <div className="grid grid-cols-1 gap-3.5 bg-slate-50 p-5 rounded-xl border border-slate-100">
                     <DetailRow
                       icon={<Building2 className="w-4 h-4 text-slate-400" />}
                       label="Station Name"
@@ -273,7 +273,7 @@ export function UpdateStationModal({
 
                 {/* Station Metrics */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">
+                  <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-left">
                     Operations Performance
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -300,7 +300,7 @@ export function UpdateStationModal({
 
                 {/* Workforce Metrics */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">
+                  <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-left">
                     Workforce Registry
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
@@ -333,10 +333,10 @@ export function UpdateStationModal({
             {activeSubTab === "staffs" && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                     Station Personnel
                   </h3>
-                  <span className="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-semibold uppercase text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
                     {stationDetail?.staff?.length || 0} active nodes
                   </span>
                 </div>
@@ -360,14 +360,14 @@ export function UpdateStationModal({
                       return (
                         <div
                           key={member.id}
-                          className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm flex items-center justify-between gap-4 text-left animate-in fade-in duration-200"
+                          className="p-4 bg-white border border-[#E2E2E2] rounded-[20px]  flex items-center justify-between gap-4 text-left animate-in fade-in duration-200"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-[10px] bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-[12px] font-black shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-[12px] font-semibold shrink-0">
                               {initials}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight">
+                              <span className="text-[12px] font-semibold text-slate-900 truncate uppercase tracking-tight">
                                 {member.name}
                               </span>
                               <span className="text-[10px] font-semibold text-slate-400 truncate lowercase tracking-tight mt-0.5">
@@ -377,12 +377,12 @@ export function UpdateStationModal({
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="px-2.5 py-1.5 rounded-[8px] bg-slate-50 border border-slate-100 text-slate-600 text-[9px] font-black uppercase tracking-[0.1em] shadow-sm">
+                            <span className="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 text-[9px] font-semibold uppercase tracking-[0.1em] ">
                               {member.role?.name?.replace("_", " ") || "USER"}
                             </span>
                             <div
                               className={cn(
-                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] border text-[9px] font-black uppercase tracking-wider",
+                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[9px] font-semibold uppercase tracking-wider",
                                 member.isActive
                                   ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                                   : "bg-rose-50 text-rose-600 border-rose-100",
@@ -410,10 +410,10 @@ export function UpdateStationModal({
             {activeSubTab === "parcels" && (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                     Parcels Handled
                   </h3>
-                  <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-semibold uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
                     {stationDetail?.parcels?.length || 0} entries
                   </span>
                 </div>
@@ -430,11 +430,11 @@ export function UpdateStationModal({
                     {stationDetail.parcels.map((parcel: any) => (
                       <div
                         key={parcel.id}
-                        className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm flex items-center justify-between gap-4"
+                        className="p-4 bg-white border border-[#E2E2E2] rounded-[20px]  flex items-center justify-between gap-4"
                       >
                         <div className="flex flex-col text-left">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-900 tracking-tight">
+                            <span className="text-xs font-semibold text-slate-900 tracking-tight">
                               {parcel.trackingNumber}
                             </span>
                             <ParcelStatusBadge status={parcel.status} />
@@ -454,10 +454,10 @@ export function UpdateStationModal({
                           </div>
                         </div>
                         <div className="flex flex-col items-end shrink-0">
-                          <span className="text-[10.5px] font-black text-slate-700">
+                          <span className="text-[10.5px] font-semibold text-slate-700">
                             {format(new Date(parcel.createdAt), "MMM dd, yyyy")}
                           </span>
-                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                          <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-1">
                             Log Date
                           </span>
                         </div>
@@ -476,7 +476,7 @@ export function UpdateStationModal({
             className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar text-left animate-in slide-in-from-top-2 duration-300"
           >
             {error && (
-              <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-[12px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
                 <div className="w-2 h-2 rounded-full bg-rose-500 shadow-md" />
                 {error}
               </div>
@@ -484,38 +484,38 @@ export function UpdateStationModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
               <div className="space-y-3 md:col-span-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Station Name
                 </Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[12px] px-5 text-[14px] font-bold transition-all"
+                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl px-5 text-[14px] font-bold transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Station Code
                 </Label>
                 <Input
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   maxLength={5}
-                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[12px] px-5 text-[14px] font-bold uppercase transition-all"
+                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl px-5 text-[14px] font-bold uppercase transition-all"
                   required
                 />
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Location
                 </Label>
                 <Input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[12px] px-5 text-[14px] font-bold transition-all"
+                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl px-5 text-[14px] font-bold transition-all"
                 />
               </div>
             </div>
@@ -523,7 +523,7 @@ export function UpdateStationModal({
             {/* Metadata */}
             <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                   Network Security
                 </span>
                 <p className="text-[10px] font-bold text-slate-400 leading-tight max-w-[280px]">
@@ -539,7 +539,7 @@ export function UpdateStationModal({
                 )}
               >
                 <CheckCircle2 size={12} strokeWidth={3} />
-                <span className="text-[9px] font-black uppercase tracking-widest">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                   {isActive ? "Online" : "Offline"}
                 </span>
               </div>
@@ -553,7 +553,7 @@ export function UpdateStationModal({
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+              className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
             >
               Cancel
             </button>
@@ -561,7 +561,7 @@ export function UpdateStationModal({
               type="submit"
               form="update-station-form"
               disabled={loading || !name || !code}
-              className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+              className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -603,7 +603,7 @@ function DetailRow({
       {isBadge ? (
         <span
           className={cn(
-            "text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider",
+            "text-[9px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider",
             value === "Online"
               ? "bg-emerald-100 text-emerald-700"
               : "bg-slate-100 text-slate-700",
@@ -612,7 +612,7 @@ function DetailRow({
           {value}
         </span>
       ) : (
-        <span className="text-xs font-black text-slate-700 uppercase tracking-tight truncate max-w-[240px]">
+        <span className="text-xs font-semibold text-slate-700 uppercase tracking-tight truncate max-w-[240px]">
           {value}
         </span>
       )}
@@ -702,17 +702,17 @@ function StatBox({
 
   return (
     <div className="group relative flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white transition-all duration-300 hover:shadow-md hover:border-slate-200 overflow-hidden text-left">
-      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm", bg)}>
+      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 ", bg)}>
         {icon}
       </div>
 
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none truncate">
             {label}
           </span>
           <span className={cn(
-            "text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border",
+            "text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border",
             scheme.bg,
             scheme.border,
             scheme.text
@@ -720,7 +720,7 @@ function StatBox({
             Activity
           </span>
         </div>
-        <span className={cn("text-2xl font-black mt-1.5 leading-none tabular-nums", scheme.text)}>
+        <span className={cn("text-2xl font-semibold mt-1.5 leading-none tabular-nums", scheme.text)}>
           {counted.toLocaleString()}
         </span>
       </div>

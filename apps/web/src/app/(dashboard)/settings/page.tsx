@@ -59,15 +59,14 @@ const settingsSections = [
 
 export default function SettingsPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
               Configuration
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
             System Settings
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">
@@ -81,11 +80,11 @@ export default function SettingsPage() {
           {settingsSections.map((section) => (
             <div
               key={section.title}
-              className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden"
+              className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden"
             >
               <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-50">
                 <div
-                  className="w-7 h-7 rounded-[10px] flex items-center justify-center"
+                  className="w-7 h-7 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: `${section.accent}15` }}
                 >
                   <section.icon
@@ -94,7 +93,7 @@ export default function SettingsPage() {
                     strokeWidth={2.5}
                   />
                 </div>
-                <span className="text-[14px] font-extrabold text-slate-800">
+                <span className="text-[14px] font-semibold text-slate-800">
                   {section.title}
                 </span>
               </div>
@@ -128,22 +127,22 @@ export default function SettingsPage() {
         </div>
 
         {/* Session card */}
-        <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-50">
-            <div className="w-7 h-7 rounded-[10px] bg-slate-100 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center">
               <UserCircle
                 size={13}
                 className="text-slate-500"
                 strokeWidth={2.5}
               />
             </div>
-            <span className="text-[14px] font-extrabold text-slate-800">
+            <span className="text-[14px] font-semibold text-slate-800">
               Active Session
             </span>
           </div>
           <div className="px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center text-[13px] font-extrabold text-blue-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[13px] font-semibold text-blue-600">
                 DB
               </div>
               <div>
@@ -158,14 +157,13 @@ export default function SettingsPage() {
             <form action={logout}>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-rose-500 hover:text-rose-600 transition-colors"
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.05em] text-rose-500 hover:text-rose-600 transition-colors"
               >
                 <LogOut size={12} /> Log out
               </button>
             </form>
           </div>
         </div>
-      </div>
     </div>
   );
 }

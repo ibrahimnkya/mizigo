@@ -304,7 +304,7 @@ function SmsConfigPageInner() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
@@ -313,8 +313,7 @@ function SmsConfigPageInner() {
   // ── Render ──
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
 
         <ReportPageHeader
           title="SMS Notifications"
@@ -323,53 +322,52 @@ function SmsConfigPageInner() {
           action={
             <Sheet open={openEditor} onOpenChange={setOpenEditor}>
               <SheetTrigger asChild>
-                <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">
+                <button className="h-8 px-3 bg-blue-600 text-white rounded-xl text-[12px] font-semibold flex items-center gap-1.5 hover:bg-blue-700 transition-colors">
                   <Settings size={14} strokeWidth={3} />
                   Configure Gateway
                 </button>
               </SheetTrigger>
-              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white shadow-2xl rounded-2xl flex flex-col">
-                <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-                  <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white  rounded-xl flex flex-col">
+                <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                     <Database className="w-6 h-6 text-white" strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col relative z-10 text-left">
-                    <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+                    <SheetTitle className="text-[16px] font-semibold text-slate-800 leading-tight">
                       SMS Gateway Setup
                     </SheetTitle>
-                    <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+                    <SheetDescription className="text-[12px] text-slate-500 mt-0.5">
                       Configure SMS provider credentials and defaults
                     </SheetDescription>
                   </div>
                 </div>
                 <form id="sms-gateway-form" onSubmit={handleEditorSubmit} className="p-8 space-y-6 flex-1 overflow-y-auto">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Provider Name</Label>
-                    <Input name="name" defaultValue={activeConfig?.name || ""} className="h-14 bg-slate-50 border-slate-100 rounded-[10px]" placeholder="e.g. Sprint SMS" required />
+                    <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Provider Name</Label>
+                    <Input name="name" defaultValue={activeConfig?.name || ""} className="h-9 bg-white border border-[#E2E2E2] rounded-[20px] text-[13px] focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="e.g. Sprint SMS" required />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">API Base URL</Label>
-                    <Input name="apiUrl" defaultValue={configData.apiUrl || ""} className="h-14 bg-slate-50 border-slate-100 rounded-[10px]" placeholder="https://provider.com/api/sms" required />
+                    <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">API Base URL</Label>
+                    <Input name="apiUrl" defaultValue={configData.apiUrl || ""} className="h-9 bg-white border border-[#E2E2E2] rounded-[20px] text-[13px] focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="https://provider.com/api/sms" required />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">API ID / Username</Label>
-                    <Input name="apiId" defaultValue={configData.apiId || ""} className="h-14 bg-slate-50 border-slate-100 rounded-[10px]" placeholder="API identifier" />
+                    <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">API ID / Username</Label>
+                    <Input name="apiId" defaultValue={configData.apiId || ""} className="h-9 bg-white border border-[#E2E2E2] rounded-[20px] text-[13px] focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="API identifier" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">API Password / Key</Label>
-                    <Input name="apiPassword" type="password" defaultValue={configData.apiPassword || ""} className="h-14 bg-slate-50 border-slate-100 rounded-[10px]" placeholder="••••••••" />
+                    <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">API Password / Key</Label>
+                    <Input name="apiPassword" type="password" defaultValue={configData.apiPassword || ""} className="h-9 bg-white border border-[#E2E2E2] rounded-[20px] text-[13px] focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="••••••••" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Default Sender ID</Label>
-                    <Input name="defaultSenderId" defaultValue={configData.defaultSenderId || ""} className="h-14 bg-slate-50 border-slate-100 rounded-[10px]" placeholder="e.g. MIZIGO" />
+                    <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Default Sender ID</Label>
+                    <Input name="defaultSenderId" defaultValue={configData.defaultSenderId || ""} className="h-9 bg-white border border-[#E2E2E2] rounded-[20px] text-[13px] focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="e.g. MIZIGO" />
                   </div>
                 </form>
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                  <button type="button" onClick={() => setOpenEditor(false)} className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all">
+                  <button type="button" onClick={() => setOpenEditor(false)} className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all">
                     Cancel
                   </button>
-                  <button type="submit" form="sms-gateway-form" disabled={isCreating || isUpdating} className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
+                  <button type="submit" form="sms-gateway-form" disabled={isCreating || isUpdating} className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
                     {(isCreating || isUpdating) ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 size={16} />{activeConfig ? "Update Gateway" : "Save Gateway"}</>}
                   </button>
                 </div>
@@ -395,15 +393,15 @@ function SmsConfigPageInner() {
                   { label: "Templates", value: `${TEMPLATE_DEFS.length} Active`, icon: FileText, color: "text-violet-600", tag: "Messages" },
                   { label: "Companies", value: organizations.length.toString(), icon: Building2, color: "text-slate-900", tag: "Configured" },
                 ].map((stat, i) => (
-                  <div key={i} className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50">
+                  <div key={i} className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px]  group hover:border-slate-300 transition-all hover: hover:shadow-slate-100/50">
                     <div className="flex items-center justify-between mb-4">
-                      <div className={cn("w-12 h-12 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white", stat.color)}>
+                      <div className={cn("w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white", stat.color)}>
                         <stat.icon size={20} strokeWidth={2.5} />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-slate-50 text-slate-400">{stat.tag}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400">{stat.tag}</span>
                     </div>
-                    <h4 className="text-[24px] font-black tracking-tight text-slate-900 leading-none">{stat.value}</h4>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">{stat.label}</p>
+                    <h4 className="text-[24px] font-semibold tracking-tight text-slate-900 leading-none">{stat.value}</h4>
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-2">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -411,13 +409,13 @@ function SmsConfigPageInner() {
               {/* Hero + Test Panel */}
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Hero Card */}
-                <div className="lg:col-span-2 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[420px]">
+                <div className="lg:col-span-2 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[420px]">
                   <div className="absolute top-[-80px] right-[-80px] w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
                   <div className="relative z-10">
-                    <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10">
+                    <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200">
                       <HugeiconsIcon icon={MessageSecure01Icon} className="w-6 h-6 text-blue-400" />
                     </div>
-                    <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">SMS Gateway</h3>
+                    <h3 className="text-[24px] font-semibold tracking-tight leading-none mb-3">SMS Gateway</h3>
                     <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80 mb-6">
                       Route transactional notifications through your configured SMS provider with per-company template overrides.
                     </p>
@@ -428,37 +426,37 @@ function SmsConfigPageInner() {
                       { label: "Sender ID", value: configData.defaultSenderId || "—" },
                       { label: "Status", value: activeConfig?.isActive ? "✓ Live" : "⚠ Inactive" },
                     ].map((row) => (
-                      <div key={row.label} className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{row.label}</span>
-                        <span className="text-[13px] font-black text-white tabular-nums">{row.value}</span>
+                      <div key={row.label} className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">{row.label}</span>
+                        <span className="text-[13px] font-semibold text-white tabular-nums">{row.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Test SMS Panel */}
-                <div className="lg:col-span-3 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col justify-between relative overflow-hidden">
+                <div className="lg:col-span-3 bg-white rounded-[20px] border border-[#E2E2E2]  p-8 flex flex-col justify-between relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-50/30 to-transparent pointer-events-none" />
                   <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-8">
-                      <div className="h-10 w-10 rounded-[10px] bg-blue-600 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center">
                         <Zap className="h-5 w-5 text-white" strokeWidth={2.5} />
                       </div>
                       <div>
-                        <h3 className="text-[16px] font-black text-slate-900">Test SMS Sandbox</h3>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Dispatch a live test message</p>
+                        <h3 className="text-[16px] font-semibold text-slate-900">Test SMS Sandbox</h3>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.05em]">Dispatch a live test message</p>
                       </div>
                     </div>
                     <form onSubmit={handleTestSubmit} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Recipient Phone</label>
-                        <input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} className="w-full h-14 px-5 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="+255 7XX XXX XXX" />
+                        <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Recipient Phone</label>
+                        <input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} className="w-full h-14 px-5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="+255 7XX XXX XXX" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Test Message</label>
-                        <textarea value={testMessage} onChange={(e) => setTestMessage(e.target.value)} className="w-full h-24 px-5 py-4 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+                        <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Test Message</label>
+                        <textarea value={testMessage} onChange={(e) => setTestMessage(e.target.value)} className="w-full h-24 px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
                       </div>
-                      <button type="submit" disabled={isTesting || !activeConfig} className="w-full h-14 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-[10px] font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                      <button type="submit" disabled={isTesting || !activeConfig} className="w-full h-14 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] transition-all flex items-center justify-center gap-2">
                         {isTesting ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send size={14} />Dispatch Test</>}
                       </button>
                     </form>
@@ -472,13 +470,13 @@ function SmsConfigPageInner() {
           {tab.toLowerCase() === "templates" && (
             <div className="space-y-6">
               {/* Company Scope Selector */}
-              <div className="bg-white border border-slate-100 rounded-[10px] shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="bg-white border border-[#E2E2E2] rounded-[20px]  p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-[10px] bg-blue-50 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
                     <Building2 size={18} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Template Scope</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">Template Scope</p>
                     <p className="text-[13px] font-bold text-slate-700">
                       {selectedOrgId
                         ? <>Editing overrides for <span className="text-blue-600">{organizations.find((o) => o.id === selectedOrgId)?.name}</span></>
@@ -490,7 +488,7 @@ function SmsConfigPageInner() {
                   <select
                     value={selectedOrgId}
                     onChange={(e) => setSelectedOrgId(e.target.value)}
-                    className="h-12 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-[10px] text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none min-w-[220px] cursor-pointer"
+                    className="h-12 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none min-w-[220px] cursor-pointer"
                   >
                     <option value="">🌐 Global (Platform Default)</option>
                     {organizations.map((org) => (
@@ -503,7 +501,7 @@ function SmsConfigPageInner() {
                   <button
                     onClick={() => resetToGlobal()}
                     disabled={isResetting}
-                    className="h-12 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"
+                    className="h-12 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all"
                   >
                     {isResetting ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
                     Reset to Global
@@ -515,9 +513,9 @@ function SmsConfigPageInner() {
               {isLoadingSettings && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {TEMPLATE_DEFS.map((_, i) => (
-                    <div key={i} className="bg-white border border-slate-100 rounded-[10px] p-6 animate-pulse space-y-3">
+                    <div key={i} className="bg-white border border-[#E2E2E2] rounded-[20px] p-6 animate-pulse space-y-3">
                       <div className="h-4 bg-slate-100 rounded w-1/3" />
-                      <div className="h-32 bg-slate-50 rounded-[10px]" />
+                      <div className="h-32 bg-slate-50 rounded-xl" />
                     </div>
                   ))}
                 </div>
@@ -533,7 +531,7 @@ function SmsConfigPageInner() {
                       <div
                         key={def.key}
                         className={cn(
-                          "bg-white border rounded-[10px] shadow-sm p-6 space-y-4 transition-all",
+                          "bg-white border rounded-xl  p-6 space-y-4 transition-all",
                           isDirtyField ? "border-blue-300 shadow-blue-100" : "border-slate-100",
                           def.key === "SMS_TEMPLATE_DELIVERY_OTP" && "md:col-span-2"
                         )}
@@ -541,14 +539,14 @@ function SmsConfigPageInner() {
                         <div className="flex items-start justify-between">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-wide">{def.label}</h4>
+                              <h4 className="text-[13px] font-semibold text-slate-900 uppercase tracking-wide">{def.label}</h4>
                               {hasOrgOverride && (
-                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                                <span className="text-[9px] font-semibold uppercase tracking-[0.05em] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                                   Company Override
                                 </span>
                               )}
                               {isDirtyField && (
-                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100">
+                                <span className="text-[9px] font-semibold uppercase tracking-[0.05em] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100">
                                   Unsaved
                                 </span>
                               )}
@@ -561,7 +559,7 @@ function SmsConfigPageInner() {
                           value={templates[def.key] ?? ""}
                           onChange={(e) => setTemplates((prev) => ({ ...prev, [def.key]: e.target.value }))}
                           rows={def.rows}
-                          className="w-full p-4 bg-slate-50 border border-slate-100 rounded-[10px] text-sm font-mono text-slate-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-y"
+                          className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm font-mono text-slate-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-y"
                           placeholder={`Enter ${def.label} template...`}
                         />
                         <div className="flex flex-wrap gap-1.5">
@@ -570,7 +568,7 @@ function SmsConfigPageInner() {
                               key={p}
                               type="button"
                               onClick={() => insertVariable(def.key, p)}
-                              className="text-[9px] font-black font-mono px-2 py-1 bg-slate-900 hover:bg-blue-600 text-slate-100 rounded-[6px] tracking-wide transition-colors cursor-pointer"
+                              className="text-[9px] font-semibold font-mono px-2 py-1 bg-slate-900 hover:bg-blue-600 text-slate-100 rounded-xl tracking-wide transition-colors cursor-pointer"
                               title="Click to insert at cursor"
                             >
                               {p}
@@ -585,11 +583,11 @@ function SmsConfigPageInner() {
 
               {/* Save Bar */}
               <div className={cn(
-                "sticky bottom-6 flex items-center justify-between bg-white border rounded-[10px] shadow-xl p-5 transition-all duration-300",
+                "sticky bottom-6 flex items-center justify-between bg-white border rounded-xl  p-5 transition-all duration-300",
                 isDirty ? "border-blue-200 shadow-blue-100/50" : "border-slate-100"
               )}>
                 <div>
-                  <p className="text-[12px] font-black text-slate-900 uppercase tracking-wide">
+                  <p className="text-[12px] font-semibold text-slate-900 uppercase tracking-wide">
                     {isDirty ? "You have unsaved changes" : "All templates saved"}
                   </p>
                   <p className="text-[11px] text-slate-400 font-medium">
@@ -601,7 +599,7 @@ function SmsConfigPageInner() {
                 <button
                   onClick={() => saveTemplates()}
                   disabled={isSaving || !isDirty}
-                  className="h-14 px-8 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all shadow-xl shadow-slate-200"
+                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-3 transition-all  shadow-slate-200"
                 >
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 size={16} strokeWidth={3} />Save Templates</>}
                 </button>
@@ -613,20 +611,20 @@ function SmsConfigPageInner() {
           {(tab.toLowerCase() === "advanced config" || tab.toLowerCase() === "advanced-config") && (
             <div className="space-y-6">
               {/* Gateway Config Card */}
-              <div className="bg-white border border-slate-100 rounded-[10px] shadow-sm p-8">
+              <div className="bg-white border border-[#E2E2E2] rounded-[20px]  p-8">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-[10px] bg-slate-900 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
                       <Shield className="w-6 h-6 text-white" strokeWidth={2.5} />
                     </div>
                     <div>
-                      <h3 className="text-[18px] font-black text-slate-900 uppercase tracking-tight">Gateway Configuration</h3>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">API credentials and connectivity</p>
+                      <h3 className="text-[18px] font-semibold text-slate-900 uppercase tracking-tight">Gateway Configuration</h3>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.05em]">API credentials and connectivity</p>
                     </div>
                   </div>
                   <Sheet open={openEditor} onOpenChange={setOpenEditor}>
                     <SheetTrigger asChild>
-                      <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95">
+                      <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95">
                         <Settings size={14} strokeWidth={3} />
                         {activeConfig ? "Edit Gateway" : "Configure Gateway"}
                       </button>
@@ -644,8 +642,8 @@ function SmsConfigPageInner() {
                       { label: "Created", value: activeConfig.createdAt ? new Date(activeConfig.createdAt).toLocaleDateString() : "—" },
                       { label: "API ID", value: configData.apiId || "—" },
                     ].map((row) => (
-                      <div key={row.label} className="p-4 bg-slate-50 rounded-[10px] border border-slate-100">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">{row.label}</p>
+                      <div key={row.label} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400 mb-1">{row.label}</p>
                         <p className="text-[13px] font-bold text-slate-900 break-all">{row.value}</p>
                       </div>
                     ))}
@@ -653,7 +651,7 @@ function SmsConfigPageInner() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <AlertTriangle className="w-10 h-10 text-amber-400 mb-4" />
-                    <h4 className="text-[16px] font-black text-slate-900 mb-2">No Gateway Configured</h4>
+                    <h4 className="text-[16px] font-semibold text-slate-900 mb-2">No Gateway Configured</h4>
                     <p className="text-[13px] text-slate-400 max-w-sm mb-6">Configure your SMS gateway credentials to enable message delivery.</p>
                   </div>
                 )}
@@ -661,22 +659,22 @@ function SmsConfigPageInner() {
 
               {/* System Config Raw Keys */}
               {settingsResponse && (
-                <div className="bg-white border border-slate-100 rounded-[10px] shadow-sm overflow-hidden">
+                <div className="bg-white border border-[#E2E2E2] rounded-[20px]  overflow-hidden">
                   <div className="p-6 border-b border-slate-50 bg-slate-50/40 flex items-center gap-3">
-                    <div className="p-2 bg-slate-900 rounded-[10px] text-white">
+                    <div className="p-2 bg-slate-900 rounded-xl text-white">
                       <Database size={16} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-tight">System Config Keys</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live platform configuration store</p>
+                      <h3 className="text-[14px] font-semibold text-slate-900 uppercase tracking-tight">System Config Keys</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em]">Live platform configuration store</p>
                     </div>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
                       <thead>
                         <tr className="bg-slate-50/50">
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Key</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Value Preview</th>
+                          <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">Key</th>
+                          <th className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">Value Preview</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -700,7 +698,6 @@ function SmsConfigPageInner() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
@@ -710,7 +707,7 @@ function SmsConfigPageInner() {
 export default function SmsConfigPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     }>

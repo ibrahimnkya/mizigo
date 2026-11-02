@@ -6,25 +6,24 @@ import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Package,
-  PackagePlus,
   Users,
   Settings,
   LogOut,
-  ChevronRight,
   CreditCard,
   Activity,
   BarChart3,
   ShieldCheck,
-  Bell,
   ClipboardList,
   ChevronDown,
   TrainFront,
-  CircleDot,
   Target,
   Building,
-  Search,
   Sparkles,
   MapPin,
+  Layout,
+  Printer,
+  FileBarChart,
+  ChevronRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -33,7 +32,7 @@ import { ApiIcon, MessageSecure01Icon } from "@hugeicons/core-free-icons";
 
 import { cn } from "@repo/ui/utils";
 import { useUIStore } from "@/store/ui-store";
-// Ensure these dropdown internal parts work, or use custom if needed
+import { useBranding } from "@/providers/branding-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +60,7 @@ export const sidebarItems: SidebarItem[] = [
     subtitle: "Overview and quick access",
     icon: LayoutDashboard,
     href: "/operator",
-    roles: ["OPERATOR"],
+    roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
     section: "My Station",
   },
   {
@@ -69,7 +68,7 @@ export const sidebarItems: SidebarItem[] = [
     subtitle: "View and manage parcels",
     icon: Package,
     href: "/parcel",
-    roles: ["OPERATOR"],
+    roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
     section: "My Station",
   },
   {
@@ -77,7 +76,7 @@ export const sidebarItems: SidebarItem[] = [
     subtitle: "View station performance",
     icon: BarChart3,
     href: "/operator/reports",
-    roles: ["OPERATOR"],
+    roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
     section: "My Station",
   },
 
@@ -188,7 +187,7 @@ export const sidebarItems: SidebarItem[] = [
   },
   {
     title: "Platform Agents",
-    subtitle: "Agents & businesses — KYC, commissions",
+    subtitle: "Agents & businesses - KYC, commissions",
     icon: Building,
     href: "/super-admin/platform-agents",
     roles: ["SUPER_ADMIN"],
@@ -293,6 +292,30 @@ export const sidebarItems: SidebarItem[] = [
     section: "Settings",
   },
   {
+    title: "Module Config",
+    subtitle: "Enable or disable features per organisation",
+    icon: Layout,
+    href: "/super-admin/modules",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Printout Config",
+    subtitle: "Configure receipts, stickers & manifests",
+    icon: Printer,
+    href: "/super-admin/printout",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
+    title: "Reports Config",
+    subtitle: "Customise report look & feel",
+    icon: FileBarChart,
+    href: "/super-admin/reports-config",
+    roles: ["SUPER_ADMIN"],
+    section: "Settings",
+  },
+  {
     title: "Settings",
     subtitle: "General system settings",
     icon: Settings,
@@ -302,39 +325,125 @@ export const sidebarItems: SidebarItem[] = [
   },
 ];
 
+// ─── Nav item ───────────────────────────────────────────────────────────────
+
+function NavItem({
+  item,
+  isActive,
+  openMenu,
+  toggleMenu,
+  pathname,
+  activeSidebarHref,
+}: {
+  item: SidebarItem;
+  isActive: boolean;
+  openMenu: string | null;
+  toggleMenu: (title: string) => void;
+  pathname: string;
+  activeSidebarHref: string | null;
+}) {
+  const isOpen = openMenu === item.title;
+  const hasChildren = item.children && item.children.length > 0;
+
+  if (hasChildren) {
+    return (
+      <div>
+        <button
+          onClick={() => toggleMenu(item.title)}
+          className={cn(
+            "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors",
+            isActive
+              ? "bg-white/10 text-white"
+              : "text-white/65 hover:bg-white/[0.06] hover:text-white",
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            <item.icon className="h-4 w-4 shrink-0 opacity-80" />
+            <span>{item.title}</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 opacity-40 transition-transform duration-200",
+              isOpen && "rotate-180 opacity-60",
+            )}
+          />
+        </button>
+        {isOpen && (
+          <div className="mt-1 ml-5 pl-3 border-l border-white/15 py-1 flex flex-col gap-0.5">
+            {item.children?.map((child, i) => {
+              const childActive = child.href === activeSidebarHref;
+              return (
+                <Link
+                  key={i}
+                  href={child.href}
+                  className={cn(
+                    "block py-1.5 text-[13px] font-medium transition-colors rounded-lg px-2.5",
+                    childActive
+                      ? "text-white bg-orange-500"
+                      : "text-white/55 hover:text-white hover:bg-white/[0.06]",
+                  )}
+                >
+                  {child.title}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href || "#"}
+      className={cn(
+        "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors",
+        isActive
+          ? "bg-orange-500 text-white shadow-[0_8px_20px_-10px_rgba(247,138,31,0.8)]"
+          : "text-white/65 hover:bg-white/[0.06] hover:text-white",
+      )}
+    >
+      <item.icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          isActive ? "text-white opacity-100" : "opacity-70",
+        )}
+      />
+      <span>{item.title}</span>
+    </Link>
+  );
+}
+
+// ─── Sidebar shell ───────────────────────────────────────────────────────────
+
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const { sidebarOpen, setSidebarOpen } = useUIStore();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const branding = useBranding();
 
   const userRole = session?.user?.role as string;
   const isLoading = status === "loading";
 
   useEffect(() => {
-    // Close sidebar on mobile when navigating
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
+    if (window.innerWidth < 1024) setSidebarOpen(false);
   }, [pathname, setSidebarOpen]);
 
   useEffect(() => {
     const activeMenu = sidebarItems.find((item) =>
       item.children?.some((child) => pathname === child.href),
     );
-    if (activeMenu) {
-      setOpenMenu(activeMenu.title);
-    }
+    if (activeMenu) setOpenMenu(activeMenu.title);
   }, [pathname]);
 
-  const toggleMenu = (title: string) => {
+  const toggleMenu = (title: string) =>
     setOpenMenu((prev) => (prev === title ? null : title));
-  };
 
   const filteredItems = sidebarItems
     .filter((item) => {
-      if (isLoading) return false;
-      if (!userRole) return false;
+      if (isLoading || !userRole) return false;
       return item.roles?.includes(userRole);
     })
     .map((item) => ({
@@ -344,150 +453,47 @@ export function Sidebar() {
       ),
     }));
 
-  const [collapsedSections, setCollapsedSections] = useState<
-    Record<string, boolean>
-  >({});
-
-  // Sync collapsed state with active route (default to expanded)
   useEffect(() => {
     setCollapsedSections((prev) => {
-      const sections = { ...prev };
-      const allSections = Array.from(
-        new Set(filteredItems.map((i) => i.section).filter(Boolean)),
-      );
-      allSections.forEach((section) => {
-        // Initialize as expanded (false) if it hasn't been set yet
-        if (sections[section!] === undefined) {
-          sections[section!] = false;
-        }
+      const next = { ...prev };
+      Array.from(new Set(filteredItems.map((i) => i.section).filter(Boolean))).forEach((s) => {
+        if (next[s!] === undefined) next[s!] = false;
       });
-      return sections;
+      return next;
     });
   }, [filteredItems.length]);
 
-  const toggleSection = (section: string) => {
-    setCollapsedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+  const toggleSection = (section: string) =>
+    setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }));
 
-  const renderItem = (item: SidebarItem, index: number) => {
-    const isOpen = openMenu === item.title;
-    const hasChildren = item.children && item.children.length > 0;
-    const isActive =
-      pathname === item.href ||
-      (hasChildren && item.children?.some((c) => pathname === c.href));
+  const activeSidebarHref = (() => {
+    const hrefs: string[] = [];
+    filteredItems.forEach((item) => {
+      if (item.href) hrefs.push(item.href);
+      item.children?.forEach((c) => { if (c.href) hrefs.push(c.href); });
+    });
+    hrefs.sort((a, b) => b.length - a.length);
+    return hrefs.find((h) => pathname === h || pathname.startsWith(h + "/")) ?? null;
+  })();
 
-    return (
-      <div key={index} className="flex flex-col gap-1">
-        {hasChildren ? (
-          <button
-            onClick={() => toggleMenu(item.title)}
-            className={cn(
-              "flex items-center justify-between gap-3 rounded-[10px] px-5 py-3 transition-all text-slate-400 hover:text-white hover:bg-white/5 group",
-              isActive && "text-white bg-white/5 ring-1 ring-white/10",
-            )}
-          >
-            <div className="flex items-center gap-4">
-              <item.icon
-                className={cn(
-                  "h-4.5 w-4.5 transition-colors",
-                  isActive ? "text-blue-500" : "group-hover:text-blue-400",
-                )}
-              />
-              <span className="text-[13.5px] font-bold tracking-tight">
-                {item.title}
-              </span>
-            </div>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 transition-transform duration-300 opacity-50",
-                isOpen && "rotate-180 opacity-100",
-              )}
-            />
-          </button>
-        ) : (
-          <Link
-            href={item.href || "#"}
-            className={cn(
-              "relative flex items-center gap-4 rounded-[10px] px-5 py-3 transition-all text-slate-400 hover:text-white hover:bg-white/5 group",
-              pathname === item.href &&
-              "bg-blue-600/10 text-white ring-1 ring-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.1)]",
-            )}
-          >
-            {pathname === item.href && (
-              <div className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full shadow-[4px_0_12px_rgba(37,99,235,0.5)]" />
-            )}
-            <item.icon
-              className={cn(
-                "h-4.5 w-4.5 transition-colors",
-                pathname === item.href
-                  ? "text-blue-400"
-                  : "group-hover:text-blue-400",
-              )}
-            />
-            <span className="text-[13.5px] font-bold tracking-tight">
-              {item.title}
-            </span>
-          </Link>
-        )}
-
-        {hasChildren && isOpen && (
-          <div className="flex flex-col gap-1 ml-10 border-l border-white/5 pl-5 py-2">
-            {item.children?.map((child, cIdx) => (
-              <Link
-                key={cIdx}
-                href={child.href}
-                className={cn(
-                  "flex items-center py-2 text-sm text-slate-500 hover:text-white transition-colors relative",
-                  pathname === child.href && "text-blue-400 font-bold",
-                )}
-              >
-                {pathname === child.href && (
-                  <div className="absolute -left-[23px] h-2 w-2 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
-                )}
-                {child.title}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
+  const sidebarClass = cn(
+    "fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-[#4F0A0C] border-r border-[#651422] transition-transform duration-300 ease-in-out",
+    sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+  );
 
   if (isLoading) {
     return (
-      <div
-        className={cn(
-          "fixed left-4 top-4 bottom-4 w-72 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:block",
-          sidebarOpen ? "translate-x-0" : "-translate-x-[calc(100%+24px)]",
-        )}
-      >
-        <div className="flex h-full flex-col gap-2 rounded-[10px] bg-slate-950 shadow-2xl overflow-hidden border border-white/5 premium-gradient">
-          <div className="flex h-[80px] items-center px-8">
-            <div className="flex items-center gap-3 animate-pulse">
-              <div className="bg-slate-800 p-2.5 rounded-[10px] h-12 w-12" />
-              <div className="h-6 w-24 bg-slate-800 rounded-[10px]" />
-            </div>
-          </div>
-          <div className="flex-1 px-4 py-6 space-y-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="h-12 w-full bg-slate-900/50 rounded-[10px] animate-pulse"
-              />
-            ))}
-          </div>
-          <div className="mt-auto p-6 border-t border-white/5 bg-white/5">
-            <div className="flex items-center gap-4 animate-pulse">
-              <div className="h-11 w-11 rounded-[10px] bg-slate-800" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 w-20 bg-slate-800 rounded-[10px]" />
-                <div className="h-2 w-16 bg-slate-800 rounded-[10px]" />
-              </div>
-            </div>
-          </div>
+      <div className={sidebarClass}>
+        <div className="h-14 flex items-center px-4 border-b border-[#651422]">
+          <div className="h-8 w-28 bg-white/10 rounded-xl animate-pulse" />
+        </div>
+        <div className="flex-1 px-3 py-4 space-y-1">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-8 w-full bg-white/[0.06] rounded-xl animate-pulse" />
+          ))}
+        </div>
+        <div className="border-t border-[#651422] p-3">
+          <div className="h-9 w-full bg-white/[0.06] rounded-xl animate-pulse" />
         </div>
       </div>
     );
@@ -497,172 +503,141 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile Sidebar Overlay/Backdrop */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
+          className="lg:hidden fixed inset-0 z-40 bg-black/40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      <div
-        className={cn(
-          "fixed left-4 top-4 bottom-4 w-72 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:block",
-          sidebarOpen ? "translate-x-0" : "-translate-x-[calc(100%+24px)]",
-        )}
-      >
-        <div className="flex h-full flex-col gap-2 rounded-[10px] bg-slate-950 shadow-2xl overflow-hidden border border-white/5 premium-gradient">
-          <div className="flex h-[80px] items-center px-8">
-            <Link
-              className="flex items-center gap-4 font-black text-white text-2xl tracking-tighter hover:opacity-90 transition-opacity"
-              href="/"
-              suppressHydrationWarning
-            >
-              <Image
-                src="/mono.png"
-                alt="Mizigo Icon"
-                width={32}
-                height={32}
-                className="h-10 w-auto"
-                priority
-              />
-              <Image
-                src="/word.png"
-                alt="Mizigo Wordmark"
-                width={120}
-                height={32}
-                className="h-10 w-auto"
-                priority
-              />
-            </Link>
-          </div>
-
-          <div className="flex-1 overflow-auto pb-6 px-4 custom-scrollbar">
-            <nav className="grid items-start gap-1">
-              {filteredItems.map((item, index) => {
-                const showSection =
-                  item.section && item.section !== lastSection;
-                if (showSection) lastSection = item.section!;
-                const isCollapsed = item.section
-                  ? collapsedSections[item.section]
-                  : false;
-
-                return (
-                  <div key={index}>
-                    {showSection && (
-                      <button
-                        onClick={() => toggleSection(item.section!)}
-                        className="w-full flex items-center justify-between px-5 pt-8 pb-3 group cursor-pointer"
-                      >
-                        <div className="flex flex-col items-start text-left">
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500/80 group-hover:text-slate-300 transition-colors">
-                            {item.section}
-                          </span>
-                          {item.section === "Reports Suite" && (
-                            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest leading-none mt-1 group-hover:text-slate-50 transition-colors">
-                              Your Go-To Place For All Data & Analytics
-                            </span>
-                          )}
-                        </div>
-                        <ChevronDown
-                          className={cn(
-                            "h-3 w-3 text-slate-600 transition-transform duration-300",
-                            isCollapsed ? "-rotate-90" : "rotate-0",
-                          )}
-                        />
-                      </button>
-                    )}
-                    {!isCollapsed && renderItem(item, index)}
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
-
-          <div className="mt-auto p-6 border-t border-white/5 bg-white/5 backdrop-blur-3xl">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-4 text-slate-400 p-2 w-full hover:bg-white/5 rounded-[10px] transition-all outline-none text-left active:scale-95">
-                  <div className="h-11 w-11 rounded-[10px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center border border-white/10 shadow-xl">
-                    <Users className="h-6 w-6 text-slate-300" />
-                  </div>
-                  <div className="flex flex-col flex-1 overflow-hidden">
-                    <span className="text-sm font-bold text-white truncate">
-                      {session?.user?.name || "User"}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider truncate">
-                      {session?.user?.role?.replace("_", " ")}
-                    </span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 opacity-30" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-64 bg-slate-950 border-white/10 text-slate-400 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[10px] p-2"
-                align="end"
-                sideOffset={12}
-              >
-                <DropdownMenuLabel className="text-white flex items-center gap-3 p-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="font-bold">Active Account</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                <DropdownMenuItem
-                  className="hover:bg-white/5 hover:text-white focus:bg-white/5 focus:text-white cursor-pointer rounded-[10px] transition-all py-3 px-4 m-1 flex items-center gap-3"
-                  onClick={() => (window.location.href = "/profile")}
-                >
-                  <div className="h-8 w-8 rounded-[10px] bg-slate-900 flex items-center justify-center border border-white/5">
-                    <Users className="h-4 w-4" />
-                  </div>
-                  <span className="font-semibold">Profile Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="hover:bg-white/5 hover:text-white focus:bg-white/5 focus:text-white cursor-pointer rounded-[10px] transition-all py-3 px-4 m-1 flex items-center gap-3"
-                  onClick={() => (window.location.href = "/settings")}
-                >
-                  <div className="h-8 w-8 rounded-[10px] bg-slate-900 flex items-center justify-center border border-white/5">
-                    <Settings className="h-4 w-4" />
-                  </div>
-                  <span className="font-semibold">Preferences</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/5 mx-2" />
-                <DropdownMenuItem
-                  className="hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400 cursor-pointer rounded-[10px] transition-all py-3 px-4 m-1 flex items-center gap-3"
-                  onClick={() => signOut({ callbackUrl: "/login" })}
-                >
-                  <div className="h-8 w-8 rounded-[10px] bg-red-500/10 flex items-center justify-center border border-red-500/10">
-                    <LogOut className="h-4 w-4" />
-                  </div>
-                  <span className="font-bold">Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+      <div className={sidebarClass}>
+        {/* Logo */}
+        <div className="h-14 flex items-center px-4 border-b border-[#651422] shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 hover:opacity-85 transition-opacity"
+            suppressHydrationWarning
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={branding.logoUrl || undefined}
+              alt={`${branding.name || "Organization"} logo`}
+              className="h-8 w-auto max-w-[8rem] object-contain"
+              hidden={!branding.logoUrl}
+            />
+            <span style={{ display: branding.logoUrl ? "none" : "contents" }}>
+              <Image src="/brand/logo_white.png" alt="MiziGO" width={112} height={63} className="h-9 w-auto" priority />
+            </span>
+          </Link>
         </div>
 
-        <style jsx global>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.1);
-          }
-          .premium-gradient {
-            background: linear-gradient(
-              180deg,
-              rgba(15, 23, 42, 1) 0%,
-              rgba(2, 6, 23, 1) 100%
-            );
-          }
-        `}</style>
+        {/* Nav */}
+        <div className="flex-1 overflow-y-auto py-3 px-3 sidebar-scroll">
+          <nav className="flex flex-col gap-0.5">
+            {filteredItems.map((item, index) => {
+              const showSection = item.section && item.section !== lastSection;
+              if (showSection) lastSection = item.section!;
+              const isCollapsed = item.section ? collapsedSections[item.section] : false;
+              const isActive =
+                (item.href ? item.href === activeSidebarHref : false) ||
+                (item.children?.some((c) => c.href === activeSidebarHref) ?? false);
+
+              return (
+                <div key={index}>
+                  {showSection && (
+                    <button
+                      onClick={() => toggleSection(item.section!)}
+                      className="w-full flex items-center justify-between px-3 pt-5 pb-1.5 group"
+                    >
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-white/40 group-hover:text-white/60 transition-colors">
+                        {item.section}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "h-3 w-3 text-white/30 transition-transform duration-200",
+                          isCollapsed && "-rotate-90",
+                        )}
+                      />
+                    </button>
+                  )}
+                  {!isCollapsed && (
+                    <NavItem
+                      item={item}
+                      isActive={isActive}
+                      openMenu={openMenu}
+                      toggleMenu={toggleMenu}
+                      pathname={pathname}
+                      activeSidebarHref={activeSidebarHref}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* User footer */}
+        <div className="border-t border-[#651422] p-3 shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2.5 w-full px-2 py-2 rounded-2xl bg-[#612224] border border-[#651422] text-white/70 hover:bg-white/10 hover:text-white transition-colors outline-none text-left">
+                <div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-[11px] shrink-0">
+                  {session?.user?.name?.charAt(0) || "U"}
+                </div>
+                <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+                  <span className="text-[12.5px] font-semibold text-white truncate leading-none">
+                    {session?.user?.name || "User"}
+                  </span>
+                  <span className="text-[11px] text-white/50 truncate leading-none mt-0.5">
+                    {(session?.user?.role as string)?.replace("_", " ")}
+                  </span>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 opacity-25 shrink-0" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-56 bg-[#612224] border border-[#651422] text-white/70 shadow-xl rounded-2xl p-1.5"
+              align="end"
+              sideOffset={8}
+            >
+              <DropdownMenuLabel className="text-white/80 flex items-center gap-2 px-3 py-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[11px] font-semibold">Active session</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/10 mx-1" />
+              <DropdownMenuItem
+                className="hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2.5 m-0.5"
+                onClick={() => (window.location.href = "/profile")}
+              >
+                <Users className="h-4 w-4 opacity-60" />
+                Profile Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2.5 m-0.5"
+                onClick={() => (window.location.href = "/settings")}
+              >
+                <Settings className="h-4 w-4 opacity-60" />
+                Preferences
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10 mx-1" />
+              <DropdownMenuItem
+                className="hover:bg-red-500/10 hover:text-red-400 focus:bg-red-500/10 focus:text-red-400 cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2.5 m-0.5 text-red-300"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      <style jsx global>{`
+        .sidebar-scroll::-webkit-scrollbar { width: 3px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+      `}</style>
     </>
   );
 }

@@ -93,10 +93,11 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
       let endpoint = "/admins"; // Default for ADMIN/ORG_ADMIN
 
       const isOperatorRole = [
-        "OPERATOR",
-        "STATION_MASTER",
         "CLERK",
         "TRAIN_GUARD",
+        "STATION_MASTER",
+        "AGENT",
+        "OPERATOR", // legacy
       ].includes(selectedRole);
 
       if (selectedRole === "SUPER_ADMIN") {
@@ -147,7 +148,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-[10px] font-black text-[11px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 group shadow-lg shadow-slate-900/10">
+        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center gap-3 transition-all active:scale-95 group  shadow-slate-900/10">
           <Plus
             className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300"
             strokeWidth={3}
@@ -156,18 +157,18 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-          <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
             <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               Provision User
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Grant platform access and workspace credentials
             </SheetDescription>
           </div>
@@ -179,7 +180,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
           className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar"
         >
           {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-[10px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
               <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
               {error}
             </div>
@@ -189,7 +190,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
             {/* Section 1: Identity */}
             <div className="sm:col-span-2 space-y-8">
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Full Legal Name
                 </Label>
                 <div className="relative">
@@ -198,7 +199,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ibrahim Bakari"
-                    className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] pl-12 text-[14px] font-bold transition-all"
+                    className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl pl-12 text-[14px] font-bold transition-all"
                     required
                   />
                 </div>
@@ -206,7 +207,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -216,14 +217,14 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ibrahim@mizigo.com"
-                      className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] pl-12 text-[14px] font-bold transition-all"
+                      className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl pl-12 text-[14px] font-bold transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Phone Number
                   </Label>
                   <div className="relative">
@@ -233,7 +234,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="255 7XX XXX XXX"
-                      className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] pl-12 text-[14px] font-bold transition-all"
+                      className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl pl-12 text-[14px] font-bold transition-all"
                       required
                     />
                   </div>
@@ -244,7 +245,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
             {/* Section 2: Permissions */}
             <div className="sm:col-span-2 space-y-8 pt-4 border-t border-slate-100">
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Assigned Platform Role
                 </Label>
                 <EntitySelect
@@ -268,7 +269,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Primary Organization
                   </Label>
                   <EntitySelect
@@ -288,7 +289,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Assigned Station
                   </Label>
                   <EntitySelect
@@ -316,7 +317,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
 
               {isTrainGuard && (
                 <div className="space-y-3 sm:col-span-2 mt-6">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Assigned Train / Wagon (Train Guard Specialization)
                   </Label>
                   <EntitySelect
@@ -347,7 +348,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
           {/* Security Protocol */}
           <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                 Security Clearance
               </span>
               <p className="text-[10px] font-bold text-slate-400 leading-tight max-w-[320px]">
@@ -357,7 +358,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100">
               <Shield size={12} strokeWidth={3} />
-              <span className="text-[9px] font-black uppercase tracking-widest">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                 Authorized Action
               </span>
             </div>
@@ -369,7 +370,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
           >
             Cancel
           </button>
@@ -377,7 +378,7 @@ export function ProvisionUserModal({ onSuccess }: ProvisionUserModalProps) {
             type="submit"
             form="provision-user-form"
             disabled={loading || !name || !email || !roleId}
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

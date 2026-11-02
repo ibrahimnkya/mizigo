@@ -48,14 +48,14 @@ export function OrganizationReportClient({
       header: "Station",
       accessor: (item: any) => (
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
             <MapPin className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">
+            <span className="font-semibold text-slate-900 text-[13px] tracking-tight uppercase">
               {item.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em]">
               Active Hub
             </span>
           </div>
@@ -65,8 +65,8 @@ export function OrganizationReportClient({
     {
       header: "Total Parcels",
       accessor: (item: any) => (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-[10px] w-fit">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-xl w-fit">
+          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
             {item.volume.toLocaleString()} Units
           </span>
         </div>
@@ -82,7 +82,7 @@ export function OrganizationReportClient({
         return (
           <div className="flex flex-col gap-2 w-full max-w-[150px]">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-400 uppercase">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase">
                 {percentage.toFixed(1)}% Share
               </span>
             </div>
@@ -100,7 +100,7 @@ export function OrganizationReportClient({
       header: "Actions",
       accessor: (item: any) => (
         <div className="flex items-center justify-end pr-4">
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
+          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
             View <ArrowUpRight size={12} strokeWidth={3} />
           </button>
         </div>
@@ -109,8 +109,7 @@ export function OrganizationReportClient({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Corporate Intelligence"
           subtitle={`Network analysis for ${organization.name}`}
@@ -120,7 +119,7 @@ export function OrganizationReportClient({
           pdfColumns={pdfColumns}
         />
 
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
           <DataTable
             title="Stations List"
             columns={columns}
@@ -131,7 +130,6 @@ export function OrganizationReportClient({
             hideInternalSearch
           />
         </div>
-      </div>
     </div>
   );
 }

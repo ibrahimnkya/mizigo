@@ -147,14 +147,14 @@ export function UserActionMenu({
           <TooltipTrigger asChild>
             <button
               onClick={() => setViewOpen(true)}
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 transition-all active:scale-90 shadow-sm"
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 transition-all active:scale-90 "
             >
               <Eye size={16} strokeWidth={2.5} />
             </button>
           </TooltipTrigger>
           <TooltipContent
             side="top"
-            className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-[10px] shadow-xl"
+            className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
           >
             View Details
           </TooltipContent>
@@ -166,14 +166,14 @@ export function UserActionMenu({
             <TooltipTrigger asChild>
               <button
                 onClick={() => setEditOpen(true)}
-                className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 transition-all active:scale-90 shadow-sm"
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100 transition-all active:scale-90 "
               >
                 <Edit2 size={16} strokeWidth={2.5} />
               </button>
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-[10px] shadow-xl"
+              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
             >
               Edit Member
             </TooltipContent>
@@ -187,7 +187,7 @@ export function UserActionMenu({
               <button
                 onClick={() => setDeleteOpen(true)}
                 className={cn(
-                  "w-9 h-9 rounded-[10px] flex items-center justify-center bg-white border border-slate-100 transition-all active:scale-90 shadow-sm",
+                  "w-9 h-9 rounded-xl flex items-center justify-center bg-white border border-slate-100 transition-all active:scale-90 ",
                   user.role?.name === "AGENT"
                     ? "text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-100"
                     : "text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100",
@@ -198,7 +198,7 @@ export function UserActionMenu({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-[10px] shadow-xl"
+              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
             >
               {user.role?.name === "AGENT" ? "Archive Agent" : "Delete Account"}
             </TooltipContent>
@@ -208,32 +208,32 @@ export function UserActionMenu({
 
       {/* VIEW MODAL */}
       <Sheet open={viewOpen} onOpenChange={setViewOpen}>
-        <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+        <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
           {/* Premium Header */}
           <div className="bg-slate-900 px-8 py-10 flex flex-col items-center gap-6 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
 
-            <div className="w-24 h-24 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center relative z-10 shadow-2xl backdrop-blur-md">
-              <div className="w-20 h-20 rounded-xl bg-blue-600 flex items-center justify-center text-white text-3xl font-black border-4 border-slate-900 shadow-xl">
+            <div className="w-24 h-24 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center relative z-10  ">
+              <div className="w-20 h-20 rounded-xl bg-blue-600 flex items-center justify-center text-white text-[26px] font-semibold border-4 border-slate-900 ">
                 {user.name?.charAt(0).toUpperCase() || "?"}
               </div>
             </div>
 
             <div className="flex flex-col items-center relative z-10 text-center">
-              <SheetTitle className="text-[22px] font-black text-white tracking-tight leading-tight uppercase mb-2">
+              <SheetTitle className="text-[22px] font-semibold text-white tracking-tight leading-tight uppercase mb-2">
                 {user.name}
               </SheetTitle>
               <div className="flex items-center gap-3">
-                <div className="px-3 py-1 bg-white/10 border border-white/10 rounded-full flex items-center gap-2 backdrop-blur-sm">
+                <div className="px-3 py-1 bg-white/10 border border-slate-200 rounded-full flex items-center gap-2 ">
                   <Shield size={12} className="text-blue-400" strokeWidth={3} />
-                  <span className="text-[10px] font-black text-white/90 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-slate-700 uppercase tracking-[0.05em]">
                     {user.role?.name || "USER"}
                   </span>
                 </div>
                 {user.isFirstLogin && (
-                  <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2 backdrop-blur-sm">
+                  <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2 ">
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-[0.05em]">
                       Pending Setup
                     </span>
                   </div>
@@ -244,13 +244,13 @@ export function UserActionMenu({
 
           <div className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                 Core Details
               </h3>
               <button
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition-all text-[10px] font-black uppercase tracking-wider text-blue-600 animate-in fade-in"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-100 hover:bg-slate-50 transition-all text-[10px] font-semibold uppercase tracking-wider text-blue-600 animate-in fade-in"
               >
                 <Edit3 size={11} strokeWidth={3} />
                 {isEditing ? "Cancel" : "Edit Details"}
@@ -260,42 +260,42 @@ export function UserActionMenu({
             {isEditing ? (
               <form
                 onSubmit={handleSaveUser}
-                className="space-y-4 bg-slate-50 p-5 rounded-[12px] border border-slate-100 text-left animate-in slide-in-from-top-2 duration-300"
+                className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100 text-left animate-in slide-in-from-top-2 duration-300"
               >
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                     Phone Number
                   </label>
                   <input
                     type="text"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                     required
                   />
                 </div>
                 {!["ADMIN", "SUPER_ADMIN"].includes(user.role?.name) && (
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                       Assigned Station
                     </label>
                     <div className="relative">
                       <select
                         value={editStationId}
                         onChange={(e) => setEditStationId(e.target.value)}
-                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                        className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                       >
                         <option value="">Global / All Access</option>
                         {stations.map((s: any) => (
@@ -323,14 +323,14 @@ export function UserActionMenu({
                 )}
                 {user.role?.name === "TRAIN_GUARD" && (
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                       Assigned Train / Wagon
                     </label>
                     <div className="relative">
                       <select
                         value={editWagonId}
                         onChange={(e) => setEditWagonId(e.target.value)}
-                        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                        className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                       >
                         <option value="">No Active Train Assigned</option>
                         {vehicles.map((v: any) => (
@@ -359,7 +359,7 @@ export function UserActionMenu({
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="w-full h-11 rounded-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm"
+                  className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-[0.05em] flex items-center justify-center gap-2 active:scale-95 transition-all "
                 >
                   {saving ? (
                     <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -413,11 +413,11 @@ export function UserActionMenu({
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-5 p-5 bg-slate-50 border border-slate-100 rounded-2xl group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300"
+                    className="flex items-center gap-5 p-5 bg-slate-50 border border-slate-100 rounded-xl group hover:bg-white hover: hover:shadow-slate-200/50 transition-all duration-300"
                   >
                     <div
                       className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
+                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0  transition-transform group-hover:scale-110",
                         item.bg,
                       )}
                     >
@@ -427,7 +427,7 @@ export function UserActionMenu({
                       />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                      <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] mb-1">
                         {item.label}
                       </span>
                       <span className="text-[14px] font-bold text-slate-900 truncate">
@@ -440,17 +440,17 @@ export function UserActionMenu({
             )}
 
             {/* Security Notice */}
-            <div className="p-6 bg-slate-900 rounded-2xl relative overflow-hidden group">
+            <div className="p-6 bg-slate-900 rounded-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
                   <Shield size={20} className="text-white" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h4 className="text-[13px] font-black text-white uppercase tracking-tight mb-1">
+                  <h4 className="text-[13px] font-semibold text-white uppercase tracking-tight mb-1">
                     Access Protocol
                   </h4>
-                  <p className="text-[11px] font-medium text-white/50 leading-relaxed">
+                  <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
                     This user has{" "}
                     {user.role?.name === "SUPER_ADMIN"
                       ? "complete platform authority"
@@ -467,7 +467,7 @@ export function UserActionMenu({
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
               <button
                 onClick={() => setViewOpen(false)}
-                className="w-full h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+                className="w-full h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
               >
                 Close Profile
               </button>
@@ -478,10 +478,10 @@ export function UserActionMenu({
 
       {/* DELETE CONFIRMATION */}
       <Sheet open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+        <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
           <div className="bg-slate-900 px-8 py-10 flex flex-col items-center text-center gap-6 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-rose-600/20 to-transparent pointer-events-none" />
-            <div className="w-20 h-20 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center relative z-10 shadow-2xl backdrop-blur-md">
+            <div className="w-20 h-20 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center relative z-10  ">
               <AlertTriangle
                 size={32}
                 className="text-rose-500"
@@ -489,12 +489,12 @@ export function UserActionMenu({
               />
             </div>
             <div className="relative z-10">
-              <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase mb-2">
+              <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase mb-2">
                 {user.role?.name === "AGENT"
                   ? "Archive Agent"
                   : "Terminate Account"}
               </SheetTitle>
-              <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em]">
+              <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em]">
                 Irreversible administrative action
               </SheetDescription>
             </div>
@@ -505,7 +505,7 @@ export function UserActionMenu({
               {user.role?.name === "AGENT"
                 ? `Are you sure you want to archive agent `
                 : `Are you sure you want to terminate the profile for `}
-              <span className="font-black text-slate-900">"{user.name}"</span>?
+              <span className="font-semibold text-slate-900">"{user.name}"</span>?
               <br />
               <br />
               <span className="text-[12px] font-bold text-rose-500 bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
@@ -521,7 +521,7 @@ export function UserActionMenu({
               onClick={handleDelete}
               disabled={deleting}
               className={cn(
-                "w-full h-14 rounded-xl text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3",
+                "w-full h-14 rounded-xl text-white text-[11px] font-semibold uppercase tracking-[0.05em]  transition-all active:scale-[0.98] flex items-center justify-center gap-3",
                 user.role?.name === "AGENT"
                   ? "bg-amber-600 hover:bg-amber-700 shadow-amber-200"
                   : "bg-rose-600 hover:bg-rose-700 shadow-rose-200",
@@ -540,7 +540,7 @@ export function UserActionMenu({
             </button>
             <button
               onClick={() => setDeleteOpen(false)}
-              className="w-full h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+              className="w-full h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
             >
               Cancel
             </button>

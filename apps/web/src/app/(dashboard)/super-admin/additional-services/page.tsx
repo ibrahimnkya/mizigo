@@ -224,15 +224,15 @@ function AdditionalServicesPageInner() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <>
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Additional Services"
           subtitle="Configure extra platform service offerings, parcel processing options, and surcharge pricing"
@@ -244,7 +244,7 @@ function AdditionalServicesPageInner() {
           action={
             <button
               onClick={handleCreateClick}
-              className="h-11 px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-blue-600/10 transition-all active:scale-95 shrink-0"
+              className="h-11 px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 transition-all active:scale-95 shrink-0"
             >
               <Plus size={14} strokeWidth={3} />
               Add New Service
@@ -289,18 +289,18 @@ function AdditionalServicesPageInner() {
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
+                  className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px]  hover:border-slate-300 transition-all hover: hover:shadow-slate-100/50"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className={cn("p-2.5 rounded-[10px]", stat.bg)}>
+                    <div className={cn("p-2.5 rounded-xl", stat.bg)}>
                       <stat.icon className={cn("w-5 h-5", stat.color)} />
                     </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none">
                       {stat.label}
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-slate-900 tabular-nums">
+                    <span className="text-[26px] font-semibold text-slate-900 tabular-nums">
                       {stat.val}
                     </span>
                   </div>
@@ -312,14 +312,14 @@ function AdditionalServicesPageInner() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Marketing / Explainer Callout */}
-              <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[400px]">
+              <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
                 <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
                 
                 <div className="relative z-10 space-y-6">
-                  <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
+                  <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200   shadow-blue-500/10">
                     <Sparkles className="h-6 w-6 text-blue-400" />
                   </div>
-                  <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">
+                  <h3 className="text-[24px] font-semibold tracking-tight leading-none mb-3">
                     Premium Offering
                   </h3>
                   <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-85">
@@ -327,20 +327,20 @@ function AdditionalServicesPageInner() {
                   </p>
                 </div>
 
-                <div className="relative z-10 flex items-center gap-3 pt-6 border-t border-white/10">
+                <div className="relative z-10 flex items-center gap-3 pt-6 border-t border-slate-200">
                   <TrendingUp className="w-5 h-5 text-emerald-400" />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">
                     Boosts platform revenue margins
                   </span>
                 </div>
               </div>
 
               {/* Quick List Table */}
-              <div className="lg:col-span-2 bg-white border border-slate-100 rounded-[10px] p-6 shadow-sm flex flex-col justify-between">
+              <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div>
-                      <h3 className="text-md font-black text-slate-900 tracking-tight">
+                      <h3 className="text-md font-semibold text-slate-900 tracking-tight">
                         Active Services Matrix
                       </h3>
                       <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-0.5">
@@ -353,7 +353,7 @@ function AdditionalServicesPageInner() {
                     {services?.filter(s => s.isActive).map((service, idx) => (
                       <div key={service.id} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-xs font-black text-slate-800 truncate">
+                          <h4 className="text-xs font-semibold text-slate-800 truncate">
                             {idx + 1}. {service.name}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 truncate mt-0.5">
@@ -361,7 +361,7 @@ function AdditionalServicesPageInner() {
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-xs font-black text-blue-600 tabular-nums">
+                          <span className="text-xs font-semibold text-blue-600 tabular-nums">
                             {formatCurrency(service.basePrice)}
                           </span>
                         </div>
@@ -382,7 +382,7 @@ function AdditionalServicesPageInner() {
                       params.set("tab", "all services");
                       window.history.pushState(null, "", `?${params.toString()}`);
                     }}
-                    className="text-[11px] font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest transition-colors"
+                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-500 uppercase tracking-[0.05em] transition-colors"
                   >
                     View All & Manage
                   </button>
@@ -399,20 +399,20 @@ function AdditionalServicesPageInner() {
               <div
                 key={service.id}
                 className={cn(
-                  "bg-white rounded-[10px] border border-slate-100 p-6 shadow-sm flex flex-col justify-between hover:shadow-md hover:border-slate-200/80 transition-all duration-300 relative group",
+                  "bg-white rounded-[20px] border border-[#E2E2E2] p-6  flex flex-col justify-between  hover:border-slate-200/80 transition-all duration-300 relative group",
                   !service.isActive && "opacity-75 bg-slate-50/50"
                 )}
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="text-[16px] font-black text-slate-900 tracking-tight leading-tight">
+                      <h3 className="text-[16px] font-semibold text-slate-900 tracking-tight leading-tight">
                         {service.name}
                       </h3>
                       <div className="flex items-center gap-2">
                         <span
                           className={cn(
-                            "px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-widest rounded-[5px]",
+                            "px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.05em] rounded-xl",
                             service.isActive
                               ? "bg-emerald-50 text-emerald-600"
                               : "bg-amber-50 text-amber-600"
@@ -424,10 +424,10 @@ function AdditionalServicesPageInner() {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-1">
                         Base Surcharge
                       </p>
-                      <p className="text-[18px] font-black text-blue-600 tabular-nums">
+                      <p className="text-[18px] font-semibold text-blue-600 tabular-nums">
                         {formatCurrency(service.basePrice)}
                       </p>
                     </div>
@@ -448,7 +448,7 @@ function AdditionalServicesPageInner() {
                 {/* Action Bar */}
                 <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-100">
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                       Status
                     </span>
                     <Switch
@@ -460,7 +460,7 @@ function AdditionalServicesPageInner() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleEditClick(service)}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-[5px] transition-all"
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-xl transition-all"
                       title="Edit Service"
                     >
                       <Pencil size={14} />
@@ -471,7 +471,7 @@ function AdditionalServicesPageInner() {
                           deleteService(service.id);
                         }
                       }}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-[5px] transition-all"
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded-xl transition-all"
                       title="Delete Service"
                     >
                       <Trash2 size={14} />
@@ -482,9 +482,9 @@ function AdditionalServicesPageInner() {
             ))}
 
             {services?.length === 0 && (
-              <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-[10px] p-16 flex flex-col items-center justify-center text-center">
+              <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center">
                 <Sparkles className="w-12 h-12 text-slate-300 mb-4 animate-pulse" />
-                <h3 className="text-md font-black text-slate-700 mb-1">
+                <h3 className="text-md font-semibold text-slate-700 mb-1">
                   No Additional Services Found
                 </h3>
                 <p className="text-slate-400 text-xs font-semibold max-w-sm leading-relaxed mb-6">
@@ -492,7 +492,7 @@ function AdditionalServicesPageInner() {
                 </p>
                 <button
                   onClick={handleCreateClick}
-                  className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-800 transition-all"
+                  className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-slate-800 transition-all"
                 >
                   <Plus size={14} strokeWidth={3} />
                   Create First Service
@@ -503,22 +503,22 @@ function AdditionalServicesPageInner() {
         )}
       </div>
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={openModal} onOpenChange={setOpenModal}>
-        <DialogContent className="w-full sm:w-[550px] p-6 bg-white rounded-2xl border border-slate-100 shadow-2xl">
+    {/* Create / Edit Dialog */}
+    <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent className="w-full sm:w-[550px] p-6 bg-white rounded-[20px] border border-[#E2E2E2] ">
           <form onSubmit={handleSubmit}>
             <DialogHeader className="mb-5">
-              <DialogTitle className="text-[18px] font-black text-slate-900 tracking-tight leading-none mb-2">
+              <DialogTitle className="text-[18px] font-semibold text-slate-900 tracking-tight leading-none mb-2">
                 {formState.id ? "Edit Additional Service" : "Add Additional Service"}
               </DialogTitle>
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none">
                 {formState.id ? "Update service pricing, details, and active status" : "Create a new service offering and set surcharge rates"}
               </span>
             </DialogHeader>
 
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                   Service Name
                 </label>
                 <input
@@ -526,12 +526,12 @@ function AdditionalServicesPageInner() {
                   placeholder="e.g. Express Next-Day"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                  className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                   Description
                 </label>
                 <textarea
@@ -539,16 +539,16 @@ function AdditionalServicesPageInner() {
                   placeholder="Enter detailed description of what this service covers..."
                   value={formState.description}
                   onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white resize-none transition-all"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white resize-none transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                   Base Price Surcharge (TZS)
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-black">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">
                     TZS
                   </div>
                   <input
@@ -558,14 +558,14 @@ function AdditionalServicesPageInner() {
                     placeholder="0"
                     value={formState.basePrice}
                     onChange={(e) => setFormState({ ...formState, basePrice: e.target.value })}
-                    className="w-full h-11 pl-12 pr-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full h-11 pl-12 pr-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-[10px]">
+              <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-black text-slate-900">
+                  <h4 className="text-xs font-semibold text-slate-900">
                     Active Status
                   </h4>
                   <p className="text-[10px] font-semibold text-slate-400 leading-normal">
@@ -584,7 +584,7 @@ function AdditionalServicesPageInner() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+                  className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95"
                 >
                   Cancel
                 </button>
@@ -592,7 +592,7 @@ function AdditionalServicesPageInner() {
               <button
                 type="submit"
                 disabled={isCreating || isUpdating}
-                className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-400"
+                className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-slate-900/10 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {(isCreating || isUpdating) ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -603,7 +603,7 @@ function AdditionalServicesPageInner() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 
@@ -611,7 +611,7 @@ export default function AdditionalServicesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 flex items-center justify-center text-slate-400">
+        <div className="flex items-center justify-center min-h-[300px]">
           Loading page...
         </div>
       }

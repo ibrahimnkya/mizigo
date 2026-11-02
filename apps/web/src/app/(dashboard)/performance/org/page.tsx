@@ -54,7 +54,7 @@ async function getOrgPerformanceData() {
 
   // 4. Team Performance (Top Admins by Approvals)
   const topPerformersRaw = await prisma.user.findMany({
-    where: { role: { name: { in: ["ADMIN", "OPERATOR", "SUPER_ADMIN"] } } },
+    where: { role: { name: { in: ["ADMIN", "CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT", "SUPER_ADMIN"] } } },
     select: {
       id: true,
       name: true,
@@ -179,17 +179,16 @@ export default async function OrgPerformancePage() {
   const maxWeekly = Math.max(...data.weeklyVolume.map((d) => d.total), 1);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
                 Organisation Performance
               </span>
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
               Platform Operations Snapshot
             </h1>
             <p className="text-sm text-slate-400 font-medium mt-0.5">
@@ -197,11 +196,11 @@ export default async function OrgPerformancePage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-white border border-slate-100 rounded-[10px] px-4 py-2 shadow-sm">
+            <div className="bg-white border border-[#E2E2E2] rounded-[20px] px-4 py-2 ">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Live Accuracy
               </p>
-              <p className="text-lg font-black text-slate-900 leading-none mt-1">
+              <p className="text-lg font-semibold text-slate-900 leading-none mt-1">
                 98.2%
               </p>
             </div>
@@ -213,10 +212,10 @@ export default async function OrgPerformancePage() {
           {stats.map((s) => (
             <div
               key={s.label}
-              className="bg-white rounded-[10px] border border-slate-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex flex-col gap-4"
+              className="bg-white rounded-[20px] border border-[#E2E2E2] p-5  flex flex-col gap-4"
             >
               <div
-                className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{ backgroundColor: `${s.accent}15` }}
               >
                 <s.icon
@@ -226,10 +225,10 @@ export default async function OrgPerformancePage() {
                 />
               </div>
               <div>
-                <p className="text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums">
+                <p className="text-[20px] font-semibold text-slate-800 tracking-tight tabular-nums">
                   {s.value}
                 </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-1">
                   {s.label}
                 </p>
                 <p className="text-[11px] text-slate-400 font-medium mt-1">
@@ -242,10 +241,10 @@ export default async function OrgPerformancePage() {
 
         <div className="grid gap-6 lg:grid-cols-12">
           {/* Weekly Performance Bar Chart */}
-          <div className="lg:col-span-8 bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="lg:col-span-8 bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 bg-indigo-50 rounded-[10px] flex items-center justify-center">
+                <div className="w-7 h-7 bg-indigo-50 rounded-xl flex items-center justify-center">
                   <TrendingUp
                     size={13}
                     className="text-indigo-500"
@@ -271,12 +270,12 @@ export default async function OrgPerformancePage() {
                       <div className="w-full flex flex-col justify-end h-full relative">
                         {/* Total Bar */}
                         <div
-                          className="w-full bg-slate-50 rounded-t-[4px] relative overflow-hidden flex flex-col justify-end"
+                          className="w-full bg-slate-50 rounded-t-xl relative overflow-hidden flex flex-col justify-end"
                           style={{ height: `${totalHeight}%` }}
                         >
                           {/* Approved Part */}
                           <div
-                            className="w-full bg-indigo-500/90 rounded-t-[4px] transition-all duration-500"
+                            className="w-full bg-indigo-500/90 rounded-t-xl transition-all duration-500"
                             style={{ height: `${approvedHeight}%` }}
                           />
 
@@ -298,9 +297,9 @@ export default async function OrgPerformancePage() {
 
           {/* Top Stations List */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-50 flex items-center gap-2.5">
-                <div className="w-7 h-7 bg-amber-50 rounded-[10px] flex items-center justify-center">
+                <div className="w-7 h-7 bg-amber-50 rounded-xl flex items-center justify-center">
                   <MapPin
                     size={13}
                     className="text-amber-500"
@@ -318,7 +317,7 @@ export default async function OrgPerformancePage() {
                     className="flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-black text-slate-300 w-4">
+                      <span className="text-[10px] font-semibold text-slate-300 w-4">
                         0{idx + 1}
                       </span>
                       <span className="text-[13px] font-bold text-slate-700">
@@ -334,7 +333,7 @@ export default async function OrgPerformancePage() {
                           }}
                         />
                       </div>
-                      <span className="text-[11px] font-black tabular-nums text-slate-900">
+                      <span className="text-[11px] font-semibold tabular-nums text-slate-900">
                         {s.count}
                       </span>
                     </div>
@@ -344,9 +343,9 @@ export default async function OrgPerformancePage() {
             </div>
 
             {/* Top Performers */}
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-50 flex items-center gap-2.5">
-                <div className="w-7 h-7 bg-emerald-50 rounded-[10px] flex items-center justify-center">
+                <div className="w-7 h-7 bg-emerald-50 rounded-xl flex items-center justify-center">
                   <Users
                     size={13}
                     className="text-emerald-500"
@@ -367,12 +366,12 @@ export default async function OrgPerformancePage() {
                       <p className="text-[13px] font-bold text-slate-800">
                         {p.name}
                       </p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.05em]">
                         {p.role}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[14px] font-black text-emerald-600 tabular-nums">
+                      <p className="text-[14px] font-semibold text-emerald-600 tabular-nums">
                         {p.approvals}
                       </p>
                       <p className="text-[9px] font-bold text-slate-300 uppercase">
@@ -385,7 +384,6 @@ export default async function OrgPerformancePage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

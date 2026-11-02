@@ -20,7 +20,7 @@ export default function ChangeOTPPage() {
 
       <nav className="relative z-50 flex justify-between items-center px-5 md:px-12 xl:px-24 py-5 md:py-8 max-w-[1920px] mx-auto w-full">
         <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <div className="h-10 w-10 md:h-11 md:w-11 bg-white/5 rounded-[10px] flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all border border-white/5 ring-1 ring-white/10 shrink-0">
+          <div className="h-10 w-10 md:h-11 md:w-11 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all border border-white/5 ring-1 ring-white/10 shrink-0">
             <ChevronLeft size={20} strokeWidth={2.5} />
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest hidden md:block text-slate-400 group-hover:text-white transition-colors">
@@ -34,7 +34,7 @@ export default function ChangeOTPPage() {
             alt="Icon"
             width={36}
             height={36}
-            className="rounded-[10px] shadow-2xl shadow-blue-500/20 md:w-11 md:h-11 group-hover:scale-105 transition-transform"
+            className="rounded-2xl shadow-2xl shadow-blue-500/20 md:w-11 md:h-11 group-hover:scale-105 transition-transform"
           />
           <Image
             src="/word.png"
@@ -50,7 +50,7 @@ export default function ChangeOTPPage() {
         <div className="w-full max-w-[420px] relative animate-in fade-in slide-in-from-bottom-12 duration-1000">
           {/* Security Header */}
           <div className="flex flex-col items-center justify-center mb-8 space-y-4">
-            <div className="h-16 w-16 bg-blue-600/20 rounded-[10px] flex items-center justify-center text-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50">
+            <div className="h-16 w-16 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] ring-1 ring-blue-500/50">
               <ShieldCheck size={32} strokeWidth={2} />
             </div>
             <div className="text-center space-y-1">
@@ -63,7 +63,7 @@ export default function ChangeOTPPage() {
             </div>
           </div>
 
-          <div className="bg-slate-900/60 backdrop-blur-3xl p-6 md:p-8 rounded-[10px] border border-white/10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] md:hover:border-blue-500/30 transition-all duration-500">
+          <div className="bg-slate-900/60 backdrop-blur-3xl p-6 md:p-8 rounded-2xl border border-white/10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] md:hover:border-blue-500/30 transition-all duration-500">
             <ChangeOtpForm />
           </div>
 

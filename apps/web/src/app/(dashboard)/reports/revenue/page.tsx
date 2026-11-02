@@ -55,14 +55,14 @@ export default function RevenueReportPage() {
       header: "Reporting Period",
       accessor: (item: any) => (
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-[10px] bg-slate-900 text-white flex items-center justify-center">
-            <Coins className="h-5 w-5" />
+          <div className="h-8 w-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+            <Coins className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">
+            <span className="font-semibold text-slate-900 text-[13px]">
               {item.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[11px] font-medium text-slate-500">
               Fiscal Cycle
             </span>
           </div>
@@ -75,7 +75,7 @@ export default function RevenueReportPage() {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-emerald-600">
             <TrendingUp className="w-4 h-4" strokeWidth={3} />
-            <span className="text-[14px] font-black tracking-tighter">
+            <span className="text-[14px] font-semibold">
               {new Intl.NumberFormat("en-TZ", {
                 style: "currency",
                 currency: "TZS",
@@ -89,7 +89,7 @@ export default function RevenueReportPage() {
     {
       header: "Audit Status",
       accessor: (item: any) => (
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm">
+        <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-600">
           <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
           Verified
         </div>
@@ -99,8 +99,8 @@ export default function RevenueReportPage() {
       header: "Actions",
       accessor: (item: any) => (
         <div className="flex items-center justify-end pr-4">
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
-            Details <ArrowUpRight size={12} strokeWidth={3} />
+          <button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-8 px-3 text-[12px] font-semibold transition-colors flex items-center gap-1.5">
+            Details <ArrowUpRight size={12} />
           </button>
         </div>
       ),
@@ -108,8 +108,7 @@ export default function RevenueReportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Revenue Overview"
           subtitle="Earnings, collections, and financial intelligence"
@@ -119,7 +118,7 @@ export default function RevenueReportPage() {
           pdfColumns={pdfColumns}
         />
 
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
           <DataTable
             title="Revenue List"
             columns={columns}
@@ -130,7 +129,6 @@ export default function RevenueReportPage() {
             hideInternalSearch
           />
         </div>
-      </div>
     </div>
   );
 }

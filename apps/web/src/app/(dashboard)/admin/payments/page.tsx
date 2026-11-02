@@ -10,7 +10,7 @@ export default async function AdminPaymentsPage({
   const tab = resolvedParams.tab || "overview";
 
   return (
-    <div className="max-w-[1520px] mx-auto w-full flex flex-col gap-6 animate-in fade-in duration-700">
+    <div className="flex flex-col gap-5">
       <ReportPageHeader
         title="Payments Engine"
         subtitle="Monitor all financial transactions and revenue streams"
@@ -20,10 +20,7 @@ export default async function AdminPaymentsPage({
         tabParamName="tab"
         activeTab={tab}
       />
-
-      <div className="mt-2">
-        <PaymentList tab={tab} />
-      </div>
+      <PaymentList tab={tab} />
     </div>
   );
 }

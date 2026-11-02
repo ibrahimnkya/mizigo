@@ -46,7 +46,7 @@ export default function OperatorPrintsPage() {
     <div className="max-w-4xl mx-auto space-y-12 py-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">
             Printing Terminal
           </h1>
           <p className="text-slate-500 font-medium">
@@ -54,15 +54,15 @@ export default function OperatorPrintsPage() {
           </p>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-[10px] p-2 pr-6 shadow-xl shadow-slate-200/50 flex items-center gap-4">
-          <div className="h-10 w-10 bg-emerald-600 rounded-[10px] flex items-center justify-center text-white shadow-lg">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-2 pr-6  shadow-slate-200/50 flex items-center gap-4">
+          <div className="h-10 w-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white ">
             <Printer size={20} />
           </div>
           <div>
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">
+            <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-[0.05em] block">
               Printer Status
             </span>
-            <span className="text-sm font-black text-emerald-500 flex items-center gap-1.5">
+            <span className="text-sm font-semibold text-emerald-500 flex items-center gap-1.5">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               Online
             </span>
@@ -96,21 +96,21 @@ export default function OperatorPrintsPage() {
         ].map((stat, i) => (
           <div
             key={i}
-            className="p-6 bg-white border border-slate-200 rounded-[10px] flex items-center gap-6 shadow-sm"
+            className="p-6 bg-white border border-[#E2E2E2] rounded-[20px] flex items-center gap-6 "
           >
             <div
               className={cn(
-                "h-14 w-14 rounded-[10px] flex items-center justify-center",
+                "h-14 w-14 rounded-xl flex items-center justify-center",
                 stat.bg,
               )}
             >
               <stat.icon size={28} className={stat.color} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                 {stat.label}
               </span>
-              <span className="text-2xl font-black text-slate-800 tabular-nums">
+              <span className="text-2xl font-semibold text-slate-800 tabular-nums">
                 {stat.value}
               </span>
             </div>
@@ -118,15 +118,15 @@ export default function OperatorPrintsPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-[10px] border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-[20px] border border-[#E2E2E2] overflow-hidden ">
         <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <History size={18} className="text-slate-400" />
-            <h3 className="text-sm font-black tracking-tight text-slate-800 uppercase tracking-widest text-xs opacity-50">
+            <h3 className="text-sm font-semibold tracking-tight text-slate-800 uppercase tracking-[0.05em] text-xs opacity-50">
               Local Print Queue
             </h3>
           </div>
-          <button className="text-[10px] font-extrabold text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:underline">
+          <button className="text-[10px] font-semibold text-blue-600 uppercase tracking-[0.05em] flex items-center gap-2 hover:underline">
             <RefreshCcw size={12} />
             Clear History
           </button>
@@ -139,15 +139,15 @@ export default function OperatorPrintsPage() {
               className="p-8 flex items-center justify-between hover:bg-slate-50 transition-all group"
             >
               <div className="flex items-center gap-6">
-                <div className="h-14 w-14 bg-white rounded-[10px] flex items-center justify-center text-slate-400 border border-slate-100 shadow-sm group-hover:border-blue-200 transition-all">
+                <div className="h-14 w-14 bg-white rounded-xl flex items-center justify-center text-slate-400 border border-slate-100  group-hover:border-blue-200 transition-all">
                   <FileText size={24} />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-widest self-start">
+                  <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-[0.05em] self-start">
                     {print.type.replace("_", " ")}
                   </span>
                   <div className="flex items-center gap-3">
-                    <h4 className="text-lg font-black text-slate-800 tracking-tight">
+                    <h4 className="text-lg font-semibold text-slate-800 tracking-tight">
                       {print.parcelId}
                     </h4>
                     <span className="text-xs font-bold text-slate-400">
@@ -158,7 +158,7 @@ export default function OperatorPrintsPage() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right flex flex-col mr-4">
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                     Created AT
                   </span>
                   <span className="text-xs font-bold text-slate-600">
@@ -170,7 +170,7 @@ export default function OperatorPrintsPage() {
                     setIsPrinting(true);
                     setTimeout(() => setIsPrinting(false), 2000);
                   }}
-                  className="h-12 w-12 rounded-[10px] bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95"
+                  className="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white  shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95"
                 >
                   {isPrinting ? (
                     <RefreshCcw size={20} className="animate-spin" />
@@ -185,7 +185,7 @@ export default function OperatorPrintsPage() {
       </div>
 
       <div className="flex justify-center">
-        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+        <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-[0.05em]">
           mzg-thermal-driver v1.4 · ready to scale
         </p>
       </div>

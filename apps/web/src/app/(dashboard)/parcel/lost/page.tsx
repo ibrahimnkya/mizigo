@@ -1,19 +1,16 @@
-import { ParcelList } from "@/components/parcel/parcel-list";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { ParcelStatusPage } from "@/components/parcel/parcel-status-page";
 
-export default async function LostParcelPage() {
+export default function LostParcelPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
-        <ReportPageHeader
-          title="Lost Parcels"
-          subtitle="Anomalies flagged as unlocatable within the network"
-          iconName="AlertTriangle"
-        />
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
-          <ParcelList status="LOST" />
-        </div>
-      </div>
-    </div>
+    <ParcelStatusPage
+      status={"LOST"}
+      title="Lost"
+      subtitle="Can't be located and are under review."
+      icon="lost"
+      headline="Lost parcels"
+      emptyText="No lost parcels. Everything is accounted for."
+      todayLabel="Flagged today"
+      isQueue
+    />
   );
 }

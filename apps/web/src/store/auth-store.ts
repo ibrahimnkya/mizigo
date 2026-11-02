@@ -5,7 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "SUPER_ADMIN" | "ADMIN" | "OPERATOR" | "AGENT";
+  role: "SUPER_ADMIN" | "ADMIN" | "CLERK" | "STATION_MASTER" | "TRAIN_GUARD" | "AGENT";
   organizationId?: string;
   stationId?: string;
 }

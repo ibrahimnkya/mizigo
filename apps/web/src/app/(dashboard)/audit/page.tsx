@@ -59,7 +59,7 @@ function actionMeta(action: string) {
       dot: "bg-amber-500",
     };
   return {
-    className: "bg-slate-50 text-slate-600 border-slate-200/60",
+    className: "bg-slate-50 text-slate-600 border-slate-200",
     dot: "bg-slate-400",
   };
 }
@@ -69,7 +69,7 @@ function ActionBadge({ action }: { action: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-black border uppercase tracking-widest whitespace-nowrap",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold border uppercase tracking-[0.05em] whitespace-nowrap",
         className,
       )}
     >
@@ -88,7 +88,7 @@ export default async function AuditLogsPage() {
   const logs = await getAuditLogs();
 
   return (
-    <div className="flex flex-col gap-8 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-[10px] my-8 border border-slate-100/50 relative overflow-hidden">
+    <div className="flex flex-col gap-8 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-xl my-8 border border-slate-100/50 relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/20 rounded-full blur-3xl -mr-64 -mt-64 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-50/30 rounded-full blur-3xl -ml-48 -mb-48 pointer-events-none" />
@@ -96,10 +96,10 @@ export default async function AuditLogsPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100 relative z-10">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-blue-600" strokeWidth={3} />
             Security Intelligence
-            <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[12px] font-bold rounded-full border border-blue-100 uppercase tracking-widest">
+            <span className="px-3 py-1 bg-blue-50 text-blue-600 text-[12px] font-bold rounded-full border border-blue-100 uppercase tracking-[0.05em]">
               {logs.length} Operations
             </span>
           </h1>
@@ -109,11 +109,11 @@ export default async function AuditLogsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-4 py-2 rounded-[10px] border border-blue-100">
+          <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.05em] text-blue-600 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             Active Monitoring
           </span>
-          <button className="flex items-center gap-2.5 px-6 h-12 bg-slate-900 text-white rounded-[10px] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 text-[12px] font-black uppercase tracking-widest border-none">
+          <button className="flex items-center gap-2.5 px-6 h-12 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all  shadow-slate-200 active:scale-95 text-[12px] font-semibold uppercase tracking-[0.05em] border-none">
             <Download size={16} strokeWidth={2.5} />
             Audit Report
           </button>
@@ -121,7 +121,7 @@ export default async function AuditLogsPage() {
       </div>
 
       {/* Filtering & Search */}
-      <div className="flex flex-col gap-4 bg-slate-50/50 p-5 rounded-[10px] border border-slate-100 shadow-sm relative z-10">
+      <div className="flex flex-col gap-4 bg-slate-50/50 p-5 rounded-xl border border-slate-100  relative z-10">
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative group min-w-[320px] flex-1">
             <Search
@@ -131,13 +131,13 @@ export default async function AuditLogsPage() {
             <input
               type="text"
               placeholder="Search logs by action, resource or user ID..."
-              className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-[10px] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-slate-700 font-bold text-[14px] shadow-sm placeholder:text-slate-300"
+              className="w-full pl-12 pr-4 py-3 bg-white border border-[#E2E2E2] rounded-[20px] focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 transition-all text-slate-700 font-bold text-[14px]  placeholder:text-slate-300"
             />
           </div>
 
-          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-[10px] border border-slate-200 shadow-sm text-slate-400">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200  text-slate-400">
             <Filter size={14} />
-            <span className="text-[12px] font-black text-slate-700 uppercase tracking-tight">
+            <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-tight">
               Timeframe: All Time
             </span>
           </div>
@@ -145,24 +145,24 @@ export default async function AuditLogsPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="relative z-10 overflow-hidden bg-white rounded-[10px] border border-slate-100 shadow-2xl shadow-slate-100/50 flex-1 flex flex-col">
+      <div className="relative z-10 overflow-hidden bg-white rounded-[20px] border border-[#E2E2E2]  shadow-slate-100/50 flex-1 flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] w-[180px]">
+                <th className="py-5 px-6 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] w-[180px]">
                   Operation
                 </th>
-                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <th className="py-5 px-6 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                   Target Resource
                 </th>
-                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <th className="py-5 px-6 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                   Actor Intelligence
                 </th>
-                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <th className="py-5 px-6 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                   Data Context
                 </th>
-                <th className="py-5 px-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">
+                <th className="py-5 px-6 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-right">
                   Sequence Time
                 </th>
               </tr>
@@ -172,7 +172,7 @@ export default async function AuditLogsPage() {
                 <tr>
                   <td colSpan={5} className="py-32 text-center">
                     <div className="flex flex-col items-center gap-6">
-                      <div className="w-20 h-20 bg-slate-50 rounded-[10px] flex items-center justify-center border border-slate-100 shadow-sm">
+                      <div className="w-20 h-20 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 ">
                         <Activity
                           size={32}
                           strokeWidth={1.5}
@@ -180,7 +180,7 @@ export default async function AuditLogsPage() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-xl font-black text-slate-900">
+                        <p className="text-xl font-semibold text-slate-900">
                           Silent Audit Vault
                         </p>
                         <p className="text-[14px] text-slate-400 font-bold">
@@ -205,7 +205,7 @@ export default async function AuditLogsPage() {
                     <td className="py-5 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span className="text-[12px] font-black text-slate-700 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-[10px] border border-slate-100">
+                        <span className="text-[12px] font-semibold text-slate-700 uppercase tracking-[0.05em] bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                           {log.resource}
                         </span>
                       </div>
@@ -214,16 +214,16 @@ export default async function AuditLogsPage() {
                     {/* User Actor */}
                     <td className="py-5 px-6 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100">
+                        <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
                           <UserIcon size={14} className="text-slate-400" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[13px] font-black text-slate-900">
+                          <span className="text-[13px] font-semibold text-slate-900">
                             {log.userId === session?.user?.id
                               ? "Me (Admin)"
                               : log.userId || "Service Agent"}
                           </span>
-                          <span className="text-[11px] font-black text-slate-300 uppercase tracking-tight">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-tight">
                             System Entity
                           </span>
                         </div>
@@ -237,7 +237,7 @@ export default async function AuditLogsPage() {
                           size={14}
                           className="text-slate-300 shrink-0"
                         />
-                        <span className="font-mono text-[11px] text-slate-400 font-bold truncate bg-slate-50/50 px-3 py-1.5 rounded-[10px] border border-dotted border-slate-200 block w-full">
+                        <span className="font-mono text-[11px] text-slate-400 font-bold truncate bg-slate-50/50 px-3 py-1.5 rounded-xl border border-dotted border-slate-200 block w-full">
                           {typeof log.details === "object"
                             ? JSON.stringify(log.details)
                             : (log.details ?? "Encrypted Event Signature")}
@@ -248,7 +248,7 @@ export default async function AuditLogsPage() {
                     {/* Timestamp */}
                     <td className="py-5 px-6 text-right whitespace-nowrap">
                       <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-2 text-[14px] font-black text-slate-900 tabular-nums">
+                        <div className="flex items-center gap-2 text-[14px] font-semibold text-slate-900 tabular-nums">
                           <Clock size={12} className="text-slate-300" />
                           {new Date(log.createdAt).toLocaleDateString("en-GB", {
                             day: "2-digit",
@@ -256,7 +256,7 @@ export default async function AuditLogsPage() {
                             year: "numeric",
                           })}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest tabular-nums">
+                        <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-[0.05em] tabular-nums">
                           {new Date(log.createdAt).toLocaleTimeString("en-GB", {
                             hour: "2-digit",
                             minute: "2-digit",

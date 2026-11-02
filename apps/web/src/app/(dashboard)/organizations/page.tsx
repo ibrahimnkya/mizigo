@@ -20,8 +20,7 @@ export default async function OrganizationsPage({
   const tab = resolvedParams.tab || "overview";
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Organizations"
           subtitle="Manage all system entities and operators"
@@ -34,7 +33,6 @@ export default async function OrganizationsPage({
         <div className="mt-2 animate-in fade-in duration-700">
           <OrganizationList tab={tab} />
         </div>
-      </div>
     </div>
   );
 }

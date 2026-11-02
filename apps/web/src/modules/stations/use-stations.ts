@@ -12,6 +12,17 @@ export function useStations() {
   });
 }
 
+export function useStation(id?: string) {
+  return useQuery({
+    queryKey: ["stations", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/stations/${id}`);
+      return data.data;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useCreateStation() {
   const queryClient = useQueryClient();
 

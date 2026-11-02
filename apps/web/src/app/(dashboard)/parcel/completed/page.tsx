@@ -1,19 +1,15 @@
-import { ParcelList } from "@/components/parcel/parcel-list";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { ParcelStatusPage } from "@/components/parcel/parcel-status-page";
 
-export default async function CompletedParcelPage() {
+export default function CompletedParcelPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
-        <ReportPageHeader
-          title="Delivery Archive"
-          subtitle="Successfully completed parcel history and records"
-          iconName="CheckCircle2"
-        />
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
-          <ParcelList status="DELIVERED" />
-        </div>
-      </div>
-    </div>
+    <ParcelStatusPage
+      status={"DELIVERED"}
+      title="Delivery history"
+      subtitle="Every parcel that reached its receiver."
+      image="/brand/staff_deliver.png"
+      headline="Delivered parcels"
+      emptyText="No deliveries yet. Delivered parcels will show here."
+      todayLabel="Delivered today"
+    />
   );
 }

@@ -33,7 +33,7 @@ export function DashboardTable() {
               Arusha
             </td>
             <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
-              <span className="inline-flex items-center rounded-[10px] border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80">
+              <span className="inline-flex items-center rounded-xl border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80">
                 Pending
               </span>
             </td>

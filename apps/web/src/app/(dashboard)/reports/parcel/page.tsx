@@ -57,28 +57,27 @@ export default function ParcelReportPage() {
     },
   });
 
+  // API normalises field names: trackingId, senderName, fromStation, totalPrice, paymentStatus
   const parcel = reportData?.parcel || [];
 
   const filteredParcel = parcel.filter(
     (p: any) =>
-      p.trackingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.receiverName || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+      (p.trackingId || p.trackingNumber || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.receiverName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.senderName || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const pdfData = useMemo(
     () =>
       filteredParcel.map((p: any) => ({
-        id: p.trackingId?.slice(-8) || "N/A",
+        id: (p.trackingId || p.trackingNumber || "").slice(-8) || "N/A",
         sender: p.senderName || "Unknown",
         receiver: p.receiverName || "Unknown",
         status: (STATUS_MAP as any)[p.status]?.label || p.status,
         price: new Intl.NumberFormat("en-TZ", {
           style: "currency",
           currency: "TZS",
-        }).format(p.totalPrice || 0),
+        }).format(p.totalPrice || p.amount || 0),
       })),
     [filteredParcel],
   );
@@ -98,16 +97,16 @@ export default function ParcelReportPage() {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center transition-all duration-300 bg-slate-900 text-white",
+              "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-300 bg-slate-900 text-white",
             )}
           >
             <Package2 className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
-              #{item.trackingId?.slice(-8) || "MZ-UNKNOWN"}
+            <span className="font-semibold text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
+              #{(item.trackingId || item.trackingNumber || "MZ-UNKNOWN").slice(-8)}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] line-clamp-1">
               TO: {item.receiverName || "Receiver"}
             </span>
           </div>
@@ -121,8 +120,8 @@ export default function ParcelReportPage() {
           <span className="text-[12px] font-bold text-slate-600">
             {item.senderName || "Unknown"}
           </span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            From: {item.fromStation || "Origin"}
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
+            From: {item.fromStation || item.fromAddress || "Origin"}
           </span>
         </div>
       ),
@@ -135,7 +134,7 @@ export default function ParcelReportPage() {
         return (
           <div
             className={cn(
-              "inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] border text-[10px] font-black uppercase tracking-widest shadow-sm",
+              "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-semibold uppercase tracking-[0.05em] ",
               statusObj.color,
             )}
           >
@@ -157,15 +156,15 @@ export default function ParcelReportPage() {
       accessor: (item: any) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-emerald-600">
-            <span className="text-[14px] font-black tracking-tighter">
+            <span className="text-[14px] font-semibold tracking-tight">
               {new Intl.NumberFormat("en-TZ", {
                 style: "currency",
                 currency: "TZS",
                 maximumSignificantDigits: 3,
-              }).format(item.totalPrice || 0)}
+              }).format(item.totalPrice || item.amount || 0)}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+          <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em]">
             {item.weight || 0} KG · {item.paymentStatus || "UNPAID"}
           </span>
         </div>
@@ -175,7 +174,7 @@ export default function ParcelReportPage() {
       header: "Actions",
       accessor: (item: any) => (
         <div className="flex items-center justify-end pr-4">
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
+          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
             View <ArrowUpRight size={12} strokeWidth={3} />
           </button>
         </div>
@@ -184,18 +183,17 @@ export default function ParcelReportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Parcel Analytics"
-          subtitle="Shipments, weights, and movement intelligence"
+          subtitle="Parcels, weights, and movement intelligence"
           icon={Package2}
           onSearch={setSearchQuery}
           pdfData={pdfData}
           pdfColumns={pdfColumns}
         />
 
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
           <DataTable
             title="Parcels List"
             columns={columns}
@@ -206,7 +204,6 @@ export default function ParcelReportPage() {
             hideInternalSearch
           />
         </div>
-      </div>
     </div>
   );
 }

@@ -33,35 +33,34 @@ export default function OperatorOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto space-y-10">
+    <div className="flex flex-col gap-5">
         {/* Utility Action Bar */}
-        <div className="flex items-center justify-between gap-6 bg-white border border-slate-100 rounded-[10px] p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-6 bg-white border border-[#E2E2E2] rounded-[20px] p-4 ">
           <div className="flex items-center gap-3 text-blue-600">
             <Shield size={18} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">
               Operational Protocol Active
             </span>
           </div>
 
-          <div className="flex items-center gap-4 bg-slate-50 border border-slate-100 rounded-[10px] p-2 px-6">
+          <div className="flex items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-2 px-6">
             <div className="flex items-center gap-2">
               <MapPin size={12} className="text-blue-500" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-900">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-900">
                 {overview.stationName}
               </span>
             </div>
             <div className="w-px h-6 bg-slate-200" />
             <div className="flex items-center gap-2">
               <CheckCircle2 size={12} className="text-emerald-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                 Node Active
               </span>
             </div>
@@ -71,20 +70,20 @@ export default function OperatorOverviewPage() {
         {/* Localized Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Activity Pillar */}
-          <div className="bg-white p-10 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-10 group hover:border-slate-200 transition-all">
+          <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-[10px] bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all ">
                 <Package2 size={22} strokeWidth={2.5} />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-slate-50 text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400">
                 Logistics Flow
               </span>
             </div>
             <div className="space-y-1">
-              <h4 className="text-[32px] font-black tracking-tight text-slate-900 leading-none">
+              <h4 className="text-[20px] font-semibold tracking-tight text-slate-900 leading-none">
                 {overview.totalHandled || 0}
               </h4>
-              <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                 Total Processed items
               </p>
             </div>
@@ -94,28 +93,28 @@ export default function OperatorOverviewPage() {
           </div>
 
           {/* Monetary Contribution */}
-          <div className="bg-white p-10 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-10 group hover:border-slate-200 transition-all">
+          <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-[10px] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:bg-slate-900 group-hover:text-white transition-all">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center  group-hover:bg-slate-900 group-hover:text-white transition-all">
                 <TrendingUp size={22} strokeWidth={2.5} />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-emerald-50 text-emerald-600">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600">
                 Financial Impact
               </span>
             </div>
             <div className="space-y-1">
-              <h4 className="text-[32px] font-black tracking-tight text-emerald-600 leading-none">
+              <h4 className="text-[20px] font-semibold tracking-tight text-emerald-600 leading-none">
                 {new Intl.NumberFormat("en-TZ", {
                   style: "currency",
                   currency: "TZS",
                   maximumFractionDigits: 0,
                 }).format(overview.revenueGenerated || 0)}
               </h4>
-              <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                 Net Revenue Generated
               </p>
             </div>
-            <div className="mt-auto flex items-center justify-between text-slate-400 font-bold text-[11px] uppercase tracking-widest">
+            <div className="mt-auto flex items-center justify-between text-slate-400 font-bold text-[11px] uppercase tracking-[0.05em]">
               Station Performance{" "}
               <ArrowUpRight
                 size={14}
@@ -126,37 +125,37 @@ export default function OperatorOverviewPage() {
           </div>
 
           {/* Temporal Efficiency */}
-          <div className="bg-white p-10 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-10 group hover:border-slate-200 transition-all">
+          <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-[10px] bg-blue-50 text-blue-600 flex items-center justify-center shadow-sm group-hover:bg-slate-900 group-hover:text-white transition-all">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center  group-hover:bg-slate-900 group-hover:text-white transition-all">
                 <Timer size={22} strokeWidth={2.5} />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-blue-50 text-blue-600 transition-all">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 transition-all">
                 Operational Pulse
               </span>
             </div>
             <div className="space-y-1">
-              <h4 className="text-[32px] font-black tracking-tight text-blue-600 leading-none">
+              <h4 className="text-[20px] font-semibold tracking-tight text-blue-600 leading-none">
                 12m 4s
               </h4>
-              <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                 Avg Throughput Time
               </p>
             </div>
-            <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between text-slate-300 font-bold text-[12px] uppercase tracking-widest">
+            <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between text-slate-300 font-bold text-[12px] uppercase tracking-[0.05em]">
               View Shift Metrics <ArrowUpRight size={14} strokeWidth={3} />
             </div>
           </div>
         </div>
 
         {/* Footer Strategic Banner */}
-        <div className="bg-white border border-slate-100 rounded-[10px] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-8 flex flex-col md:flex-row items-center justify-between gap-6  overflow-hidden relative">
           <div className="flex items-center gap-6 relative z-10">
-            <div className="w-14 h-14 rounded-[10px] bg-slate-900 flex items-center justify-center text-white shadow-xl">
+            <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white ">
               <Package2 size={24} strokeWidth={2.5} />
             </div>
             <div>
-              <h4 className="text-[18px] font-black text-slate-900 mb-0.5">
+              <h4 className="text-[18px] font-semibold text-slate-900 mb-0.5">
                 Automated Operations Log
               </h4>
               <p className="text-[13px] text-slate-400 font-bold max-w-lg leading-relaxed">
@@ -165,13 +164,12 @@ export default function OperatorOverviewPage() {
               </p>
             </div>
           </div>
-          <button className="relative z-10 h-14 px-10 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-[10px] font-black text-[12px] uppercase tracking-widest transition-all shadow-sm">
+          <button className="relative z-10 h-14 px-10 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-xl font-semibold text-[12px] uppercase tracking-[0.05em] transition-all ">
             Audit Shift Ledger
           </button>
 
           <div className="absolute right-0 top-0 bottom-0 w-[4px] bg-blue-600" />
         </div>
-      </div>
     </div>
   );
 }

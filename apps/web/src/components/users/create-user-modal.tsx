@@ -108,21 +108,6 @@ const ROLE_PERMISSIONS: Record<string, { group: string; items: string[] }[]> = {
       items: ["Inspect manifest", "Confirm wagon seal", "Report delays"],
     },
   ],
-  OPERATOR: [
-    {
-      group: "Parcel",
-      items: [
-        "Receive parcel",
-        "Send parcel",
-        "Deliver parcel",
-        "Track parcel",
-      ],
-    },
-    {
-      group: "Reports",
-      items: ["View personal stats", "Generate shift reports"],
-    },
-  ],
 };
 
 function generateOTP(): string {
@@ -155,11 +140,6 @@ const ROLE_DETAILS: Record<string, { icon: any; title: string; desc: string }> =
       icon: Train,
       title: "Train Guard",
       desc: "Inspect active manifests, verify wagon seals, and register delays",
-    },
-    OPERATOR: {
-      icon: Activity,
-      title: "Field Staff",
-      desc: "General parcel transit operations, tracking updates, and barcode scanning",
     },
   };
 
@@ -201,11 +181,10 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
   const isAdminRole =
     selectedRole === "ADMIN" || selectedRole === "SUPER_ADMIN";
   const isOperatorRole = [
-    "OPERATOR",
-    "STATION_OPERATOR",
     "CLERK",
     "TRAIN_GUARD",
     "STATION_MASTER",
+    "AGENT",
   ].includes(selectedRole);
 
   const [organizations, setOrganizations] = useState<any[]>([]);
@@ -438,37 +417,36 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
     STATION_MASTER: "bg-amber-600 text-amber-100 border-amber-700",
     CLERK: "bg-emerald-600 text-emerald-100 border-emerald-700",
     TRAIN_GUARD: "bg-cyan-600 text-cyan-100 border-cyan-700",
-    OPERATOR: "bg-teal-600 text-teal-100 border-teal-700",
   };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="h-11 px-6 rounded-[10px] bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold flex items-center gap-2.5 active:scale-95 group">
-          <div className="bg-white/20 p-1 rounded-[10px] group-hover:rotate-12 transition-transform">
+        <Button className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold flex items-center gap-2.5 active:scale-95 group">
+          <div className="bg-white/20 p-1 rounded-xl group-hover:rotate-12 transition-transform">
             <UserPlus size={16} strokeWidth={2.5} />
           </div>
           <span>Add Member</span>
         </Button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 rounded-l-2xl shadow-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 rounded-l-2xl ">
         <div className="flex flex-col max-h-[100vh] overflow-hidden h-full">
           {/* Header Section */}
           <div className="bg-slate-900 px-6 py-6 flex items-center gap-4 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
             <div
               className={cn(
-                "w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md text-white",
+                "w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10   text-white",
               )}
             >
               <UserPlus size={20} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col relative z-10 text-left">
-              <SheetTitle className="text-[15px] font-black text-white tracking-tight leading-tight uppercase">
+              <SheetTitle className="text-[15px] font-semibold text-white tracking-tight leading-tight uppercase">
                 New Staff Member
               </SheetTitle>
-              <SheetDescription className="text-white/40 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">
+              <SheetDescription className="text-slate-500 text-[9px] font-bold uppercase tracking-[0.05em] mt-0.5">
                 Establish credentials and permissions
               </SheetDescription>
             </div>
@@ -486,9 +464,9 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   <div className="flex items-center gap-1.5">
                     <div
                       className={cn(
-                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all duration-300",
+                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold transition-all duration-300",
                         step === s.num
-                          ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10 scale-105"
+                          ? "bg-slate-900 text-white  shadow-slate-900/10 scale-105"
                           : step > s.num
                             ? "bg-emerald-500 text-white"
                             : "bg-slate-200 text-slate-400",
@@ -502,7 +480,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                     </div>
                     <span
                       className={cn(
-                        "text-[8.5px] font-black uppercase tracking-wider transition-all",
+                        "text-[8.5px] font-semibold uppercase tracking-wider transition-all",
                         step === s.num ? "text-slate-900" : "text-slate-400",
                       )}
                     >
@@ -560,7 +538,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             <ShieldCheck size={16} strokeWidth={2.5} />
                           </div>
                           <div className="flex flex-col text-left">
-                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">
+                            <span className="text-[10px] font-semibold text-slate-800 uppercase tracking-wider">
                               Access Scope Description
                             </span>
                             <span className="text-[9.5px] font-bold text-slate-400 mt-0.5 leading-normal">
@@ -710,7 +688,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             }}
                             placeholder="e.g. Ibrahim Bakari"
                             required
-                            className="h-12 pl-11 rounded-[10px] border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
+                            className="h-12 pl-11 rounded-xl border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
                           />
                         </div>
                         {validationErrors.name && (
@@ -742,7 +720,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             }}
                             placeholder="bakari@mizigo.co.tz"
                             required
-                            className="h-12 pl-11 rounded-[10px] border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
+                            className="h-12 pl-11 rounded-xl border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
                           />
                         </div>
                         {validationErrors.email && (
@@ -768,7 +746,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             onChange={handlePhoneChange}
                             placeholder="255 7XX XXX XXX"
                             required
-                            className="h-12 pl-11 rounded-[10px] border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
+                            className="h-12 pl-11 rounded-xl border-slate-200 bg-slate-50 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all font-bold text-[14px]"
                           />
                         </div>
                         {validationErrors.phone && (
@@ -776,7 +754,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             {validationErrors.phone}
                           </p>
                         )}
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-1 leading-normal">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.05em] pl-1 leading-normal">
                           This phone number will receive the onboarding
                           credential PIN code immediately.
                         </p>
@@ -797,35 +775,35 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   >
                     <div className="space-y-4">
                       {/* Summary Card */}
-                      <div className="bg-slate-900 text-white rounded-[12px] p-5 shadow-xl relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                      <div className="bg-slate-900 text-white rounded-xl p-5  relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
                         <div className="absolute top-[-50px] right-[-50px] w-36 h-36 bg-white/5 rounded-full blur-[30px] pointer-events-none" />
 
                         <div>
                           <span
                             className={cn(
-                              "text-[8px] font-black uppercase px-2 py-0.5 rounded-[4px] w-fit tracking-widest border",
+                              "text-[8px] font-semibold uppercase px-2 py-0.5 rounded-xl w-fit tracking-[0.05em] border",
                               roleColors[selectedRole] ||
                                 "bg-slate-800 text-slate-300 border-slate-700",
                             )}
                           >
                             {selectedRole.replace("_", " ")}
                           </span>
-                          <h4 className="text-[16px] font-black tracking-tight mt-3 uppercase leading-none">
+                          <h4 className="text-[16px] font-semibold tracking-tight mt-3 uppercase leading-none">
                             {name}
                           </h4>
                           <p className="text-slate-400 text-[11px] font-bold tracking-tight mt-1.5 opacity-80">
                             {email}
                           </p>
-                          <p className="text-slate-400 text-[10px] font-black tracking-widest mt-0.5 uppercase">
+                          <p className="text-slate-400 text-[10px] font-semibold tracking-[0.05em] mt-0.5 uppercase">
                             {phoneNumber}
                           </p>
                         </div>
 
-                        <div className="border-t border-white/10 pt-3 mt-3 flex items-center justify-between">
-                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">
+                        <div className="border-t border-slate-200 pt-3 mt-3 flex items-center justify-between">
+                          <span className="text-[8px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                             Branch Access
                           </span>
-                          <span className="text-[10px] font-black uppercase text-blue-400">
+                          <span className="text-[10px] font-semibold uppercase text-blue-400">
                             {stations.find((s) => s.id === selectedStation)
                               ?.name || "ALL STATIONS ACCESS"}
                           </span>
@@ -833,9 +811,9 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                       </div>
 
                       {/* Security OTP Card */}
-                      <div className="bg-slate-50 border border-slate-100 rounded-[12px] p-5 flex flex-col justify-between text-left">
+                      <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 flex flex-col justify-between text-left">
                         <div>
-                          <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <h5 className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                             Temporary Pin (OTP)
                           </h5>
                           <p className="text-[10px] font-semibold text-slate-500 mt-1 leading-normal">
@@ -853,7 +831,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                                 type="text"
                                 readOnly
                                 value={showOTP ? generatedOTP : "••••••"}
-                                className="w-full h-11 pl-10 pr-10 rounded-[10px] border border-slate-200 bg-white font-black text-[14px] tracking-[0.3em] text-slate-900 cursor-default select-none focus:outline-none"
+                                className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 bg-white font-semibold text-[14px] tracking-[0.3em] text-slate-900 cursor-default select-none focus:outline-none"
                               />
                               <button
                                 type="button"
@@ -871,7 +849,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                               type="button"
                               onClick={copyOTP}
                               className={cn(
-                                "w-11 h-11 flex items-center justify-center rounded-[10px] border transition-all shrink-0",
+                                "w-11 h-11 flex items-center justify-center rounded-xl border transition-all shrink-0",
                                 copied
                                   ? "bg-emerald-50 border-emerald-200 text-emerald-600"
                                   : "bg-white border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200",
@@ -886,7 +864,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             <button
                               type="button"
                               onClick={refreshOTP}
-                              className="w-11 h-11 flex items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all shrink-0"
+                              className="w-11 h-11 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all shrink-0"
                             >
                               <RefreshCw size={14} />
                             </button>
@@ -913,9 +891,9 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                           {ROLE_PERMISSIONS[selectedRole].map((group) => (
                             <div
                               key={group.group}
-                              className="p-3.5 bg-slate-50 rounded-[10px] border border-slate-100 text-left"
+                              className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 text-left"
                             >
-                              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                              <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400 mb-2">
                                 {group.group}
                               </p>
                               <ul className="space-y-1.5">
@@ -949,7 +927,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   type="button"
                   variant="ghost"
                   onClick={() => setOpen(false)}
-                  className="h-11 px-5 rounded-xl bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+                  className="h-11 px-5 rounded-xl bg-white border border-slate-200 text-slate-400 text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
                 >
                   Cancel
                 </Button>
@@ -957,7 +935,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                 <Button
                   type="button"
                   onClick={() => setStep((prev) => (prev - 1) as any)}
-                  className="h-11 px-5 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98] flex items-center gap-2"
+                  className="h-11 px-5 rounded-xl bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98] flex items-center gap-2"
                 >
                   <ArrowLeft size={13} strokeWidth={3} />
                   Back
@@ -970,7 +948,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   type="button"
                   onClick={step === 1 ? handleNextToStep2 : handleNextToStep3}
                   disabled={checkingAvailability}
-                  className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-[0.98] disabled:opacity-60"
+                  className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-[0.98] disabled:opacity-60"
                 >
                   {checkingAvailability && step === 2 ? (
                     <>
@@ -988,7 +966,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="h-11 px-8 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+                  className="h-11 px-8 rounded-xl bg-blue-600 text-white text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-700 transition-all  shadow-blue-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -1003,11 +981,11 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
             </div>
           </form>
           {alertModal && alertModal.isOpen && (
-            <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-2xl w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="absolute inset-0 bg-slate-950/40  z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+              <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm",
+                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0 ",
                     alertModal.type === "success"
                       ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                       : "bg-rose-50 text-rose-600 border border-rose-100",
@@ -1020,7 +998,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="text-[13px] font-black uppercase tracking-wider text-slate-900 leading-tight">
+                  <h4 className="text-[13px] font-semibold uppercase tracking-wider text-slate-900 leading-tight">
                     {alertModal.title}
                   </h4>
                   <p className="text-[10.5px] font-bold text-slate-400 leading-normal">
@@ -1037,7 +1015,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                     }
                   }}
                   className={cn(
-                    "w-full h-10 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all",
+                    "w-full h-10 rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] transition-all",
                     alertModal.type === "success"
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                       : "bg-slate-900 hover:bg-slate-800 text-white",
@@ -1074,14 +1052,14 @@ function SectionBlock({
       <div className="flex items-center gap-3">
         <div
           className={cn(
-            "w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 shadow-sm",
+            "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ",
             color,
           )}
         >
           {icon}
         </div>
         <div className="flex flex-col text-left">
-          <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.15em] leading-tight">
+          <h3 className="text-[12px] font-semibold text-slate-900 uppercase tracking-[0.15em] leading-tight">
             {title}
           </h3>
           <p className="text-[10px] font-bold text-slate-400 leading-normal">
@@ -1111,7 +1089,7 @@ function SelectInput({
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+        className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
       >
         {children}
       </select>

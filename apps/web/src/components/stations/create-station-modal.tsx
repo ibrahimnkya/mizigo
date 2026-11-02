@@ -69,7 +69,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-[10px] font-black text-[11px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 group shadow-lg shadow-slate-900/10">
+        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center gap-3 transition-all active:scale-95 group  shadow-slate-900/10">
           <Plus
             className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300"
             strokeWidth={3}
@@ -78,18 +78,18 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-7 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-          <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10">
             <MapPin className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               Register Station
             </SheetTitle>
-            <SheetDescription className="text-slate-400 text-[11px] font-bold uppercase tracking-widest mt-0.5">
+            <SheetDescription className="text-slate-400 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Add a new facility to the transport network
             </SheetDescription>
           </div>
@@ -101,7 +101,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
           className="p-8 space-y-8 flex-1 overflow-y-auto"
         >
           {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-[10px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               {error}
             </div>
@@ -110,7 +110,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6 md:col-span-2">
               <div className="relative">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] mb-3 block ml-1">
                   Station Name
                 </Label>
                 <div className="relative">
@@ -119,7 +119,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Central Hub"
-                    className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] pl-12 text-[14px] font-bold transition-all"
+                    className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl pl-12 text-[14px] font-bold transition-all"
                     required
                   />
                 </div>
@@ -127,7 +127,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
             </div>
 
             <div className="relative">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">
+              <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] mb-3 block ml-1">
                 Station Code{" "}
                 <span className="opacity-40 italic lowercase tracking-tight font-bold">
                   (Ex: DAR, MOR)
@@ -138,13 +138,13 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="DAR"
                 maxLength={5}
-                className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] px-5 text-[14px] font-bold uppercase transition-all"
+                className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl px-5 text-[14px] font-bold uppercase transition-all"
                 required
               />
             </div>
 
             <div className="relative">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">
+              <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] mb-3 block ml-1">
                 Location / Region
               </Label>
               <div className="relative">
@@ -153,7 +153,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="City or Region"
-                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] pl-12 text-[14px] font-bold transition-all"
+                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl pl-12 text-[14px] font-bold transition-all"
                 />
               </div>
             </div>
@@ -175,7 +175,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
 
           <div className="pt-4 flex flex-col md:flex-row items-center justify-between text-slate-400 border-t border-slate-50 pt-8 mt-4">
             <div className="flex flex-col gap-1 mb-4 md:mb-0">
-              <span className="text-[10px] font-black uppercase tracking-widest">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                 Network Compliance
               </span>
               <p className="text-[10px] font-bold leading-tight max-w-[280px]">
@@ -189,7 +189,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
                 type="button"
                 variant="ghost"
                 onClick={() => setOpen(false)}
-                className="h-14 px-8 rounded-[10px] font-black text-[11px] uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all border border-transparent hover:border-slate-100 flex-1 md:flex-none"
+                className="h-14 px-8 rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] text-slate-400 hover:text-slate-900 transition-all border border-transparent hover:border-slate-100 flex-1 md:flex-none"
                 disabled={loading}
               >
                 Cancel
@@ -197,7 +197,7 @@ export function CreateStationModal({ onSuccess }: CreateStationModalProps) {
               <Button
                 type="submit"
                 disabled={loading || !name || !code || !organizationId}
-                className="h-14 px-10 rounded-[10px] font-black text-[11px] uppercase tracking-[0.2em] bg-slate-900 hover:bg-slate-800 text-white transition-all active:scale-95 flex items-center justify-center gap-2 flex-1 md:flex-none"
+                className="h-14 px-10 rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] bg-slate-900 hover:bg-slate-800 text-white transition-all active:scale-95 flex items-center justify-center gap-2 flex-1 md:flex-none"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

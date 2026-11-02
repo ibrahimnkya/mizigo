@@ -184,7 +184,7 @@ export function SessionLock() {
   return (
     <Dialog open={isLocked} onOpenChange={() => {}}>
       <DialogContent
-        overlayClassName="backdrop-blur-sm bg-slate-900/30"
+        overlayClassName=" bg-slate-900/30"
         className="max-w-[500px] p-0 overflow-hidden bg-white border border-slate-100 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.3)] rounded-3xl animate-in fade-in zoom-in-95 duration-500 [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -195,13 +195,13 @@ export function SessionLock() {
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px]" />
           <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px]" />
 
-          <div className="w-20 h-20 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center mb-6 relative z-10 backdrop-blur-2xl shadow-2xl">
+          <div className="w-20 h-20 rounded-[1.5rem] bg-white/5 border border-slate-200 flex items-center justify-center mb-6 relative z-10 -2xl ">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-[1.5rem]" />
             <Lock className="w-10 h-10 text-white" strokeWidth={2.5} />
           </div>
 
           <div className="relative z-10">
-            <DialogTitle className="text-[28px] font-black text-white tracking-tight leading-tight">
+            <DialogTitle className="text-[20px] font-semibold text-slate-800 tracking-tight leading-tight">
               Screen Locked
             </DialogTitle>
             <DialogDescription className="text-slate-400 text-[12px] font-bold uppercase tracking-[0.25em] mt-3 flex items-center justify-center gap-2.5">
@@ -216,12 +216,12 @@ export function SessionLock() {
 
         {/* Authentication Form */}
         <div className="p-8">
-          <div className="mb-8 flex items-center gap-5 p-5 bg-slate-50/50 rounded-2xl border border-slate-100 backdrop-blur-sm">
-            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center font-black text-white text-md shadow-xl shadow-slate-900/20">
+          <div className="mb-8 flex items-center gap-5 p-5 bg-slate-50/50 rounded-xl border border-slate-100 ">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center font-semibold text-white text-md  shadow-slate-900/20">
               {session?.user?.name?.substring(0, 2).toUpperCase() || "AD"}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[14px] font-black text-slate-900 truncate uppercase tracking-tight leading-none mb-1.5">
+              <span className="text-[14px] font-semibold text-slate-900 truncate uppercase tracking-tight leading-none mb-1.5">
                 {session?.user?.name}
               </span>
               <span className="text-[11px] font-bold text-slate-400 truncate tracking-tight opacity-80">
@@ -233,7 +233,7 @@ export function SessionLock() {
           <form onSubmit={handleUnlock} className="space-y-8">
             <div className="space-y-3">
               <div className="flex items-center justify-between ml-1">
-                <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                   Enter PIN
                 </label>
               </div>
@@ -251,7 +251,7 @@ export function SessionLock() {
                       onChange={(e) => handleOtpChange(e.target.value, index)}
                       onKeyDown={(e) => handleOtpKeyDown(e, index)}
                       onPaste={handleOtpPaste}
-                      className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 rounded-xl transition-all outline-none text-slate-900"
+                      className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-semibold bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 rounded-xl transition-all outline-none text-slate-900"
                       required
                     />
                   ))}
@@ -280,7 +280,7 @@ export function SessionLock() {
             </div>
 
             {error && (
-              <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-5 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-5 rounded-xl flex items-center gap-4 animate-in slide-in-from-top-2 duration-300">
                 <ShieldOff className="w-5 h-5 shrink-0" strokeWidth={2.5} />
                 {error}
               </div>
@@ -290,7 +290,7 @@ export function SessionLock() {
               <Button
                 type="submit"
                 disabled={loading || !password}
-                className="h-16 w-full bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black text-[13px] uppercase tracking-[0.25em] transition-all shadow-2xl shadow-slate-900/10 active:scale-[0.98] flex items-center justify-center gap-3 border-none"
+                className="h-16 w-full bg-slate-900 hover:bg-blue-600 text-white rounded-xl font-semibold text-[13px] uppercase tracking-[0.25em] transition-all  shadow-slate-900/10 active:scale-[0.98] flex items-center justify-center gap-3 border-none"
               >
                 {loading ? (
                   <Loader2 className="w-6 h-6 animate-spin" strokeWidth={3} />
@@ -302,7 +302,7 @@ export function SessionLock() {
               <button
                 type="button"
                 onClick={() => signOut({ redirectTo: "/login" })}
-                className="h-10 w-full text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-rose-600 transition-colors flex items-center justify-center gap-2.5"
+                className="h-10 w-full text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400 hover:text-rose-600 transition-colors flex items-center justify-center gap-2.5"
               >
                 <LogOut className="w-4 h-4" />
                 Sign out of account

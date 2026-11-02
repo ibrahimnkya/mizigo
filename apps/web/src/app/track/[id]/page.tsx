@@ -88,7 +88,7 @@ export default function PublicTrackingPage() {
             <h2 className="text-2xl font-black tracking-tight text-white uppercase">
               Finding <span className="text-blue-500">Parcel</span>
             </h2>
-            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-[10px]">
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl">
               <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
               <p className="text-slate-400 font-mono text-[10px] uppercase tracking-[0.3em] font-black">{id}</p>
             </div>
@@ -109,12 +109,12 @@ export default function PublicTrackingPage() {
 
         <nav className="relative z-50 flex justify-between items-center px-5 sm:px-8 md:px-12 py-5 md:py-7 max-w-[1400px] mx-auto w-full">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push("/")}>
-            <Image src="/mono.png" alt="Icon" width={34} height={34} className="rounded-[10px] shadow-xl shadow-blue-500/20" />
+            <Image src="/mono.png" alt="Icon" width={34} height={34} className="rounded-2xl shadow-xl shadow-blue-500/20" />
             <Image src="/word.png" alt="Mizigo" width={80} height={22} className="opacity-90 mt-0.5" />
           </div>
           <button
             onClick={() => router.push("/")}
-            className="h-10 px-5 bg-blue-600/10 backdrop-blur-md text-white rounded-[10px] text-[9px] sm:text-[10px] font-black border border-blue-500/20 hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 uppercase tracking-widest"
+            className="h-10 px-5 bg-blue-600/10 backdrop-blur-md text-white rounded-2xl text-[9px] sm:text-[10px] font-black border border-blue-500/20 hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 uppercase tracking-widest"
           >
             <Search size={12} className="text-blue-400" />
             <span className="hidden sm:inline">Track Another</span>
@@ -133,7 +133,7 @@ export default function PublicTrackingPage() {
             <p className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 leading-relaxed mb-10 opacity-70">
               Could not resolve{" "}
               <span className="text-rose-400 font-mono">{id}</span>.{" "}
-              Verify the shipment code or search by phone number.
+              Verify the parcel code or search by phone number.
             </p>
             <form onSubmit={handleAltSearch} className="relative">
               <input
@@ -143,7 +143,7 @@ export default function PublicTrackingPage() {
                 onChange={(e) => setAltSearch(e.target.value)}
                 className="w-full h-14 bg-white/5 border border-white/10 rounded-[12px] px-5 pr-28 text-sm font-bold text-white focus:border-rose-500/50 focus:bg-white/8 outline-none transition-all placeholder:text-slate-600 tracking-wide uppercase"
               />
-              <button className="absolute right-2 top-2 h-10 px-5 bg-white/10 hover:bg-rose-600 rounded-[10px] text-[10px] font-black uppercase tracking-wider text-white transition-all">
+              <button className="absolute right-2 top-2 h-10 px-5 bg-white/10 hover:bg-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white transition-all">
                 Search
               </button>
             </form>
@@ -155,6 +155,8 @@ export default function PublicTrackingPage() {
 
   const { parcel, statusTimeline, isPrivacyMasked } = trackingData;
   const activeStatus = getStatusDetails(parcel.status);
+  const organization = parcel.organization;
+  const brandColor: string | undefined = organization?.primaryColor || undefined;
 
   return (
     <div className="min-h-screen w-full bg-slate-950 text-white font-sans overflow-x-hidden pb-16 sm:pb-20">
@@ -168,39 +170,64 @@ export default function PublicTrackingPage() {
       <nav className="sticky top-0 z-50 h-16 sm:h-20 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-white/5 bg-slate-950/85 backdrop-blur-2xl">
         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
           <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => router.push("/")}>
-            <Image src="/mono.png" alt="Icon" width={32} height={32} className="rounded-[8px] shadow-xl shadow-blue-500/20 sm:w-9 sm:h-9" />
-            <Image src="/word.png" alt="Mizigo" width={72} height={20} className="opacity-90 hidden sm:block" />
+            {organization?.logoUrl ? (
+              // Org-supplied logo is an arbitrary external URL, so it can't go
+              // through next/image's optimizer without an allow-listed domain.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={organization.logoUrl}
+                alt={`${organization.name || "Organization"} logo`}
+                className="h-8 sm:h-9 w-auto max-w-[9rem] object-contain rounded-2xl"
+              />
+            ) : (
+              <>
+                <Image src="/mono.png" alt="Icon" width={32} height={32} className="rounded-2xl shadow-xl shadow-blue-500/20 sm:w-9 sm:h-9" />
+                <Image src="/word.png" alt="Mizigo" width={72} height={20} className="opacity-90 hidden sm:block" />
+              </>
+            )}
           </div>
           <div className="h-8 w-px bg-white/10 hidden sm:block" />
           <div className="hidden sm:flex flex-col min-w-0">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Parcel Status</span>
-            <span className="text-sm font-mono font-black text-blue-400 tracking-widest truncate">{parcel.trackingNumber}</span>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              {organization?.name || "Parcel Status"}
+            </span>
+            <span
+              className="text-sm font-mono font-black text-blue-400 tracking-widest truncate"
+              style={brandColor ? { color: brandColor } : undefined}
+            >
+              {parcel.trackingNumber}
+            </span>
           </div>
           {/* Mobile tracking number */}
-          <span className="sm:hidden text-xs font-mono font-black text-blue-400 tracking-wider truncate">{parcel.trackingNumber}</span>
+          <span
+            className="sm:hidden text-xs font-mono font-black text-blue-400 tracking-wider truncate"
+            style={brandColor ? { color: brandColor } : undefined}
+          >
+            {parcel.trackingNumber}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => router.push("/")}
-            className="h-9 sm:h-11 px-3 sm:px-5 bg-blue-600/10 hover:bg-blue-600 rounded-[10px] border border-blue-500/20 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white transition-all flex items-center gap-2"
+            className="h-9 sm:h-11 px-3 sm:px-5 bg-blue-600/10 hover:bg-blue-600 rounded-2xl border border-blue-500/20 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white transition-all flex items-center gap-2"
           >
             <Search size={13} className="text-blue-400" />
             <span className="hidden sm:inline">Track Another</span>
           </button>
           <button
             onClick={copyLink}
-            className="hidden sm:flex items-center gap-2 h-11 px-5 bg-white/5 hover:bg-white/10 rounded-[10px] border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all"
+            className="hidden sm:flex items-center gap-2 h-11 px-5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all"
           >
             <Copy size={14} /> Copy
           </button>
           <button
             onClick={copyLink}
-            className="sm:hidden h-9 w-9 bg-white/5 hover:bg-white/10 rounded-[10px] border border-white/10 flex items-center justify-center text-slate-300"
+            className="sm:hidden h-9 w-9 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center text-slate-300"
           >
             <Copy size={14} />
           </button>
-          <button className="h-9 w-9 sm:h-11 sm:w-11 bg-white/5 hover:bg-white/10 rounded-[10px] border border-white/10 flex items-center justify-center text-slate-300 transition-all">
+          <button className="h-9 w-9 sm:h-11 sm:w-11 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center text-slate-300 transition-all">
             <Printer size={16} />
           </button>
         </div>
@@ -211,7 +238,7 @@ export default function PublicTrackingPage() {
         {/* Privacy banner */}
         {isPrivacyMasked && (
           <div className="bg-blue-500/10 border border-blue-500/20 p-4 sm:p-6 rounded-[12px] backdrop-blur-3xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
-            <div className="h-10 w-10 bg-blue-500/20 rounded-[10px] flex items-center justify-center text-blue-400 shrink-0">
+            <div className="h-10 w-10 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
               <ShieldCheck size={20} />
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-200/70 leading-relaxed">
@@ -229,7 +256,7 @@ export default function PublicTrackingPage() {
             <div className="relative z-10 flex flex-col sm:flex-row gap-8 sm:gap-10 justify-between items-start sm:items-center">
               <div className="space-y-6 flex-1 min-w-0">
                 {/* Status badge */}
-                <div className={cn("inline-flex items-center gap-2.5 px-3.5 py-2 rounded-[10px] border-2", activeStatus.bg, activeStatus.border)}>
+                <div className={cn("inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border-2", activeStatus.bg, activeStatus.border)}>
                   <Activity size={13} className={cn("animate-pulse", activeStatus.color)} />
                   <span className={cn("text-[11px] font-black uppercase tracking-[0.2em]", activeStatus.color)}>
                     {activeStatus.label}
@@ -239,7 +266,7 @@ export default function PublicTrackingPage() {
                 {/* Destination */}
                 <div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="h-7 w-7 bg-blue-600/20 rounded-[8px] flex items-center justify-center shrink-0">
+                    <div className="h-7 w-7 bg-blue-600/20 rounded-2xl flex items-center justify-center shrink-0">
                       <MapPin size={14} className="text-blue-400" />
                     </div>
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Destination</span>
@@ -296,7 +323,7 @@ export default function PublicTrackingPage() {
                 { icon: Activity, label: "Priority", value: parcel.urgency, accent: true },
               ].map(({ icon: Icon, label, value, accent }) => (
                 <div key={label} className="flex items-center gap-5 group/item">
-                  <div className="h-12 w-12 bg-white/5 rounded-[10px] flex items-center justify-center text-slate-400 shrink-0 border border-white/10 group-hover/item:border-blue-500/40 group-hover/item:text-blue-400 transition-all">
+                  <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 shrink-0 border border-white/10 group-hover/item:border-blue-500/40 group-hover/item:text-blue-400 transition-all">
                     <Icon size={22} strokeWidth={1.5} />
                   </div>
                   <div className="min-w-0">
@@ -315,7 +342,7 @@ export default function PublicTrackingPage() {
         <div className="bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[16px] p-7 sm:p-10 md:p-12 shadow-2xl">
           <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
             <span className="h-3.5 w-3.5 bg-blue-600 rounded-full animate-pulse" />
-            Shipment Timeline
+            Parcel Timeline
           </h3>
 
           {/* Horizontal timeline (md+) */}
@@ -340,7 +367,7 @@ export default function PublicTrackingPage() {
                   return (
                     <div key={i} className="flex flex-col items-center w-28 gap-5 relative z-10">
                       <div className={cn(
-                        "h-14 w-14 rounded-[10px] flex items-center justify-center border-2 transition-all duration-700 bg-slate-900 shadow-xl",
+                        "h-14 w-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-700 bg-slate-900 shadow-xl",
                         isCurrent ? "border-blue-500 text-blue-400 scale-125 shadow-[0_0_24px_rgba(59,130,246,0.4)]"
                           : isDone ? "border-slate-700 text-slate-400"
                           : "border-white/5 text-slate-800 opacity-40",
@@ -374,7 +401,7 @@ export default function PublicTrackingPage() {
                   {/* Line + node column */}
                   <div className="flex flex-col items-center shrink-0">
                     <div className={cn(
-                      "h-11 w-11 rounded-[10px] flex items-center justify-center border-2 shrink-0 transition-all duration-500",
+                      "h-11 w-11 rounded-2xl flex items-center justify-center border-2 shrink-0 transition-all duration-500",
                       isCurrent ? "border-blue-500 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.4)] bg-blue-500/10 scale-105"
                         : isDone ? "border-slate-700 text-slate-400 bg-slate-900"
                         : "border-white/5 text-slate-700 bg-slate-900 opacity-40",
@@ -425,7 +452,7 @@ export default function PublicTrackingPage() {
                 { label: "Condition", value: parcel.condition },
                 { label: "Payment", value: parcel.paymentStatus, accent: true },
               ].map(({ label, value, accent }) => (
-                <div key={label} className="flex justify-between items-center p-4 bg-white/4 rounded-[10px] border border-white/5 hover:border-white/10 transition-colors group">
+                <div key={label} className="flex justify-between items-center p-4 bg-white/4 rounded-2xl border border-white/5 hover:border-white/10 transition-colors group">
                   <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest group-hover:text-slate-400 transition-colors">{label}</span>
                   <span className={cn("text-xs font-black uppercase", accent ? "text-amber-400" : "text-white")}>{value}</span>
                 </div>
@@ -439,7 +466,7 @@ export default function PublicTrackingPage() {
               <ShieldCheck size={200} />
             </div>
             <div className="relative z-10 space-y-5">
-              <div className="h-12 w-12 bg-blue-600/20 text-blue-500 rounded-[10px] flex items-center justify-center border border-blue-500/30">
+              <div className="h-12 w-12 bg-blue-600/20 text-blue-500 rounded-2xl flex items-center justify-center border border-blue-500/30">
                 <ShieldCheck size={24} />
               </div>
               <h3 className="text-2xl font-black tracking-tighter text-white uppercase">
@@ -448,7 +475,7 @@ export default function PublicTrackingPage() {
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] leading-relaxed max-w-sm opacity-80">
                 Present the 6-digit code sent to the registered phone to collect your parcel.
               </p>
-              <div className="inline-flex items-center gap-3 px-5 py-3 bg-black/50 rounded-[10px] border border-white/10 backdrop-blur-md">
+              <div className="inline-flex items-center gap-3 px-5 py-3 bg-black/50 rounded-2xl border border-white/10 backdrop-blur-md">
                 <Phone size={15} className="text-blue-400" />
                 <span className="font-mono text-lg font-black text-white tracking-[0.3em] uppercase">
                   ***{parcel.receiver?.phone?.slice(-4)}

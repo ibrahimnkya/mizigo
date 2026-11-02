@@ -3,7 +3,7 @@ import { prisma } from "@repo/database";
 export async function getStats(user: { id: string; role: string }) {
   try {
     const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
-    const isOperator = user.role === "OPERATOR";
+    const isOperator = ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(user.role);
     const isAgent = user.role === "AGENT";
     const userId = user.id;
 

@@ -13,7 +13,7 @@ async function getParcels(filters: {
   const isAdmin =
     session?.user?.role === "ADMIN" ||
     session?.user?.role === "SUPER_ADMIN" ||
-    session?.user?.role === "OPERATOR";
+    ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(session?.user?.role || "");
   const userId = session?.user?.id;
 
   const where: any = {};
@@ -72,6 +72,8 @@ async function getParcels(filters: {
 
     return parcels.map((item: any) => ({
       id: item.id,
+      trackingNumber: item.trackingNumber,
+      weight: item.weight,
       fromAddress: item.origin?.name ?? item.fromAddress,
       toAddress: item.destination?.name ?? item.toAddress,
       serviceType: item.serviceType,

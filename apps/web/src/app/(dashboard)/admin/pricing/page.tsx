@@ -49,50 +49,6 @@ function useCountUp(target: number, duration = 1200): number {
   return value;
 }
 
-// --- Sparkline SVG ---
-function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
-  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
-  const points = basePoints.map((p, i) => {
-    const shift = Math.sin(seed + i) * 8;
-    return Math.max(10, Math.min(100, p + shift));
-  });
-  const h = 48, w = 120;
-  const max = Math.max(...points), min = Math.min(...points);
-  const coords: [number, number][] = points.map((p, i) => [
-    (i / (points.length - 1)) * w,
-    h - ((p - min) / (max - min)) * (h - 4) - 2,
-  ]);
-  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const fill = path + ` L${w},${h} L0,${h} Z`;
-  const gradId = `spark-${color.replace("#", "")}-${seed}`;
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fill} fill={`url(#${gradId})`} />
-      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// --- Helper to map text class to Hex ---
-const getSparkColor = (colorClass: string) => {
-  if (colorClass.includes("blue")) return "#3b82f6";
-  if (colorClass.includes("emerald")) return "#10b981";
-  if (colorClass.includes("indigo")) return "#6366f1";
-  if (colorClass.includes("amber")) return "#f59e0b";
-  if (colorClass.includes("orange")) return "#f97316";
-  if (colorClass.includes("violet")) return "#8b5cf6";
-  if (colorClass.includes("cyan")) return "#06b6d4";
-  if (colorClass.includes("rose")) return "#f43f5e";
-  return "#94a3b8";
-};
-
 // --- Custom PricingCard Component ---
 interface PricingCardProps {
   label: string;
@@ -117,15 +73,12 @@ function PricingCard({
   tag,
   tagBg,
   tagColor,
-  accentBar,
   description,
-  seed,
 }: PricingCardProps) {
   const valStr = String(value);
   const numericVal = parseFloat(valStr.replace(/[^\d.]/g, ""));
   const isNumeric = !isNaN(numericVal);
   const counted = useCountUp(isNumeric ? numericVal : 0, 1000);
-  const sparkColor = getSparkColor(iconColor);
 
   let displayValue = valStr;
   if (isNumeric) {
@@ -139,44 +92,29 @@ function PricingCard({
   }
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
+    <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-5 flex flex-col gap-3">
       {/* Top Row */}
       <div className="flex items-start justify-between">
-        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
-          <Icon size={16} strokeWidth={2.5} />
+        <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", iconBg, iconColor)}>
+          <Icon size={14} strokeWidth={2} />
         </div>
-        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+        <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border", tagBg, tagColor)}>
           {tag}
         </span>
       </div>
 
-      {/* Main Content */}
-      <div className="mt-4 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Primary value */}
-          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
-            {displayValue}
-          </p>
-          
-          {/* Title & Description */}
-          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
-            {label}
-          </h3>
-          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
-            {description}
-          </p>
-        </div>
+      {/* Value */}
+      <p className={cn("text-[26px] font-semibold leading-none tabular-nums", iconColor)}>
+        {displayValue}
+      </p>
 
-        {/* Sparkline */}
-        <div className="mt-4 space-y-3">
-          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
-            <Sparkline color={sparkColor} seed={seed} />
-          </div>
-        </div>
+      {/* Title & Description */}
+      <div>
+        <h3 className="text-[14px] font-semibold text-slate-800">{label}</h3>
+        <p className="text-[11px] font-medium text-slate-500 mt-0.5 leading-normal line-clamp-2">
+          {description}
+        </p>
       </div>
-
-      {/* Bottom accent glow */}
-      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
     </div>
   );
 }
@@ -215,34 +153,36 @@ function PricingPageInner() {
         <div className="flex items-center gap-3 min-w-0">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg transition-all duration-300 shrink-0",
+              "h-9 w-9 rounded-xl border flex items-center justify-center shrink-0",
               rule.isActive
-                ? "bg-slate-900 shadow-slate-100"
-                : "bg-slate-200 shadow-transparent grayscale",
+                ? "bg-slate-900 border-slate-700"
+                : "bg-slate-100 border-slate-200",
             )}
           >
             {rule.type === "MULTIPLIER" ? (
               <TrendingUp
                 className={cn(
-                  "h-5 w-5 text-white",
-                  !rule.isActive && "text-slate-400",
+                  "h-4 w-4",
+                  rule.isActive ? "text-white" : "text-slate-400",
                 )}
+                strokeWidth={2}
               />
             ) : (
               <Calculator
                 className={cn(
-                  "h-5 w-5 text-white",
-                  !rule.isActive && "text-slate-400",
+                  "h-4 w-4",
+                  rule.isActive ? "text-white" : "text-slate-400",
                 )}
+                strokeWidth={2}
               />
             )}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase truncate max-w-[220px]">
+            <span className="font-semibold text-slate-800 text-[13px] uppercase truncate max-w-[220px]">
               {rule.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate max-w-[220px]">
-              {rule.condition || "All shipments"}
+            <span className="text-[11px] font-medium text-slate-500 truncate max-w-[220px]">
+              {rule.condition || "All parcels"}
             </span>
           </div>
         </div>
@@ -252,12 +192,12 @@ function PricingPageInner() {
       header: "Identifier",
       accessor: (rule: any) => (
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-[10px] w-fit">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 border border-slate-200 rounded-xl w-fit">
+            <span className="text-[11px] font-medium text-slate-600">
               ID:{rule.id?.slice(0, 8) || "RULE-001"}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-1">
+          <span className="text-[11px] font-medium text-slate-400 pl-1">
             Version: 2.1
           </span>
         </div>
@@ -266,37 +206,37 @@ function PricingPageInner() {
     {
       header: "Status",
       accessor: (rule: any) => (
-        <div
+        <span
           className={cn(
-            "inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] border text-[10px] font-black uppercase tracking-widest shadow-sm",
+            "inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border",
             rule.isActive
-              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-              : "bg-rose-50 text-rose-600 border-rose-100",
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-rose-50 text-rose-700 border-rose-200",
           )}
         >
           <div
             className={cn(
               "w-1.5 h-1.5 rounded-full",
-              rule.isActive ? "bg-emerald-500 animate-pulse" : "bg-rose-500",
+              rule.isActive ? "bg-emerald-500" : "bg-rose-500",
             )}
           />
           {rule.isActive ? "Active" : "Paused"}
-        </div>
+        </span>
       ),
     },
     {
       header: "Price Info",
       accessor: (rule: any) => (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-1 text-blue-600">
-            <BadgePercent className="w-4 h-4" strokeWidth={3} />
-            <span className="text-[14px] font-black tracking-tighter">
+            <BadgePercent className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="text-[13px] font-semibold">
               {rule.type === "MULTIPLIER"
                 ? `${rule.value}x`
                 : `TSh ${new Intl.NumberFormat().format(rule.value)}`}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+          <span className="text-[11px] font-medium text-slate-400">
             Fee / Adjustment
           </span>
         </div>
@@ -325,8 +265,7 @@ function PricingPageInner() {
     "1.00";
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
         <PricingModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
@@ -348,13 +287,9 @@ function PricingPageInner() {
           action={
             <button
               onClick={handleCreate}
-              className="relative z-10 h-10 px-6 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest rounded-[10px] flex items-center gap-2 transition-all active:scale-95 group"
+              className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[12px] font-semibold transition-colors flex items-center gap-2"
             >
-              <Plus
-                size={14}
-                strokeWidth={3}
-                className="group-hover:rotate-90 transition-transform duration-300"
-              />
+              <Plus size={13} strokeWidth={2} />
               Add Pricing
             </button>
           }
@@ -366,7 +301,7 @@ function PricingPageInner() {
         <div className="mt-2 animate-in fade-in duration-700">
           {tab.toLowerCase() === "overview" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <PricingCard
                   label="Active Rules"
                   value={activeRules}
@@ -375,8 +310,8 @@ function PricingPageInner() {
                   iconColor="text-blue-600"
                   tag="System"
                   tagBg="bg-blue-50"
-                  tagColor="text-blue-600"
-                  accentBar="bg-blue-500"
+                  tagColor="text-blue-700 border-blue-200"
+                  accentBar=""
                   description="Total custom pricing matrices currently in active deployment"
                   seed={21}
                 />
@@ -388,8 +323,8 @@ function PricingPageInner() {
                   iconColor="text-emerald-600"
                   tag="Multiplier"
                   tagBg="bg-emerald-50"
-                  tagColor="text-emerald-600"
-                  accentBar="bg-emerald-500"
+                  tagColor="text-emerald-700 border-emerald-200"
+                  accentBar=""
                   description="Base rate coefficient applied to standard distance"
                   seed={43}
                 />
@@ -401,8 +336,8 @@ function PricingPageInner() {
                   iconColor="text-indigo-600"
                   tag="Premium"
                   tagBg="bg-indigo-50"
-                  tagColor="text-indigo-600"
-                  accentBar="bg-indigo-500"
+                  tagColor="text-indigo-700 border-indigo-200"
+                  accentBar=""
                   description="Percent surcharge automatically added for priority delivery"
                   seed={65}
                 />
@@ -410,12 +345,12 @@ function PricingPageInner() {
                   label="Global Coverage"
                   value="100%"
                   icon={Globe}
-                  iconBg="bg-slate-50"
+                  iconBg="bg-slate-100"
                   iconColor="text-slate-600"
                   tag="Network"
                   tagBg="bg-slate-50"
-                  tagColor="text-slate-600"
-                  accentBar="bg-slate-500"
+                  tagColor="text-slate-600 border-slate-200"
+                  accentBar=""
                   description="Status of operational coverage for pricing lookups"
                   seed={87}
                 />
@@ -423,50 +358,45 @@ function PricingPageInner() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* How It Works Section */}
-                <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[400px]">
-                  <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-
-                  <div className="relative z-10">
-                    <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
-                      <Database
-                        className="h-6 w-6 text-blue-400"
-                        strokeWidth={2.5}
-                      />
+                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] p-6 flex flex-col justify-between min-h-[400px]">
+                  <div>
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-6">
+                      <Database className="h-5 w-5 text-slate-600" strokeWidth={2} />
                     </div>
-                    <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">
+                    <h3 className="text-[20px] font-semibold text-slate-800 mb-2">
                       How It Works
                     </h3>
-                    <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80 mb-6">
+                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed mb-6">
                       Rules are applied automatically when parcels are
                       processed. Multipliers increase the base price; fixed
                       amounts add a set fee.
                     </p>
                   </div>
 
-                  <div className="relative z-10 space-y-3">
-                    <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                  <div className="space-y-2">
+                    <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                           Dangerous Goods
                         </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
+                        <span className="text-[11px] font-medium text-slate-400">
                           Multiplier
                         </span>
                       </div>
-                      <span className="text-[14px] font-black text-emerald-400 tabular-nums">
+                      <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
                         {hazardousMultiplier}x
                       </span>
                     </div>
-                    <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
+                    <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                           Express Delivery
                         </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
+                        <span className="text-[11px] font-medium text-slate-400">
                           Price increase
                         </span>
                       </div>
-                      <span className="text-[14px] font-black text-blue-400 tabular-nums">
+                      <span className="text-[14px] font-semibold text-blue-600 tabular-nums">
                         +{expressPremium}%
                       </span>
                     </div>
@@ -474,14 +404,14 @@ function PricingPageInner() {
                 </div>
 
                 {/* Placeholder for Graphs or other analytical tools */}
-                <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                    <TrendingUp className="w-8 h-8 text-blue-500" />
+                <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] p-8 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4">
+                    <TrendingUp className="w-6 h-6 text-blue-600" strokeWidth={2} />
                   </div>
-                  <h4 className="text-[16px] font-black text-slate-900 mb-2">
+                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
                     Pricing Activity Graph
                   </h4>
-                  <p className="text-[13px] text-slate-400 max-w-md">
+                  <p className="text-[13px] font-medium text-slate-500 max-w-md">
                     Detailed graphical analysis of pricing rules application and
                     revenue impact will be populated here as parcel data
                     accumulates.
@@ -494,24 +424,24 @@ function PricingPageInner() {
           {tab.toLowerCase() === "all" && (
             <div className="space-y-4">
               {isSuperAdmin && (
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
                   <div className="flex flex-col text-left">
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+                    <h3 className="text-[14px] font-semibold text-slate-800">
                       {selectedOrgId
                         ? <>Editing overrides for <span className="text-blue-600">{organizations.find((o: any) => o.id === selectedOrgId)?.name}</span></>
                         : "Global Platform Pricing Rules"
                       }
                     </h3>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                    <p className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em] mt-1">
                       {selectedOrgId ? "Custom rates overriding platform defaults" : "Global defaults applied across all organizations"}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Scope:</span>
+                    <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">Select Scope:</span>
                     <select
                       value={selectedOrgId}
                       onChange={(e) => setSelectedOrgId(e.target.value)}
-                      className="h-10 px-4 bg-slate-50 border border-slate-100 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[200px]"
+                      className="h-8 px-3 bg-white border border-[#E2E2E2] rounded-[20px] text-[12px] font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[200px]"
                     >
                       <option value="">Platform Defaults (Global)</option>
                       {organizations.map((org: any) => (
@@ -523,7 +453,7 @@ function PricingPageInner() {
                   </div>
                 </div>
               )}
-              <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
+              <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden p-1">
                 <DataTable
                   title="Current Pricing Rules"
                   data={rules || []}
@@ -537,7 +467,6 @@ function PricingPageInner() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
@@ -546,7 +475,7 @@ export default function PricingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 flex items-center justify-center text-slate-400">
+        <div className="flex items-center justify-center min-h-[300px]">
           Loading page...
         </div>
       }

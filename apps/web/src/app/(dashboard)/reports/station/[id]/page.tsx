@@ -29,7 +29,7 @@ function StationReportPageInner() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex flex-col gap-5">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
@@ -57,7 +57,7 @@ export default function StationReportPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center text-slate-400">
+        <div className="flex flex-col gap-5">
           Loading station intelligence...
         </div>
       }

@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/shared/data-table";
 import api from "@/lib/api/client";
@@ -23,7 +25,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg transition-all duration-300",
+              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300",
               org.isActive
                 ? "bg-slate-900 shadow-slate-100"
                 : "bg-slate-200 shadow-transparent grayscale",
@@ -37,10 +39,10 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
+            <span className="font-semibold text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
               {org.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] line-clamp-1">
               {org.description || "Operational logistics node"}
             </span>
           </div>
@@ -51,12 +53,12 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
       header: "System Protocol",
       accessor: (org: any) => (
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-[10px] w-fit">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-xl w-fit">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
               ID:{org.id.slice(0, 8)}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-1">
+          <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em] pl-1">
             V.PROTO: 2.1
           </span>
         </div>
@@ -67,7 +69,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
       accessor: (org: any) => (
         <div
           className={cn(
-            "inline-flex items-center gap-2 px-3 py-1.5 rounded-[10px] border text-[10px] font-black uppercase tracking-widest shadow-sm",
+            "inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-semibold uppercase tracking-[0.05em] ",
             org.isActive
               ? "bg-emerald-50 text-emerald-600 border-emerald-100"
               : "bg-rose-50 text-rose-600 border-rose-100",
@@ -89,11 +91,11 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-blue-600">
             <BadgePercent className="w-4 h-4" strokeWidth={3} />
-            <span className="text-[14px] font-black tracking-tighter">
+            <span className="text-[14px] font-semibold tracking-tighter">
               {(org.commissionRate * 100).toFixed(1)}%
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+          <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em]">
             Service Fee
           </span>
         </div>
@@ -105,7 +107,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
         <div className="flex items-center justify-end gap-2 pr-4">
           <UpdateOrganizationModal organization={org} onSuccess={refetch} />
           <StatusConfirmationModal organization={org} onSuccess={refetch} />
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2">
+          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
             Manage
           </button>
         </div>
@@ -152,17 +154,17 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
           ].map((stat, i) => (
             <div
               key={i}
-              className="flex flex-col p-6 bg-white border border-slate-100 rounded-[12px] shadow-sm"
+              className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px] "
             >
               <div className="flex items-center justify-between mb-4">
-                <div className={cn("p-2.5 rounded-[10px]", stat.bg)}>
+                <div className={cn("p-2.5 rounded-xl", stat.bg)}>
                   <stat.icon className={cn("w-5 h-5", stat.color)} />
                 </div>
                 <span className="text-[10px] text-slate-400 uppercase">
                   {stat.label}
                 </span>
               </div>
-              <span className="text-3xl font-black text-slate-900">
+              <span className="text-[26px] font-semibold text-slate-900">
                 {stat.count}
               </span>
             </div>
@@ -171,7 +173,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
       )}
 
       {tab.toLowerCase() === "all" && (
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
           <DataTable
             title="Entity Directory"
             columns={columns}

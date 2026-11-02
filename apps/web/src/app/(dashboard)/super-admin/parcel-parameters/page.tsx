@@ -312,15 +312,15 @@ export default function ParcelParametersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <>
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Parameter Management Dashboard"
           subtitle="Configure platform-wide parcel categories, inspection conditions, and size matrices"
@@ -330,7 +330,7 @@ export default function ParcelParametersPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleResetToDefaults}
-                className="h-11 px-5 bg-white/10 hover:bg-white/15 border border-white/10 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
+                className="h-11 px-5 bg-white/10 hover:bg-white/15 border border-slate-200 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95"
               >
                 <RotateCcw size={13} strokeWidth={2.5} />
                 Reset Defaults
@@ -338,7 +338,7 @@ export default function ParcelParametersPage() {
               <button
                 onClick={() => saveParameters()}
                 disabled={isSaving || !hasUnsavedChanges}
-                className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
+                className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
               >
                 {isSaving ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -352,10 +352,10 @@ export default function ParcelParametersPage() {
         />
 
         {/* Information Callout */}
-        <div className="bg-blue-50/50 border border-blue-100 rounded-[10px] p-5 flex items-start gap-4">
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 flex items-start gap-4">
           <HelpCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="text-[12px] font-extrabold text-blue-800 uppercase tracking-wider">
+            <h4 className="text-[12px] font-semibold text-blue-800 uppercase tracking-wider">
               Super Admin Settings Note
             </h4>
             <p className="text-[12px] font-semibold text-blue-600/90 leading-relaxed">
@@ -368,10 +368,10 @@ export default function ParcelParametersPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Column 1: Parcel Types */}
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[500px]">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col justify-between min-h-[500px]">
             <div className="space-y-6">
               <div>
-                <h3 className="text-md font-black text-slate-900 tracking-tight">
+                <h3 className="text-md font-semibold text-slate-900 tracking-tight">
                   Parcel Types
                 </h3>
                 <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1">
@@ -387,11 +387,11 @@ export default function ParcelParametersPage() {
                   value={newType}
                   onChange={(e) => setNewType(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addType()}
-                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
                 <button
                   onClick={addType}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-[10px] flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -403,12 +403,12 @@ export default function ParcelParametersPage() {
                   <div
                     key={idx}
                     className={cn(
-                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-[10px] group hover:border-slate-200 transition-all",
+                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl group hover:border-slate-200 transition-all",
                       !item.isActive && "opacity-60 bg-slate-100/50"
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-4">
-                      <h4 className="text-xs font-black text-slate-800 truncate">
+                      <h4 className="text-xs font-semibold text-slate-800 truncate">
                         {idx + 1}. {item.name}
                       </h4>
                       {item.description && (
@@ -431,14 +431,14 @@ export default function ParcelParametersPage() {
                       />
                       <button
                         onClick={() => setEditingParam({ category: "types", index: idx, name: item.name, description: item.description })}
-                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-[5px] hover:bg-slate-100 transition-all"
+                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all"
                         title="View / Edit details"
                       >
                         <Pencil size={12} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => removeType(idx)}
-                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-[5px] hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
                         title="Delete"
                       >
                         <Trash2 size={12} />
@@ -456,10 +456,10 @@ export default function ParcelParametersPage() {
           </div>
 
           {/* Column 2: Conditions */}
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[500px]">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col justify-between min-h-[500px]">
             <div className="space-y-6">
               <div>
-                <h3 className="text-md font-black text-slate-900 tracking-tight">
+                <h3 className="text-md font-semibold text-slate-900 tracking-tight">
                   Parcel Conditions
                 </h3>
                 <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1">
@@ -475,11 +475,11 @@ export default function ParcelParametersPage() {
                   value={newCondition}
                   onChange={(e) => setNewCondition(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addCondition()}
-                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
                 <button
                   onClick={addCondition}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-[10px] flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -491,12 +491,12 @@ export default function ParcelParametersPage() {
                   <div
                     key={idx}
                     className={cn(
-                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-[10px] group hover:border-slate-200 transition-all",
+                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl group hover:border-slate-200 transition-all",
                       !item.isActive && "opacity-60 bg-slate-100/50"
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-4">
-                      <h4 className="text-xs font-black text-slate-800 truncate">
+                      <h4 className="text-xs font-semibold text-slate-800 truncate">
                         {idx + 1}. {item.name}
                       </h4>
                       {item.description && (
@@ -519,14 +519,14 @@ export default function ParcelParametersPage() {
                       />
                       <button
                         onClick={() => setEditingParam({ category: "conditions", index: idx, name: item.name, description: item.description })}
-                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-[5px] hover:bg-slate-100 transition-all"
+                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all"
                         title="View / Edit details"
                       >
                         <Pencil size={12} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => removeCondition(idx)}
-                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-[5px] hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
                         title="Delete"
                       >
                         <Trash2 size={12} />
@@ -544,10 +544,10 @@ export default function ParcelParametersPage() {
           </div>
 
           {/* Column 3: Package Sizes */}
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[500px]">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col justify-between min-h-[500px]">
             <div className="space-y-6">
               <div>
-                <h3 className="text-md font-black text-slate-900 tracking-tight">
+                <h3 className="text-md font-semibold text-slate-900 tracking-tight">
                   Package Sizes
                 </h3>
                 <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1">
@@ -563,11 +563,11 @@ export default function ParcelParametersPage() {
                   value={newSize}
                   onChange={(e) => setNewSize(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addSize()}
-                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
                 <button
                   onClick={addSize}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-[10px] flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -579,12 +579,12 @@ export default function ParcelParametersPage() {
                   <div
                     key={idx}
                     className={cn(
-                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-[10px] group hover:border-slate-200 transition-all",
+                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl group hover:border-slate-200 transition-all",
                       !item.isActive && "opacity-60 bg-slate-100/50"
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-4">
-                      <h4 className="text-xs font-black text-slate-800 truncate">
+                      <h4 className="text-xs font-semibold text-slate-800 truncate">
                         {idx + 1}. {item.name}
                       </h4>
                       {item.description && (
@@ -607,14 +607,14 @@ export default function ParcelParametersPage() {
                       />
                       <button
                         onClick={() => setEditingParam({ category: "sizes", index: idx, name: item.name, description: item.description })}
-                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-[5px] hover:bg-slate-100 transition-all"
+                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all"
                         title="View / Edit details"
                       >
                         <Pencil size={12} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => removeSize(idx)}
-                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-[5px] hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
                         title="Delete"
                       >
                         <Trash2 size={12} />
@@ -635,10 +635,10 @@ export default function ParcelParametersPage() {
 
         {/* Delivery Priorities (Placed just below the parcel parameters grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6 flex flex-col justify-between min-h-[500px]">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col justify-between min-h-[500px]">
             <div className="space-y-6">
               <div>
-                <h3 className="text-md font-black text-slate-900 tracking-tight">
+                <h3 className="text-md font-semibold text-slate-900 tracking-tight">
                   Delivery Priorities
                 </h3>
                 <p className="text-slate-400 font-bold text-[11px] uppercase tracking-wider mt-1">
@@ -654,11 +654,11 @@ export default function ParcelParametersPage() {
                   value={newPriority}
                   onChange={(e) => setNewPriority(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPriority()}
-                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="flex-1 h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
                 <button
                   onClick={addPriority}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-[10px] flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -670,12 +670,12 @@ export default function ParcelParametersPage() {
                   <div
                     key={idx}
                     className={cn(
-                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-[10px] group hover:border-slate-200 transition-all",
+                      "flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl group hover:border-slate-200 transition-all",
                       !item.isActive && "opacity-60 bg-slate-100/50"
                     )}
                   >
                     <div className="flex-1 min-w-0 pr-4">
-                      <h4 className="text-xs font-black text-slate-800 truncate">
+                      <h4 className="text-xs font-semibold text-slate-800 truncate">
                         {idx + 1}. {item.name}
                       </h4>
                       {item.description && (
@@ -698,14 +698,14 @@ export default function ParcelParametersPage() {
                       />
                       <button
                         onClick={() => setEditingParam({ category: "priorities", index: idx, name: item.name, description: item.description })}
-                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-[5px] hover:bg-slate-100 transition-all"
+                        className="text-slate-400 hover:text-blue-600 p-1.5 rounded-xl hover:bg-slate-100 transition-all"
                         title="View / Edit details"
                       >
                         <Pencil size={12} strokeWidth={2.5} />
                       </button>
                       <button
                         onClick={() => removePriority(idx)}
-                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-[5px] hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                        className="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
                         title="Delete"
                       >
                         <Trash2 size={12} />
@@ -726,12 +726,12 @@ export default function ParcelParametersPage() {
 
       {/* Edit Details Dialog */}
       <Dialog open={!!editingParam} onOpenChange={(open) => !open && setEditingParam(null)}>
-        <DialogContent className="w-full sm:w-[500px] p-6 bg-white rounded-2xl border border-slate-100 shadow-2xl">
+        <DialogContent className="w-full sm:w-[500px] p-6 bg-white rounded-[20px] border border-[#E2E2E2] ">
           <DialogHeader className="mb-5">
-            <DialogTitle className="text-[18px] font-black text-slate-900 tracking-tight leading-none mb-2">
+            <DialogTitle className="text-[18px] font-semibold text-slate-900 tracking-tight leading-none mb-2">
               Edit Parameter Details
             </DialogTitle>
-            <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none">
               Modify custom parameter settings and metadata
             </span>
           </DialogHeader>
@@ -739,26 +739,26 @@ export default function ParcelParametersPage() {
           {editingParam && (
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                   Parameter Name
                 </label>
                 <input
                   type="text"
                   value={editingParam.name}
                   onChange={(e) => setEditingParam({ ...editingParam, name: e.target.value })}
-                  className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                   Description
                 </label>
                 <textarea
                   rows={3}
                   value={editingParam.description}
                   onChange={(e) => setEditingParam({ ...editingParam, description: e.target.value })}
-                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white resize-none transition-all"
+                  className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-blue-500 focus:bg-white resize-none transition-all"
                   placeholder="Enter detailed description..."
                 />
               </div>
@@ -769,20 +769,20 @@ export default function ParcelParametersPage() {
             <DialogClose asChild>
               <button
                 type="button"
-                className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+                className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95"
               >
                 Cancel
               </button>
             </DialogClose>
             <button
               onClick={saveEditedParam}
-              className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-[10px] text-[11px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 transition-all active:scale-95"
+              className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em]  shadow-slate-900/10 transition-all active:scale-95"
             >
               Update Parameter
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

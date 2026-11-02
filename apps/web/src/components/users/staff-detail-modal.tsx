@@ -48,7 +48,7 @@ function ParcelStatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        "text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0",
+        "text-[8px] font-semibold px-1.5 py-0.5 rounded-md border uppercase tracking-wider shrink-0",
         colors[status] || "bg-slate-50 text-slate-700 border-slate-100",
       )}
     >
@@ -241,20 +241,20 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
 
   return (
     <Sheet open={!!staffId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 rounded-2xl shadow-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-[#E2E2E2] rounded-[20px] ">
         <div className="flex flex-col h-full max-h-[100vh] overflow-hidden">
           {/* Header Banner */}
           <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
             <div className="flex items-center gap-5 relative z-10 pr-24">
-              <div className="w-14 h-14 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md text-white">
+              <div className="w-14 h-14 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10   text-white">
                 <User size={26} strokeWidth={2.5} />
               </div>
               <div className="flex flex-col relative z-10 text-left">
-                <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+                <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
                   {isLoading ? "Loading staff info..." : staff?.name}
                 </SheetTitle>
-                <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+                <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
                   {isLoading
                     ? "Fetching data"
                     : `${staff?.role?.name?.replace("_", " ")} profile telemetry`}
@@ -269,10 +269,10 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
                 className={cn(
-                  "absolute right-20 top-8 w-10 h-10 rounded-[10px] flex items-center justify-center z-20 transition-all hover:scale-105 active:scale-95 shadow-md",
+                  "absolute right-20 top-8 w-10 h-10 rounded-xl flex items-center justify-center z-20 transition-all hover:scale-105 active:scale-95 shadow-md",
                   isEditing
                     ? "bg-blue-600 text-white border border-blue-500 animate-in spin-in-12 duration-200"
-                    : "bg-white/10 text-white/80 border border-white/10 hover:bg-white/20 hover:text-white",
+                    : "bg-white/10 text-slate-700 border border-slate-200 hover:bg-white/20 hover:text-white",
                 )}
                 title={isEditing ? "View Details" : "Edit Staff"}
               >
@@ -287,9 +287,9 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
               <button
                 onClick={() => setActiveSubTab("overview")}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                  "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all",
                   activeSubTab === "overview"
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                    ? "bg-white text-slate-900  border border-slate-200"
                     : "text-slate-400 hover:text-slate-600",
                 )}
               >
@@ -298,9 +298,9 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
               <button
                 onClick={() => setActiveSubTab("parcels")}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5",
+                  "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5",
                   activeSubTab === "parcels"
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                    ? "bg-white text-slate-900  border border-slate-200"
                     : "text-slate-400 hover:text-slate-600",
                 )}
               >
@@ -318,7 +318,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                 className="w-8 h-8 animate-spin text-blue-500"
                 strokeWidth={2.5}
               />
-              <span className="text-[11px] font-black uppercase tracking-widest">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em]">
                 Loading Telemetry...
               </span>
             </div>
@@ -329,36 +329,36 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                   {/* Profile Details Block */}
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                         Core Details
                       </h3>
                     </div>
                     {isEditing ? (
                       <form
                         onSubmit={handleSaveUser}
-                        className="space-y-4 bg-slate-50 p-5 rounded-[12px] border border-slate-100 text-left animate-in slide-in-from-top-2 duration-300"
+                        className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100 text-left animate-in slide-in-from-top-2 duration-300"
                       >
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                          <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                             Full Name
                           </label>
                           <input
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             required
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                          <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                             Phone Number
                           </label>
                           <input
                             type="text"
                             value={editPhone}
                             onChange={(e) => setEditPhone(e.target.value)}
-                            className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             required
                           />
                         </div>
@@ -366,7 +366,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                           staff.role?.name,
                         ) && (
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                            <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                               Assigned Station
                             </label>
                             <div className="relative">
@@ -375,7 +375,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                                 onChange={(e) =>
                                   setEditStationId(e.target.value)
                                 }
-                                className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                               >
                                 <option value="">Global / All Access</option>
                                 {stations.map((s: any) => (
@@ -403,7 +403,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                         )}
                         {staff.role?.name === "TRAIN_GUARD" && (
                           <div className="space-y-1.5 mt-4">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                            <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                               Assigned Train / Wagon
                             </label>
                             <div className="relative">
@@ -412,7 +412,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                                 onChange={(e) =>
                                   setEditWagonId(e.target.value)
                                 }
-                                className="w-full h-11 px-4 rounded-[10px] border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                               >
                                 <option value="">No Active Train Assigned</option>
                                 {vehicles.map((v: any) => (
@@ -441,7 +441,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                         <Button
                           type="submit"
                           disabled={saving}
-                          className="w-full h-11 rounded-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-sm"
+                          className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-[0.05em] flex items-center justify-center gap-2 active:scale-95 transition-all "
                         >
                           {saving ? (
                             <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -455,7 +455,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                         </Button>
                       </form>
                     ) : (
-                      <div className="grid grid-cols-1 gap-3.5 bg-slate-50 p-5 rounded-[12px] border border-slate-100">
+                      <div className="grid grid-cols-1 gap-3.5 bg-slate-50 p-5 rounded-xl border border-slate-100">
                         <DetailRow
                           icon={<Mail className="w-4 h-4 text-slate-400" />}
                           label="Email"
@@ -500,7 +500,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
 
                   {/* Performance Statistics */}
                   <div className="space-y-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       Operations Performance
                     </h3>
 
@@ -566,14 +566,14 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                     })()}
 
                     {/* Total handled progress row */}
-                    <div className="bg-slate-900 rounded-[10px] p-5 text-white flex items-center justify-between shadow-lg relative overflow-hidden mt-2">
+                    <div className="bg-slate-900 rounded-xl p-5 text-white flex items-center justify-between  relative overflow-hidden mt-2">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
                       <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-2.5 rounded-[8px] bg-white/10 border border-white/5">
+                        <div className="p-2.5 rounded-xl bg-white/10 border border-white/5">
                           <Activity className="w-5 h-5 text-blue-400" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                             Total Operations Handled
                           </span>
                           <span className="text-[9px] font-semibold text-slate-500 uppercase mt-0.5">
@@ -581,7 +581,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                           </span>
                         </div>
                       </div>
-                      <span className="text-3xl font-black text-white tabular-nums relative z-10">
+                      <span className="text-[26px] font-semibold text-white tabular-nums relative z-10">
                         {staff.stats?.totalHandled || 0}
                       </span>
                     </div>
@@ -589,14 +589,14 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
 
                   {/* Actions / Admin controls */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       Security Controls
                     </h3>
                     <div className="flex items-center gap-3">
                       <Button
                         onClick={handleResendOtp}
                         disabled={sendingOtp}
-                        className="flex-1 h-12 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2.5 active:scale-95 transition-all shadow-sm"
+                        className="flex-1 h-12 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white font-bold text-xs uppercase tracking-[0.05em] flex items-center justify-center gap-2.5 active:scale-95 transition-all "
                       >
                         {sendingOtp ? (
                           <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -644,10 +644,10 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
               {activeSubTab === "parcels" && (
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       Handled Transit Log
                     </h3>
-                    <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[10px] font-semibold uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
                       {parcelsData?.length || 0} entries
                     </span>
                   </div>
@@ -658,7 +658,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                         className="w-6 h-6 animate-spin text-blue-500"
                         strokeWidth={2.5}
                       />
-                      <span className="text-[10px] font-black uppercase tracking-widest">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                         Retrieving logs...
                       </span>
                     </div>
@@ -673,11 +673,11 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                       {parcelsData.map((parcel: any) => (
                         <div
                           key={parcel.id}
-                          className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm flex items-center justify-between gap-4"
+                          className="p-4 bg-white border border-[#E2E2E2] rounded-[20px]  flex items-center justify-between gap-4"
                         >
                           <div className="flex flex-col text-left">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-black text-slate-900 tracking-tight">
+                              <span className="text-xs font-semibold text-slate-900 tracking-tight">
                                 {parcel.trackingNumber}
                               </span>
                               <ParcelStatusBadge status={parcel.status} />
@@ -697,13 +697,13 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                             </div>
                           </div>
                           <div className="flex flex-col items-end shrink-0">
-                            <span className="text-[10.5px] font-black text-slate-700">
+                            <span className="text-[10.5px] font-semibold text-slate-700">
                               {format(
                                 new Date(parcel.createdAt),
                                 "MMM dd, yyyy",
                               )}
                             </span>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-1">
                               Log Date
                             </span>
                           </div>
@@ -715,17 +715,17 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
               )}
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400 font-bold uppercase tracking-widest text-xs">
+            <div className="flex-1 flex items-center justify-center text-slate-400 font-bold uppercase tracking-[0.05em] text-xs">
               Staff records unavailable
             </div>
           )}
         </div>
         {alertModal && alertModal.isOpen && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-2xl w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/40  z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
               <div
                 className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm",
+                  "w-12 h-12 rounded-full flex items-center justify-center shrink-0 ",
                   alertModal.type === "success"
                     ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
                     : "bg-rose-50 text-rose-600 border border-rose-100",
@@ -738,7 +738,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                 )}
               </div>
               <div className="space-y-1.5">
-                <h4 className="text-[13px] font-black uppercase tracking-wider text-slate-900 leading-tight">
+                <h4 className="text-[13px] font-semibold uppercase tracking-wider text-slate-900 leading-tight">
                   {alertModal.title}
                 </h4>
                 <p className="text-[10.5px] font-bold text-slate-400 leading-normal text-center">
@@ -753,7 +753,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                   if (wasSuccess) onClose();
                 }}
                 className={cn(
-                  "w-full h-10 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all",
+                  "w-full h-10 rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] transition-all",
                   alertModal.type === "success"
                     ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                     : "bg-slate-900 hover:bg-slate-800 text-white",
@@ -767,13 +767,13 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
 
         {/* Delete Confirm Dialog */}
         {confirmDelete && (
-          <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-2xl w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-950/40  z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
               <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
                 <AlertTriangle size={22} strokeWidth={2.5} />
               </div>
               <div className="space-y-1.5">
-                <h4 className="text-[13px] font-black uppercase tracking-wider text-slate-900 leading-tight">
+                <h4 className="text-[13px] font-semibold uppercase tracking-wider text-slate-900 leading-tight">
                   Confirm Deletion
                 </h4>
                 <p className="text-[10.5px] font-bold text-slate-400 leading-normal">
@@ -786,14 +786,14 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
                 <Button
                   type="button"
                   onClick={() => setConfirmDelete(false)}
-                  className="flex-1 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-black uppercase tracking-[0.2em] transition-all"
+                  className="flex-1 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-semibold uppercase tracking-[0.05em] transition-all"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
                   onClick={handleDeleteStaff}
-                  className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-black uppercase tracking-[0.2em] transition-all"
+                  className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-semibold uppercase tracking-[0.05em] transition-all"
                 >
                   Delete
                 </Button>
@@ -830,7 +830,7 @@ function DetailRow({
       {isBadge ? (
         <span
           className={cn(
-            "text-[9px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider",
+            "text-[9px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider",
             value === "ADMIN"
               ? "bg-blue-100 text-blue-700"
               : value === "STATION_MASTER"
@@ -845,7 +845,7 @@ function DetailRow({
           {value.replace("_", " ")}
         </span>
       ) : (
-        <span className="text-xs font-black text-slate-700 uppercase tracking-tight truncate max-w-[240px]">
+        <span className="text-xs font-semibold text-slate-700 uppercase tracking-tight truncate max-w-[240px]">
           {value}
         </span>
       )}
@@ -935,17 +935,17 @@ function StatBox({
 
   return (
     <div className="group relative flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white transition-all duration-300 hover:shadow-md hover:border-slate-200 overflow-hidden">
-      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 shadow-sm", bg)}>
+      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 ", bg)}>
         {icon}
       </div>
 
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none truncate">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none truncate">
             {label}
           </span>
           <span className={cn(
-            "text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border",
+            "text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border",
             scheme.bg,
             scheme.border,
             scheme.text
@@ -953,7 +953,7 @@ function StatBox({
             Activity
           </span>
         </div>
-        <span className={cn("text-2xl font-black mt-1.5 leading-none tabular-nums", scheme.text)}>
+        <span className={cn("text-2xl font-semibold mt-1.5 leading-none tabular-nums", scheme.text)}>
           {counted.toLocaleString()}
         </span>
       </div>

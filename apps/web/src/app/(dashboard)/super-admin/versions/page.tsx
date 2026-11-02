@@ -12,17 +12,18 @@ import {
   History,
   Globe,
   Zap,
-  Search,
   Database,
   Loader2,
   CheckCircle2,
+  Pencil,
+  Trash2,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 import { useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
-import { Activity } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -35,14 +36,183 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { toast } from "sonner";
 
+type AppVersion = {
+  id: string;
+  version: string;
+  minSupportedVersion: string;
+  forceUpdate: boolean;
+  downloadUrl: string | null;
+  releaseNotes: string | null;
+  createdAt: string;
+};
+
+function VersionSheet({
+  trigger,
+  title,
+  subtitle,
+  defaultValues,
+  onSubmit,
+  isPending,
+  open,
+  onOpenChange,
+}: {
+  trigger?: React.ReactNode;
+  title: string;
+  subtitle: string;
+  defaultValues?: Partial<AppVersion>;
+  onSubmit: (payload: any) => void;
+  isPending: boolean;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const [forceUpdate, setForceUpdate] = useState(
+    defaultValues?.forceUpdate ?? false
+  );
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    onSubmit({
+      version: fd.get("version") as string,
+      minSupportedVersion: fd.get("minSupportedVersion") as string,
+      downloadUrl: fd.get("downloadUrl") as string,
+      releaseNotes: fd.get("releaseNotes") as string,
+      forceUpdate,
+    });
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white  rounded-xl flex flex-col">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+            <Database className="w-6 h-6 text-white" strokeWidth={2.5} />
+          </div>
+          <div className="flex flex-col relative z-10 text-left">
+            <SheetTitle className="text-[16px] font-semibold text-slate-800 leading-tight">
+              {title}
+            </SheetTitle>
+            <SheetDescription className="text-[12px] text-slate-500 mt-0.5">
+              {subtitle}
+            </SheetDescription>
+          </div>
+        </div>
+
+        <form
+          id="version-form"
+          onSubmit={handleSubmit}
+          className="p-8 space-y-6 flex-1 overflow-y-auto custom-scrollbar"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
+                Version
+              </Label>
+              <Input
+                name="version"
+                defaultValue={defaultValues?.version}
+                className="h-12 px-4 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
+                placeholder="e.g. 1.2.0"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
+                Min Supported
+              </Label>
+              <Input
+                name="minSupportedVersion"
+                defaultValue={defaultValues?.minSupportedVersion}
+                className="h-12 px-4 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
+                placeholder="e.g. 1.0.0"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
+              Download URL
+            </Label>
+            <Input
+              name="downloadUrl"
+              defaultValue={defaultValues?.downloadUrl ?? ""}
+              className="h-12 px-4 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
+              placeholder="https://example.com/mizigo.apk"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
+              Release Notes
+            </Label>
+            <textarea
+              name="releaseNotes"
+              defaultValue={defaultValues?.releaseNotes ?? ""}
+              rows={4}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-medium text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              placeholder="What's new in this release..."
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <div className="flex flex-col text-left">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-900">
+                Force Update
+              </span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
+                Blocks app until user updates
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={forceUpdate}
+              onChange={(e) => setForceUpdate(e.target.checked)}
+              className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+          </div>
+        </form>
+
+        <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="version-form"
+            disabled={isPending}
+            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+          >
+            {isPending ? (
+              <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
+            ) : (
+              <>
+                <CheckCircle2 size={16} strokeWidth={3} />
+                Save Release
+              </>
+            )}
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function AppVersionsPageInner() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
-  const [openPublish, setOpenPublish] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(false);
 
-  const { data: versions, isLoading } = useQuery({
+  const [openPublish, setOpenPublish] = useState(false);
+  const [editingVersion, setEditingVersion] = useState<AppVersion | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const { data: versions, isLoading } = useQuery<AppVersion[]>({
     queryKey: ["app-versions"],
     queryFn: async () => {
       const { data } = await api.get("/app-versions");
@@ -57,157 +227,95 @@ function AppVersionsPageInner() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["app-versions"] });
-      toast.success("App version published successfully");
+      toast.success("Version published successfully");
       setOpenPublish(false);
-      setForceUpdate(false);
     },
     onError: (err: any) => {
-      toast.error(
-        err.response?.data?.error?.message || "Failed to publish version"
-      );
+      toast.error(err.response?.data?.error?.message || "Failed to publish version");
     },
   });
 
-  const handlePublishSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const payload = {
-      version: formData.get("version") as string,
-      minSupportedVersion: formData.get("minSupportedVersion") as string,
-      downloadUrl: formData.get("downloadUrl") as string,
-      forceUpdate: forceUpdate,
-    };
-    publishVersion(payload);
-  };
+  const { mutate: editVersion, isPending: isEditing } = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: any }) => {
+      const { data } = await api.put(`/app-versions/${id}`, payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["app-versions"] });
+      toast.success("Version updated");
+      setEditingVersion(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || "Failed to update version");
+    },
+  });
+
+  const { mutate: deleteVersion, isPending: isDeleting } = useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.delete(`/app-versions/${id}`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["app-versions"] });
+      toast.success("Version removed");
+      setDeletingId(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.error?.message || "Failed to delete version");
+    },
+  });
 
   const latest = versions?.[0];
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="App Versions"
           subtitle="Manage platform releases and device deployment"
           iconName="Smartphone"
           action={
-            <Sheet open={openPublish} onOpenChange={setOpenPublish}>
-              <SheetTrigger asChild>
-                <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">
-                  <Plus size={14} strokeWidth={3} />
-                  Publish New Version
-                </button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white shadow-2xl rounded-2xl flex flex-col">
-                <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-                  <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
-                    <Database className="w-6 h-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <div className="flex flex-col relative z-10 text-left">
-                    <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
-                      Publish App Version
-                    </SheetTitle>
-                    <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
-                      Deploy a new release to the mobile application ecosystem
-                    </SheetDescription>
-                  </div>
-                </div>
+            <>
+              <button
+                onClick={() => setOpenPublish(true)}
+                className="h-8 px-3 bg-blue-600 text-white rounded-xl text-[12px] font-semibold flex items-center gap-1.5 hover:bg-blue-700 transition-colors"
+              >
+                <Plus size={14} strokeWidth={3} />
+                Publish New Version
+              </button>
 
-                <form
-                  id="publish-version-form"
-                  onSubmit={handlePublishSubmit}
-                  className="p-8 space-y-8 flex-1 overflow-y-auto custom-scrollbar"
-                >
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                        Version Code
-                      </Label>
-                      <Input
-                        name="version"
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
-                        placeholder="e.g. 1.0.0"
-                        required
-                      />
-                    </div>
+              {/* Publish sheet (no trigger — controlled externally) */}
+              <VersionSheet
+                open={openPublish}
+                onOpenChange={setOpenPublish}
+                title="Publish App Version"
+                subtitle="Deploy a new release to the mobile app ecosystem"
+                onSubmit={(payload) => publishVersion(payload)}
+                isPending={isPublishing}
+              />
 
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                        Minimum Supported Version
-                      </Label>
-                      <Input
-                        name="minSupportedVersion"
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
-                        placeholder="e.g. 1.0.0"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                        Binary Download URL
-                      </Label>
-                      <Input
-                        name="downloadUrl"
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all"
-                        placeholder="e.g. https://example.com/app.apk"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-[10px]">
-                      <div className="flex flex-col text-left">
-                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-900">
-                          Force Update
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
-                          Enforce mandatory update compliance
-                        </span>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={forceUpdate}
-                        onChange={(e) => setForceUpdate(e.target.checked)}
-                        className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </form>
-
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setOpenPublish(false)}
-                    className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    form="publish-version-form"
-                    disabled={isPublishing}
-                    className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
-                  >
-                    {isPublishing ? (
-                      <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
-                    ) : (
-                      <>
-                        <CheckCircle2 size={16} strokeWidth={3} />
-                        Publish Release
-                      </>
-                    )}
-                  </button>
-                </div>
-              </SheetContent>
-            </Sheet>
+              {/* Edit sheet */}
+              {editingVersion && (
+                <VersionSheet
+                  open={!!editingVersion}
+                  onOpenChange={(v) => { if (!v) setEditingVersion(null); }}
+                  title="Edit Version"
+                  subtitle="Update release details"
+                  defaultValues={editingVersion}
+                  onSubmit={(payload) =>
+                    editVersion({ id: editingVersion.id, payload })
+                  }
+                  isPending={isEditing}
+                />
+              )}
+            </>
           }
           tabs={["Overview", "All"]}
           tabParamName="tab"
@@ -218,19 +326,18 @@ function AppVersionsPageInner() {
         <div className="mt-2 animate-in fade-in duration-700">
           {tab.toLowerCase() === "overview" && (
             <div className="space-y-6">
-              {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 {[
                   {
-                    label: "Registered Devices",
-                    value: versions?.length ? "—" : "0",
-                    icon: Smartphone,
+                    label: "Total Releases",
+                    value: String(versions?.length ?? 0),
+                    icon: Package,
                     color: "text-blue-600",
                     tag: "All Platforms",
                   },
                   {
-                    label: "Current Status",
-                    value: latest ? "Live" : "None",
+                    label: "Latest Version",
+                    value: latest?.version || "None",
                     icon: Globe,
                     color: "text-emerald-600",
                     tag: "Deployment",
@@ -252,26 +359,26 @@ function AppVersionsPageInner() {
                 ].map((stat, i) => (
                   <div
                     key={i}
-                    className="flex flex-col p-6 bg-white border border-slate-100 rounded-[10px] shadow-sm group hover:border-slate-300 transition-all hover:shadow-xl hover:shadow-slate-100/50"
+                    className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px]  group hover:border-slate-300 transition-all hover: hover:shadow-slate-100/50"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div
                         className={cn(
-                          "w-12 h-12 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white",
-                          stat.color,
+                          "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white",
+                          stat.color
                         )}
                       >
                         <stat.icon size={22} strokeWidth={2.5} />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-slate-50 text-slate-400 font-bold group-hover:bg-blue-50 group-hover:text-blue-600">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600">
                         {stat.tag}
                       </span>
                     </div>
                     <div>
-                      <h4 className="text-[32px] font-black tracking-tight text-slate-900 leading-none">
+                      <h4 className="text-[20px] font-semibold tracking-tight text-slate-900 leading-none">
                         {stat.value}
                       </h4>
-                      <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3 leading-none">
+                      <p className="text-[12px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-3 leading-none">
                         {stat.label}
                       </p>
                     </div>
@@ -280,53 +387,38 @@ function AppVersionsPageInner() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[400px]">
+                <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[360px]">
                   <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-
                   <div className="relative z-10">
-                    <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
-                      <Smartphone
-                        className="h-6 w-6 text-blue-400"
-                        strokeWidth={2.5}
-                      />
+                    <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200   shadow-blue-500/10">
+                      <Smartphone className="h-6 w-6 text-blue-400" strokeWidth={2.5} />
                     </div>
-                    <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">
+                    <h3 className="text-[24px] font-semibold tracking-tight leading-none mb-3">
                       Release Management
                     </h3>
-                    <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80 mb-6">
-                      Distribute app updates seamlessly across platforms. Use
-                      forced updates to enforce compliance and network
-                      compatibility.
+                    <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80">
+                      Distribute app updates seamlessly. Force updates enforce compliance and ensure all users run a supported version.
                     </p>
                   </div>
-
-                  <div className="relative z-10 space-y-3">
-                    <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
-                          Latest Version
-                        </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
-                          Active Node
-                        </span>
-                      </div>
-                      <span className="text-[14px] font-black text-emerald-400 tabular-nums">
-                        {latest?.version || "N/A"}
-                      </span>
+                  <div className="relative z-10 space-y-3 mt-6">
+                    <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Latest</span>
+                      <span className="text-[14px] font-semibold text-emerald-400 tabular-nums">{latest?.version || "N/A"}</span>
+                    </div>
+                    <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Min Supported</span>
+                      <span className="text-[14px] font-semibold text-blue-400 tabular-nums">{latest?.minSupportedVersion || "N/A"}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center">
+                <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2]  p-8 flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
                     <Activity className="w-8 h-8 text-blue-500" />
                   </div>
-                  <h4 className="text-[16px] font-black text-slate-900 mb-2">
-                    Version Adoption Stats
-                  </h4>
+                  <h4 className="text-[16px] font-semibold text-slate-900 mb-2">Version Adoption Stats</h4>
                   <p className="text-[13px] text-slate-400 max-w-md">
-                    Detailed graphical analysis of application distribution and
-                    version adoption will be populated here.
+                    Graphical analysis of version adoption across devices will appear here once device telemetry is connected.
                   </p>
                 </div>
               </div>
@@ -334,21 +426,17 @@ function AppVersionsPageInner() {
           )}
 
           {tab.toLowerCase() === "all" && (
-            <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
-              <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-900 rounded-[10px] text-white">
-                      <History size={16} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <h3 className="text-[16px] font-black text-slate-900 tracking-tight">
-                        Release History
-                      </h3>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                        All published app versions
-                      </p>
-                    </div>
+            <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden p-1">
+              <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
+                <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-3">
+                  <div className="p-2 bg-slate-900 rounded-xl text-white">
+                    <History size={16} strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-semibold text-slate-900 tracking-tight">Release History</h3>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.05em]">
+                      {versions?.length ?? 0} version{(versions?.length ?? 0) !== 1 ? "s" : ""} published
+                    </p>
                   </div>
                 </div>
 
@@ -356,96 +444,92 @@ function AppVersionsPageInner() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/50">
-                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          Version
-                        </th>
-                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          Platform
-                        </th>
-                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          Status
-                        </th>
-                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          Release Date
-                        </th>
-                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                          Download
-                        </th>
+                        {["Version", "Min Supported", "Force Update", "Release Notes", "Published", ""].map((h) => (
+                          <th key={h} className="px-6 py-4 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
                       {(versions || []).length === 0 ? (
                         <tr>
-                          <td
-                            colSpan={5}
-                            className="px-8 py-16 text-center text-[13px] font-black text-slate-300 uppercase tracking-widest"
-                          >
+                          <td colSpan={6} className="px-8 py-16 text-center text-[13px] font-semibold text-slate-300 uppercase tracking-[0.05em]">
                             No versions published yet
                           </td>
                         </tr>
                       ) : (
-                        (versions || []).map((v: any, i: number) => (
-                          <tr
-                            key={i}
-                            className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
-                          >
-                            <td className="px-8 py-6">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-[10px] bg-slate-900/5 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                                  <Package size={18} strokeWidth={2.5} />
+                        (versions || []).map((v, i) => (
+                          <tr key={v.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                  <Package size={16} strokeWidth={2.5} />
                                 </div>
                                 <div>
-                                  <span className="text-[14px] font-black text-slate-900 block leading-tight">
-                                    {v.version}
-                                  </span>
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    Release
+                                  <span className="text-[14px] font-semibold text-slate-900 block leading-tight">{v.version}</span>
+                                  <span className={cn("text-[9px] font-semibold uppercase tracking-[0.05em]", i === 0 ? "text-emerald-600" : "text-slate-400")}>
+                                    {i === 0 ? "● Active" : "Archived"}
                                   </span>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-8 py-6">
-                              <div className="flex gap-2">
-                                {["Android", "iOS"].map((p) => (
-                                  <span
-                                    key={p}
-                                    className="px-2 py-1 bg-slate-100 text-slate-500 rounded-[10px] text-[9px] font-black uppercase tracking-widest"
-                                  >
-                                    {p}
-                                  </span>
-                                ))}
-                              </div>
+                            <td className="px-6 py-5 text-[12px] font-bold text-slate-500 tabular-nums">
+                              {v.minSupportedVersion}
                             </td>
-                            <td className="px-8 py-6">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={cn(
-                                    "h-1.5 w-1.5 rounded-full",
-                                    i === 0 ? "bg-emerald-500" : "bg-slate-300",
-                                  )}
-                                />
-                                <span
-                                  className={cn(
-                                    "text-[11px] font-black uppercase tracking-widest",
-                                    i === 0
-                                      ? "text-emerald-700"
-                                      : "text-slate-500",
-                                  )}
-                                >
-                                  {i === 0 ? "Active" : "Archived"}
-                                </span>
-                              </div>
+                            <td className="px-6 py-5">
+                              <span className={cn(
+                                "px-2.5 py-1 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em]",
+                                v.forceUpdate
+                                  ? "bg-red-50 text-red-600"
+                                  : "bg-slate-100 text-slate-400"
+                              )}>
+                                {v.forceUpdate ? "Required" : "Optional"}
+                              </span>
                             </td>
-                            <td className="px-8 py-6 text-[12px] font-bold text-slate-500 tabular-nums">
+                            <td className="px-6 py-5 max-w-[240px]">
+                              <span className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed">
+                                {v.releaseNotes || <span className="text-slate-300 italic">—</span>}
+                              </span>
+                            </td>
+                            <td className="px-6 py-5 text-[12px] font-bold text-slate-500 tabular-nums whitespace-nowrap">
                               {format(new Date(v.createdAt), "MMM dd, yyyy")}
                             </td>
-                            <td className="px-8 py-6 text-right">
-                              <a
-                                href={v.downloadUrl || "#"}
-                                className="h-9 px-4 bg-slate-50 text-slate-400 rounded-[10px] text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all inline-flex items-center gap-2 ml-auto"
-                              >
-                                Download <Download size={12} strokeWidth={3} />
-                              </a>
+                            <td className="px-6 py-5">
+                              <div className="flex items-center gap-2 justify-end">
+                                {v.downloadUrl && (
+                                  <a
+                                    href={v.downloadUrl}
+                                    className="h-8 w-8 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all inline-flex items-center justify-center"
+                                    title="Download"
+                                  >
+                                    <Download size={13} strokeWidth={2.5} />
+                                  </a>
+                                )}
+                                <button
+                                  onClick={() => setEditingVersion(v)}
+                                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all inline-flex items-center justify-center"
+                                  title="Edit"
+                                >
+                                  <Pencil size={13} strokeWidth={2.5} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete version ${v.version}?`)) {
+                                      setDeletingId(v.id);
+                                      deleteVersion(v.id);
+                                    }
+                                  }}
+                                  disabled={isDeleting && deletingId === v.id}
+                                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-600 hover:text-white transition-all inline-flex items-center justify-center disabled:opacity-40"
+                                  title="Delete"
+                                >
+                                  {isDeleting && deletingId === v.id
+                                    ? <Loader2 size={13} className="animate-spin" />
+                                    : <Trash2 size={13} strokeWidth={2.5} />
+                                  }
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -457,7 +541,6 @@ function AppVersionsPageInner() {
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
@@ -466,7 +549,7 @@ export default function AppVersionsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 flex items-center justify-center text-slate-400">
+        <div className="flex items-center justify-center min-h-[300px]">
           Loading page...
         </div>
       }

@@ -60,7 +60,7 @@ export default function ChangeOtpForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* New PIN */}
       <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
+        <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 pl-1">
           New 6-Digit Code
         </label>
         <div className="relative group">
@@ -76,7 +76,7 @@ export default function ChangeOtpForm() {
             placeholder="•••••••••"
             maxLength={6}
             minLength={6}
-            className="w-full h-14 bg-white/5 border border-white/10 rounded-[10px] pl-12 pr-12 font-black text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
+            className="w-full h-14 bg-white/5 border border-slate-200 rounded-xl pl-12 pr-12 font-semibold text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
           />
           <button
             type="button"
@@ -90,7 +90,7 @@ export default function ChangeOtpForm() {
 
       {/* Confirm PIN */}
       <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
+        <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 pl-1">
           Confirm 6-Digit Code
         </label>
         <div className="relative group">
@@ -106,7 +106,7 @@ export default function ChangeOtpForm() {
             placeholder="•••••••••"
             maxLength={6}
             minLength={6}
-            className="w-full h-14 bg-white/5 border border-white/10 rounded-[10px] pl-12 pr-12 font-black text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
+            className="w-full h-14 bg-white/5 border border-slate-200 rounded-xl pl-12 pr-12 font-semibold text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
           />
           <button
             type="button"
@@ -120,9 +120,9 @@ export default function ChangeOtpForm() {
 
       {/* Error Message Display */}
       {errorMessage && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-[10px] animate-in slide-in-from-top-2">
+        <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl animate-in slide-in-from-top-2">
           <AlertCircle size={16} className="text-rose-500 shrink-0" />
-          <p className="text-xs font-black text-rose-400 uppercase tracking-widest">
+          <p className="text-xs font-semibold text-rose-400 uppercase tracking-[0.05em]">
             {errorMessage}
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function ChangeOtpForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="h-14 w-full bg-blue-600 text-white rounded-[10px] text-xs md:text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+          className="h-14 w-full bg-blue-600 text-white rounded-xl text-xs md:text-sm font-semibold uppercase tracking-[0.05em]  shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
         >
           {isPending ? (
             <Loader2 className="animate-spin" size={20} />

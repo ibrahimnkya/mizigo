@@ -1,469 +1,197 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import {
-  Package,
-  TrainFront,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Inbox,
-  LogOut,
-  ArrowUpRight,
-  Search,
-  Calendar as CalendarIcon,
-  Database,
-  X,
-  Activity,
-  FileBox,
-} from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, PackageX, Search, SearchX, TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import { format, subDays, startOfMonth } from "date-fns";
-import { DateRange } from "react-day-picker";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
-const ICON_MAP: Record<string, any> = {
-  Inbox: Inbox,
-  LogOut: LogOut,
-  TrainFront: TrainFront,
-  Truck: TrainFront,
-  CheckCircle2: CheckCircle2,
-  XCircle: XCircle,
-  AlertTriangle: AlertTriangle,
-  Package: Package,
-};
-
-interface ParcelStat {
-  label: string;
-  value: string | number;
-}
-
-interface ParcelCardData {
+export interface ParcelCardData {
+  key: string;
   title: string;
   description: string;
   href: string;
-  iconName: string;
-  tag: string;
-  iconBg: string;
-  iconColor: string;
-  tagBg: string;
-  tagColor: string;
-  accentBar: string;
-  descColor: string;
-  ctaColor: string;
-  borderColor: string;
-  snapColor: string;
-  snapMuted: string;
-  snapBorder: string;
-  snapshot: ParcelStat[];
-  titleColor: string;
+  image?: string;
+  icon?: "cancel" | "lost";
+  tone: "maroon" | "orange" | "amber" | "green" | "neutral" | "red";
+  count: number;
+  snapshot: { label: string; value: string | number }[];
 }
 
-// --- Animated counter hook ---
-function useCountUp(target: number, duration = 1200): number {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!target) return;
-    const steps = 40;
-    const increment = target / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setValue(target);
-        clearInterval(timer);
-      } else {
-        setValue(Math.floor(current));
-      }
-    }, duration / steps);
-    return () => clearInterval(timer);
-  }, [target, duration]);
-  return value;
+export interface ParcelSummary {
+  total: number;
+  active: number;
+  delivered: number;
+  received: number;
+  inTransit: number;
+  atStation: number;
 }
 
-// --- Sparkline SVG ---
-function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
-  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
-  const points = basePoints.map((p, i) => {
-    const shift = Math.sin(seed + i) * 8;
-    return Math.max(10, Math.min(100, p + shift));
-  });
-  const h = 48, w = 120;
-  const max = Math.max(...points), min = Math.min(...points);
-  const coords: [number, number][] = points.map((p, i) => [
-    (i / (points.length - 1)) * w,
-    h - ((p - min) / (max - min)) * (h - 4) - 2,
-  ]);
-  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const fill = path + ` L${w},${h} L0,${h} Z`;
-  const gradId = `spark-${color.replace("#", "")}-${seed}`;
+const TONES: Record<ParcelCardData["tone"], { soft: string; text: string }> = {
+  maroon: { soft: "bg-[#FBF1F2]", text: "text-[#5C0B19]" },
+  orange: { soft: "bg-orange-50", text: "text-orange-600" },
+  amber: { soft: "bg-amber-50", text: "text-amber-600" },
+  green: { soft: "bg-emerald-50", text: "text-emerald-600" },
+  neutral: { soft: "bg-slate-100", text: "text-slate-600" },
+  red: { soft: "bg-rose-50", text: "text-rose-600" },
+};
+
+const ICONS = { cancel: PackageX, lost: TriangleAlert };
+
+const fmt = (n: number) => n.toLocaleString("en-US");
+
+/* ─── Summary: maroon bridge card, like the app's Reports summary ─────────── */
+function SummaryCard({ summary }: { summary: ParcelSummary }) {
+  const pct = summary.total > 0 ? Math.round((summary.delivered / summary.total) * 100) : 0;
+  const stats = [
+    { label: "Received", value: summary.received },
+    { label: "On the way", value: summary.inTransit },
+    { label: "At station", value: summary.atStation },
+    { label: "Delivered", value: summary.delivered },
+  ];
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fill} fill={`url(#${gradId})`} />
-      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <section className="bridge-card p-6 md:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-[14px] text-white/70">All parcels</p>
+          <p className="mt-1 text-[44px] font-semibold leading-none tabular-nums">{fmt(summary.total)}</p>
+          <p className="mt-2 text-[14px] text-white/70">
+            {summary.total === 0
+              ? "No parcels yet. They'll appear here once a station receives one."
+              : `${fmt(summary.active)} still moving through the network`}
+          </p>
+        </div>
+        {summary.total > 0 && <span className="accent-pill text-[13px]">{pct}% delivered</span>}
+      </div>
+
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md">
+            <p className="text-[12px] text-white/60">{s.label}</p>
+            <p className="mt-0.5 text-[22px] font-semibold tabular-nums">{fmt(s.value)}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
-// --- Helper to parse numeric value ---
-const parseNumeric = (val: string | number): number | null => {
-  if (typeof val === "number") return val;
-  const cleaned = val.replace(/,/g, "").trim();
-  const parsed = Number(cleaned);
-  return isNaN(parsed) ? null : parsed;
-};
-
-// --- Helper to map iconColor / text class to Hex ---
-const getSparkColor = (colorClass: string) => {
-  if (colorClass.includes("blue")) return "#3b82f6";
-  if (colorClass.includes("emerald")) return "#10b981";
-  if (colorClass.includes("indigo")) return "#6366f1";
-  if (colorClass.includes("amber")) return "#f59e0b";
-  if (colorClass.includes("orange")) return "#f97316";
-  if (colorClass.includes("violet")) return "#8b5cf6";
-  if (colorClass.includes("cyan")) return "#06b6d4";
-  if (colorClass.includes("rose")) return "#f43f5e";
-  return "#94a3b8"; // default slate
-};
-
-// --- Custom ParcelCard Component ---
-function ParcelCard({ parcel, seed, delay = 0 }: { parcel: ParcelCardData; seed: number; delay?: number }) {
-  const Icon = ICON_MAP[parcel.iconName] || Package;
-  const primaryStat = parcel.snapshot[0];
-  const primaryValue = primaryStat ? primaryStat.value : "";
-  const numeric = parseNumeric(primaryValue);
-  const counted = useCountUp(numeric ?? 0, 1000);
-  const isNumeric = numeric !== null;
-
-  const sparkColor = getSparkColor(parcel.iconColor);
-  const secondaryStats = parcel.snapshot.slice(1);
+/* ─── Status tile: illustration + count, like the app's action tiles ─────── */
+function StatusTile({ card }: { card: ParcelCardData }) {
+  const tone = TONES[card.tone];
+  const Icon = card.icon ? ICONS[card.icon] : null;
+  const empty = card.count === 0;
 
   return (
-    <div
-      className={cn(
-        "group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-lg hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer h-full relative"
-      )}
-      style={{ animationDelay: `${delay}ms` }}
+    <Link
+      href={card.href}
+      className="group flex h-full flex-col rounded-[24px] border border-[#E2E2E2] bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-premium"
     >
-      {/* Top Row */}
-      <div className="flex items-start justify-between">
-        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110", parcel.iconBg, parcel.iconColor)}>
-          <Icon size={16} strokeWidth={2.5} />
+      <div className="flex items-start justify-between gap-3">
+        <div className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl", tone.soft)}>
+          {card.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card.image} alt="" className="h-11 w-11 object-contain transition-transform group-hover:scale-110" />
+          ) : Icon ? (
+            <Icon size={24} className={tone.text} />
+          ) : null}
         </div>
-        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", parcel.tagBg, parcel.tagColor)}>
-          {parcel.tag}
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-hover:bg-orange-500 group-hover:text-white">
+          <ArrowRight size={16} />
         </span>
       </div>
 
-      {/* Main Content */}
-      <div className="mt-4 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Primary value */}
-          <p className={cn("text-3xl font-black tracking-tight leading-none tabular-nums", parcel.iconColor)}>
-            {isNumeric ? counted.toLocaleString() : primaryValue}
-          </p>
-          
-          {/* Title & Description */}
-          <h3 className="text-[14px] font-black text-slate-800 tracking-tight mt-2.5 group-hover:text-blue-600 transition-colors">
-            {parcel.title}
-          </h3>
-          <p className="text-[11px] font-medium text-slate-400 mt-1 leading-normal line-clamp-2">
-            {parcel.description}
-          </p>
-        </div>
+      <div className="mt-4">
+        <h3 className="text-[16px] font-semibold text-[#1C1C1E]">{card.title}</h3>
+        {empty ? (
+          <p className="mt-1 text-[15px] font-medium text-slate-400">None yet</p>
+        ) : (
+          <p className={cn("mt-1 text-[30px] font-semibold leading-none tabular-nums", tone.text)}>{fmt(card.count)}</p>
+        )}
+        <p className="mt-2 text-[13px] leading-snug text-slate-500">{card.description}</p>
+      </div>
 
-        {/* Sparkline & Snapshot */}
-        <div className="mt-4 space-y-3">
-          {/* Sparkline */}
-          <div className="opacity-50 group-hover:opacity-100 transition-opacity duration-300">
-            <Sparkline color={sparkColor} seed={seed} />
-          </div>
-
-          {/* Secondary stats */}
-          {secondaryStats.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-50">
-              {secondaryStats.map((stat) => (
-                <div key={stat.label} className="flex flex-col">
-                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
-                  <span className="text-[11px] font-black text-slate-700 mt-0.5">{stat.value}</span>
-                </div>
-              ))}
+      <div className="min-h-4 flex-1" />
+      {!empty && (
+        <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
+          {card.snapshot.map((s) => (
+            <div key={s.label}>
+              <p className="text-[12px] text-slate-400">{s.label}</p>
+              <p className="text-[14px] font-semibold text-slate-700 tabular-nums">{s.value}</p>
             </div>
-          )}
+          ))}
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
-        <div className={cn("flex items-center gap-1.5 text-[9.5px] font-black uppercase tracking-widest transition-all group-hover:gap-2", parcel.ctaColor)}>
-          Review Items <ArrowUpRight size={11} strokeWidth={3} />
-        </div>
-        <div className="w-5 h-5 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
-          <div className={cn("w-1.5 h-1.5 rounded-full opacity-20 group-hover:opacity-100 transition-all", parcel.accentBar)} />
-        </div>
-      </div>
-    </div>
+      )}
+    </Link>
   );
 }
 
-const PRESETS = [
-  {
-    label: "7 Days",
-    getValue: () => ({ from: subDays(new Date(), 7), to: new Date() }),
-  },
-  {
-    label: "30 Days",
-    getValue: () => ({ from: subDays(new Date(), 30), to: new Date() }),
-  },
-  {
-    label: "This Month",
-    getValue: () => ({ from: startOfMonth(new Date()), to: new Date() }),
-  },
-];
-
-export function ParcelDashboard({
-  initialData,
-}: {
-  initialData: ParcelCardData[];
-}) {
+export function ParcelDashboard({ cards, summary }: { cards: ParcelCardData[]; summary: ParcelSummary }) {
   const [query, setQuery] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    setDateRange({ from: subDays(new Date(), 30), to: new Date() });
-  }, []);
-
-  const filtered = initialData.filter(
-    (p) =>
-      p.title.toLowerCase().includes(query.toLowerCase()) ||
-      p.tag.toLowerCase().includes(query.toLowerCase()) ||
-      p.description.toLowerCase().includes(query.toLowerCase()),
-  );
-
-  if (!isClient) return null;
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? cards.filter((c) => `${c.title} ${c.description}`.toLowerCase().includes(q))
+    : cards;
 
   return (
-    <div className="h-screen bg-[#f8f9fb] flex flex-col overflow-hidden">
-      <div className="max-w-[1520px] w-full mx-auto px-6 lg:px-10 pt-2 pb-3 flex flex-col gap-4 h-full overflow-hidden">
-        {/* Top Bar - Matches Reports Suite */}
-        <div className="relative flex items-center gap-4 bg-[#0f172a] rounded-[12px] px-6 py-5 shadow-2xl flex-shrink-0 overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-500 rounded-full blur-[100px]" />
-            <div className="absolute -left-20 -bottom-20 w-60 h-60 bg-indigo-500 rounded-full blur-[80px]" />
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,rgba(255,255,255,0.05)_1px,transparent_0)] bg-[length:24px_24px]" />
-          </div>
-
-          {/* Brand/Title */}
-          <div className="relative z-10 flex items-center gap-3.5 flex-shrink-0">
-            <div className="w-10 h-10 rounded-[12px] bg-blue-600/20 border border-blue-500/20 flex items-center justify-center flex-shrink-0 backdrop-blur-md">
-              <FileBox size={18} className="text-blue-400" />
-            </div>
-            <div>
-              <p className="text-[12px] font-black uppercase tracking-[0.35em] text-white leading-none">
-                Parcel Management
-              </p>
-              <p className="text-[9px] text-blue-400/60 font-bold mt-1.5 uppercase tracking-[0.15em]">
-                Global manifest & logistics protocol
-              </p>
-            </div>
-          </div>
-
-          <div className="relative z-10 h-8 w-px bg-white/10 mx-3 flex-shrink-0" />
-
-          {/* Date Picker */}
-          <div className="relative z-10">
-            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <PopoverTrigger asChild>
-                <button className="flex items-center gap-2.5 h-10 bg-white/5 border border-white/10 rounded-[10px] px-4 hover:bg-white/10 transition-all active:scale-95 group">
-                  <CalendarIcon
-                    size={13}
-                    className="text-blue-400 flex-shrink-0"
-                  />
-                  <span className="text-[11px] font-bold text-white tabular-nums tracking-tight leading-none whitespace-nowrap">
-                    {dateRange?.from
-                      ? format(dateRange.from, "MMM d")
-                      : "Start"}
-                    {dateRange?.to
-                      ? ` – ${format(dateRange.to, "MMM d, yyyy")}`
-                      : ""}
-                  </span>
-                </button>
-              </PopoverTrigger>
-
-              <PopoverContent
-                align="start"
-                sideOffset={10}
-                className="p-0 w-auto border border-slate-100 shadow-2xl shadow-black/10 rounded-[16px] bg-white overflow-hidden"
-              >
-                <div className="flex items-center gap-1.5 px-3 pt-3 pb-2 border-b border-slate-50">
-                  <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mr-1">
-                    Quick
-                  </span>
-                  {PRESETS.map((p) => (
-                    <button
-                      key={p.label}
-                      onClick={() => setDateRange(p.getValue())}
-                      className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200 text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="px-2 py-2">
-                  <Calendar
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                    className="p-0"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-50 bg-slate-50/40">
-                  <span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest">
-                    {dateRange?.from && dateRange?.to
-                      ? `${format(dateRange.from, "MMM d")} → ${format(dateRange.to, "MMM d, yyyy")}`
-                      : "Select a range"}
-                  </span>
-                  <button
-                    onClick={() => setIsCalendarOpen(false)}
-                    className="h-7 px-4 bg-slate-900 text-white rounded-[8px] text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="relative z-10 h-8 w-px bg-white/10 mx-3 flex-shrink-0" />
-
-          {/* Search */}
-          <div className="relative z-10 flex-1 min-w-0 group">
-            <Search
-              size={14}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-blue-400 transition-colors"
-            />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search shipments..."
-              className="w-full bg-white/5 border border-white/10 rounded-[10px] pl-11 pr-8 py-3 text-[13px] font-medium text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30 transition-all backdrop-blur-sm"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[26px] font-semibold text-[#1C1C1E]">Parcels</h1>
+          <p className="text-[14px] text-slate-500">Every parcel in your network, grouped by where it is now.</p>
         </div>
-
-        {/* Search Results Summary */}
-        {query && (
-          <div className="flex items-center justify-between px-2 flex-shrink-0 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="flex items-center gap-2">
-              <Activity size={12} className="text-slate-400" />
-              <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                manifest search:{" "}
-                <span className="text-blue-600 ml-1">
-                  {filtered.length} parcels found
-                </span>
-              </p>
-            </div>
+        <div className="relative w-full sm:w-72">
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter statuses…"
+            className="h-11 w-full rounded-full border border-[#E2E2E2] bg-white pl-11 pr-10 text-[14px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+          />
+          {query && (
             <button
               onClick={() => setQuery("")}
-              className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline flex items-center gap-1"
+              aria-label="Clear"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
-              Clear Search <X size={10} />
+              <X size={14} />
             </button>
-          </div>
-        )}
-
-        {/* Grid */}
-        <div className="flex-1 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
-          {filtered.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-6">
-              {filtered.map((parcel, i) => (
-                <Link
-                  key={parcel.title}
-                  href={parcel.href}
-                  className="group animate-in fade-in zoom-in-95 duration-500"
-                >
-                  <ParcelCard parcel={parcel} seed={i} delay={i * 60} />
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center w-full min-h-[400px] py-20 text-center animate-in fade-in zoom-in-95 duration-700">
-              <div className="relative mb-8">
-                <div className="absolute inset-0 bg-blue-500/5 blur-[50px] animate-pulse rounded-full" />
-                <div className="w-24 h-24 rounded-[24px] bg-white border border-slate-100 flex items-center justify-center shadow-2xl relative z-10 group">
-                  <div className="absolute inset-0 bg-slate-50 rounded-[24px] scale-90 group-hover:scale-100 transition-transform" />
-                  <Search
-                    size={40}
-                    className="text-slate-200 relative z-10 group-hover:text-blue-500 transition-colors duration-500"
-                    strokeWidth={1}
-                  />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 rounded-full border-4 border-white animate-bounce" />
-                </div>
-              </div>
-
-              <div className="space-y-3 max-w-[400px]">
-                <h3 className="text-[24px] font-black text-slate-900 tracking-tight uppercase leading-none">
-                  No Items Found
-                </h3>
-                <p className="text-[14px] text-slate-400 font-medium leading-relaxed">
-                  No parcels matched your search for{" "}
-                  <span className="text-slate-900 font-bold">"{query}"</span>.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setQuery("")}
-                className="mt-10 h-12 px-8 bg-slate-900 text-white rounded-[12px] font-black text-[12px] uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-2"
-              >
-                <X size={16} strokeWidth={3} /> Reset Filter
-              </button>
-            </div>
           )}
         </div>
       </div>
 
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
-          border-radius: 10px;
-        }
-      `}</style>
+      <SummaryCard summary={summary} />
+
+      {/* Status tiles */}
+      <div>
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="text-[19px] font-semibold text-[#1C1C1E]">By status</h2>
+          <p className="text-[13px] text-slate-400">Open a status to see its parcels</p>
+        </div>
+
+        {filtered.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((card) => (
+              <StatusTile key={card.key} card={card} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center rounded-[24px] border border-[#E2E2E2] bg-white px-6 py-14 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
+              <SearchX size={28} className="text-orange-500" />
+            </div>
+            <h3 className="mt-4 text-[17px] font-semibold text-[#1C1C1E]">No status matches “{query}”</h3>
+            <p className="mt-1 text-[14px] text-slate-500">Try “received”, “delivered” or “lost”.</p>
+            <button
+              onClick={() => setQuery("")}
+              className="mt-5 h-10 rounded-full bg-[#5C0B19] px-5 text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+            >
+              Clear filter
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

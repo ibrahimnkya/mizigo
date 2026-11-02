@@ -88,7 +88,7 @@ export const authConfig: NextAuthConfig = {
       if (pathname === "/dashboard") {
         if (userRole === "SUPER_ADMIN" || userRole === "ADMIN") {
           return Response.redirect(new URL("/reports/admin/overview", nextUrl));
-        } else if (userRole === "OPERATOR") {
+        } else if (["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(userRole as string)) {
           return Response.redirect(new URL("/operator", nextUrl));
         }
       }
@@ -110,20 +110,26 @@ export const authConfig: NextAuthConfig = {
       ) {
         // Special check for pages shared with ADMIN and OPERATOR
         const isSharedReport = pathname.startsWith("/reports");
+        const isFieldStaff = ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(userRole as string);
         if (
           isSharedReport &&
           (userRole === "ADMIN" ||
             userRole === "SUPER_ADMIN" ||
-            userRole === "OPERATOR")
+            isFieldStaff)
         )
           return true;
+
+        // Org admins can self-service their own organization's whitelabel branding,
+        // even though the rest of /settings stays super-admin-only.
+        const isOrgBrandingSettings = pathname.startsWith("/settings/branding");
+        if (isOrgBrandingSettings && userRole === "ADMIN") return true;
 
         const sharedRoutes = ["/notifications", "/users", "/profile"];
         if (
           sharedRoutes.some((route) => pathname.startsWith(route)) &&
           (userRole === "ADMIN" ||
             userRole === "SUPER_ADMIN" ||
-            userRole === "OPERATOR")
+            isFieldStaff)
         )
           return true;
 
@@ -221,7 +227,7 @@ async function refreshAccessToken(token: any) {
 
     if (role === "SUPER_ADMIN" || role === "ADMIN") {
       refreshUrl = "/auth/admin/refresh-token";
-    } else if (role === "OPERATOR") {
+    } else if (["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(role)) {
       refreshUrl = "/auth/operator/refresh-token";
     }
 

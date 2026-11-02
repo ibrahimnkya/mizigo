@@ -35,10 +35,10 @@ function KpiCard({
   trend?: { value: string; up: boolean };
 }) {
   return (
-    <div className="relative group bg-white rounded-[10px] border border-slate-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col gap-3">
+    <div className="relative group bg-white rounded-[20px] border border-[#E2E2E2] p-5  hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]  transition-all duration-200 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
           style={{ backgroundColor: `${accent}18` }}
         >
           <Icon size={16} style={{ color: accent }} strokeWidth={2.5} />
@@ -58,10 +58,10 @@ function KpiCard({
         )}
       </div>
       <div>
-        <p className="text-xl font-extrabold text-slate-900 tracking-tight tabular-nums">
+        <p className="text-xl font-semibold text-slate-900 tracking-tight tabular-nums">
           {value}
         </p>
-        <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-1">
           {label}
         </p>
         <p className="text-[11px] text-slate-400 font-medium mt-0.5">{sub}</p>
@@ -88,16 +88,16 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden h-full">
+    <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden h-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-7 h-7 rounded-[10px] flex items-center justify-center"
+            className="w-7 h-7 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: `${accent}15` }}
           >
             <Icon size={13} style={{ color: accent }} strokeWidth={2.5} />
           </div>
-          <span className="text-[14px] font-extrabold text-slate-800">
+          <span className="text-[14px] font-semibold text-slate-800">
             {title}
           </span>
         </div>
@@ -119,7 +119,7 @@ export default async function RevenueSummaryPage({
 
   if (!stats)
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex flex-col gap-5">
         <p className="text-sm font-semibold text-slate-400">
           Failed to load stats
         </p>
@@ -169,16 +169,15 @@ export default async function RevenueSummaryPage({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
               Financial
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
             Revenue Summary
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">
@@ -224,14 +223,14 @@ export default async function RevenueSummaryPage({
                     <div key={ch.name} className="flex flex-col gap-2">
                       <div className="flex items-end justify-between">
                         <div>
-                          <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                          <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                             {ch.name}
                           </p>
-                          <p className="text-[13px] font-extrabold text-slate-800 tabular-nums mt-0.5">
+                          <p className="text-[13px] font-semibold text-slate-800 tabular-nums mt-0.5">
                             {ch.raw}
                           </p>
                         </div>
-                        <span className="text-[13px] font-extrabold text-slate-900 tabular-nums">
+                        <span className="text-[13px] font-semibold text-slate-900 tabular-nums">
                           {ch.value}%
                         </span>
                       </div>
@@ -257,7 +256,6 @@ export default async function RevenueSummaryPage({
             </ChartCard>
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export default function OTPForm() {
     return (
       <form onSubmit={handleSendOTP} className="flex flex-col gap-5 w-full">
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 pl-1">
             Phone Number
           </label>
           <div className="relative">
@@ -90,15 +90,15 @@ export default function OTPForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="255..."
-              className="w-full h-14 bg-white/5 border border-white/10 rounded-[10px] pl-12 pr-4 font-black text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 text-sm md:text-base"
+              className="w-full h-14 bg-white/5 border border-slate-200 rounded-xl pl-12 pr-4 font-semibold text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 text-sm md:text-base"
             />
           </div>
         </div>
 
         {errorMessage && (
-          <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-[10px] animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl animate-in slide-in-from-top-2">
             <AlertCircle size={16} className="text-rose-500 shrink-0" />
-            <p className="text-xs font-black text-rose-400 uppercase tracking-widest">
+            <p className="text-xs font-semibold text-rose-400 uppercase tracking-[0.05em]">
               {errorMessage}
             </p>
           </div>
@@ -108,7 +108,7 @@ export default function OTPForm() {
           <button
             type="submit"
             disabled={isPending || !phone.trim()}
-            className="h-14 w-full bg-blue-600 text-white rounded-[10px] text-xs md:text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+            className="h-14 w-full bg-blue-600 text-white rounded-xl text-xs md:text-sm font-semibold uppercase tracking-[0.05em]  shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
           >
             {isPending ? (
               <Loader2 className="animate-spin" size={20} />
@@ -127,7 +127,7 @@ export default function OTPForm() {
   return (
     <form onSubmit={handleVerifyOTP} className="flex flex-col gap-5 w-full">
       <div className="space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">
+        <label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 pl-1">
           OTP Code
         </label>
         <div className="relative group">
@@ -141,7 +141,7 @@ export default function OTPForm() {
             required
             placeholder="•••••••••"
             maxLength={6}
-            className="w-full h-14 bg-white/5 border border-white/10 rounded-[10px] pl-12 pr-12 font-black text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
+            className="w-full h-14 bg-white/5 border border-slate-200 rounded-xl pl-12 pr-12 font-semibold text-white focus:border-blue-500 focus:bg-white/10 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-600 tracking-[0.4em] text-lg"
           />
           <button
             type="button"
@@ -154,9 +154,9 @@ export default function OTPForm() {
       </div>
 
       {errorMessage && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-[10px] animate-in slide-in-from-top-2">
+        <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl animate-in slide-in-from-top-2">
           <AlertCircle size={16} className="text-rose-500 shrink-0" />
-          <p className="text-xs font-black text-rose-400 uppercase tracking-widest">
+          <p className="text-xs font-semibold text-rose-400 uppercase tracking-[0.05em]">
             {errorMessage}
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function OTPForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="h-14 w-full bg-blue-600 text-white rounded-[10px] text-xs md:text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
+          className="h-14 w-full bg-blue-600 text-white rounded-xl text-xs md:text-sm font-semibold uppercase tracking-[0.05em]  shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none"
         >
           {isPending ? (
             <Loader2 className="animate-spin" size={20} />
@@ -182,7 +182,7 @@ export default function OTPForm() {
       <button
         type="button"
         onClick={() => setStep("phone")}
-        className="text-[10px] text-blue-400 hover:text-white font-black hover:underline uppercase tracking-widest transition-colors mx-auto mt-2"
+        className="text-[10px] text-blue-400 hover:text-white font-semibold hover:underline uppercase tracking-[0.05em] transition-colors mx-auto mt-2"
       >
         Cancel & Back
       </button>

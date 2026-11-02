@@ -68,7 +68,7 @@ export function FormBuilder({
             >
               <label
                 htmlFor={field.name}
-                className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-slate-400"
+                className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400"
               >
                 {field.label}{" "}
                 {field.required && <span className="text-red-500">*</span>}
@@ -79,7 +79,7 @@ export function FormBuilder({
                   <select
                     id={field.name}
                     {...register(field.name)}
-                    className="w-full h-11 px-4 pr-10 bg-slate-50 border border-slate-200 rounded-[10px] text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm appearance-none cursor-pointer"
+                    className="w-full h-11 px-4 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all  appearance-none cursor-pointer"
                   >
                     <option value="">Select option...</option>
                     {field.options?.map((opt) => (
@@ -109,7 +109,7 @@ export function FormBuilder({
                   rows={4}
                   {...register(field.name)}
                   placeholder={field.placeholder}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm resize-none"
+                  className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all  resize-none"
                 />
               ) : (
                 <input
@@ -117,7 +117,7 @@ export function FormBuilder({
                   type={field.type}
                   {...register(field.name)}
                   placeholder={field.placeholder}
-                  className="h-11 px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  className="h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all "
                 />
               )}
 
@@ -128,7 +128,7 @@ export function FormBuilder({
               )}
 
               {error && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100/50 rounded-[10px]">
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-100/50 rounded-xl">
                   <AlertCircle className="h-3 w-3 text-rose-500" />
                   <p className="text-[10px] text-rose-600 font-bold">
                     {error.message as string}
@@ -144,7 +144,7 @@ export function FormBuilder({
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 px-8 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-bold rounded-[10px] flex items-center justify-center gap-2 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+          className="h-11 px-8 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all  shadow-blue-600/20 active:scale-95"
         >
           {isLoading ? (
             <>

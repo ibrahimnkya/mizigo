@@ -66,36 +66,35 @@ export default async function NotificationsPage() {
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
                 Alerts
               </span>
               {unreadCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                   {unreadCount} unread
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
               Notifications
             </h1>
             <p className="text-sm text-slate-400 font-medium mt-0.5">
-              Stay updated with system alerts and shipment status changes across
+              Stay updated with system alerts and parcel status changes across
               all terminals.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-extrabold text-slate-500 hover:text-slate-700 border border-slate-200 bg-white rounded-[10px] hover:bg-slate-50 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-semibold text-slate-500 hover:text-slate-700 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <Archive size={13} /> Archive all
             </button>
-            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-extrabold text-white bg-slate-900 hover:bg-slate-800 rounded-[10px] transition-all hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-slate-900/10">
+            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all  active:translate-y-0  shadow-slate-900/10">
               <Check size={13} strokeWidth={2.5} /> Mark all read
             </button>
           </div>
@@ -103,8 +102,8 @@ export default async function NotificationsPage() {
 
         {/* List */}
         {notifications.length === 0 ? (
-          <div className="h-64 rounded-[10px] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-slate-300">
-            <div className="w-12 h-12 bg-slate-50 rounded-[10px] flex items-center justify-center">
+          <div className="h-64 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 text-slate-300">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center">
               <Bell size={22} strokeWidth={1.5} className="text-slate-200" />
             </div>
             <div className="text-center">
@@ -126,7 +125,7 @@ export default async function NotificationsPage() {
                 <div
                   key={notif.id}
                   className={cn(
-                    "group relative bg-white rounded-[10px] border shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer",
+                    "group relative bg-white rounded-xl border  hover:shadow-[0_6px_20px_rgba(0,0,0,0.07)]  transition-all duration-200 overflow-hidden cursor-pointer",
                     notif.isRead
                       ? "border-slate-100 opacity-70"
                       : "border-slate-100",
@@ -144,7 +143,7 @@ export default async function NotificationsPage() {
                     {/* Icon */}
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5",
+                        "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5",
                         meta.bg,
                       )}
                     >
@@ -161,7 +160,7 @@ export default async function NotificationsPage() {
                         <div className="flex items-center gap-2 min-w-0">
                           <h3
                             className={cn(
-                              "text-[14px] font-extrabold tracking-tight truncate",
+                              "text-[14px] font-semibold tracking-tight truncate",
                               notif.isRead
                                 ? "text-slate-400"
                                 : "text-slate-900",
@@ -187,7 +186,7 @@ export default async function NotificationsPage() {
                               { hour: "2-digit", minute: "2-digit" },
                             )}
                           </span>
-                          <button className="w-6 h-6 flex items-center justify-center rounded-[10px] text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors opacity-0 group-hover:opacity-100">
+                          <button className="w-6 h-6 flex items-center justify-center rounded-xl text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors opacity-0 group-hover:opacity-100">
                             <MoreHorizontal size={14} />
                           </button>
                         </div>
@@ -213,12 +212,11 @@ export default async function NotificationsPage() {
         <div className="flex items-center justify-center pt-2 pb-4">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-slate-300">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-300">
               System Monitoring Active
             </p>
           </div>
         </div>
-      </div>
     </div>
   );
 }

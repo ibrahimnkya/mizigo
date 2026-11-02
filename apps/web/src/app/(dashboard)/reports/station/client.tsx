@@ -278,7 +278,7 @@ export function StationReportClient({
         <div>
           <Link
             href="/reports"
-            className="inline-flex items-center text-[10px] font-black text-slate-400 hover:text-blue-600 mb-4 transition-all group uppercase tracking-[0.2em]"
+            className="inline-flex items-center text-[10px] font-semibold text-slate-400 hover:text-blue-600 mb-4 transition-all group uppercase tracking-[0.05em]"
           >
             <ArrowLeft
               className="w-3.5 h-3.5 mr-1.5 group-hover:-translate-x-0.5 transition-transform"
@@ -287,22 +287,22 @@ export function StationReportClient({
             Analytics Hub
           </Link>
           <div className="flex items-center gap-3.5 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white  shadow-blue-500/20">
               <Activity size={20} strokeWidth={2.5} />
             </div>
-            <h1 className="text-[26px] font-black text-slate-900 tracking-tight leading-none">
+            <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight leading-none">
               Station Performance
             </h1>
           </div>
           <p className="text-[13px] text-slate-500 font-bold tracking-tight">
-            Activity and performance overview for <span className="text-blue-600 font-extrabold">{station.name}</span>
+            Activity and performance overview for <span className="text-blue-600 font-semibold">{station.name}</span>
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           {/* Timeframe Selector & Date Range Picker */}
           <div className="flex items-center gap-3 relative">
-            <div className="flex items-center bg-slate-50 border border-slate-100 rounded-[10px] p-1.5 shadow-sm">
+            <div className="flex items-center bg-slate-50 border border-slate-100 rounded-xl p-1.5 ">
               {["daily", "weekly", "monthly", "custom"].map((tf) => (
                 <button
                   key={tf}
@@ -314,9 +314,9 @@ export function StationReportClient({
                     }
                   }}
                   className={cn(
-                    "px-4 py-2 rounded-[8px] text-[10px] font-black uppercase tracking-widest transition-all",
+                    "px-4 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all",
                     timeframe === tf
-                      ? "bg-white text-blue-600 shadow-sm border border-slate-200/50"
+                      ? "bg-white text-blue-600  border border-slate-200/50"
                       : "text-slate-400 hover:text-slate-600",
                   )}
                 >
@@ -330,10 +330,10 @@ export function StationReportClient({
               <PopoverTrigger asChild>
                 <button className={cn(
                   "hidden",
-                  timeframe === "custom" && "flex items-center gap-2 h-9 bg-white border border-slate-200 rounded-[10px] px-3 hover:bg-slate-50 transition-all active:scale-95 text-slate-700 shadow-sm"
+                  timeframe === "custom" && "flex items-center gap-2 h-9 bg-white border border-[#E2E2E2] rounded-[20px] px-3 hover:bg-slate-50 transition-all active:scale-95 text-slate-700 "
                 )}>
                   <CalendarIcon size={12} className="text-blue-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest tabular-nums">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.05em] tabular-nums">
                     {dateRange?.from
                       ? format(dateRange.from, "MMM d")
                       : "Start"}
@@ -345,7 +345,7 @@ export function StationReportClient({
               </PopoverTrigger>
               <PopoverContent
                 align="end"
-                className="p-0 w-auto border border-slate-100 shadow-2xl shadow-black/10 rounded-[16px] bg-white overflow-hidden z-[100]"
+                className="p-0 w-auto border border-slate-100  shadow-black/10 rounded-xl bg-white overflow-hidden z-[100]"
               >
                 <div className="p-3">
                   <Calendar
@@ -357,7 +357,7 @@ export function StationReportClient({
                   />
                 </div>
                 <div className="flex items-center justify-between px-4 py-3 border-t border-slate-50 bg-slate-50/40">
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.05em]">
                     {dateRange?.from && dateRange?.to
                       ? `${format(dateRange.from, "MMM d")} → ${format(dateRange.to, "MMM d, yyyy")}`
                       : "Select a range"}
@@ -370,7 +370,7 @@ export function StationReportClient({
                       }
                     }}
                     disabled={!dateRange?.from || !dateRange?.to}
-                    className="h-8 px-4 bg-slate-900 text-white rounded-[8px] text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
+                    className="h-8 px-4 bg-slate-900 text-white rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
                   >
                     Apply Range
                   </button>
@@ -393,10 +393,10 @@ export function StationReportClient({
               {({ loading }) => (
                 <button
                   disabled={loading}
-                  className="h-10 px-6 rounded-[10px] bg-slate-900 hover:bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                  className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-[10px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
-                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                    <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-white animate-spin" />
                   ) : (
                     <Download className="w-4 h-4" strokeWidth={2.5} />
                   )}
@@ -445,7 +445,7 @@ export function StationReportClient({
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-all group"
+                className="bg-white rounded-[20px] border border-[#E2E2E2] p-5   transition-all group"
               >
                 <div
                   className={cn(
@@ -457,10 +457,10 @@ export function StationReportClient({
                   <stat.icon size={18} strokeWidth={2.5} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                  <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                     {stat.label}
                   </p>
-                  <p className="text-2xl font-black text-slate-900 tabular-nums leading-none tracking-tight">
+                  <p className="text-[20px] font-semibold text-slate-800 tabular-nums leading-none tracking-tight">
                     {stat.value}
                   </p>
                 </div>
@@ -469,13 +469,13 @@ export function StationReportClient({
           </div>
 
           {/* Operational Flow Pipeline */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8 shadow-sm relative overflow-hidden group">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6 md:p-8  relative overflow-hidden group">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-[16px] font-black text-slate-900 flex items-center gap-2.5">
+              <h2 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2.5">
                 <BarChart3 size={16} className="text-blue-600" />
                 Operational Flow Pipeline
               </h2>
-              <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-100/60 font-black text-[9px] uppercase tracking-widest">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-100/60 font-semibold text-[9px] uppercase tracking-[0.05em]">
                 Active Flow
               </div>
             </div>
@@ -487,22 +487,22 @@ export function StationReportClient({
 
         {/* Performance Sidebar */}
         <div className="space-y-8">
-          <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl border border-slate-800">
+          <div className="bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  border border-slate-800">
             <Globe
               size={120}
               className="absolute -bottom-6 -right-6 text-white/5 rotate-12 pointer-events-none"
             />
             <div className="relative z-10">
-              <span className="text-[9px] font-black text-blue-400 uppercase tracking-[0.2em] block mb-4">
+              <span className="text-[9px] font-semibold text-blue-400 uppercase tracking-[0.05em] block mb-4">
                 Station Details
               </span>
-              <h3 className="text-xl font-black mb-6 leading-tight">
+              <h3 className="text-xl font-semibold mb-6 leading-tight">
                 Operating Status
               </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center text-[12px] font-black">
+                <div className="flex justify-between items-center text-[12px] font-semibold">
                   <span className="text-slate-400">Online Status</span>
-                  <span className="text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="text-emerald-400 uppercase tracking-[0.05em] flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                     Optimal
                   </span>
@@ -517,8 +517,8 @@ export function StationReportClient({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6 ">
+            <h3 className="text-[12px] font-semibold text-slate-900 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
               <PieChart size={14} className="text-blue-600" />
               Volume Breakdown
             </h3>
@@ -573,8 +573,8 @@ export function StationReportClient({
                     </ResponsiveContainer>
                     {/* Center text showing total */}
                     <div className="absolute flex flex-col items-center justify-center">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Total</span>
-                      <span className="text-base font-black text-slate-800 tabular-nums">{totalVolume}</span>
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Total</span>
+                      <span className="text-base font-semibold text-slate-800 tabular-nums">{totalVolume}</span>
                     </div>
                   </div>
 
@@ -589,7 +589,7 @@ export function StationReportClient({
                         <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", item.color)} />
                         <div className="flex flex-col">
                           <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider leading-none">{item.label}</span>
-                          <span className="text-[11px] font-black text-slate-800 mt-1 tabular-nums">{item.value}%</span>
+                          <span className="text-[11px] font-semibold text-slate-800 mt-1 tabular-nums">{item.value}%</span>
                         </div>
                       </div>
                     ))}

@@ -74,14 +74,14 @@ export default function SuperAdminLegalPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
+    <div className="flex flex-col gap-5">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-6">
         <ReportPageHeader
           title="Legal Policies Dashboard"
@@ -92,7 +92,7 @@ export default function SuperAdminLegalPage() {
             <button
               onClick={() => saveLegalConfig()}
               disabled={isSaving || !hasUnsavedChanges}
-              className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
+              className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
             >
               {isSaving ? (
                 <Loader2 size={13} className="animate-spin" />
@@ -105,10 +105,10 @@ export default function SuperAdminLegalPage() {
         />
 
         {/* Info Box */}
-        <div className="bg-blue-50/50 border border-blue-100 rounded-[10px] p-5 flex items-start gap-4">
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 flex items-start gap-4">
           <HelpCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <h4 className="text-[12px] font-extrabold text-blue-800 uppercase tracking-wider">
+            <h4 className="text-[12px] font-semibold text-blue-800 uppercase tracking-wider">
               Legal Settings Note
             </h4>
             <p className="text-[12px] font-semibold text-blue-600/90 leading-relaxed">
@@ -122,7 +122,7 @@ export default function SuperAdminLegalPage() {
           <button
             onClick={() => setActiveTab("terms")}
             className={cn(
-              "pb-4 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2",
+              "pb-4 text-[11px] font-semibold uppercase tracking-[0.05em] border-b-2 transition-all flex items-center gap-2",
               activeTab === "terms"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-400 hover:text-slate-600"
@@ -134,7 +134,7 @@ export default function SuperAdminLegalPage() {
           <button
             onClick={() => setActiveTab("privacy")}
             className={cn(
-              "pb-4 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2",
+              "pb-4 text-[11px] font-semibold uppercase tracking-[0.05em] border-b-2 transition-all flex items-center gap-2",
               activeTab === "privacy"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-400 hover:text-slate-600"
@@ -146,9 +146,9 @@ export default function SuperAdminLegalPage() {
         </div>
 
         {/* Editor Area */}
-        <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-6 flex flex-col gap-4">
+        <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <h3 className="text-md font-black text-slate-900 tracking-tight">
+            <h3 className="text-md font-semibold text-slate-900 tracking-tight">
               {activeTab === "terms"
                 ? "Edit Terms & Conditions Content"
                 : "Edit Privacy Policy Content"}
@@ -165,14 +165,14 @@ export default function SuperAdminLegalPage() {
               value={termsText}
               onChange={(e) => setTermsText(e.target.value)}
               placeholder="Paste or write Terms & Conditions..."
-              className="w-full min-h-[500px] p-6 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white resize-y transition-all leading-relaxed"
+              className="w-full min-h-[500px] p-6 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white resize-y transition-all leading-relaxed"
             />
           ) : (
             <textarea
               value={privacyText}
               onChange={(e) => setPrivacyText(e.target.value)}
               placeholder="Paste or write Privacy Policy..."
-              className="w-full min-h-[500px] p-6 bg-slate-50 border border-slate-100 rounded-[10px] text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white resize-y transition-all leading-relaxed"
+              className="w-full min-h-[500px] p-6 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white resize-y transition-all leading-relaxed"
             />
           )}
         </div>

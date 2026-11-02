@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api/client";
 import { DataTable } from "@/components/shared/data-table";
-import { MapPin } from "lucide-react";
+import { MapPin, Eye } from "lucide-react";
 import { UpdateStationModal } from "./update-station-modal";
 import { StationStatusModal } from "./station-status-modal";
+import { ViewStationModal } from "./view-station-modal";
 import { cn } from "@/lib/utils";
 
 interface StationListProps {
@@ -18,6 +19,7 @@ export function StationList({ organizationId }: StationListProps) {
   const [selectedStation, setSelectedStation] = useState<any>(null);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
 
   // Fetch stations (all or for a specific organization)
   const {
@@ -43,7 +45,7 @@ export function StationList({ organizationId }: StationListProps) {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-[10px] flex items-center justify-center shadow-lg transition-all duration-300",
+              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300",
               s.isActive
                 ? "bg-slate-900 shadow-slate-100"
                 : "bg-slate-200 shadow-transparent grayscale",
@@ -57,10 +59,10 @@ export function StationList({ organizationId }: StationListProps) {
             />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
+            <span className="font-semibold text-slate-900 text-[13px] tracking-tight group-hover:text-blue-600 transition-colors uppercase">
               {s.name}
             </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest line-clamp-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] line-clamp-1">
               {s.organization?.name || "ROOT · PLATFORM"}
             </span>
           </div>
@@ -71,12 +73,12 @@ export function StationList({ organizationId }: StationListProps) {
       header: "Station ID",
       accessor: (s: any) => (
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-[10px] w-fit">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-xl w-fit">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
               ID: {s.code || s.id?.slice(0, 8)}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-1">
+          <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em] pl-1">
             Protocol v2.1
           </span>
         </div>
@@ -94,7 +96,7 @@ export function StationList({ organizationId }: StationListProps) {
                 : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]",
             )}
           />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
             {s.isActive ? "Active Network" : "Node Suspended"}
           </span>
         </div>
@@ -106,11 +108,11 @@ export function StationList({ organizationId }: StationListProps) {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1 text-slate-600">
             <MapPin className="w-4 h-4" strokeWidth={3} />
-            <span className="text-[14px] font-black tracking-tighter">
+            <span className="text-[14px] font-semibold tracking-tighter">
               {s.location || "Dar es Salaam, TZ"}
             </span>
           </div>
-          <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+          <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-[0.05em]">
             Physical Hub
           </span>
         </div>
@@ -123,9 +125,18 @@ export function StationList({ organizationId }: StationListProps) {
           <button
             onClick={() => {
               setSelectedStation(s);
+              setIsViewOpen(true);
+            }}
+            className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all duration-300  border border-slate-100 active:scale-90"
+          >
+            <Eye size={15} strokeWidth={2.5} />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedStation(s);
               setIsUpdateOpen(true);
             }}
-            className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm flex items-center gap-2"
+            className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
           >
             Manage
           </button>
@@ -143,6 +154,13 @@ export function StationList({ organizationId }: StationListProps) {
         isLoading={isLoading}
         hideInternalSearch={true}
         hideActions={true}
+      />
+
+      {/* Modal to view station details */}
+      <ViewStationModal
+        station={selectedStation}
+        open={isViewOpen}
+        onOpenChange={setIsViewOpen}
       />
 
       {/* Modal to update station details */}

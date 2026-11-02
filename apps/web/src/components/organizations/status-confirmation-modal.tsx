@@ -60,23 +60,23 @@ export function StatusConfirmationModal({
       <SheetTrigger asChild>
         <button
           className={cn(
-            "w-10 h-10 rounded-[10px] flex items-center justify-center transition-all duration-300 shadow-sm border active:scale-90",
+            "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300  border active:scale-90",
             organization.isActive
               ? "bg-slate-50 text-slate-400 border-slate-100 hover:bg-rose-600 hover:text-white"
-              : "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700 shadow-xl shadow-emerald-500/20",
+              : "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700  shadow-emerald-500/20",
           )}
         >
           <Power size={16} strokeWidth={3} />
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div
             className={cn(
-              "w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md",
+              "w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ",
               isDeactivating ? "text-rose-400" : "text-emerald-400",
             )}
           >
@@ -87,10 +87,10 @@ export function StatusConfirmationModal({
             )}
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               {isDeactivating ? "Deactivate" : "Reactivate"}
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Status Management Protocol
             </SheetDescription>
           </div>
@@ -106,7 +106,7 @@ export function StatusConfirmationModal({
 
         <div className="p-8 space-y-4">
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-rose-100/50 text-rose-600 text-[11px] font-black uppercase tracking-widest border border-rose-200 rounded-[10px]">
+            <div className="flex items-center gap-2 p-3 bg-rose-100/50 text-rose-600 text-[11px] font-semibold uppercase tracking-[0.05em] border border-rose-200 rounded-xl">
               <AlertTriangle size={14} />
               {error}
             </div>
@@ -117,7 +117,7 @@ export function StatusConfirmationModal({
               onClick={handleToggle}
               disabled={loading}
               className={cn(
-                "h-14 font-black text-[12px] uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95",
+                "h-14 font-semibold text-[12px] uppercase tracking-[0.05em]  transition-all active:scale-95",
                 isDeactivating
                   ? "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20"
                   : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20",
@@ -135,7 +135,7 @@ export function StatusConfirmationModal({
               variant="ghost"
               onClick={() => setOpen(false)}
               disabled={loading}
-              className="h-12 font-black text-[11px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all"
+              className="h-12 font-semibold text-[11px] uppercase tracking-[0.05em] text-slate-400 hover:text-slate-900 transition-all"
             >
               Cancel
             </Button>

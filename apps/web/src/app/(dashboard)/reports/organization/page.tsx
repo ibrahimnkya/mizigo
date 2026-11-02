@@ -18,7 +18,7 @@ export default async function OrganizationReportPage({
   if (!organizationId) {
     return (
       <div className="p-8">
-        <h1 className="text-2xl font-bold font-black tracking-tight text-slate-900 mb-2">
+        <h1 className="text-2xl font-bold font-semibold tracking-tight text-slate-900 mb-2">
           Organization Report
         </h1>
         <p className="text-slate-500 font-bold">

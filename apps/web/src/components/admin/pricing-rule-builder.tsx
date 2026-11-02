@@ -80,16 +80,16 @@ export function PricingRuleBuilder({
       className="space-y-8 animate-in slide-in-from-right-4 duration-300"
     >
       {/* Header Info */}
-      <div className="bg-slate-900 rounded-[10px] p-6 text-white flex items-center justify-between border border-slate-800 shadow-2xl">
+      <div className="bg-slate-900 rounded-xl p-6 text-white flex items-center justify-between border border-slate-800 ">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/10 rounded-[10px] flex items-center justify-center border border-white/10">
+          <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center border border-slate-200">
             <MoneyBagIcon size={24} className="text-blue-400" />
           </div>
           <div>
-            <h3 className="font-black text-lg tracking-tight">
+            <h3 className="font-semibold text-lg tracking-tight">
               Strategy Configuration
             </h3>
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
+            <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-[0.05em]">
               Global Pricing Engine v2.4
             </p>
           </div>
@@ -97,7 +97,7 @@ export function PricingRuleBuilder({
         <div className="flex gap-2">
           <div
             className={cn(
-              "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
+              "px-4 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.05em] border transition-all",
               ruleType === "MULTIPLIER"
                 ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
                 : "bg-emerald-500/20 border-emerald-500/50 text-emerald-400",
@@ -109,15 +109,15 @@ export function PricingRuleBuilder({
       </div>
 
       {/* Basic Configuration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-8 rounded-[10px] border border-slate-100 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-8 rounded-xl border border-slate-100 ">
         <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
             Rule Designation
           </label>
           <input
             {...register("name")}
             placeholder="e.g. Express Multiplier"
-            className="h-14 px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300"
+            className="h-14 px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-300"
           />
           {errors.name && (
             <p className="text-[10px] text-rose-500 font-bold ml-1">
@@ -127,15 +127,15 @@ export function PricingRuleBuilder({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
             Strategy Type
           </label>
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-[10px] h-14">
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl h-14">
             <button
               type="button"
               onClick={() => setValue("type", "MULTIPLIER")}
               className={cn(
-                "rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all transition-duration-300",
+                "rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all transition-duration-300",
                 ruleType === "MULTIPLIER"
                   ? "bg-white text-blue-600 shadow-md scale-[1.02]"
                   : "text-slate-500 hover:text-slate-700",
@@ -147,7 +147,7 @@ export function PricingRuleBuilder({
               type="button"
               onClick={() => setValue("type", "FIXED")}
               className={cn(
-                "rounded-[10px] text-[10px] font-black uppercase tracking-widest transition-all transition-duration-300",
+                "rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all transition-duration-300",
                 ruleType === "FIXED"
                   ? "bg-white text-emerald-600 shadow-md scale-[1.02]"
                   : "text-slate-500 hover:text-slate-700",
@@ -159,7 +159,7 @@ export function PricingRuleBuilder({
         </div>
 
         <div className="flex flex-col gap-2 md:col-span-2">
-          <label className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
             Strategy Value
           </label>
           <div className="relative">
@@ -167,9 +167,9 @@ export function PricingRuleBuilder({
               type="number"
               step="0.01"
               {...register("value", { valueAsNumber: true })}
-              className="h-14 w-full px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-lg font-black text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="h-14 w-full px-5 bg-slate-50 border border-slate-200 rounded-xl text-lg font-semibold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
             />
-            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
               {ruleType === "MULTIPLIER" ? "Ratio" : "TZS"}
             </div>
           </div>
@@ -184,26 +184,26 @@ export function PricingRuleBuilder({
       {/* Targeting Configuration */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-blue-600 rounded-[10px] flex items-center justify-center text-white shadow-lg shadow-blue-200">
+          <div className="h-8 w-8 bg-blue-600 rounded-xl flex items-center justify-center text-white  shadow-blue-200">
             <Settings2 size={16} />
           </div>
-          <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">
+          <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-tight">
             Parametric Targeting
           </h4>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Urgency */}
-          <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-100  flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
-              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                 Delivery Priority
               </label>
             </div>
             <select
               {...register("urgency")}
-              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
             >
               <option value="">Any Delivery Priority</option>
               <option value="EXPRESS">Express</option>
@@ -213,16 +213,16 @@ export function PricingRuleBuilder({
           </div>
 
           {/* Parcel Type */}
-          <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-100  flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 text-blue-500" />
-              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                 Parcel Type
               </label>
             </div>
             <select
               {...register("parcel_type")}
-              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
             >
               <option value="">Any Type</option>
               <option value="PARCEL">Parcel</option>
@@ -233,16 +233,16 @@ export function PricingRuleBuilder({
           </div>
 
           {/* Condition */}
-          <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-100  flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-emerald-500" />
-              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                 Condition
               </label>
             </div>
             <select
               {...register("item_condition")}
-              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
             >
               <option value="">Any Condition</option>
               <option value="BRAND_NEW">Brand New</option>
@@ -252,16 +252,16 @@ export function PricingRuleBuilder({
           </div>
 
           {/* Package Size */}
-          <div className="bg-white p-6 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="bg-white p-6 rounded-xl border border-slate-100  flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Box className="h-4 w-4 text-indigo-500" />
-              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                 Package Size
               </label>
             </div>
             <select
               {...register("package_size")}
-              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+              className="h-11 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
             >
               <option value="">Any Size</option>
               <option value="DOCUMENT_A4">Document (A4)</option>
@@ -278,7 +278,7 @@ export function PricingRuleBuilder({
       <div className="pt-8 border-t border-slate-100 flex justify-end">
         <button
           disabled={isLoading}
-          className="h-14 px-10 bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-[10px] shadow-2xl shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+          className="h-14 px-10 bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

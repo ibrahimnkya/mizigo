@@ -56,17 +56,17 @@ export function AgentsList() {
       {agents.map((agent) => (
         <div
           key={agent.id}
-          className="group bg-white rounded-[10px] border border-slate-100 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col gap-4"
+          className="group bg-white rounded-[20px] border border-[#E2E2E2] p-6  hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col gap-4"
         >
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-[10px] bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-lg group-hover:scale-110 transition-transform duration-300">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold text-lg group-hover:scale-110 transition-transform duration-300">
               {agent.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+              <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
                 {agent.name}
               </h3>
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-0.5 rounded-[10px] border border-slate-100">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-xl border border-slate-100">
                 {agent.role.name}
               </span>
             </div>

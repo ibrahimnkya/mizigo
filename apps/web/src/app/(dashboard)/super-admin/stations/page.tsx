@@ -48,50 +48,6 @@ function useCountUp(target: number, duration = 1200): number {
   return value;
 }
 
-// --- Sparkline SVG ---
-function Sparkline({ color = "#10b981", seed = 0 }: { color?: string; seed?: number }) {
-  const basePoints = [30, 55, 40, 70, 52, 80, 65, 90, 72, 95];
-  const points = basePoints.map((p, i) => {
-    const shift = Math.sin(seed + i) * 8;
-    return Math.max(10, Math.min(100, p + shift));
-  });
-  const h = 48, w = 120;
-  const max = Math.max(...points), min = Math.min(...points);
-  const coords: [number, number][] = points.map((p, i) => [
-    (i / (points.length - 1)) * w,
-    h - ((p - min) / (max - min)) * (h - 4) - 2,
-  ]);
-  const path = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const fill = path + ` L${w},${h} L0,${h} Z`;
-  const gradId = `spark-${color.replace("#", "")}-${seed}`;
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-12" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={fill} fill={`url(#${gradId})`} />
-      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// --- Helper to map text class to Hex ---
-const getSparkColor = (colorClass: string) => {
-  if (colorClass.includes("blue")) return "#3b82f6";
-  if (colorClass.includes("emerald")) return "#10b981";
-  if (colorClass.includes("indigo")) return "#6366f1";
-  if (colorClass.includes("amber")) return "#f59e0b";
-  if (colorClass.includes("orange")) return "#f97316";
-  if (colorClass.includes("violet")) return "#8b5cf6";
-  if (colorClass.includes("cyan")) return "#06b6d4";
-  if (colorClass.includes("rose")) return "#f43f5e";
-  return "#94a3b8";
-};
-
 // --- Custom StationStatCard Component ---
 interface StationStatCardProps {
   label: string;
@@ -123,49 +79,29 @@ function StationStatCard({
   seed,
 }: StationStatCardProps) {
   const counted = useCountUp(value, 1000);
-  const sparkColor = getSparkColor(iconColor);
-
   const displayValue = isPercent ? `${counted}%` : counted.toLocaleString();
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between hover:shadow-xl hover:border-slate-200 hover:-translate-y-0.5 transition-all duration-300 h-full relative overflow-hidden">
-      {/* Top Row */}
+    <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between">
-        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm", iconBg, iconColor)}>
-          <Icon size={16} strokeWidth={2.5} />
+        <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", iconBg)}>
+          <Icon size={15} strokeWidth={2.5} className={iconColor} />
         </div>
-        <span className={cn("text-[9px] font-bold uppercase tracking-[0.18em] px-2.5 py-1.5 rounded-md border", tagBg, tagColor)}>
+        <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border", tagBg, tagColor)}>
           {tag}
         </span>
       </div>
-
-      {/* Main Content */}
-      <div className="mt-4 flex-1 flex flex-col justify-between">
-        <div>
-          {/* Primary value */}
-          <p className={cn("text-[26px] font-black tracking-tight leading-none tabular-nums", iconColor)}>
-            {displayValue}
-          </p>
-          
-          {/* Title & Description */}
-          <h3 className="text-[13px] font-black text-slate-800 tracking-tight mt-3">
-            {label}
-          </h3>
-          <p className="text-[10px] font-bold text-slate-400 mt-1 leading-normal line-clamp-2">
-            {description}
-          </p>
-        </div>
-
-        {/* Sparkline */}
-        <div className="mt-4 space-y-3">
-          <div className="opacity-40 group-hover:opacity-100 transition-opacity duration-300">
-            <Sparkline color={sparkColor} seed={seed} />
-          </div>
-        </div>
+      <div>
+        <p className="text-[26px] font-semibold text-slate-900 tabular-nums leading-none">
+          {displayValue}
+        </p>
+        <h3 className="text-[14px] font-semibold text-slate-800 mt-2">
+          {label}
+        </h3>
+        <p className="text-[12px] text-slate-500 mt-1 leading-normal line-clamp-2">
+          {description}
+        </p>
       </div>
-
-      {/* Bottom accent glow */}
-      <div className={cn("absolute bottom-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300", accentBar)} />
     </div>
   );
 }
@@ -200,8 +136,7 @@ function SuperAdminStationsPageInner() {
     : "0%";
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Stations Network"
           subtitle="Manage all physical operational hubs globally"
@@ -215,7 +150,7 @@ function SuperAdminStationsPageInner() {
         <div className="mt-2 animate-in fade-in duration-700">
           {tab.toLowerCase() === "overview" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StationStatCard
                   label="Active Stations"
                   value={activeStations}
@@ -223,7 +158,7 @@ function SuperAdminStationsPageInner() {
                   iconBg="bg-emerald-50"
                   iconColor="text-emerald-600"
                   tag="ONLINE"
-                  tagBg="bg-emerald-50/50 border-emerald-100"
+                  tagBg="bg-emerald-50 border-emerald-200"
                   tagColor="text-emerald-700"
                   accentBar="bg-emerald-500"
                   description="Stations actively processing parcels"
@@ -236,7 +171,7 @@ function SuperAdminStationsPageInner() {
                   iconBg="bg-rose-50"
                   iconColor="text-rose-600"
                   tag="OFFLINE"
-                  tagBg="bg-rose-50/50 border-rose-100"
+                  tagBg="bg-rose-50 border-rose-200"
                   tagColor="text-rose-700"
                   accentBar="bg-rose-500"
                   description="Stations temporarily closed or disabled"
@@ -249,7 +184,7 @@ function SuperAdminStationsPageInner() {
                   iconBg="bg-blue-50"
                   iconColor="text-blue-600"
                   tag="TENANTS"
-                  tagBg="bg-blue-50/50 border-blue-100"
+                  tagBg="bg-blue-50 border-blue-200"
                   tagColor="text-blue-700"
                   accentBar="bg-blue-500"
                   description="Distinct logistic provider tenants"
@@ -263,7 +198,7 @@ function SuperAdminStationsPageInner() {
                   iconBg="bg-indigo-50"
                   iconColor="text-indigo-600"
                   tag="UPTIME"
-                  tagBg="bg-indigo-50/50 border-indigo-100"
+                  tagBg="bg-indigo-50 border-indigo-200"
                   tagColor="text-indigo-700"
                   accentBar="bg-indigo-500"
                   description="Percentage of active network hubs"
@@ -272,64 +207,48 @@ function SuperAdminStationsPageInner() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-slate-900 rounded-[10px] p-8 text-white relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[400px]">
-                  <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-
-                  <div className="relative z-10">
-                    <div className="h-12 w-12 rounded-[10px] bg-white/10 flex items-center justify-center mb-8 border border-white/10 backdrop-blur-md shadow-2xl shadow-blue-500/10">
-                      <Network
-                        className="h-6 w-6 text-blue-400"
-                        strokeWidth={2.5}
-                      />
-                    </div>
-                    <h3 className="text-[24px] font-black tracking-tight leading-none mb-3">
+                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] flex flex-col min-h-[360px]">
+                  <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+                    <Network className="h-4 w-4 text-slate-500" strokeWidth={2.5} />
+                    <h3 className="text-[14px] font-semibold text-slate-800">
                       Station Network
                     </h3>
-                    <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-80 mb-6">
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <p className="text-[13px] text-slate-500 leading-relaxed mb-5">
                       Stations represent the physical hubs where parcels are
                       dispatched and received. Uptime dictates operational
                       capacity.
                     </p>
-                  </div>
-
-                  <div className="relative z-10 space-y-3">
-                    <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                    <div className="space-y-2 mt-auto">
+                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                           Active Hubs
                         </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
-                          Processing
+                        <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
+                          {activeStations}
                         </span>
                       </div>
-                      <span className="text-[14px] font-black text-emerald-400 tabular-nums">
-                        {activeStations}
-                      </span>
-                    </div>
-                    <div className="px-4 py-3 bg-white/5 rounded-[10px] border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                           Inactive
                         </span>
-                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
-                          Offline
+                        <span className="text-[14px] font-semibold text-rose-600 tabular-nums">
+                          {inactiveStations}
                         </span>
                       </div>
-                      <span className="text-[14px] font-black text-rose-400 tabular-nums">
-                        {inactiveStations}
-                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                    <Activity className="w-8 h-8 text-blue-500" />
+                <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2] p-8 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                    <Activity className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h4 className="text-[16px] font-black text-slate-900 mb-2">
+                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
                     Network Activity Graph
                   </h4>
-                  <p className="text-[13px] text-slate-400 max-w-md">
+                  <p className="text-[13px] text-slate-500 max-w-md">
                     Detailed graphical analysis of station uptime and parcel
                     throughput will be populated here as data accumulates.
                   </p>
@@ -339,12 +258,11 @@ function SuperAdminStationsPageInner() {
           )}
 
           {tab.toLowerCase() === "all" && (
-            <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden p-1">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2] overflow-hidden">
               <StationList />
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 }
@@ -354,7 +272,7 @@ export default function SuperAdminStationsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 flex items-center justify-center text-slate-400">
+        <div className="flex items-center justify-center min-h-[300px]">
           Loading page...
         </div>
       }

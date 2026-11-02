@@ -75,10 +75,10 @@ export function DataTable<T>({
         <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
           {title && (
             <div>
-              <h3 className="text-[15px] font-black text-slate-900 tracking-tight">
+              <h3 className="text-[15px] font-semibold text-slate-900 tracking-tight">
                 {title}
               </h3>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-[0.05em] mt-0.5">
                 {filteredData.length} entries
               </p>
             </div>
@@ -95,7 +95,7 @@ export function DataTable<T>({
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
-                  className="pl-10 pr-4 h-9 w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-[10px] text-[12px] font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 transition-all placeholder:text-slate-300"
+                  className="pl-10 pr-4 h-9 w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/10 focus:border-blue-400 transition-all placeholder:text-slate-300"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -110,7 +110,7 @@ export function DataTable<T>({
             {onCreate && (
               <button
                 onClick={onCreate}
-                className="h-9 px-5 bg-slate-900 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-[10px] flex items-center gap-2 transition-all active:scale-95"
+                className="h-10 px-5 bg-[#5C0B19] hover:bg-[#4F0A0C] text-white text-[13px] font-semibold rounded-full flex items-center gap-2 transition-all active:scale-95"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={3} />
                 Add New
@@ -124,12 +124,12 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="bg-slate-900">
+            <tr className="bg-[#F7F5F4]">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    "px-6 py-5 text-[10px] font-black text-white/60 uppercase tracking-widest border-b border-slate-800",
+                    "px-6 py-3.5 text-[12px] font-semibold text-slate-500 border-b border-[#E2E2E2]",
                     col.align === "right" && "text-right",
                   )}
                 >
@@ -147,7 +147,7 @@ export function DataTable<T>({
                 </th>
               ))}
               {!hideActions && (
-                <th className="px-6 py-5 text-[10px] font-black text-white/60 uppercase tracking-widest border-b border-slate-800 text-right">
+                <th className="px-6 py-3.5 text-[12px] font-semibold text-slate-500 border-b border-[#E2E2E2] text-right">
                   Options
                 </th>
               )}
@@ -160,12 +160,12 @@ export function DataTable<T>({
                 <tr key={i} className="animate-pulse">
                   {columns.map((_, j) => (
                     <td key={j} className="px-6 py-6">
-                      <div className="h-10 bg-slate-100 rounded-[10px]" />
+                      <div className="h-10 bg-slate-100 rounded-xl" />
                     </td>
                   ))}
                   {!hideActions && (
                     <td className="px-6 py-6">
-                      <div className="h-10 w-12 bg-slate-100 rounded-[10px] ml-auto" />
+                      <div className="h-10 w-12 bg-slate-100 rounded-xl ml-auto" />
                     </td>
                   )}
                 </tr>
@@ -177,8 +177,8 @@ export function DataTable<T>({
                   className="px-6 py-20 text-center"
                 >
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100">
-                      <Search className="h-8 w-8 text-slate-200" />
+                    <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
+                      <Search className="h-7 w-7 text-orange-500" />
                     </div>
                     <div>
                       <p className="text-[13px] font-bold text-slate-900">
@@ -197,7 +197,7 @@ export function DataTable<T>({
                   key={rowIdx}
                   onClick={() => onRowClick?.(item)}
                   className={cn(
-                    "group hover:bg-slate-50/70 transition-colors duration-150 border-b border-slate-50 last:border-0",
+                    "group hover:bg-orange-50/40 transition-colors duration-150 border-b border-slate-100 last:border-0",
                     onRowClick && "cursor-pointer",
                   )}
                 >
@@ -205,7 +205,7 @@ export function DataTable<T>({
                     <td
                       key={colIdx}
                       className={cn(
-                        "px-6 py-[18px]",
+                        "px-6 py-4",
                         col.align === "right" && "text-right",
                       )}
                     >
@@ -217,7 +217,7 @@ export function DataTable<T>({
                   {!hideActions && (
                     <td className="px-6 py-[18px] text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button className="h-9 w-9 flex items-center justify-center hover:bg-slate-900 hover:text-white rounded-[10px] border border-slate-100 bg-white shadow-sm">
+                        <button className="h-9 w-9 flex items-center justify-center hover:bg-slate-900 hover:text-white rounded-xl border border-slate-100 bg-white ">
                           <MoreVertical className="h-4 w-4 text-slate-400" />
                         </button>
                       </div>
@@ -233,14 +233,14 @@ export function DataTable<T>({
       {/* Footer */}
       <div className="px-6 py-5 border-t border-slate-100 bg-slate-50/10 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto text-center sm:text-left">
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+          <span className="text-[12px] text-slate-500 font-medium">
             Showing {(currentPage - 1) * pageSize + 1} to{" "}
             {Math.min(currentPage * pageSize, filteredData.length)} of{" "}
             {filteredData.length} entries
           </span>
 
           <div className="flex items-center justify-center gap-2">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            <span className="text-[12px] text-slate-500 font-medium">
               Show
             </span>
             <select
@@ -249,7 +249,7 @@ export function DataTable<T>({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="h-8 px-2 bg-white border border-slate-200 rounded-[6px] text-[11px] font-bold outline-none focus:ring-2 focus:ring-blue-500/10 transition-all"
+              className="h-8 px-2 bg-white border border-[#E2E2E2] rounded-[20px] text-[11px] font-bold outline-none focus:ring-2 focus:ring-orange-500/10 transition-all"
             >
               {[10, 20, 30, 40, 50].map((size) => (
                 <option key={size} value={size}>
@@ -264,13 +264,13 @@ export function DataTable<T>({
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+            className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E2E2] bg-white hover:bg-orange-50 hover:border-orange-200 disabled:opacity-30 transition-all "
           >
             <ChevronLeft className="h-4 w-4 text-slate-600" strokeWidth={3} />
           </button>
 
-          <div className="flex items-center bg-white border border-slate-200 rounded-[10px] px-3 py-1.5 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-900">
+          <div className="flex items-center bg-white border border-[#E2E2E2] rounded-[20px] px-3 py-1.5 ">
+            <span className="text-[13px] font-medium text-slate-700">
               Page {currentPage} of {totalPages || 1}
             </span>
           </div>
@@ -280,7 +280,7 @@ export function DataTable<T>({
             onClick={() =>
               setCurrentPage((prev) => Math.min(totalPages, prev + 1))
             }
-            className="h-9 w-9 flex items-center justify-center rounded-[10px] border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
+            className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E2E2] bg-white hover:bg-orange-50 hover:border-orange-200 disabled:opacity-30 transition-all "
           >
             <ChevronRight className="h-4 w-4 text-slate-600" strokeWidth={3} />
           </button>

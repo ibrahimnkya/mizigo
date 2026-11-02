@@ -43,10 +43,10 @@ export default function OperatorReportsPage() {
       header: "Operation ID",
       accessor: (item: any) => (
         <div className="flex flex-col">
-          <span className="font-black text-slate-900 text-xs uppercase tracking-tight">
+          <span className="font-semibold text-slate-900 text-[12px]">
             #{item.trackingNumber?.slice(-8).toUpperCase()}
           </span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <span className="text-[11px] font-medium text-slate-500">
             {format(new Date(item.createdAt), "HH:mm:ss")}
           </span>
         </div>
@@ -55,7 +55,7 @@ export default function OperatorReportsPage() {
     {
       header: "Protocol",
       accessor: (item: any) => (
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <span className="text-[11px] font-medium text-slate-600">
           {item.parcelType}
         </span>
       ),
@@ -65,10 +65,10 @@ export default function OperatorReportsPage() {
       accessor: (item: any) => (
         <div
           className={cn(
-            "inline-flex items-center gap-1.5 px-2 py-1 rounded-[10px] border text-[9px] font-black uppercase tracking-tighter",
+            "inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border",
             item.status === "DELIVERED"
-              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-              : "bg-blue-50 text-blue-600 border-blue-100",
+              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+              : "bg-blue-50 text-blue-600 border-blue-200",
           )}
         >
           {item.status.replace("_", " ")}
@@ -78,7 +78,7 @@ export default function OperatorReportsPage() {
     {
       header: "Value",
       accessor: (item: any) => (
-        <span className="font-black text-slate-900 text-xs tabular-nums">
+        <span className="font-semibold text-slate-900 text-[12px] tabular-nums">
           {new Intl.NumberFormat("en-TZ", {
             style: "currency",
             currency: "TZS",
@@ -90,24 +90,23 @@ export default function OperatorReportsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
         <ReportPageHeader
           title="Terminal Analytics"
           subtitle="Operational performance & volume logs"
           iconName="BarChart3"
           hideBackArrow={true}
           action={
-            <div className="flex items-center gap-2 bg-white p-1 rounded-[10px] border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200">
               {["today", "weekly", "monthly"].map((period) => (
                 <button
                   key={period}
                   onClick={() => setDateRange(period)}
                   className={cn(
-                    "px-4 py-1.5 rounded-[8px] text-[10px] font-black uppercase tracking-widest transition-all",
+                    "px-3 py-1 rounded-xl text-[12px] font-semibold transition-colors",
                     dateRange === period
-                      ? "bg-slate-900 text-white shadow-md"
-                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
+                      ? "bg-blue-600 text-white"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-50",
                   )}
                 >
                   {period}
@@ -146,49 +145,36 @@ export default function OperatorReportsPage() {
                 label: "Daily Revenue",
                 value: `TSh ${stats.revenue.toLocaleString()}`,
                 icon: TrendingUp,
-                color: "text-indigo-600",
+                color: "text-blue-600",
                 trend: "+5% vs Avg",
               },
             ].map((s, i) => (
               <div
                 key={i}
-                className="bg-white p-8 rounded-[10px] border border-slate-100 shadow-sm shadow-slate-200/40 relative overflow-hidden group hover:border-indigo-500 transition-all"
+                className="bg-white border border-[#E2E2E2] rounded-[20px] p-5 relative overflow-hidden"
               >
-                <div className="flex justify-between items-start">
-                  <div
-                    className={cn(
-                      "h-12 w-12 rounded-[10px] flex items-center justify-center mb-6 shadow-xl shadow-slate-200",
-                      i % 2 === 0
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-50 text-slate-400",
-                    )}
-                  >
-                    <s.icon size={22} />
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-8 w-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                    <s.icon size={16} />
                   </div>
-                  <span className="text-[9px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-[10px] uppercase tracking-widest">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border border-emerald-200 bg-emerald-50 text-emerald-700">
                     {s.trend}
                   </span>
                 </div>
 
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                <h4 className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em] mb-1">
                   {s.label}
                 </h4>
-                <span
-                  className={cn("text-2xl font-black tracking-tight", s.color)}
-                >
+                <span className={cn("text-[26px] font-semibold", s.color)}>
                   {s.value}
                 </span>
-
-                <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-                  <s.icon size={120} strokeWidth={1} />
-                </div>
               </div>
             ))}
           </div>
 
           {/* 3. Detailed Logs & Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white rounded-[10px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
               <DataTable
                 title="Daily Operational Log"
                 columns={columns}
@@ -199,61 +185,61 @@ export default function OperatorReportsPage() {
 
             <div className="space-y-6">
               {/* Export Card */}
-              <div className="bg-indigo-600 rounded-[10px] p-10 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden">
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 bg-white/10 rounded-[10px] flex items-center justify-center backdrop-blur-md">
-                      <FileText size={28} />
+              <div className="bg-blue-600 rounded-xl p-6 text-white relative overflow-hidden">
+                <div className="relative z-10 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center">
+                      <FileText size={20} />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black tracking-tight">
+                      <h3 className="text-[14px] font-semibold">
                         Performance Summary
                       </h3>
-                      <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mt-0.5">
+                      <p className="text-blue-200 text-[11px] font-medium mt-0.5">
                         Generate daily manifest PDF
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-sm font-medium text-indigo-100 leading-relaxed">
+                  <p className="text-[12px] text-blue-100 leading-relaxed">
                     Generate a comprehensive manifest of all collections and
                     deliveries processed at this terminal for physical archival.
                   </p>
 
-                  <button className="w-full h-14 bg-white text-indigo-600 rounded-[10px] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all hover:bg-slate-50 active:scale-95">
-                    <Download size={18} />
+                  <button className="w-full bg-white text-blue-600 rounded-xl h-8 font-semibold text-[12px] flex items-center justify-center gap-2 transition-colors hover:bg-slate-50">
+                    <Download size={14} />
                     Sync & Download PDF
                   </button>
                 </div>
 
                 <div className="absolute bottom-[-10%] right-[-10%] opacity-10">
-                  <BarChart3 size={200} strokeWidth={1} />
+                  <BarChart3 size={160} strokeWidth={1} />
                 </div>
               </div>
 
               {/* Quick Filter Card */}
-              <div className="bg-white rounded-[10px] border border-slate-100 p-8 space-y-6">
-                <div className="flex items-center gap-3">
-                  <Filter size={18} className="text-slate-400" />
-                  <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">
+              <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Filter size={14} className="text-slate-400" />
+                  <h4 className="text-[14px] font-semibold text-slate-800">
                     Active Filters
                   </h4>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-[10px] border border-slate-100">
-                    <span className="text-xs font-bold text-slate-500">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                       Terminal Node
                     </span>
-                    <span className="text-xs font-black text-slate-900">
+                    <span className="text-[12px] font-semibold text-slate-800">
                       AUTO_DETECTED
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-[10px] border border-slate-100">
-                    <span className="text-xs font-bold text-slate-500">
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
                       Service Line
                     </span>
-                    <span className="text-xs font-black text-slate-900">
+                    <span className="text-[12px] font-semibold text-slate-800">
                       ALL_FLOWS
                     </span>
                   </div>
@@ -262,13 +248,12 @@ export default function OperatorReportsPage() {
             </div>
           </div>
 
-          <div className="text-center mt-8">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">
+          <div className="text-center mt-6">
+            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
               mizigo-pos · reporting layer v2.0 · secure sync
             </p>
           </div>
         </div>
-      </div>
     </div>
   );
 }

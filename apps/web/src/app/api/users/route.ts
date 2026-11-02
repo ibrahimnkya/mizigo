@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         organizationId: organizationId || undefined,
         role: {
           name: {
-            in: ["ADMIN", "ORG_ADMIN", "OPERATOR", "AGENT", "USER"],
+            in: ["ADMIN", "ORG_ADMIN", "CLERK", "TRAIN_GUARD", "STATION_MASTER", "AGENT", "OPERATOR", "USER"],
           },
         },
       };
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     // Prevent ADMIN from creating prohibited roles
     if (
       currentUserRole === "ADMIN" &&
-      !["ADMIN", "OPERATOR", "AGENT", "USER"].includes(roleName)
+      !["ADMIN", "CLERK", "TRAIN_GUARD", "STATION_MASTER", "AGENT", "OPERATOR", "USER"].includes(roleName)
     ) {
       return NextResponse.json(
         { error: "Forbidden role assignment" },
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     let loginCode = null;
     let isFirstLogin = false;
 
-    if (roleName === "OPERATOR" || roleName === "AGENT") {
+    if (["CLERK", "TRAIN_GUARD", "STATION_MASTER", "AGENT", "OPERATOR"].includes(roleName)) {
       finalEmail = email || `${phone}@mizigo.tz`;
       finalPassword = password || Math.random().toString(36).slice(-8);
       loginCode = Math.floor(1000 + Math.random() * 9000).toString();

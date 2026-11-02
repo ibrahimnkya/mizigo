@@ -252,16 +252,16 @@ export default function ReceiveParcelPage() {
 
   if (successData) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-24 h-24 bg-emerald-500 rounded-[20px] flex items-center justify-center mb-8 shadow-2xl shadow-emerald-200 rotate-3 animate-in zoom-in duration-500">
+      <div className="flex flex-col gap-5">
+        <div className="w-24 h-24 bg-emerald-500 rounded-[20px] flex items-center justify-center mb-8  shadow-emerald-200 rotate-3 animate-in zoom-in duration-500">
           <CheckCircle2 size={48} className="text-white" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter">
+        <h2 className="text-[26px] font-semibold text-slate-900 mb-3 tracking-tight">
           Transaction Secured
         </h2>
-        <p className="text-slate-400 max-w-sm font-medium mb-10 leading-relaxed uppercase tracking-[0.2em] text-[10px]">
+        <p className="text-slate-400 max-w-sm font-medium mb-10 leading-relaxed uppercase tracking-[0.05em] text-[10px]">
           Parcel ID:{" "}
-          <span className="text-emerald-600 font-black">
+          <span className="text-emerald-600 font-semibold">
             {successData.trackingNumber || "PENDING"}
           </span>
         </p>
@@ -269,11 +269,11 @@ export default function ReceiveParcelPage() {
         <div className="flex gap-4">
           <button
             onClick={() => window.location.reload()}
-            className="bg-white border border-slate-200 text-slate-900 px-8 py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] shadow-sm hover:shadow-md transition-all active:scale-95"
+            className="bg-white border border-slate-200 text-slate-900 px-8 py-4 rounded-xl font-semibold text-xs uppercase tracking-[0.05em]   transition-all active:scale-95"
           >
             New Entry
           </button>
-          <button className="bg-slate-900 text-white px-8 py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-900/20 hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-3">
+          <button className="bg-slate-900 text-white px-8 py-4 rounded-xl font-semibold text-xs uppercase tracking-[0.05em]  shadow-slate-900/20  transition-all active:scale-95 flex items-center gap-3">
             <Printer size={16} />
             Print Ticket
           </button>
@@ -283,7 +283,7 @@ export default function ReceiveParcelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] py-8 px-6 animate-in fade-in duration-700">
+    <div className="flex flex-col gap-5">
       <div className="max-w-5xl mx-auto">
         {/* Standardized Header */}
         <ReportPageHeader
@@ -305,7 +305,7 @@ export default function ReceiveParcelPage() {
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-500",
                   step > i
-                    ? "bg-slate-900"
+                    ? "bg-blue-600"
                     : i === step - 1
                       ? "bg-blue-500"
                       : "bg-slate-200",
@@ -321,7 +321,7 @@ export default function ReceiveParcelPage() {
                 />
                 <span
                   className={cn(
-                    "text-[9px] font-black uppercase tracking-[0.2em]",
+                    "text-[9px] font-semibold uppercase tracking-[0.05em]",
                     step >= i + 1 ? "text-slate-900" : "text-slate-300",
                   )}
                 >
@@ -333,21 +333,21 @@ export default function ReceiveParcelPage() {
         </div>
 
         {error && (
-          <div className="mb-8 bg-rose-50 border border-rose-100 p-5 rounded-[10px] flex items-center gap-4 text-rose-600 text-[12px] font-bold animate-in fade-in slide-in-from-top-2">
+          <div className="mb-8 bg-rose-50 border border-rose-100 p-5 rounded-xl flex items-center gap-4 text-rose-600 text-[12px] font-bold animate-in fade-in slide-in-from-top-2">
             <AlertCircle size={20} />
             {error}
           </div>
         )}
 
-        <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
           {/* STEP 1: PACKAGE DETAILS */}
           {step === 1 && (
             <div className="p-10 space-y-8 animate-in fade-in duration-300">
               <div className="flex items-center gap-3 pb-6 border-b border-slate-50">
-                <div className="h-8 w-8 bg-blue-50 rounded-[10px] flex items-center justify-center">
+                <div className="h-8 w-8 bg-blue-50 rounded-xl flex items-center justify-center">
                   <Box size={16} className="text-blue-600" />
                 </div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-[0.05em]">
                   Package Details
                 </h3>
               </div>
@@ -355,7 +355,7 @@ export default function ReceiveParcelPage() {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                       Parcel Name
                     </label>
                     <input
@@ -368,12 +368,12 @@ export default function ReceiveParcelPage() {
                         })
                       }
                       placeholder="e.g. Blue Electronics Crate"
-                      className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                       Destination Station
                     </label>
                     <div className="relative">
@@ -390,7 +390,7 @@ export default function ReceiveParcelPage() {
                             destinationStationId: e.target.value,
                           })
                         }
-                        className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
+                        className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                       >
                         <option value="">Select Destination</option>
                         {stations.map((s) => (
@@ -404,7 +404,7 @@ export default function ReceiveParcelPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Declared Value (TZS)
                       </label>
                       <input
@@ -416,11 +416,11 @@ export default function ReceiveParcelPage() {
                             declaredValue: e.target.value,
                           })
                         }
-                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Net Weight (KG)
                       </label>
                       <div className="relative">
@@ -431,7 +431,7 @@ export default function ReceiveParcelPage() {
                           onChange={(e) =>
                             setFormData({ ...formData, weight: e.target.value })
                           }
-                          className="h-12 w-full px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                          className="h-12 w-full px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                         />
                         <Scale
                           size={14}
@@ -445,7 +445,7 @@ export default function ReceiveParcelPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Condition
                       </label>
                       <select
@@ -456,7 +456,7 @@ export default function ReceiveParcelPage() {
                             condition: e.target.value,
                           })
                         }
-                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
+                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] outline-none"
                       >
                         {parcelConditions.map((c) => (
                           <option key={c.name} value={c.name}>
@@ -466,7 +466,7 @@ export default function ReceiveParcelPage() {
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Parcel Type
                       </label>
                       <select
@@ -477,7 +477,7 @@ export default function ReceiveParcelPage() {
                             parcelType: e.target.value,
                           })
                         }
-                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
+                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] outline-none"
                       >
                         {parcelTypes.map((t) => (
                           <option key={t.name} value={t.name}>
@@ -490,7 +490,7 @@ export default function ReceiveParcelPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Delivery Priority
                       </label>
                       <select
@@ -498,7 +498,7 @@ export default function ReceiveParcelPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, urgency: e.target.value })
                         }
-                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
+                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] outline-none"
                       >
                         {deliveryPriorities.map((t) => (
                           <option key={t.name} value={t.name.toUpperCase()}>
@@ -508,7 +508,7 @@ export default function ReceiveParcelPage() {
                       </select>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                         Package Size
                       </label>
                       <select
@@ -519,7 +519,7 @@ export default function ReceiveParcelPage() {
                             packageSize: e.target.value,
                           })
                         }
-                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[10px] font-black uppercase tracking-widest outline-none"
+                        className="h-12 w-full px-4 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] outline-none"
                       >
                         {packageSizes.map((s) => (
                           <option key={s.name} value={s.name}>
@@ -531,7 +531,7 @@ export default function ReceiveParcelPage() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+                    <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                       Description (Optional)
                     </label>
                     <textarea
@@ -542,7 +542,7 @@ export default function ReceiveParcelPage() {
                           description: e.target.value,
                         })
                       }
-                      className="h-12 px-5 py-3 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                      className="h-12 px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                       placeholder="Detailed contents..."
                     />
                   </div>
@@ -558,16 +558,16 @@ export default function ReceiveParcelPage() {
                 {/* Sender */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-slate-900 rounded-[10px] flex items-center justify-center text-white">
+                    <div className="h-8 w-8 bg-slate-900 rounded-xl flex items-center justify-center text-white">
                       <User size={14} />
                     </div>
-                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
+                    <h3 className="text-[11px] font-semibold text-slate-900 uppercase tracking-[0.05em]">
                       Sender Details
                     </h3>
                   </div>
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] ml-1">
                         Full Name
                       </label>
                       <input
@@ -579,11 +579,11 @@ export default function ReceiveParcelPage() {
                             senderName: e.target.value,
                           })
                         }
-                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold outline-none"
+                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] ml-1">
                         Phone Number
                       </label>
                       <div className="relative">
@@ -603,7 +603,7 @@ export default function ReceiveParcelPage() {
                                 : "255" + val,
                             });
                           }}
-                          className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-mono font-bold outline-none"
+                          className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold outline-none"
                         />
                       </div>
                     </div>
@@ -613,16 +613,16 @@ export default function ReceiveParcelPage() {
                 {/* Receiver */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-indigo-100 rounded-[10px] flex items-center justify-center text-indigo-600">
+                    <div className="h-8 w-8 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
                       <User size={14} />
                     </div>
-                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
+                    <h3 className="text-[11px] font-semibold text-slate-900 uppercase tracking-[0.05em]">
                       Receiver Details
                     </h3>
                   </div>
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] ml-1">
                         Full Name
                       </label>
                       <input
@@ -634,11 +634,11 @@ export default function ReceiveParcelPage() {
                             receiverName: e.target.value,
                           })
                         }
-                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-bold outline-none"
+                        className="h-12 px-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] ml-1">
                         Phone Number
                       </label>
                       <div className="relative">
@@ -658,7 +658,7 @@ export default function ReceiveParcelPage() {
                                 : "255" + val,
                             });
                           }}
-                          className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-[10px] text-sm font-mono font-bold outline-none"
+                          className="h-12 w-full pl-11 pr-5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold outline-none"
                         />
                       </div>
                     </div>
@@ -674,35 +674,35 @@ export default function ReceiveParcelPage() {
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-emerald-50 rounded-[10px] flex items-center justify-center text-emerald-600">
+                    <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
                       <MoneyBagIcon size={16} />
                     </div>
-                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
+                    <h3 className="text-[11px] font-semibold text-slate-900 uppercase tracking-[0.05em]">
                       Payment Overview
                     </h3>
                   </div>
 
-                  <div className="p-6 bg-slate-50 rounded-[12px] space-y-4 border border-slate-100">
-                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                  <div className="p-6 bg-slate-50 rounded-xl space-y-4 border border-slate-100">
+                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-[0.05em]">
                       <span>Base Fee</span>
                       <span className="text-slate-900">
                         {baseFee.toLocaleString()} TZS
                       </span>
                     </div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-[0.05em]">
                       <span>Weight Fee</span>
                       <span className="text-slate-900">
                         {weightFee.toLocaleString()} TZS
                       </span>
                     </div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                    <div className="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-[0.05em]">
                       <span>Insurance Plan</span>
                       <span className="text-slate-900">
                         {valueFee.toLocaleString()} TZS
                       </span>
                     </div>
                     {urgencyMultiplier > 1 && (
-                      <div className="flex justify-between text-[11px] font-bold text-amber-500 uppercase tracking-widest">
+                      <div className="flex justify-between text-[11px] font-bold text-amber-500 uppercase tracking-[0.05em]">
                         <span>Delivery Priority Fee (x{urgencyMultiplier})</span>
                         <span>
                           +{" "}
@@ -716,10 +716,10 @@ export default function ReceiveParcelPage() {
                     )}
                     <div className="pt-4 border-t border-slate-200 flex justify-between items-end">
                       <div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-slate-400">
                           Total Price
                         </p>
-                        <p className="text-2xl font-black text-slate-900 tracking-tighter">
+                        <p className="text-[20px] font-semibold text-slate-800 tracking-tight">
                           {totalAmount.toLocaleString()}{" "}
                           <span className="text-xs">TZS</span>
                         </p>
@@ -731,10 +731,10 @@ export default function ReceiveParcelPage() {
 
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-indigo-50 rounded-[10px] flex items-center justify-center text-indigo-600">
+                    <div className="h-8 w-8 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
                       <Activity size={16} />
                     </div>
-                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">
+                    <h3 className="text-[11px] font-semibold text-slate-900 uppercase tracking-[0.05em]">
                       Payment Method
                     </h3>
                   </div>
@@ -754,9 +754,9 @@ export default function ReceiveParcelPage() {
                           setFormData({ ...formData, paymentMode: mode.id })
                         }
                         className={cn(
-                          "p-6 rounded-[10px] border-2 text-left transition-all group relative",
+                          "p-6 rounded-xl border-2 text-left transition-all group relative",
                           formData.paymentMode === mode.id
-                            ? "bg-slate-900 border-slate-900 shadow-xl shadow-slate-300"
+                            ? "bg-slate-900 border-slate-900  shadow-slate-300"
                             : "bg-white border-slate-100 hover:border-slate-200",
                         )}
                       >
@@ -764,7 +764,7 @@ export default function ReceiveParcelPage() {
                           <div>
                             <p
                               className={cn(
-                                "text-[10px] font-black uppercase tracking-[0.2em]",
+                                "text-[10px] font-semibold uppercase tracking-[0.05em]",
                                 formData.paymentMode === mode.id
                                   ? "text-blue-400"
                                   : "text-slate-400",
@@ -774,7 +774,7 @@ export default function ReceiveParcelPage() {
                             </p>
                             <p
                               className={cn(
-                                "text-[13px] font-black mt-2",
+                                "text-[13px] font-semibold mt-2",
                                 formData.paymentMode === mode.id
                                   ? "text-white"
                                   : "text-slate-700",
@@ -785,7 +785,7 @@ export default function ReceiveParcelPage() {
                           </div>
                           <div
                             className={cn(
-                              "text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em]",
+                              "text-[9px] font-semibold px-3 py-1.5 rounded-full uppercase tracking-[0.05em]",
                               formData.paymentMode === mode.id
                                 ? "bg-white/10 text-white"
                                 : "bg-slate-100 text-slate-500",
@@ -798,12 +798,12 @@ export default function ReceiveParcelPage() {
                     ))}
                   </div>
 
-                  <div className="p-6 bg-blue-600 rounded-[10px] text-white flex justify-between items-center shadow-2xl shadow-blue-200">
+                  <div className="p-6 bg-blue-600 rounded-xl text-white flex justify-between items-center  shadow-blue-200">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                         Amount to Collect Now
                       </p>
-                      <p className="text-2xl font-black tracking-tighter tabular-nums">
+                      <p className="text-2xl font-semibold tracking-tight tabular-nums">
                         {amountToCollect.toLocaleString()}{" "}
                         <span className="text-sm">TZS</span>
                       </p>
@@ -827,17 +827,17 @@ export default function ReceiveParcelPage() {
                     <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                       <ShieldCheck size={32} className="text-slate-400" />
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
+                    <h3 className="text-[20px] font-semibold text-slate-800 tracking-tight">
                       Payment Exempted
                     </h3>
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest max-w-[280px] mx-auto leading-relaxed">
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-[0.05em] max-w-[280px] mx-auto leading-relaxed">
                       No payment required
                     </p>
                   </div>
                   <button
                     onClick={handleSubmit} // Finalize record without payment
                     disabled={loading}
-                    className="w-full h-16 bg-slate-900 text-white rounded-[12px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 hover:-translate-y-1 transition-all active:scale-95"
+                    className="w-full h-16 bg-slate-900 text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={18} />
@@ -851,10 +851,10 @@ export default function ReceiveParcelPage() {
               ) : (
                 <div className="max-w-md mx-auto space-y-10 py-6">
                   <div className="space-y-3">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
+                    <h3 className="text-[20px] font-semibold text-slate-800 tracking-tight">
                       Choose Payment Method
                     </h3>
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-[0.05em]">
                       Select mobile network
                     </p>
                   </div>
@@ -871,9 +871,9 @@ export default function ReceiveParcelPage() {
                               })
                             }
                             className={cn(
-                              "h-20 rounded-[10px] border-2 font-black text-[10px] uppercase tracking-[0.2em] transition-all flex flex-col items-center justify-center gap-2",
+                              "h-20 rounded-xl border-2 font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex flex-col items-center justify-center gap-2",
                               formData.paymentChannel === ch.name
-                                ? "bg-slate-900 text-white border-slate-900 shadow-2xl scale-[1.03]"
+                                ? "bg-slate-900 text-white border-slate-900  scale-[1.03]"
                                 : "bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100",
                             )}
                           >
@@ -887,7 +887,7 @@ export default function ReceiveParcelPage() {
                               setFormData({ ...formData, paymentChannel: ch })
                             }
                             className={cn(
-                              "h-20 rounded-[10px] border-2 font-black text-[10px] uppercase tracking-[0.2em] transition-all",
+                              "h-20 rounded-xl border-2 font-semibold text-[10px] uppercase tracking-[0.05em] transition-all",
                               formData.paymentChannel === ch
                                 ? "bg-slate-900 text-white border-slate-900"
                                 : "bg-slate-50 border-transparent text-slate-400",
@@ -900,7 +900,7 @@ export default function ReceiveParcelPage() {
 
                   <div className="space-y-4">
                     <div className="flex flex-col gap-2 text-left">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                         Mobile Number
                       </label>
                       <div className="relative">
@@ -919,7 +919,7 @@ export default function ReceiveParcelPage() {
                                 : "255" + val,
                             });
                           }}
-                          className="h-14 w-full pl-11 pr-5 bg-slate-50 border-none rounded-[12px] text-lg font-mono font-black focus:ring-2 ring-indigo-500 transition-all outline-none"
+                          className="h-14 w-full pl-11 pr-5 bg-slate-50 border-none rounded-xl text-lg font-mono font-semibold focus:ring-2 ring-indigo-500 transition-all outline-none"
                         />
                       </div>
                     </div>
@@ -927,7 +927,7 @@ export default function ReceiveParcelPage() {
                     {paymentStatus === "IDLE" && (
                       <button
                         onClick={handleSendPush}
-                        className="w-full h-16 bg-indigo-600 text-white rounded-[12px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-indigo-200 flex items-center justify-center gap-3 hover:-translate-y-1 transition-all active:scale-95"
+                        className="w-full h-16 bg-indigo-600 text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  shadow-indigo-200 flex items-center justify-center gap-3  transition-all active:scale-95"
                       >
                         Send Payment Request
                         <Send size={18} />
@@ -935,7 +935,7 @@ export default function ReceiveParcelPage() {
                     )}
 
                     {paymentStatus === "PENDING" && (
-                      <div className="w-full h-16 bg-amber-50 border border-amber-100 rounded-[12px] flex items-center justify-center gap-4 text-amber-600 font-black text-[11px] uppercase tracking-[0.2em]">
+                      <div className="w-full h-16 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center gap-4 text-amber-600 font-semibold text-[11px] uppercase tracking-[0.05em]">
                         <Loader2 className="animate-spin" size={18} />
                         Waiting for User Auth...
                       </div>
@@ -943,14 +943,14 @@ export default function ReceiveParcelPage() {
 
                     {paymentStatus === "SUCCESS" && (
                       <div className="space-y-6">
-                        <div className="w-full h-16 bg-emerald-50 border border-emerald-100 rounded-[12px] flex items-center justify-center gap-4 text-emerald-600 font-black text-[11px] uppercase tracking-[0.2em]">
+                        <div className="w-full h-16 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center gap-4 text-emerald-600 font-semibold text-[11px] uppercase tracking-[0.05em]">
                           <CircleCheck size={18} />
                           Payment Successful
                         </div>
                         <button
                           onClick={handleSubmit} // Finalize record
                           disabled={loading}
-                          className="w-full h-16 bg-slate-900 text-white rounded-[12px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 hover:-translate-y-1 transition-all active:scale-95"
+                          className="w-full h-16 bg-slate-900 text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
                         >
                           {loading ? (
                             <Loader2 className="animate-spin" size={18} />
@@ -973,7 +973,7 @@ export default function ReceiveParcelPage() {
             <button
               onClick={handleBack}
               className={cn(
-                "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.05em] transition-all",
                 step === 1
                   ? "opacity-0 pointer-events-none"
                   : "text-slate-400 hover:text-slate-900",
@@ -986,7 +986,7 @@ export default function ReceiveParcelPage() {
             {step < 4 && (
               <button
                 onClick={handleNext}
-                className="h-14 px-10 bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-[10px] shadow-2xl flex items-center gap-3 hover:-translate-y-1 transition-all active:scale-95"
+                className="h-14 px-10 bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  flex items-center gap-3  transition-all active:scale-95"
               >
                 Next Step
                 <ChevronRight size={14} strokeWidth={3} />
@@ -999,13 +999,13 @@ export default function ReceiveParcelPage() {
         <div className="mt-8 flex justify-center gap-6">
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
               Secure connection
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
               Verified identity
             </span>
           </div>

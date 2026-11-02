@@ -74,8 +74,7 @@ function AgentNetworkPageInner() {
   const independentOffices = agents.filter((a) => a.type === "INDEPENDENT").length;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
 
         <ReportPageHeader
           title="Agent Network & Offices"
@@ -86,41 +85,41 @@ function AgentNetworkPageInner() {
 
         {/* ── Overview Stats cards ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
             <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
               <Building2 size={24} />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Total Agent Offices</span>
-              <span className="text-3xl font-black text-slate-900 leading-none">{totalOffices}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Total Agent Offices</span>
+              <span className="text-[26px] font-semibold text-slate-900 leading-none">{totalOffices}</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
             <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
               <Briefcase size={24} />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Business / Corporate</span>
-              <span className="text-3xl font-black text-slate-900 leading-none">{corporateOffices}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Business / Corporate</span>
+              <span className="text-[26px] font-semibold text-slate-900 leading-none">{corporateOffices}</span>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center gap-5">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
             <div className="w-14 h-14 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
               <User size={24} />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Independent Agents</span>
-              <span className="text-3xl font-black text-slate-900 leading-none">{independentOffices}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Independent Agents</span>
+              <span className="text-[26px] font-semibold text-slate-900 leading-none">{independentOffices}</span>
             </div>
           </div>
         </div>
 
         {/* ── Filter Bar ── */}
-        <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 flex flex-col md:flex-row gap-4 items-end">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px]  p-6 flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 space-y-2 w-full">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Search Locations & Names</Label>
+            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Search Locations & Names</Label>
             <div className="relative">
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <Input
@@ -133,7 +132,7 @@ function AgentNetworkPageInner() {
           </div>
 
           <div className="w-full md:w-[240px] space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Office Type</Label>
+            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Office Type</Label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -148,16 +147,16 @@ function AgentNetworkPageInner() {
 
         {/* ── Network Grid ── */}
         {isLoading ? (
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm min-h-[400px] flex flex-col items-center justify-center gap-3">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px]  min-h-[400px] flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Loading agent network...</span>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] animate-pulse">Loading agent network...</span>
           </div>
         ) : filteredAgents.length === 0 ? (
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm min-h-[400px] flex flex-col items-center justify-center text-center p-8">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px]  min-h-[400px] flex flex-col items-center justify-center text-center p-8">
             <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
               <Map size={24} />
             </div>
-            <h3 className="text-sm font-black text-slate-700">No agent offices found</h3>
+            <h3 className="text-sm font-semibold text-slate-700">No agent offices found</h3>
             <p className="text-[12px] text-slate-400 max-w-[320px] leading-relaxed mt-1">
               Try adjusting your search queries or category filters to find the right agent office.
             </p>
@@ -170,7 +169,7 @@ function AgentNetworkPageInner() {
               return (
                 <div
                   key={agent.id}
-                  className="bg-white border border-slate-100 hover:border-blue-200 rounded-2xl p-6 shadow-sm transition-all duration-300 hover:shadow-md flex flex-col justify-between group relative overflow-hidden"
+                  className="bg-white border border-slate-100 hover:border-blue-200 rounded-xl p-6  transition-all duration-300  flex flex-col justify-between group relative overflow-hidden"
                 >
                   {/* Subtle top decoration */}
                   <div className={cn(
@@ -183,14 +182,14 @@ function AgentNetworkPageInner() {
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div>
                         <span className={cn(
-                          "px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-md border block w-fit mb-2",
+                          "px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.05em] rounded-md border block w-fit mb-2",
                           isBusiness
                             ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                             : "bg-purple-50 text-purple-700 border-purple-100"
                         )}>
                           {isBusiness ? "Business" : "Independent"}
                         </span>
-                        <h4 className="text-[16px] font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                        <h4 className="text-[16px] font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
                           {agent.businessName || agent.name}
                         </h4>
                         {isBusiness && agent.businessName && (
@@ -234,8 +233,6 @@ function AgentNetworkPageInner() {
             })}
           </div>
         )}
-
-      </div>
     </div>
   );
 }
@@ -245,7 +242,7 @@ function AgentNetworkPageInner() {
 export default function AgentNetworkPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     }>

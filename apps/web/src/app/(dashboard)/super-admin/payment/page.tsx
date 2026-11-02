@@ -196,15 +196,14 @@ function PaymentConfigPageInner() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
 
         {/* ── Header Action Bar ── */}
         <ReportPageHeader
@@ -214,23 +213,22 @@ function PaymentConfigPageInner() {
           action={
             <Sheet open={openEditor} onOpenChange={setOpenEditor}>
               <SheetTrigger asChild>
-                <button className="h-11 px-6 bg-slate-900 text-white rounded-[10px] text-[11px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95">
+                <button className="h-8 px-3 bg-blue-600 text-white rounded-xl text-[12px] font-semibold flex items-center gap-1.5 hover:bg-blue-700 transition-colors">
                   <Settings size={14} strokeWidth={3} />
                   Configure Gateway
                 </button>
               </SheetTrigger>
 
-              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white shadow-2xl rounded-2xl flex flex-col">
-                <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-                  <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+              <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white  rounded-xl flex flex-col">
+                <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                     <Database className="w-6 h-6 text-white" strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col relative z-10 text-left">
-                    <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+                    <SheetTitle className="text-[16px] font-semibold text-slate-800 leading-tight">
                       Payment Gateway Setup
                     </SheetTitle>
-                    <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+                    <SheetDescription className="text-[12px] text-slate-500 mt-0.5">
                       Configure API endpoint and security credentials
                     </SheetDescription>
                   </div>
@@ -243,77 +241,77 @@ function PaymentConfigPageInner() {
                 >
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         Gateway Name
                       </Label>
                       <Input
                         name="name"
                         defaultValue={activeConfig?.name || "MySafari Pay"}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="e.g. MySafari Pay"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         API Endpoint URL
                       </Label>
                       <Input
                         name="baseUrl"
                         defaultValue={configData?.baseUrl || "https://mysafari.co.tz"}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="e.g. https://mysafari.co.tz"
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         API Security Key
                       </Label>
                       <Input
                         name="apiKey"
                         type="password"
                         defaultValue={configData?.apiKey || ""}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="API Key / Private Secret"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         App Name
                       </Label>
                       <Input
                         name="appName"
                         defaultValue={configData?.appName || ""}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="e.g. Vodacom App Name"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         Client ID
                       </Label>
                       <Input
                         name="clientId"
                         defaultValue={configData?.clientId || ""}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="Vodacom Client ID"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                      <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 ml-1">
                         Client Secret
                       </Label>
                       <Input
                         name="clientSecret"
                         type="password"
                         defaultValue={configData?.clientSecret || ""}
-                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-[10px] text-[14px] font-bold"
+                        className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl text-[14px] font-bold"
                         placeholder="Vodacom Client Secret"
                       />
                     </div>
@@ -324,7 +322,7 @@ function PaymentConfigPageInner() {
                   <button
                     type="button"
                     onClick={() => setOpenEditor(false)}
-                    className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
                   >
                     Cancel
                   </button>
@@ -332,7 +330,7 @@ function PaymentConfigPageInner() {
                     type="submit"
                     form="payment-gateway-form"
                     disabled={isCreating || isUpdating}
-                    className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+                    className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
                   >
                     {isCreating || isUpdating ? (
                       <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -392,24 +390,24 @@ function PaymentConfigPageInner() {
                 ].map((stat, i) => (
                   <div
                     key={i}
-                    className="bg-white p-8 rounded-[10px] border border-slate-100 shadow-sm flex flex-col gap-8 group hover:border-slate-200 transition-all"
+                    className="bg-white p-8 rounded-xl border border-slate-100  flex flex-col gap-8 group hover:border-slate-200 transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <div className={cn(
-                        "w-12 h-12 rounded-[10px] bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
+                        "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
                         stat.color,
                       )}>
                         <stat.icon size={20} strokeWidth={2.5} />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-[10px] bg-slate-50 text-slate-400">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400">
                         {stat.tag}
                       </span>
                     </div>
                     <div>
-                      <h4 className="text-[28px] font-black tracking-tight text-slate-900 leading-none">
+                      <h4 className="text-[28px] font-semibold tracking-tight text-slate-900 leading-none">
                         {stat.value}
                       </h4>
-                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-3">
                         {stat.label}
                       </p>
                     </div>
@@ -420,10 +418,10 @@ function PaymentConfigPageInner() {
               {/* Main Content Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                 {/* Available Payment Channels */}
-                <div className="lg:col-span-3 bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 flex flex-col">
+                <div className="lg:col-span-3 bg-white rounded-[20px] border border-[#E2E2E2]  p-8 flex flex-col">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h3 className="text-[20px] font-black text-slate-900 tracking-tight mb-1">
+                      <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight mb-1">
                         Payment Channels
                       </h3>
                       <p className="text-slate-500 font-bold text-[13px]">
@@ -433,7 +431,7 @@ function PaymentConfigPageInner() {
                     <button
                       onClick={() => refetchProviders()}
                       disabled={refetchingProviders || loadingProviders}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-[8px] transition-all disabled:opacity-40"
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all disabled:opacity-40"
                       title="Refresh channels"
                     >
                       <RefreshCw size={15} className={cn(refetchingProviders && "animate-spin")} />
@@ -444,36 +442,36 @@ function PaymentConfigPageInner() {
                     <div className="min-h-[280px] flex-1 flex items-center justify-center">
                       <div className="flex flex-col items-center gap-3">
                         <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                           Fetching channels...
                         </span>
                       </div>
                     </div>
                   ) : providersError ? (
                     <div className="min-h-[280px] flex-1 flex flex-col items-center justify-center gap-4 text-center py-8">
-                      <div className="w-14 h-14 rounded-[10px] bg-red-50 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center">
                         <WifiOff className="w-7 h-7 text-red-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-700 mb-1">Gateway Unreachable</p>
+                        <p className="text-sm font-semibold text-slate-700 mb-1">Gateway Unreachable</p>
                         <p className="text-[11px] font-semibold text-slate-400 max-w-[200px] leading-relaxed">
                           Could not fetch channels from the payment gateway. Check credentials and try again.
                         </p>
                       </div>
                       <button
                         onClick={() => refetchProviders()}
-                        className="h-9 px-4 bg-slate-900 text-white rounded-[8px] text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-800"
+                        className="h-9 px-4 bg-slate-900 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all hover:bg-slate-800"
                       >
                         Retry
                       </button>
                     </div>
                   ) : providers.length === 0 ? (
                     <div className="min-h-[280px] flex-1 flex flex-col items-center justify-center gap-4 text-center py-8">
-                      <div className="w-14 h-14 rounded-[10px] bg-slate-100 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center">
                         <Wifi className="w-7 h-7 text-slate-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-slate-700 mb-1">No Channels Found</p>
+                        <p className="text-sm font-semibold text-slate-700 mb-1">No Channels Found</p>
                         <p className="text-[11px] font-semibold text-slate-400 max-w-[200px] leading-relaxed">
                           Configure the gateway URL and API key, then refresh.
                         </p>
@@ -487,7 +485,7 @@ function PaymentConfigPageInner() {
                           <div
                             key={provider.id}
                             className={cn(
-                              "flex items-center justify-between gap-3 p-4 rounded-[10px] border transition-all",
+                              "flex items-center justify-between gap-3 p-4 rounded-xl border transition-all",
                               provider.isActive
                                 ? "border-transparent " + colors.bg
                                 : "bg-slate-50 border-slate-100 opacity-60"
@@ -496,17 +494,17 @@ function PaymentConfigPageInner() {
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", provider.isActive ? colors.dot : "bg-slate-300")} />
                               <div className="min-w-0">
-                                <p className={cn("text-[13px] font-black leading-tight truncate", provider.isActive ? colors.text : "text-slate-500")}>
+                                <p className={cn("text-[13px] font-semibold leading-tight truncate", provider.isActive ? colors.text : "text-slate-500")}>
                                   {provider.name}
                                 </p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5 truncate">
                                   {provider.code}
                                   {provider.description && ` · ${provider.description}`}
                                 </p>
                               </div>
                             </div>
                             <span className={cn(
-                              "shrink-0 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest rounded-[6px]",
+                              "shrink-0 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.05em] rounded-xl",
                               provider.isActive ? "bg-white/60 " + colors.text : "bg-slate-100 text-slate-400"
                             )}>
                               {provider.isActive ? "Live" : "Inactive"}
@@ -518,24 +516,24 @@ function PaymentConfigPageInner() {
                   )}
 
                   <div className="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       {activeProviders.length} of {providers.length} channels live
                     </span>
                   </div>
                 </div>
 
                 {/* Live Push Test Panel */}
-                <div className="lg:col-span-2 bg-slate-900 rounded-[10px] p-8 text-white overflow-hidden relative shadow-2xl flex flex-col min-h-[420px]">
+                <div className="lg:col-span-2 bg-slate-900 rounded-xl p-8 text-white overflow-hidden relative  flex flex-col min-h-[420px]">
                   <div className="relative z-10 flex flex-col flex-1">
                     <div className="flex items-center gap-3 text-blue-400 mb-6">
                       <ShieldCheck size={20} strokeWidth={2.5} />
-                      <span className="text-[11px] font-black uppercase tracking-[0.3em]">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
                         Live Push Test
                       </span>
                     </div>
 
                     <div className="mb-6">
-                      <h3 className="text-[24px] font-black tracking-tight leading-tight mb-2">
+                      <h3 className="text-[24px] font-semibold tracking-tight leading-tight mb-2">
                         Send Real STK Push
                       </h3>
                       <p className="text-slate-400 font-medium text-[12px] leading-relaxed">
@@ -547,11 +545,11 @@ function PaymentConfigPageInner() {
                       <div className="space-y-4">
                         {/* Channel selector — from live providers */}
                         <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                          <label className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                             Payment Channel
                           </label>
                           {loadingProviders ? (
-                            <div className="h-12 bg-white/5 border border-white/10 rounded-[10px] flex items-center px-4 gap-2">
+                            <div className="h-12 bg-white/5 border border-slate-200 rounded-xl flex items-center px-4 gap-2">
                               <Loader2 size={13} className="animate-spin text-slate-500" />
                               <span className="text-[11px] text-slate-500 font-semibold">Loading channels...</span>
                             </div>
@@ -559,7 +557,7 @@ function PaymentConfigPageInner() {
                             <select
                               value={testChannel || activeProviders[0]?.code || ""}
                               onChange={(e) => setTestChannel(e.target.value)}
-                              className="w-full h-12 bg-white/5 border border-white/10 text-white rounded-[10px] text-[13px] px-4 outline-none focus:bg-white/10 focus:border-white/20 transition-all cursor-pointer text-slate-100"
+                              className="w-full h-12 bg-white/5 border border-slate-200 text-white rounded-xl text-[13px] px-4 outline-none focus:bg-white/10 focus:border-slate-200 transition-all cursor-pointer text-slate-100"
                               required
                             >
                               {activeProviders.map((p) => (
@@ -572,19 +570,19 @@ function PaymentConfigPageInner() {
                             <select
                               value={testChannel || "Tigo"}
                               onChange={(e) => setTestChannel(e.target.value)}
-                              className="w-full h-12 bg-white/5 border border-white/10 text-white rounded-[10px] text-[13px] px-4 outline-none focus:bg-white/10 focus:border-white/20 transition-all cursor-pointer"
+                              className="w-full h-12 bg-white/5 border border-slate-200 text-white rounded-xl text-[13px] px-4 outline-none focus:bg-white/10 focus:border-slate-200 transition-all cursor-pointer"
                             >
-                              <option value="Tigo" className="bg-slate-900">Tigo Pesa</option>
-                              <option value="Airtel" className="bg-slate-900">Airtel Money</option>
-                              <option value="Halopesa" className="bg-slate-900">HaloPesa</option>
-                              <option value="Azampesa" className="bg-slate-900">AzamPesa</option>
-                              <option value="Vodacom" className="bg-slate-900">M-Pesa (Vodacom)</option>
+                              <option value="Tigo">Tigo Pesa</option>
+                              <option value="Airtel">Airtel Money</option>
+                              <option value="Halopesa">HaloPesa</option>
+                              <option value="Azampesa">AzamPesa</option>
+                              <option value="Vodacom">M-Pesa (Vodacom)</option>
                             </select>
                           )}
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                          <label className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                             Recipient Phone
                           </label>
                           <div className="relative">
@@ -592,7 +590,7 @@ function PaymentConfigPageInner() {
                             <Input
                               value={testPhone}
                               onChange={(e) => setTestPhone(e.target.value)}
-                              className="h-12 bg-white/5 border border-white/10 text-white placeholder-slate-600 rounded-[10px] text-[13px] pl-10 focus:bg-white/10"
+                              className="h-12 bg-white/5 border border-slate-200 text-white placeholder-slate-600 rounded-xl text-[13px] pl-10 focus:bg-white/10"
                               placeholder="+255 700 000 000"
                               required
                             />
@@ -600,14 +598,14 @@ function PaymentConfigPageInner() {
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                          <label className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
                             Amount (TZS)
                           </label>
                           <Input
                             type="number"
                             value={testAmount}
                             onChange={(e) => setTestAmount(e.target.value)}
-                            className="h-12 bg-white/5 border border-white/10 text-white placeholder-slate-600 rounded-[10px] text-[13px] focus:bg-white/10"
+                            className="h-12 bg-white/5 border border-slate-200 text-white placeholder-slate-600 rounded-xl text-[13px] focus:bg-white/10"
                             placeholder="Amount in TZS"
                             required
                           />
@@ -618,7 +616,7 @@ function PaymentConfigPageInner() {
                         <button
                           type="submit"
                           disabled={isTesting || !activeConfig}
-                          className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-[10px] font-black text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] transition-all  shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
                         >
                           {isTesting ? (
                             <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -630,7 +628,7 @@ function PaymentConfigPageInner() {
                           )}
                         </button>
                         {!activeConfig && (
-                          <p className="text-center text-[10px] font-black text-slate-600 uppercase tracking-widest mt-3">
+                          <p className="text-center text-[10px] font-semibold text-slate-600 uppercase tracking-[0.05em] mt-3">
                             Configure gateway to enable testing
                           </p>
                         )}
@@ -647,24 +645,24 @@ function PaymentConfigPageInner() {
           {(tab.toLowerCase() === "advanced config" || tab.toLowerCase() === "advanced-config") && (
             <div className="space-y-6">
               {/* Credentials & Details Card */}
-              <div className="bg-white rounded-[10px] border border-slate-100 shadow-sm p-8 space-y-8">
+              <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-8 space-y-8">
                 <div className="flex items-center justify-between pb-6 border-b border-slate-50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[10px] bg-slate-900 flex items-center justify-center text-white">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white">
                       <Lock size={18} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <h3 className="text-[18px] font-black text-slate-900 uppercase tracking-tight">
+                      <h3 className="text-[18px] font-semibold text-slate-900 uppercase tracking-tight">
                         Gateway Credentials
                       </h3>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.05em]">
                         API credentials and configuration parameters
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={() => setOpenEditor(true)}
-                    className="h-10 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-[10px] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all"
+                    className="h-10 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all"
                   >
                     <Settings size={12} strokeWidth={2.5} />
                     Edit Gateway Credentials
@@ -673,32 +671,32 @@ function PaymentConfigPageInner() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Gateway Provider</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Gateway Provider</span>
                     <p className="text-sm font-bold text-slate-950">{activeConfig?.name || "Not Configured"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">API Endpoint URL</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">API Endpoint URL</span>
                     <p className="text-sm font-bold text-slate-950 truncate">{configData?.baseUrl || "—"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">App Name</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">App Name</span>
                     <p className="text-sm font-bold text-slate-950">{configData?.appName || "—"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Client ID</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Client ID</span>
                     <p className="text-sm font-mono font-semibold text-slate-800 break-all">{configData?.clientId || "—"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Client Secret</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Client Secret</span>
                     <p className="text-sm font-mono text-slate-400">{configData?.clientSecret ? "••••••••••••••••••••••••••••••••" : "—"}</p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Security Key</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Security Key</span>
                     <p className="text-sm font-mono text-slate-400">{configData?.apiKey ? "••••••••••••••••••••••••••••••••" : "—"}</p>
                   </div>
                 </div>
@@ -707,7 +705,6 @@ function PaymentConfigPageInner() {
           )}
 
         </div>
-      </div>
     </div>
   );
 }
@@ -717,7 +714,7 @@ function PaymentConfigPageInner() {
 export default function PaymentConfigPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
       </div>
     }>

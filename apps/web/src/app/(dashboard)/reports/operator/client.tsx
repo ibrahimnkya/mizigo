@@ -186,7 +186,7 @@ export function OperatorReportClient({
   };
 
   return (
-    <div className="flex flex-col gap-10 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-[10px] my-8 border border-slate-100/50 relative overflow-hidden">
+    <div className="flex flex-col gap-10 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-xl my-8 border border-slate-100/50 relative overflow-hidden">
       {/* Background Decoration */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/20 rounded-full blur-3xl -mr-64 -mt-64 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-50/30 rounded-full blur-3xl -ml-48 -mb-48 pointer-events-none" />
@@ -196,7 +196,7 @@ export function OperatorReportClient({
         <div>
           <Link
             href="/reports"
-            className="inline-flex items-center text-[12px] font-black text-slate-400 hover:text-blue-600 mb-6 transition-all group uppercase tracking-widest"
+            className="inline-flex items-center text-[12px] font-semibold text-slate-400 hover:text-blue-600 mb-6 transition-all group uppercase tracking-[0.05em]"
           >
             <ArrowLeft
               className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"
@@ -205,10 +205,10 @@ export function OperatorReportClient({
             Analytics Hub
           </Link>
           <div className="flex items-center gap-4 mb-3">
-            <div className="w-12 h-12 rounded-[10px] bg-blue-600 flex items-center justify-center text-white shadow-xl shadow-blue-200">
+            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white  shadow-blue-200">
               <Users size={24} strokeWidth={2.5} />
             </div>
-            <h1 className="text-[32px] font-black text-slate-900 tracking-tight leading-none">
+            <h1 className="text-[20px] font-semibold text-slate-900 tracking-tight leading-none">
               Staff Intelligence
             </h1>
           </div>
@@ -220,13 +220,13 @@ export function OperatorReportClient({
 
         <div className="flex items-center gap-4">
           {/* Timeframe Selector */}
-          <div className="flex items-center bg-slate-50 border border-slate-100 rounded-[10px] p-1.5 shadow-sm">
+          <div className="flex items-center bg-slate-50 border border-slate-100 rounded-xl p-1.5 ">
             {["weekly", "monthly", "quarterly"].map((tf) => (
               <button
                 key={tf}
                 onClick={() => updateTimeframe(tf)}
                 className={cn(
-                  "px-6 py-2.5 rounded-[10px] text-[11px] font-black uppercase tracking-widest transition-all",
+                  "px-6 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all",
                   timeframe === tf
                     ? "bg-white text-blue-600 shadow-md border border-slate-100"
                     : "text-slate-400 hover:text-slate-600",
@@ -252,10 +252,10 @@ export function OperatorReportClient({
               {({ loading }) => (
                 <button
                   disabled={loading}
-                  className="h-14 px-8 rounded-[10px] bg-slate-900 hover:bg-black text-white font-black text-[12px] uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                  className="h-14 px-8 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-[12px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 border-t-white animate-spin" />
                   ) : (
                     <Download className="w-5 h-5" strokeWidth={3} />
                   )}
@@ -304,11 +304,11 @@ export function OperatorReportClient({
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-[10px] border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:shadow-slate-100 transition-all group"
+                className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  hover: hover:shadow-slate-100 transition-all group"
               >
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-[10px] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform",
+                    "w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform",
                     stat.bg,
                     stat.color,
                   )}
@@ -316,10 +316,10 @@ export function OperatorReportClient({
                   <stat.icon size={20} strokeWidth={2.5} />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                     {stat.label}
                   </p>
-                  <p className="text-[28px] font-black text-slate-900 tabular-nums leading-none tracking-tight">
+                  <p className="text-[28px] font-semibold text-slate-900 tabular-nums leading-none tracking-tight">
                     {stat.value}
                   </p>
                 </div>
@@ -328,13 +328,13 @@ export function OperatorReportClient({
           </div>
 
           {/* Personnel Productivity Table */}
-          <div className="bg-white rounded-[10px] border border-slate-100 overflow-hidden shadow-sm flex-1 flex flex-col">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2] overflow-hidden  flex-1 flex flex-col">
             <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-              <h3 className="text-[18px] font-black text-slate-900 flex items-center gap-3">
+              <h3 className="text-[18px] font-semibold text-slate-900 flex items-center gap-3">
                 <UserCheck size={18} className="text-blue-600" />
                 Active Personnel Performance
               </h3>
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 font-black text-[10px] uppercase tracking-widest animate-pulse">
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 font-semibold text-[10px] uppercase tracking-[0.05em] animate-pulse">
                 Live Data
               </div>
             </div>
@@ -345,35 +345,42 @@ export function OperatorReportClient({
                   className="p-8 flex items-center justify-between hover:bg-blue-50/30 transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-[10px] bg-slate-900 flex items-center justify-center text-white group-hover:bg-blue-600 group-hover:rotate-6 transition-all shadow-xl shadow-slate-200">
+                    <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white group-hover:bg-blue-600 group-hover:rotate-6 transition-all  shadow-slate-200">
                       <Users size={24} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <p className="font-black text-slate-900 text-[16px] tracking-tight">
+                      <p className="font-semibold text-slate-900 text-[16px] tracking-tight">
                         {op.name}
                       </p>
                       <p className="text-[13px] text-slate-400 font-bold">
                         {op.email}
                       </p>
+                      {op.stationName && (
+                        <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-[0.05em] mt-0.5">
+                          {op.stationName}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-12 text-right">
-                    <div className="hidden xl:block">
-                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1.5">
-                        System Status
-                      </p>
-                      <div className="flex items-center gap-2 justify-end">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-[13px] font-black text-slate-600">
-                          Sync Active
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-8 text-right">
+                    {/* Role */}
+                    <div className="hidden lg:flex flex-col items-end">
+                      <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-[0.05em] mb-1.5">Role</p>
+                      <span className="text-[11px] font-semibold text-slate-700 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                        {op.roleName || "Staff"}
+                      </span>
                     </div>
+                    {/* Parcels handled */}
+                    <div className="hidden xl:flex flex-col items-end">
+                      <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-[0.05em] mb-1.5">Parcels</p>
+                      <p className="text-[20px] font-semibold text-slate-900 tabular-nums leading-none">{op.parcelCount ?? 0}</p>
+                    </div>
+                    {/* Onboarded */}
                     <div className="flex flex-col items-end">
-                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1.5">
+                      <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-[0.05em] mb-1.5">
                         Onboarded
                       </p>
-                      <p className="text-[14px] font-black text-slate-900">
+                      <p className="text-[14px] font-semibold text-slate-900">
                         {new Date(op.createdAt).toLocaleDateString("en-GB", {
                           day: "2-digit",
                           month: "short",
@@ -381,7 +388,7 @@ export function OperatorReportClient({
                         })}
                       </p>
                     </div>
-                    <button className="w-10 h-10 rounded-[10px] bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                    <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
                       <ArrowLeft
                         className="rotate-180"
                         size={16}
@@ -398,33 +405,33 @@ export function OperatorReportClient({
         {/* Performance Sidebar */}
         <div className="space-y-10">
           {/* Leaderboard Card */}
-          <div className="bg-slate-900 rounded-[10px] p-10 text-white relative overflow-hidden shadow-2xl shadow-slate-200 border border-slate-800">
+          <div className="bg-slate-900 rounded-xl p-10 text-white relative overflow-hidden  shadow-slate-200 border border-slate-800">
             <Medal
               size={160}
               className="absolute -bottom-10 -right-10 text-white/5 rotate-12"
             />
             <div className="relative z-10">
-              <span className="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] block mb-6">
+              <span className="text-[11px] font-semibold text-blue-400 uppercase tracking-[0.05em] block mb-6">
                 Efficiency Leader
               </span>
               <div className="flex flex-col gap-6">
-                <div className="w-20 h-20 rounded-[10px] bg-white/10 flex items-center justify-center text-blue-400 border border-white/10 shadow-inner">
+                <div className="w-20 h-20 rounded-xl bg-white/10 flex items-center justify-center text-blue-400 border border-slate-200 shadow-inner">
                   <Medal size={40} strokeWidth={2} />
                 </div>
                 <div>
-                  <h3 className="text-[24px] font-black leading-tight mb-2">
+                  <h3 className="text-[24px] font-semibold leading-tight mb-2">
                     {metrics.topPerformer || "N/A"}
                   </h3>
                   <p className="text-[14px] text-slate-400 font-bold">
                     Highest individual throughput recorded in this cycle.
                   </p>
                 </div>
-                <div className="pt-6 border-t border-white/10">
+                <div className="pt-6 border-t border-slate-200">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.05em]">
                       Target Accuracy
                     </span>
-                    <span className="text-[13px] font-black text-emerald-400">
+                    <span className="text-[13px] font-semibold text-emerald-400">
                       98%
                     </span>
                   </div>
@@ -437,12 +444,12 @@ export function OperatorReportClient({
           </div>
 
           {/* Peak Performance Matrix */}
-          <div className="bg-white rounded-[10px] border border-slate-100 p-10 shadow-sm relative overflow-hidden">
+          <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-10  relative overflow-hidden">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-8 rounded-[10px] bg-blue-50 flex items-center justify-center text-blue-600">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                 <Clock size={16} strokeWidth={2.5} />
               </div>
-              <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-[0.15em]">
+              <h3 className="text-[14px] font-semibold text-slate-900 uppercase tracking-[0.15em]">
                 Workflow Velocity
               </h3>
             </div>
@@ -469,9 +476,9 @@ export function OperatorReportClient({
                 },
               ].map((shift) => (
                 <div key={shift.label} className="space-y-3">
-                  <div className="flex justify-between text-[13px] font-black">
+                  <div className="flex justify-between text-[13px] font-semibold">
                     <span className="text-slate-500">{shift.label}</span>
-                    <span className="text-slate-900 uppercase text-[10px] tracking-widest px-2 py-0.5 rounded-[10px] bg-slate-50">
+                    <span className="text-slate-900 uppercase text-[10px] tracking-[0.05em] px-2 py-0.5 rounded-xl bg-slate-50">
                       {shift.status}
                     </span>
                   </div>
@@ -488,11 +495,11 @@ export function OperatorReportClient({
               ))}
             </div>
 
-            <div className="mt-10 p-5 rounded-[10px] bg-blue-50 border border-blue-100">
+            <div className="mt-10 p-5 rounded-xl bg-blue-50 border border-blue-100">
               <p className="text-[12px] text-blue-700 font-bold leading-relaxed flex items-start gap-3">
                 <Activity size={14} className="shrink-0 mt-0.5" />
                 Personnel productivity is currently at
-                <span className="text-slate-900 font-black px-1.5 py-0.5 bg-white rounded-[10px] mx-1 border border-blue-100 shadow-sm">
+                <span className="text-slate-900 font-semibold px-1.5 py-0.5 bg-white rounded-xl mx-1 border border-blue-100 ">
                   84.2%
                 </span>
                 across all terminals.

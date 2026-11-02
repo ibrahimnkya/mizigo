@@ -1,19 +1,16 @@
-import { ParcelList } from "@/components/parcel/parcel-list";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { ParcelStatusPage } from "@/components/parcel/parcel-status-page";
 
-export default async function ReceivedParcelPage() {
+export default function ReceivedParcelPage() {
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10">
-      <div className="max-w-[1520px] mx-auto">
-        <ReportPageHeader
-          title="Received Parcels"
-          subtitle="Parcels successfully logged into the terminal"
-          iconName="Inbox"
-        />
-        <div className="bg-white rounded-[12px] border border-slate-200/60 shadow-sm overflow-hidden">
-          <ParcelList status="RECEIVED" />
-        </div>
-      </div>
-    </div>
+    <ParcelStatusPage
+      status={"RECEIVED"}
+      title="Received"
+      subtitle="Logged at the counter and waiting to be dispatched."
+      image="/brand/staff_receive.png"
+      headline="Waiting to be dispatched"
+      emptyText="All caught up. Nothing is waiting to be dispatched."
+      todayLabel="Received today"
+      isQueue
+    />
   );
 }

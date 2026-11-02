@@ -19,7 +19,7 @@ function LoginButton() {
       type="submit"
       aria-disabled={pending}
       disabled={pending}
-      className="w-full h-11 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white text-[13px] font-extrabold rounded-[10px] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-slate-900/20"
+      className="w-full h-11 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white text-[13px] font-semibold rounded-xl flex items-center justify-center gap-2 transition-all  active:translate-y-0  shadow-slate-900/20"
     >
       {pending ? (
         <>
@@ -93,7 +93,7 @@ export default function LoginForm() {
       <div className="flex flex-col gap-1.5">
         <label
           htmlFor="identifier"
-          className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-blue-200/70"
+          className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-200/70"
         >
           Phone Number
         </label>
@@ -107,7 +107,7 @@ export default function LoginForm() {
             name="identifier"
             placeholder="0700000000 or email"
             required
-            className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-[10px] text-[13px] font-medium text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white focus:border-transparent transition-all"
+            className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white focus:border-transparent transition-all"
           />
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function LoginForm() {
         <div className="flex items-center justify-between">
           <label
             htmlFor="otp-0"
-            className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-blue-200/70"
+            className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-200/70"
           >
             Enter 6-Digit Access Code
           </label>
@@ -141,7 +141,7 @@ export default function LoginForm() {
                 onChange={(e) => handleOtpChange(e.target.value, index)}
                 onKeyDown={(e) => handleOtpKeyDown(e, index)}
                 onPaste={handleOtpPaste}
-                className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-black bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-indigo-400/20 focus:border-indigo-400 rounded-[10px] transition-all outline-none text-slate-900"
+                className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-semibold bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-indigo-400/20 focus:border-indigo-400 rounded-xl transition-all outline-none text-slate-900"
               />
             ))}
           </div>
@@ -166,7 +166,7 @@ export default function LoginForm() {
       {/* Error */}
       {displayError && (
         <div
-          className="flex items-center gap-2 px-3 py-2.5 bg-rose-50 border border-rose-200/60 rounded-[10px]"
+          className="flex items-center gap-2 px-3 py-2.5 bg-rose-50 border border-rose-200/60 rounded-xl"
           aria-live="polite"
         >
           <XCircle size={13} className="text-rose-500 shrink-0" />

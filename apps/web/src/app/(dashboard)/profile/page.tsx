@@ -45,7 +45,7 @@ const ROLE_META: Record<
   },
   USER: {
     label: "Member",
-    className: "bg-slate-50 text-slate-600 border-slate-200/60",
+    className: "bg-slate-50 text-slate-600 border-slate-200",
     dot: "bg-slate-400",
   },
 };
@@ -61,11 +61,11 @@ function Field({
 }) {
   return (
     <div className="flex items-start gap-4 py-4 border-b border-slate-50 last:border-0">
-      <div className="w-8 h-8 bg-slate-50 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5">
+      <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
         <Icon size={13} className="text-slate-400" strokeWidth={2.5} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400 mb-0.5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 mb-0.5">
           {label}
         </p>
         <p className="text-[13px] font-semibold text-slate-800 truncate">
@@ -100,7 +100,7 @@ function ActionRow({
     >
       <div
         className={cn(
-          "w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0",
+          "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
           danger ? "bg-rose-50" : "bg-slate-50",
         )}
       >
@@ -160,16 +160,15 @@ export default async function ProfilePage() {
       });
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
               Account
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
             Profile
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">
@@ -181,11 +180,11 @@ export default async function ProfilePage() {
           {/* ── Left: Identity card ── */}
           <div className="lg:col-span-4 flex flex-col gap-5">
             {/* Avatar card */}
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 flex flex-col items-center gap-4 text-center">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2]  p-6 flex flex-col items-center gap-4 text-center">
               {/* Avatar */}
               <div
                 className={cn(
-                  "w-20 h-20 rounded-[10px] flex items-center justify-center text-2xl font-extrabold ring-4",
+                  "w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-semibold ring-4",
                   avatar.bg,
                   avatar.text,
                   avatar.ring,
@@ -195,7 +194,7 @@ export default async function ProfilePage() {
               </div>
 
               <div>
-                <h2 className="text-[16px] font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-[16px] font-semibold text-slate-900 tracking-tight">
                   {name}
                 </h2>
                 <p className="text-[12px] text-slate-400 font-medium mt-0.5">
@@ -206,7 +205,7 @@ export default async function ProfilePage() {
               {/* Role badge */}
               <span
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold border tracking-wide",
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border tracking-wide",
                   roleMeta.className,
                 )}
               >
@@ -217,18 +216,18 @@ export default async function ProfilePage() {
               {/* Stats row */}
               <div className="w-full pt-4 border-t border-slate-50 grid grid-cols-2 divide-x divide-slate-100">
                 <div className="flex flex-col items-center gap-0.5 pr-4">
-                  <p className="text-[18px] font-extrabold text-slate-900 tabular-nums">
+                  <p className="text-[18px] font-semibold text-slate-900 tabular-nums">
                     —
                   </p>
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                     Approvals
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-0.5 pl-4">
-                  <p className="text-[18px] font-extrabold text-slate-900 tabular-nums">
+                  <p className="text-[18px] font-semibold text-slate-900 tabular-nums">
                     —
                   </p>
-                  <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                     Requests
                   </p>
                 </div>
@@ -236,8 +235,8 @@ export default async function ProfilePage() {
             </div>
 
             {/* Joined date */}
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] px-5 py-4 flex items-center gap-3">
-              <div className="w-8 h-8 bg-slate-50 rounded-[10px] flex items-center justify-center shrink-0">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2]  px-5 py-4 flex items-center gap-3">
+              <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center shrink-0">
                 <Calendar
                   size={13}
                   className="text-slate-400"
@@ -245,7 +244,7 @@ export default async function ProfilePage() {
                 />
               </div>
               <div>
-                <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
                   Member Since
                 </p>
                 <p className="text-[12px] font-bold text-slate-700 mt-0.5">
@@ -258,21 +257,21 @@ export default async function ProfilePage() {
           {/* ── Right: Details + actions ── */}
           <div className="lg:col-span-8 flex flex-col gap-5">
             {/* Account details */}
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-50">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 bg-indigo-50 rounded-[10px] flex items-center justify-center">
+                  <div className="w-7 h-7 bg-indigo-50 rounded-xl flex items-center justify-center">
                     <User
                       size={12}
                       className="text-indigo-500"
                       strokeWidth={2.5}
                     />
                   </div>
-                  <span className="text-[14px] font-extrabold text-slate-800">
+                  <span className="text-[14px] font-semibold text-slate-800">
                     Account Details
                   </span>
                 </div>
-                <button className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-indigo-500 hover:text-indigo-700 transition-colors">
+                <button className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors">
                   <Edit3 size={11} /> Edit
                 </button>
               </div>
@@ -290,12 +289,12 @@ export default async function ProfilePage() {
             </div>
 
             {/* Account actions */}
-            <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
               <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-50">
-                <div className="w-7 h-7 bg-slate-100 rounded-[10px] flex items-center justify-center">
+                <div className="w-7 h-7 bg-slate-100 rounded-xl flex items-center justify-center">
                   <Key size={12} className="text-slate-500" strokeWidth={2.5} />
                 </div>
-                <span className="text-[14px] font-extrabold text-slate-800">
+                <span className="text-[14px] font-semibold text-slate-800">
                   Account Actions
                 </span>
               </div>
@@ -320,7 +319,6 @@ export default async function ProfilePage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

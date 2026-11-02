@@ -99,10 +99,10 @@ function TrackingPageInner() {
     <div className="max-w-5xl mx-auto space-y-12 py-6 animate-in fade-in duration-500">
       {/* Search Header */}
       <div className="flex flex-col items-center text-center space-y-4">
-        <div className="h-16 w-16 bg-blue-600 rounded-[10px] flex items-center justify-center text-white shadow-2xl shadow-blue-500/20 mb-2">
+        <div className="h-16 w-16 bg-blue-600 rounded-xl flex items-center justify-center text-white  shadow-blue-500/20 mb-2">
           <Search size={32} strokeWidth={3} />
         </div>
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-[26px] font-semibold text-slate-900 tracking-tight">
           Logistics Intelligence
         </h1>
         <p className="text-slate-500 font-medium max-w-md">
@@ -114,12 +114,12 @@ function TrackingPageInner() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-16 pl-8 pr-32 bg-white border border-slate-200 rounded-[10px] shadow-2xl shadow-slate-200/50 text-lg font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+            className="w-full h-16 pl-8 pr-32 bg-white border border-[#E2E2E2] rounded-[20px]  shadow-slate-200/50 text-lg font-bold placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
             placeholder="enter Parcel number"
           />
           <button
             disabled={isSearching}
-            className="absolute right-2 top-2 bottom-2 px-8 bg-slate-900 text-white rounded-[10px] text-sm font-black shadow-lg hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
+            className="absolute right-2 top-2 bottom-2 px-8 bg-slate-900 text-white rounded-xl text-sm font-semibold  hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
           >
             {isSearching ? (
               <Loader2 className="animate-spin h-4 w-4" />
@@ -135,7 +135,7 @@ function TrackingPageInner() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-bottom-8 duration-500">
           {/* Left: Summary Card */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-[10px] border border-slate-200 p-10 shadow-sm relative overflow-hidden">
+            <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-10  relative overflow-hidden">
               <div className="absolute top-0 right-0 p-10 opacity-5">
                 <Package size={160} />
               </div>
@@ -143,10 +143,10 @@ function TrackingPageInner() {
               <div className="relative z-10 space-y-8">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] mb-1">
                       Telemetry ID
                     </span>
-                    <span className="text-2xl font-black text-blue-600 font-mono tracking-tighter">
+                    <span className="text-2xl font-semibold text-blue-600 font-mono tracking-tight">
                       #{result.id.slice(-12).toUpperCase()}
                     </span>
                   </div>
@@ -155,7 +155,7 @@ function TrackingPageInner() {
 
                 <div className="grid grid-cols-2 gap-12 border-t border-slate-50 pt-8">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       Origin Terminal
                     </span>
                     <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ function TrackingPageInner() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                       Target Terminal
                     </span>
                     <div className="flex items-center gap-2">
@@ -194,12 +194,12 @@ function TrackingPageInner() {
               ].map((d, i) => (
                 <div
                   key={i}
-                  className="p-4 bg-white border border-slate-200 rounded-[10px] flex flex-col gap-1"
+                  className="p-4 bg-white border border-[#E2E2E2] rounded-[20px] flex flex-col gap-1"
                 >
-                  <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
                     {d.label}
                   </span>
-                  <span className="text-sm font-black text-slate-800">
+                  <span className="text-sm font-semibold text-slate-800">
                     {d.value}
                   </span>
                 </div>
@@ -208,11 +208,11 @@ function TrackingPageInner() {
           </div>
 
           {/* Right: Timeline */}
-          <div className="bg-slate-900 rounded-[10px] p-10 text-white shadow-2xl relative overflow-hidden min-h-[500px]">
+          <div className="bg-slate-900 rounded-xl p-10 text-white  relative overflow-hidden min-h-[500px]">
             <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
 
             <div className="relative z-10 space-y-10">
-              <h4 className="text-xl font-black tracking-tight border-b border-white/10 pb-6">
+              <h4 className="text-xl font-semibold tracking-tight border-b border-slate-200 pb-6">
                 Lifecycle Events
               </h4>
 
@@ -281,7 +281,7 @@ export default function TrackingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 flex items-center justify-center text-slate-400">
+        <div className="flex flex-col gap-5">
           Loading page...
         </div>
       }

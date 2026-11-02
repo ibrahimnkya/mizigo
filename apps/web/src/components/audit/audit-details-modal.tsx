@@ -42,18 +42,18 @@ export function AuditDetailsModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section - Brief as requested */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-          <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
             <Terminal className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-none uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-none uppercase">
               {log.action?.replace(/_/g, " ")}
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em] mt-1.5">
+            <SheetDescription className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.05em] mt-1.5">
               Protocol Execution Audit Trace
             </SheetDescription>
           </div>
@@ -63,34 +63,34 @@ export function AuditDetailsModal({
         <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
           {/* Target & Activity Grid - New focused section */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-3 group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-3 group hover:bg-white hover: hover:shadow-slate-200/50 transition-all duration-300">
               <div className="flex items-center gap-2 text-slate-400">
                 <Target size={14} strokeWidth={3} />
-                <span className="text-[9px] font-black uppercase tracking-widest">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                   Resource Target
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[14px] font-black uppercase tracking-tight text-slate-900">
+                <span className="text-[14px] font-semibold uppercase tracking-tight text-slate-900">
                   {log.resource}
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5">
                   Affected Entity
                 </span>
               </div>
             </div>
-            <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-3 group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-3 group hover:bg-white hover: hover:shadow-slate-200/50 transition-all duration-300">
               <div className="flex items-center gap-2 text-slate-400">
                 <Hash size={14} strokeWidth={3} />
-                <span className="text-[9px] font-black uppercase tracking-widest">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                   Activity Trace ID
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[14px] font-black uppercase tracking-tight text-slate-900">
+                <span className="text-[14px] font-semibold uppercase tracking-tight text-slate-900">
                   {log.id?.slice(0, 12).toUpperCase()}
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5">
                   Immutable Reference
                 </span>
               </div>
@@ -99,32 +99,32 @@ export function AuditDetailsModal({
 
           {/* Status & Time Grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-3">
+            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-slate-400">
                 <Activity size={14} strokeWidth={3} />
-                <span className="text-[9px] font-black uppercase tracking-widest">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                   Execution Status
                 </span>
               </div>
               <div className="flex items-center gap-2 text-emerald-600">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <span className="text-[14px] font-black uppercase tracking-tight">
+                <span className="text-[14px] font-semibold uppercase tracking-tight">
                   Verified Success
                 </span>
               </div>
             </div>
-            <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex flex-col gap-3">
+            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-3">
               <div className="flex items-center gap-2 text-slate-400">
                 <Clock size={14} strokeWidth={3} />
-                <span className="text-[9px] font-black uppercase tracking-widest">
+                <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                   Trace Timestamp
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[14px] font-black uppercase tracking-tight text-slate-900">
+                <span className="text-[14px] font-semibold uppercase tracking-tight text-slate-900">
                   {format(createdAt, "HH:mm:ss")}
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5">
                   {format(createdAt, "MMM dd, yyyy")}
                 </span>
               </div>
@@ -135,12 +135,12 @@ export function AuditDetailsModal({
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-slate-400">
               <Fingerprint size={14} strokeWidth={3} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                 Authorized Initiator
               </span>
             </div>
-            <div className="flex items-center gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center shrink-0 shadow-lg shadow-slate-200">
+            <div className="flex items-center gap-4 p-5 bg-white border border-[#E2E2E2] rounded-[20px]  hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center shrink-0  shadow-slate-200">
                 {isSystem ? (
                   <Cpu size={24} className="text-white" />
                 ) : (
@@ -148,17 +148,17 @@ export function AuditDetailsModal({
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-[16px] font-black text-slate-900 tracking-tight uppercase">
+                <span className="text-[16px] font-semibold text-slate-900 tracking-tight uppercase">
                   {log.user?.name || "System Auto-Process"}
                 </span>
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5">
                   {log.user?.role?.replace(/_/g, " ") ||
                     "Internal Core Service"}
                 </span>
               </div>
               <div className="ml-auto">
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
-                  <span className="text-[9px] font-black uppercase tracking-widest">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
                     Authenticated
                   </span>
                 </div>
@@ -171,20 +171,20 @@ export function AuditDetailsModal({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-slate-400">
                 <Code2 size={14} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                   Activity Payload
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">
+                <span className="text-[9px] font-semibold text-blue-600 uppercase tracking-[0.05em]">
                   Secure View
                 </span>
               </div>
             </div>
             <div className="relative group">
-              <div className="absolute inset-0 bg-blue-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              <pre className="relative text-[12px] font-mono text-slate-300 bg-slate-900 p-8 rounded-2xl border border-slate-800 overflow-x-auto leading-relaxed shadow-2xl custom-scrollbar max-h-[300px]">
+              <div className="absolute inset-0 bg-blue-500/5 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <pre className="relative text-[12px] font-mono text-slate-300 bg-slate-900 p-8 rounded-xl border border-slate-800 overflow-x-auto leading-relaxed  custom-scrollbar max-h-[300px]">
                 {JSON.stringify(
                   log.details || { info: "No extended metadata recorded." },
                   null,
@@ -199,24 +199,24 @@ export function AuditDetailsModal({
             <div className="flex items-center justify-between text-slate-400">
               <div className="flex items-center gap-2">
                 <Globe size={12} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                   Network Protocol Node
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Database size={12} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-widest">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                   Encrypted Storage
                 </span>
               </div>
             </div>
-            <div className="flex items-center justify-center p-4 bg-slate-50 rounded-2xl gap-3 border border-slate-100 border-dashed">
+            <div className="flex items-center justify-center p-4 bg-slate-50 rounded-xl gap-3 border border-slate-100 border-dashed">
               <ShieldCheck
                 size={16}
                 className="text-emerald-500"
                 strokeWidth={3}
               />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 italic">
                 This trace has been validated by the core platform security
                 protocol
               </span>
@@ -228,7 +228,7 @@ export function AuditDetailsModal({
         <div className="p-6 bg-slate-50 border-t border-slate-100">
           <button
             onClick={() => onOpenChange(false)}
-            className="w-full h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
+            className="w-full h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 active:scale-[0.98]"
           >
             Dismiss Audit Trace
           </button>

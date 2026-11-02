@@ -32,7 +32,7 @@ export default function LandingPage() {
   const [currentPairIdx, setCurrentPairIdx] = useState(0);
 
   const [heroWordIdx, setHeroWordIdx] = useState(0);
-  const heroWords = ["Parcels", "Shipments", "Goods", "Packages", "Everything"];
+  const heroWords = ["Parcels", "Cargo", "Goods", "Packages", "Everything"];
   const [displayedText, setDisplayedText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -111,7 +111,7 @@ export default function LandingPage() {
             alt="Icon"
             width={34}
             height={34}
-            className="rounded-[10px] shadow-2xl shadow-blue-500/20 md:w-10 md:h-10"
+            className="rounded-2xl shadow-2xl shadow-blue-500/20 md:w-10 md:h-10"
           />
           <Image
             src="/word.png"
@@ -124,7 +124,7 @@ export default function LandingPage() {
 
         <button
           onClick={() => router.push("/login")}
-          className="h-9 md:h-11 px-4 md:px-7 bg-white/5 backdrop-blur-md text-white rounded-[10px] text-[9px] md:text-[10px] font-black border border-white/10 hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 uppercase tracking-widest"
+          className="h-9 md:h-11 px-4 md:px-7 bg-white/5 backdrop-blur-md text-white rounded-2xl text-[9px] md:text-[10px] font-black border border-white/10 hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 uppercase tracking-widest"
         >
           <span className="hidden sm:inline">Portal</span>
           <span className="sm:hidden">Login</span>
@@ -137,7 +137,7 @@ export default function LandingPage() {
 
         {/* Headline */}
         <div className="text-center w-full max-w-5xl space-y-5 md:space-y-7 mb-8 md:mb-14 animate-in fade-in zoom-in-95 duration-1000">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-[8px] backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-2xl backdrop-blur-sm">
             <Activity size={11} className="text-blue-400 animate-pulse" />
             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-200">
               National Rail Logistics
@@ -170,7 +170,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-slate-300 font-medium text-sm md:text-base max-w-xs sm:max-w-md md:max-w-xl mx-auto leading-relaxed drop-shadow-xl px-2">
-            Fast shipment tracking for Tanzanian regions. Real-time updates for local parcel rail.
+            Fast parcel tracking for Tanzanian regions. Real-time updates for local cargo rail.
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export default function LandingPage() {
               </div>
               <button
                 disabled={loading || !trackingNumber.trim()}
-                className="h-12 md:h-14 px-6 md:px-10 bg-blue-600 text-white rounded-[10px] text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-12 md:h-14 px-6 md:px-10 bg-blue-600 text-white rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 className="animate-spin w-4 h-4" /> : "Trace Parcel"}
                 <ChevronRight size={15} strokeWidth={3} />
@@ -211,7 +211,7 @@ export default function LandingPage() {
                 <button
                   key={id}
                   onClick={() => { setTrackingNumber(id); router.push(`/track/${id}`); }}
-                  className="px-3 py-1 bg-white/5 border border-white/10 rounded-[8px] text-[10px] font-black text-slate-400 hover:text-blue-400 hover:border-blue-500/30 transition-all font-mono tracking-widest uppercase"
+                  className="px-3 py-1 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-slate-400 hover:text-blue-400 hover:border-blue-500/30 transition-all font-mono tracking-widest uppercase"
                 >
                   {id}
                 </button>
@@ -247,7 +247,7 @@ export default function LandingPage() {
           ].map(({ icon: Icon, label }) => (
             <div
               key={label}
-              className="flex items-center gap-2 px-4 py-2.5 bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-[10px] shadow-lg"
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-lg"
             >
               <Icon size={13} className="text-blue-400 shrink-0" />
               <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">{label}</span>
@@ -260,7 +260,7 @@ export default function LandingPage() {
           <div className="bg-slate-900/60 backdrop-blur-2xl p-5 rounded-[14px] border border-white/10 shadow-2xl">
             <div className="flex justify-between items-center mb-4">
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Transit Terminal</span>
-              <div className="px-2 py-1 bg-emerald-500/10 rounded-[6px] text-emerald-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
+              <div className="px-2 py-1 bg-emerald-500/10 rounded-xl text-emerald-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 Active
               </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
               <div className="flex-1 relative h-6 flex items-center justify-center">
                 <div className="absolute inset-x-0 top-1/2 h-[2px] bg-white/5 rounded-full" />
                 <div className="absolute left-0 top-1/2 w-2/3 h-[2px] bg-blue-500 rounded-full" />
-                <div className="h-7 w-7 bg-slate-800 rounded-[8px] flex items-center justify-center border border-white/5 relative z-10">
+                <div className="h-7 w-7 bg-slate-800 rounded-2xl flex items-center justify-center border border-white/5 relative z-10">
                   <TrainFront size={13} className="text-blue-400" />
                 </div>
               </div>
@@ -313,7 +313,7 @@ export default function LandingPage() {
           <div className="bg-slate-900/60 backdrop-blur-2xl p-7 rounded-[14px] border border-white/10 shadow-2xl min-w-[320px] hover:border-blue-500/20 transition-all duration-500">
             <div className="flex justify-between items-center mb-5">
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Transit Terminal</span>
-              <div className="px-2 py-1 bg-emerald-500/10 rounded-[6px] text-emerald-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
+              <div className="px-2 py-1 bg-emerald-500/10 rounded-xl text-emerald-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 Active
               </div>
@@ -326,7 +326,7 @@ export default function LandingPage() {
               <div className="flex-1 relative h-6 flex items-center justify-center">
                 <div className="absolute inset-x-0 top-1/2 h-[2px] bg-white/5 rounded-full" />
                 <div className="absolute left-0 top-1/2 w-2/3 h-[2px] bg-blue-500 rounded-full" />
-                <div className="h-8 w-8 bg-slate-800 rounded-[8px] flex items-center justify-center border border-white/5 relative z-10">
+                <div className="h-8 w-8 bg-slate-800 rounded-2xl flex items-center justify-center border border-white/5 relative z-10">
                   <TrainFront size={14} className="text-blue-400" />
                 </div>
               </div>

@@ -194,16 +194,15 @@ export default async function PerformancePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
-      <div className="max-w-[1520px] mx-auto px-6 lg:px-10 py-10 flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-[10px]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl">
               Workforce Analytics
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-[20px] font-semibold text-slate-800 tracking-tight">
             My Performance
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">
@@ -216,11 +215,11 @@ export default async function PerformancePage() {
           {kpis.map((k) => (
             <div
               key={k.label}
-              className="relative group bg-white rounded-[10px] border border-slate-100 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col gap-3"
+              className="relative group bg-white rounded-[20px] border border-[#E2E2E2] p-5  hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]  transition-all duration-200 flex flex-col gap-3"
             >
               <div className="flex items-center justify-between">
                 <div
-                  className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
                   style={{ backgroundColor: `${k.accent}18` }}
                 >
                   <k.icon
@@ -231,10 +230,10 @@ export default async function PerformancePage() {
                 </div>
               </div>
               <div>
-                <p className="text-xl font-extrabold text-slate-900 tracking-tight tabular-nums">
+                <p className="text-xl font-semibold text-slate-900 tracking-tight tabular-nums">
                   {k.value}
                 </p>
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mt-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-1">
                   {k.label}
                 </p>
                 <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
@@ -252,27 +251,27 @@ export default async function PerformancePage() {
         {/* Charts row */}
         <div className="grid gap-5 lg:grid-cols-12">
           {/* Weekly bar chart */}
-          <div className="lg:col-span-8 bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="lg:col-span-8 bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-50">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 bg-indigo-50 rounded-[10px] flex items-center justify-center">
+                <div className="w-7 h-7 bg-indigo-50 rounded-xl flex items-center justify-center">
                   <BarChart3
                     size={13}
                     className="text-indigo-500"
                     strokeWidth={2.5}
                   />
                 </div>
-                <span className="text-[14px] font-extrabold text-slate-800">
+                <span className="text-[14px] font-semibold text-slate-800">
                   Weekly Approvals
                 </span>
               </div>
               <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-[10px] bg-indigo-500 opacity-90" />{" "}
+                  <span className="w-2.5 h-2.5 rounded-xl bg-indigo-500 opacity-90" />{" "}
                   Actual
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-[10px] bg-slate-200" />{" "}
+                  <span className="w-2.5 h-2.5 rounded-xl bg-slate-200" />{" "}
                   Target
                 </span>
               </div>
@@ -288,7 +287,7 @@ export default async function PerformancePage() {
                       key={d.day}
                       className="flex-1 flex flex-col items-center gap-2 group/bar"
                     >
-                      <span className="text-[10px] font-extrabold text-slate-400 tabular-nums opacity-0 group-hover/bar:opacity-100 transition-opacity">
+                      <span className="text-[10px] font-semibold text-slate-400 tabular-nums opacity-0 group-hover/bar:opacity-100 transition-opacity">
                         {d.approvals}
                       </span>
                       <div className="w-full flex flex-col justify-end h-32 gap-0.5 relative">
@@ -300,7 +299,7 @@ export default async function PerformancePage() {
                         {/* Bar */}
                         <div
                           className={cn(
-                            "w-full rounded-[10px] transition-all duration-500 group-hover/bar:opacity-90",
+                            "w-full rounded-xl transition-all duration-500 group-hover/bar:opacity-90",
                             isAbove ? "bg-indigo-500" : "bg-amber-400",
                           )}
                           style={{ height: `${pct}%` }}
@@ -317,16 +316,16 @@ export default async function PerformancePage() {
           </div>
 
           {/* Goals panel */}
-          <div className="lg:col-span-4 bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="lg:col-span-4 bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
             <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-50">
-              <div className="w-7 h-7 bg-amber-50 rounded-[10px] flex items-center justify-center">
+              <div className="w-7 h-7 bg-amber-50 rounded-xl flex items-center justify-center">
                 <Target
                   size={13}
                   className="text-amber-500"
                   strokeWidth={2.5}
                 />
               </div>
-              <span className="text-[14px] font-extrabold text-slate-800">
+              <span className="text-[14px] font-semibold text-slate-800">
                 Goals Progress
               </span>
             </div>
@@ -340,10 +339,10 @@ export default async function PerformancePage() {
                   <div key={g.label} className="flex flex-col gap-2">
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+                        <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                           {g.label}
                         </p>
-                        <p className="text-[13px] font-extrabold text-slate-800 tabular-nums mt-0.5">
+                        <p className="text-[13px] font-semibold text-slate-800 tabular-nums mt-0.5">
                           {g.current.toFixed(0)}
                           {g.suffix ?? ""}{" "}
                           <span className="text-[10px] text-slate-300 font-medium">
@@ -353,16 +352,16 @@ export default async function PerformancePage() {
                         </p>
                       </div>
                       <span
-                        className="text-[12px] font-extrabold tabular-nums"
+                        className="text-[12px] font-semibold tabular-nums"
                         style={{ color: g.accent }}
                       >
                         {pct}%
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-[10px] overflow-hidden">
+                    <div className="h-1.5 w-full bg-slate-100 rounded-xl overflow-hidden">
                       <div
                         className={cn(
-                          "h-full rounded-[10px] transition-all duration-700",
+                          "h-full rounded-xl transition-all duration-700",
                           g.bg,
                         )}
                         style={{ width: `${pct}%` }}
@@ -382,21 +381,21 @@ export default async function PerformancePage() {
         </div>
 
         {/* Trends placeholder */}
-        <div className="bg-white rounded-[10px] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
           <div className="flex items-center gap-2.5 px-6 py-4 border-b border-slate-50">
-            <div className="w-7 h-7 bg-violet-50 rounded-[10px] flex items-center justify-center">
+            <div className="w-7 h-7 bg-violet-50 rounded-xl flex items-center justify-center">
               <TrendingUp
                 size={13}
                 className="text-violet-500"
                 strokeWidth={2.5}
               />
             </div>
-            <span className="text-[14px] font-extrabold text-slate-800">
+            <span className="text-[14px] font-semibold text-slate-800">
               Performance Trends
             </span>
           </div>
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-300">
-            <div className="w-12 h-12 bg-slate-50 rounded-[10px] flex items-center justify-center">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center">
               <TrendingUp
                 size={22}
                 strokeWidth={1.5}
@@ -413,7 +412,6 @@ export default async function PerformancePage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

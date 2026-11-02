@@ -56,23 +56,23 @@ export function StationStatusModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div
             className={cn(
-              "w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md",
+              "w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ",
               isActive ? "text-rose-400" : "text-emerald-400",
             )}
           >
             <AlertCircle className="w-6 h-6" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               Update Status
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Network Availability Protocol
             </SheetDescription>
           </div>
@@ -92,7 +92,7 @@ export function StationStatusModal({
           </p>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[12px] font-bold p-3 rounded-[10px] flex items-center gap-2 justify-center">
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[12px] font-bold p-3 rounded-xl flex items-center gap-2 justify-center">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               {error}
             </div>
@@ -103,7 +103,7 @@ export function StationStatusModal({
               onClick={handleToggle}
               disabled={loading}
               className={cn(
-                "h-14 w-full rounded-[10px] font-black text-[11px] uppercase flex items-center justify-center gap-2",
+                "h-14 w-full rounded-xl font-semibold text-[11px] uppercase flex items-center justify-center gap-2",
                 isActive
                   ? "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200"
                   : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200",
@@ -121,7 +121,7 @@ export function StationStatusModal({
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="h-12 w-full rounded-[10px] font-black text-[11px] uppercase text-slate-400 hover:text-slate-900 border border-slate-50 hover:bg-slate-50"
+              className="h-12 w-full rounded-xl font-semibold text-[11px] uppercase text-slate-400 hover:text-slate-900 border border-slate-50 hover:bg-slate-50"
               disabled={loading}
             >
               Keep Status

@@ -10,6 +10,9 @@ async function getParcel(id: string) {
       user: { select: { name: true, email: true, phone: true } },
       approvedBy: { select: { name: true, email: true } },
       payment: true,
+      origin: { select: { name: true } },
+      destination: { select: { name: true } },
+      tracking: { orderBy: { timestamp: "desc" } },
     },
   });
 }

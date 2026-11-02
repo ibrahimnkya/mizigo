@@ -12,8 +12,7 @@ export default async function OperatorHomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] p-6 lg:p-10 animate-in fade-in duration-700">
-      <div className="max-w-[1520px] mx-auto flex flex-col gap-12 w-full">
+    <div className="flex flex-col gap-5">
         {/* Welcome & Dashboard */}
         <UnifiedDashboardContent
           role={session.user.role}
@@ -21,15 +20,14 @@ export default async function OperatorHomePage() {
         />
 
         {/* Recent Activities */}
-        <div className="space-y-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+        <div className="space-y-4">
+          <p className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
             Recent Station Activity
           </p>
-          <div className="bg-white rounded-[10px] border border-slate-100 shadow-md overflow-hidden p-2">
+          <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
             <RecentActivity activities={dashboardData.recentActivity} />
           </div>
         </div>
-      </div>
     </div>
   );
 }

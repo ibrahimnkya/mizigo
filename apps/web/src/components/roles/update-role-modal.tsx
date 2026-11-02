@@ -113,23 +113,23 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="h-9 px-4 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-800 shadow-md shadow-slate-200 active:scale-95">
+        <button className="h-9 px-4 bg-slate-900 text-white rounded-lg text-[10px] font-semibold uppercase tracking-[0.05em] transition-all hover:bg-slate-800 shadow-md shadow-slate-200 active:scale-95">
           Manage
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 shadow-2xl flex flex-col rounded-2xl">
+      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-          <div className="w-12 h-12 rounded-[10px] bg-white/10 border border-white/10 flex items-center justify-center shrink-0 relative z-10 shadow-2xl backdrop-blur-md">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
             <Settings2 className="w-6 h-6 text-white" strokeWidth={2.5} />
           </div>
           <div className="flex flex-col relative z-10 text-left">
-            <SheetTitle className="text-[20px] font-black text-white tracking-tight leading-tight uppercase">
+            <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
               Refine Security Node
             </SheetTitle>
-            <SheetDescription className="text-white/40 text-[11px] font-bold uppercase tracking-[0.2em] mt-0.5">
+            <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
               Modify permissions & metadata for {role?.name?.replace(/_/g, " ")}
             </SheetDescription>
           </div>
@@ -141,7 +141,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
           className="p-8 space-y-10 flex-1 overflow-y-auto custom-scrollbar"
         >
           {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-[10px] flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
               <div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
               {error}
             </div>
@@ -152,20 +152,20 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-slate-400 mb-2">
                 <Fingerprint size={14} strokeWidth={3} />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                   Identity Metadata
                 </span>
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Role Identifier (System Name)
                 </Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. QUALITY_ASSURANCE"
-                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] px-5 text-[14px] font-bold transition-all uppercase placeholder:normal-case placeholder:font-medium"
+                  className="h-14 bg-slate-50 border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl px-5 text-[14px] font-bold transition-all uppercase placeholder:normal-case placeholder:font-medium"
                   required
                 />
                 <p className="text-[10px] text-slate-400 font-bold italic ml-1">
@@ -174,7 +174,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <Label className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
                   Role Scope Description
                 </Label>
                 <textarea
@@ -182,7 +182,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   placeholder="Describe the capabilities and access scope of this role..."
-                  className="w-full bg-slate-50 border border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-[10px] p-5 text-[13px] font-bold transition-all outline-none resize-none placeholder:font-medium min-h-[100px]"
+                  className="w-full bg-slate-50 border border-slate-100 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 rounded-xl p-5 text-[13px] font-bold transition-all outline-none resize-none placeholder:font-medium min-h-[100px]"
                   required
                 />
               </div>
@@ -193,19 +193,19 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 text-slate-400">
                   <Key size={14} strokeWidth={3} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
                     Capability Matrix
                   </span>
                 </div>
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2.5 py-1 rounded-full">
+                <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-[0.05em] bg-blue-50 px-2.5 py-1 rounded-full">
                   {selectedPermissions.length} Assigned
                 </span>
               </div>
 
               {isLoadingPermissions ? (
-                <div className="py-20 flex flex-col items-center justify-center gap-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="py-20 flex flex-col items-center justify-center gap-3 bg-slate-50 rounded-xl border border-slate-100">
                   <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
                     Fetching Matrix...
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
                       <div key={group} className="space-y-3">
                         <div className="flex items-center gap-2 ml-1">
                           <div className="h-1 w-4 bg-blue-500 rounded-full" />
-                          <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight">
+                          <span className="text-[11px] font-semibold text-slate-900 uppercase tracking-tight">
                             {group.replace(/_/g, " ")} Protocols
                           </span>
                         </div>
@@ -228,7 +228,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
                               className={cn(
                                 "group flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer",
                                 selectedPermissions.includes(p.id)
-                                  ? "bg-blue-50 border-blue-200 shadow-sm"
+                                  ? "bg-blue-50 border-blue-200 "
                                   : "bg-white border-slate-100 hover:border-slate-300",
                               )}
                             >
@@ -252,7 +252,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
                                 <div className="flex flex-col">
                                   <span
                                     className={cn(
-                                      "text-[12px] font-black uppercase tracking-tight transition-colors",
+                                      "text-[12px] font-semibold uppercase tracking-tight transition-colors",
                                       selectedPermissions.includes(p.id)
                                         ? "text-blue-900"
                                         : "text-slate-600",
@@ -261,7 +261,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
                                     {p.name.split(":")[1]?.replace(/_/g, " ") ||
                                       p.name}
                                   </span>
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.05em] mt-0.5">
                                     {p.description ||
                                       `Grant access to ${p.name.replace(/:/g, " ")}`}
                                   </span>
@@ -291,7 +291,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-50 transition-all active:scale-[0.98]"
+            className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all active:scale-[0.98]"
           >
             Cancel
           </button>
@@ -304,7 +304,7 @@ export function UpdateRoleModal({ role, onSuccess }: UpdateRoleModalProps) {
               !description ||
               selectedPermissions.length === 0
             }
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
