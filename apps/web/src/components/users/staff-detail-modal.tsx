@@ -7,6 +7,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@repo/ui/sheet";
 import { Button } from "@repo/ui/button";
 import {
@@ -32,6 +33,7 @@ import {
   Train,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ParcelDetailSheet } from "@/components/parcel/parcel-detail-sheet";
 import api from "@/lib/api/client";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
@@ -66,6 +68,7 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [openParcel, setOpenParcel] = useState<any | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<"overview" | "parcels">(
     "overview",
   );
@@ -239,726 +242,344 @@ export function StaffDetailModal({ staffId, onClose }: StaffDetailModalProps) {
     }
   };
 
+  const ROLE_LABELS: Record<string, string> = {
+    SUPER_ADMIN: "Super admin",
+    ADMIN: "Admin",
+    ORG_ADMIN: "Admin",
+    STATION_MASTER: "Station master",
+    CLERK: "Clerk",
+    TRAIN_GUARD: "Train guard",
+    AGENT: "Agent",
+  };
+  const roleName: string = staff?.role?.name ?? "";
+  const isAdminRole = ["ADMIN", "SUPER_ADMIN"].includes(roleName);
+  const handled = staff?.stats?.totalHandled ?? 0;
+  const inputCls =
+    "h-12 w-full rounded-2xl border border-[#E2E2E2] bg-white px-4 text-[14px] text-[#1C1C1E] outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10";
+
+  const Row = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: React.ReactNode }) => (
+    <div className="flex items-center gap-3 py-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50">
+        <Icon size={16} className="text-orange-500" />
+      </span>
+      <span className="flex-1 text-[14px] text-slate-500">{label}</span>
+      <span className="text-right text-[14px] font-medium text-[#1C1C1E]">{value || "—"}</span>
+    </div>
+  );
+
   return (
     <Sheet open={!!staffId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-[#E2E2E2] rounded-[20px] ">
-        <div className="flex flex-col h-full max-h-[100vh] overflow-hidden">
-          {/* Header Banner */}
-          <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-            <div className="flex items-center gap-5 relative z-10 pr-24">
-              <div className="w-14 h-14 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10   text-white">
-                <User size={26} strokeWidth={2.5} />
-              </div>
-              <div className="flex flex-col relative z-10 text-left">
-                <SheetTitle className="text-[20px] font-semibold text-white tracking-tight leading-tight uppercase">
-                  {isLoading ? "Loading staff info..." : staff?.name}
+      <SheetContent className="flex w-full flex-col gap-0 overflow-hidden border-0 bg-[#F3F3F3] p-0 sm:max-w-[500px] [&>button:last-child]:hidden">
+        {/* Header */}
+        <div className="bridge-card shrink-0 rounded-none px-6 pb-6 pt-7">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15 text-[22px] font-semibold text-white">
+                {(staff?.name || "?").charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-[20px] font-semibold text-white">
+                  {isLoading ? "Loading…" : staff?.name}
                 </SheetTitle>
-                <SheetDescription className="text-slate-500 text-[11px] font-bold uppercase tracking-[0.05em] mt-0.5">
-                  {isLoading
-                    ? "Fetching data"
-                    : `${staff?.role?.name?.replace("_", " ")} profile telemetry`}
+                <SheetDescription className="truncate text-[13px] text-white/70">
+                  {isLoading ? "" : [ROLE_LABELS[roleName] ?? roleName, staff?.station?.name].filter(Boolean).join(" · ")}
                 </SheetDescription>
               </div>
             </div>
-
-            {/* Edit User Action on the Header - Absolutely Positioned */}
-            {!isLoading && staff && (
-              <button
-                id="header-edit-staff-button"
-                type="button"
-                onClick={() => setIsEditing(!isEditing)}
-                className={cn(
-                  "absolute right-20 top-8 w-10 h-10 rounded-xl flex items-center justify-center z-20 transition-all hover:scale-105 active:scale-95 shadow-md",
-                  isEditing
-                    ? "bg-blue-600 text-white border border-blue-500 animate-in spin-in-12 duration-200"
-                    : "bg-white/10 text-slate-700 border border-slate-200 hover:bg-white/20 hover:text-white",
-                )}
-                title={isEditing ? "View Details" : "Edit Staff"}
+            <div className="flex shrink-0 items-center gap-2">
+              {!isLoading && staff && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(!isEditing)}
+                  aria-label={isEditing ? "Stop editing" : "Edit staff"}
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-full transition",
+                    isEditing ? "bg-orange-500 text-white" : "bg-white/15 text-white hover:bg-white/25",
+                  )}
+                >
+                  <Edit3 size={17} />
+                </button>
+              )}
+              <SheetClose
+                aria-label="Close"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               >
-                <Edit3 className="w-5 h-5" strokeWidth={2.5} />
-              </button>
-            )}
+                <X size={18} />
+              </SheetClose>
+            </div>
           </div>
 
-          {/* Tab Navigation */}
           {!isLoading && staff && (
-            <div className="flex items-center gap-1 border-b border-slate-100 px-8 py-2.5 bg-slate-50 shrink-0">
-              <button
-                onClick={() => setActiveSubTab("overview")}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all",
-                  activeSubTab === "overview"
-                    ? "bg-white text-slate-900  border border-slate-200"
-                    : "text-slate-400 hover:text-slate-600",
-                )}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveSubTab("parcels")}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5",
-                  activeSubTab === "parcels"
-                    ? "bg-white text-slate-900  border border-slate-200"
-                    : "text-slate-400 hover:text-slate-600",
-                )}
-              >
-                <span>Parcels Handled</span>
-                <span className="bg-slate-200 text-slate-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                  {staff?.stats?.totalHandled || 0}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {isLoading ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2
-                className="w-8 h-8 animate-spin text-blue-500"
-                strokeWidth={2.5}
-              />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.05em]">
-                Loading Telemetry...
-              </span>
-            </div>
-          ) : staff ? (
-            <div className="flex-1 overflow-y-auto bg-white custom-scrollbar p-8">
-              {activeSubTab === "overview" && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  {/* Profile Details Block */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                        Core Details
-                      </h3>
-                    </div>
-                    {isEditing ? (
-                      <form
-                        onSubmit={handleSaveUser}
-                        className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100 text-left animate-in slide-in-from-top-2 duration-300"
-                      >
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
-                            Phone Number
-                          </label>
-                          <input
-                            type="text"
-                            value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value)}
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                            required
-                          />
-                        </div>
-                        {!["ADMIN", "SUPER_ADMIN"].includes(
-                          staff.role?.name,
-                        ) && (
-                          <div className="space-y-1.5">
-                            <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
-                              Assigned Station
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={editStationId}
-                                onChange={(e) =>
-                                  setEditStationId(e.target.value)
-                                }
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
-                              >
-                                <option value="">Global / All Access</option>
-                                {stations.map((s: any) => (
-                                  <option key={s.id} value={s.id}>
-                                    {s.name} ({s.code})
-                                  </option>
-                                ))}
-                              </select>
-                              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="6 9 12 15 18 9" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {staff.role?.name === "TRAIN_GUARD" && (
-                          <div className="space-y-1.5 mt-4">
-                            <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-[0.05em] ml-1">
-                              Assigned Train / Wagon
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={editWagonId}
-                                onChange={(e) =>
-                                  setEditWagonId(e.target.value)
-                                }
-                                className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-[13px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
-                              >
-                                <option value="">No Active Train Assigned</option>
-                                {vehicles.map((v: any) => (
-                                  <option key={v.id} value={v.id}>
-                                    {v.plateNumber} ({v.type})
-                                  </option>
-                                ))}
-                              </select>
-                              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="6 9 12 15 18 9" />
-                                </svg>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <Button
-                          type="submit"
-                          disabled={saving}
-                          className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-[0.05em] flex items-center justify-center gap-2 active:scale-95 transition-all "
-                        >
-                          {saving ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
-                          ) : (
-                            <CheckCircle2
-                              className="w-4 h-4 text-white"
-                              strokeWidth={3}
-                            />
-                          )}
-                          <span>Save Changes</span>
-                        </Button>
-                      </form>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-3.5 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                        <DetailRow
-                          icon={<Mail className="w-4 h-4 text-slate-400" />}
-                          label="Email"
-                          value={staff.email}
-                        />
-                        <DetailRow
-                          icon={<Phone className="w-4 h-4 text-slate-400" />}
-                          label="Phone"
-                          value={staff.phone || "N/A"}
-                        />
-                        <DetailRow
-                          icon={
-                            <Building2 className="w-4 h-4 text-slate-400" />
-                          }
-                          label="Station"
-                          value={staff.station?.name || "Global / All Access"}
-                        />
-                        {staff.role?.name === "TRAIN_GUARD" && (
-                          <DetailRow
-                            icon={<Train className="w-4 h-4 text-slate-400" />}
-                            label="Assigned Train"
-                            value={staff.wagon?.plateNumber || "No Train Assigned"}
-                          />
-                        )}
-                        <DetailRow
-                          icon={<Shield className="w-4 h-4 text-slate-400" />}
-                          label="Role"
-                          value={staff.role?.name?.replace("_", " ")}
-                          isBadge
-                        />
-                        <DetailRow
-                          icon={<Calendar className="w-4 h-4 text-slate-400" />}
-                          label="Joined On"
-                          value={format(
-                            new Date(staff.createdAt),
-                            "MMMM dd, yyyy",
-                          )}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Performance Statistics */}
-                  <div className="space-y-4">
-                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                      Operations Performance
-                    </h3>
-
-                    {(() => {
-                      const items = [];
-                      if (staff.role?.name !== "TRAIN_GUARD") {
-                        items.push(
-                          <StatBox
-                            key="delivered"
-                            icon={
-                              <PackageCheck className="w-5 h-5 text-emerald-500" />
-                            }
-                            bg="bg-emerald-50"
-                            label="Delivered"
-                            value={staff.stats?.delivered || 0}
-                          />,
-                        );
-                      }
-                      items.push(
-                        <StatBox
-                          key="dispatched"
-                          icon={<Send className="w-5 h-5 text-blue-500" />}
-                          bg="bg-blue-50"
-                          label="Dispatched"
-                          value={staff.stats?.dispatched || 0}
-                        />,
-                      );
-                      if (staff.role?.name !== "CLERK") {
-                        items.push(
-                          <StatBox
-                            key="offloaded"
-                            icon={<Truck className="w-5 h-5 text-indigo-500" />}
-                            bg="bg-indigo-50"
-                            label="Offloaded"
-                            value={staff.stats?.offloaded || 0}
-                          />,
-                        );
-                      }
-                      if (staff.role?.name !== "TRAIN_GUARD") {
-                        items.push(
-                          <StatBox
-                            key="registered"
-                            icon={
-                              <FolderPlus className="w-5 h-5 text-cyan-500" />
-                            }
-                            bg="bg-cyan-50"
-                            label="Registered"
-                            value={staff.stats?.created || 0}
-                          />,
-                        );
-                      }
-
-                      return (
-                        <div
-                          className={cn(
-                            "grid gap-4",
-                            items.length === 3 ? "grid-cols-3" : "grid-cols-2",
-                          )}
-                        >
-                          {items}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Total handled progress row */}
-                    <div className="bg-slate-900 rounded-xl p-5 text-white flex items-center justify-between  relative overflow-hidden mt-2">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-xl pointer-events-none" />
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-2.5 rounded-xl bg-white/10 border border-white/5">
-                          <Activity className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">
-                            Total Operations Handled
-                          </span>
-                          <span className="text-[9px] font-semibold text-slate-500 uppercase mt-0.5">
-                            Sum of all transit steps
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-[26px] font-semibold text-white tabular-nums relative z-10">
-                        {staff.stats?.totalHandled || 0}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions / Admin controls */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                      Security Controls
-                    </h3>
-                    <div className="flex items-center gap-3">
-                      <Button
-                        onClick={handleResendOtp}
-                        disabled={sendingOtp}
-                        className="flex-1 h-12 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 text-white font-bold text-xs uppercase tracking-[0.05em] flex items-center justify-center gap-2.5 active:scale-95 transition-all "
-                      >
-                        {sendingOtp ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-white" />
-                        ) : (
-                          <Lock className="w-4 h-4 text-orange-400" />
-                        )}
-                        <span>Reset Credential OTP</span>
-                      </Button>
-
-                      {/* Delete — only enabled when totalHandled === 0 */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if ((staff.stats?.totalHandled ?? 1) > 0) {
-                            setAlertModal({
-                              isOpen: true,
-                              type: "error",
-                              title: "Deletion Blocked",
-                              message: `${staff.name} has ${staff.stats?.totalHandled} parcel operation(s) on record. Suspend the account instead.`,
-                            });
-                          } else {
-                            setConfirmDelete(true);
-                          }
-                        }}
-                        disabled={deleting}
-                        className="h-12 w-12 flex items-center justify-center rounded-xl border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-600 transition-all active:scale-95 shrink-0 disabled:opacity-50"
-                        title="Delete Staff"
-                      >
-                        {deleting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" strokeWidth={2.5} />
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-[11px] font-semibold text-slate-400 leading-relaxed pl-1">
-                      Resetting credentials triggers a new random 6-digit OTP
-                      code dispatched via SMS. Deletion is only permitted for
-                      staff with zero parcel activity.
-                    </p>
-                  </div>
+            <div className="mt-5 grid grid-cols-4 gap-2 text-white">
+              {[
+                { label: "Received", value: staff.stats?.created },
+                { label: "Dispatched", value: staff.stats?.dispatched },
+                { label: "Offloaded", value: staff.stats?.offloaded },
+                { label: "Delivered", value: staff.stats?.delivered },
+              ].map((m) => (
+                <div key={m.label} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 text-center">
+                  <p className="text-[18px] font-semibold leading-tight tabular-nums">{(m.value || 0).toLocaleString("en-US")}</p>
+                  <p className="text-[11px] text-white/60">{m.label}</p>
                 </div>
-              )}
-
-              {activeSubTab === "parcels" && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                      Handled Transit Log
-                    </h3>
-                    <span className="text-[10px] font-semibold uppercase text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
-                      {parcelsData?.length || 0} entries
-                    </span>
-                  </div>
-
-                  {loadingParcels ? (
-                    <div className="py-12 flex flex-col items-center justify-center gap-2.5 text-slate-400">
-                      <Loader2
-                        className="w-6 h-6 animate-spin text-blue-500"
-                        strokeWidth={2.5}
-                      />
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
-                        Retrieving logs...
-                      </span>
-                    </div>
-                  ) : !parcelsData || parcelsData.length === 0 ? (
-                    <div className="p-8 text-center bg-slate-50 border border-slate-100 rounded-xl">
-                      <p className="text-[11px] font-bold text-slate-400">
-                        No parcels logged under this member's credentials
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
-                      {parcelsData.map((parcel: any) => (
-                        <div
-                          key={parcel.id}
-                          className="p-4 bg-white border border-[#E2E2E2] rounded-[20px]  flex items-center justify-between gap-4"
-                        >
-                          <div className="flex flex-col text-left">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-slate-900 tracking-tight">
-                                {parcel.trackingNumber}
-                              </span>
-                              <ParcelStatusBadge status={parcel.status} />
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-2.5 text-[10.5px] font-semibold text-slate-500">
-                              <span className="truncate max-w-[120px]">
-                                {parcel.origin?.name ||
-                                  parcel.fromAddress ||
-                                  "Hub"}
-                              </span>
-                              <span className="text-slate-300">➔</span>
-                              <span className="truncate max-w-[120px]">
-                                {parcel.destination?.name ||
-                                  parcel.toAddress ||
-                                  "Station"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end shrink-0">
-                            <span className="text-[10.5px] font-semibold text-slate-700">
-                              {format(
-                                new Date(parcel.createdAt),
-                                "MMM dd, yyyy",
-                              )}
-                            </span>
-                            <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-[0.05em] mt-1">
-                              Log Date
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-400 font-bold uppercase tracking-[0.05em] text-xs">
-              Staff records unavailable
+              ))}
             </div>
           )}
         </div>
-        {alertModal && alertModal.isOpen && (
-          <div className="absolute inset-0 bg-slate-950/40  z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
-              <div
-                className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center shrink-0 ",
-                  alertModal.type === "success"
-                    ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                    : "bg-rose-50 text-rose-600 border border-rose-100",
-                )}
-              >
-                {alertModal.type === "success" ? (
-                  <BadgeCheck size={24} strokeWidth={2.5} />
-                ) : (
-                  <X size={24} strokeWidth={2.5} />
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <h4 className="text-[13px] font-semibold uppercase tracking-wider text-slate-900 leading-tight">
-                  {alertModal.title}
-                </h4>
-                <p className="text-[10.5px] font-bold text-slate-400 leading-normal text-center">
-                  {alertModal.message}
-                </p>
-              </div>
-              <Button
-                type="button"
-                onClick={() => {
-                  const wasSuccess = alertModal.type === "success" && alertModal.title === "Staff Removed";
-                  setAlertModal(null);
-                  if (wasSuccess) onClose();
-                }}
-                className={cn(
-                  "w-full h-10 rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] transition-all",
-                  alertModal.type === "success"
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                    : "bg-slate-900 hover:bg-slate-800 text-white",
-                )}
-              >
-                {alertModal.type === "success" && alertModal.title === "Staff Removed" ? "Close" : "Continue"}
-              </Button>
+
+        {/* Tabs */}
+        {!isLoading && staff && !isEditing && (
+          <div className="shrink-0 px-5 pt-4">
+            <div className="flex gap-1 rounded-full border border-[#E2E2E2] bg-white p-1">
+              {(
+                [
+                  ["overview", "Profile"],
+                  ["parcels", `Parcels handled (${handled})`],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveSubTab(key)}
+                  className={cn(
+                    "flex-1 rounded-full py-2 text-[13px] font-semibold transition",
+                    activeSubTab === key ? "bg-orange-500 text-white" : "text-slate-500 hover:text-[#1C1C1E]",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Delete Confirm Dialog */}
-        {confirmDelete && (
-          <div className="absolute inset-0 bg-slate-950/40  z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[20px] border border-[#E2E2E2] p-6  w-full max-w-[340px] flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-                <AlertTriangle size={22} strokeWidth={2.5} />
-              </div>
-              <div className="space-y-1.5">
-                <h4 className="text-[13px] font-semibold uppercase tracking-wider text-slate-900 leading-tight">
-                  Confirm Deletion
-                </h4>
-                <p className="text-[10.5px] font-bold text-slate-400 leading-normal">
-                  You are about to permanently remove{" "}
-                  <span className="text-slate-700">{staff?.name}</span> from the
-                  system. This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-3 w-full">
-                <Button
+        <div className="flex-1 overflow-y-auto p-5">
+          {isLoading ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-slate-400">
+              <Loader2 className="h-7 w-7 animate-spin text-orange-500" />
+              <span className="text-[14px]">Loading staff details…</span>
+            </div>
+          ) : !staff ? (
+            <p className="py-16 text-center text-[14px] text-slate-400">Couldn&apos;t load this staff member.</p>
+          ) : isEditing ? (
+            /* ── Edit ── */
+            <form onSubmit={handleSaveUser} className="flex flex-col gap-4">
+              <section className="flex flex-col gap-4 rounded-[20px] border border-[#E2E2E2] bg-white p-5">
+                <p className="text-[15px] font-semibold text-[#1C1C1E]">Edit details</p>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-[13px] font-medium text-slate-600">Full name</span>
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} required className={inputCls} />
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-[13px] font-medium text-slate-600">Phone</span>
+                  <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className={inputCls} placeholder="e.g. 0712 345 678" />
+                </label>
+                {!isAdminRole && (
+                  <>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-[13px] font-medium text-slate-600">Station</span>
+                      <select value={editStationId} onChange={(e) => setEditStationId(e.target.value)} className={cn(inputCls, "cursor-pointer")}>
+                        <option value="">No station</option>
+                        {stations.map((st: any) => (
+                          <option key={st.id} value={st.id}>
+                            {st.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {roleName === "TRAIN_GUARD" && (
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-[13px] font-medium text-slate-600">Wagon</span>
+                        <select value={editWagonId} onChange={(e) => setEditWagonId(e.target.value)} className={cn(inputCls, "cursor-pointer")}>
+                          <option value="">No wagon</option>
+                          {vehicles.map((v: any) => (
+                            <option key={v.id} value={v.id}>
+                              {v.plateNumber}
+                              {v.type ? ` · ${v.type}` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                  </>
+                )}
+              </section>
+              <div className="flex gap-2">
+                <button
                   type="button"
-                  onClick={() => setConfirmDelete(false)}
-                  className="flex-1 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-semibold uppercase tracking-[0.05em] transition-all"
+                  onClick={() => setIsEditing(false)}
+                  className="h-12 flex-1 rounded-full border border-[#E2E2E2] bg-white text-[14px] font-semibold text-[#5C0B19] transition hover:bg-[#FBF1F2]"
                 >
                   Cancel
-                </Button>
-                <Button
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#5C0B19] text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C] disabled:opacity-60"
+                >
+                  {saving && <Loader2 size={16} className="animate-spin" />} Save changes
+                </button>
+              </div>
+            </form>
+          ) : activeSubTab === "overview" ? (
+            /* ── Profile ── */
+            <div className="flex flex-col gap-4">
+              <section className="rounded-[20px] border border-[#E2E2E2] bg-white px-4 py-1">
+                <div className="divide-y divide-slate-100">
+                  <Row icon={Mail} label="Email" value={staff.email} />
+                  <Row icon={Phone} label="Phone" value={staff.phone} />
+                  <Row icon={Shield} label="Role" value={ROLE_LABELS[roleName] ?? roleName} />
+                  <Row icon={Building2} label="Station" value={staff.station?.name ?? (isAdminRole ? "All stations" : null)} />
+                  {roleName === "TRAIN_GUARD" && <Row icon={Train} label="Wagon" value={staff.wagon?.plateNumber} />}
+                  <Row icon={Calendar} label="Joined" value={staff.createdAt ? format(new Date(staff.createdAt), "d MMM yyyy") : null} />
+                </div>
+              </section>
+
+              <section className="rounded-[20px] border border-[#E2E2E2] bg-white p-5">
+                <p className="text-[15px] font-semibold text-[#1C1C1E]">Access</p>
+                <p className="mt-1 text-[13px] text-slate-500">
+                  Send a new 6-digit access code by SMS if they can&apos;t sign in.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={sendingOtp}
+                  className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#5C0B19] text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C] disabled:opacity-60"
+                >
+                  {sendingOtp ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />} Send new access code
+                </button>
+              </section>
+
+              <section className="rounded-[20px] border border-rose-100 bg-white p-5">
+                <p className="text-[15px] font-semibold text-[#1C1C1E]">Remove staff member</p>
+                <p className="mt-1 text-[13px] text-slate-500">
+                  {handled > 0
+                    ? `${staff.name} has handled ${handled} parcel${handled === 1 ? "" : "s"}, so they can't be removed. Disable the account instead.`
+                    : "Only possible for staff who haven't handled any parcels."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (handled > 0) {
+                      setAlertModal({
+                        isOpen: true,
+                        type: "error",
+                        title: "Can't remove",
+                        message: `${staff.name} has ${handled} parcel operation(s) on record. Disable the account instead.`,
+                      });
+                    } else {
+                      setConfirmDelete(true);
+                    }
+                  }}
+                  disabled={deleting || handled > 0}
+                  className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-rose-200 text-[14px] font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />} Remove
+                </button>
+              </section>
+            </div>
+          ) : (
+            /* ── Parcels handled ── */
+            <section className="overflow-hidden rounded-[20px] border border-[#E2E2E2] bg-white">
+              {loadingParcels ? (
+                <div className="space-y-2 p-4">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-14 animate-pulse rounded-2xl bg-slate-100" />
+                  ))}
+                </div>
+              ) : !parcelsData || parcelsData.length === 0 ? (
+                <p className="px-6 py-12 text-center text-[14px] text-slate-400">No parcels handled yet.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {parcelsData.map((parcel: any) => (
+                    <li key={parcel.id}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenParcel(parcel)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-orange-50/40"
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50">
+                          <PackageCheck size={17} className="text-orange-500" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-semibold tracking-wide text-[#1C1C1E]">{parcel.trackingNumber}</p>
+                          <p className="truncate text-[12px] text-slate-500">
+                            {parcel.origin?.name || parcel.fromAddress || "—"} → {parcel.destination?.name || parcel.toAddress || "—"}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <ParcelStatusBadge status={parcel.status} />
+                          <p className="mt-1 text-[11px] text-slate-400">
+                            {parcel.createdAt ? format(new Date(parcel.createdAt), "d MMM yyyy") : ""}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+        </div>
+
+        {/* Result message */}
+        {alertModal && alertModal.isOpen && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 p-6">
+            <div className="flex w-full max-w-[340px] flex-col items-center rounded-[24px] bg-white p-6 text-center shadow-premium">
+              <span
+                className={cn(
+                  "flex h-14 w-14 items-center justify-center rounded-full",
+                  alertModal.type === "success" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600",
+                )}
+              >
+                {alertModal.type === "success" ? <BadgeCheck size={26} /> : <AlertTriangle size={26} />}
+              </span>
+              <p className="mt-4 text-[17px] font-semibold text-[#1C1C1E]">{alertModal.title}</p>
+              <p className="mt-1 text-[14px] text-slate-500">{alertModal.message}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  const wasRemoved = alertModal.type === "success" && alertModal.title === "Staff Removed";
+                  setAlertModal(null);
+                  if (wasRemoved) onClose();
+                }}
+                className="mt-5 h-11 w-full rounded-full bg-[#5C0B19] text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+              >
+                {alertModal.type === "success" && alertModal.title === "Staff Removed" ? "Close" : "OK"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Remove confirmation */}
+        {confirmDelete && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 p-6">
+            <div className="flex w-full max-w-[340px] flex-col items-center rounded-[24px] bg-white p-6 text-center shadow-premium">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                <AlertTriangle size={26} />
+              </span>
+              <p className="mt-4 text-[17px] font-semibold text-[#1C1C1E]">Remove {staff?.name}?</p>
+              <p className="mt-1 text-[14px] text-slate-500">They&apos;ll lose access straight away. This can&apos;t be undone.</p>
+              <div className="mt-5 flex w-full gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  className="h-11 flex-1 rounded-full border border-[#E2E2E2] text-[14px] font-semibold text-slate-600 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
                   type="button"
                   onClick={handleDeleteStaff}
-                  className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-semibold uppercase tracking-[0.05em] transition-all"
+                  disabled={deleting}
+                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-rose-600 text-[14px] font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
                 >
-                  Delete
-                </Button>
+                  {deleting && <Loader2 size={15} className="animate-spin" />} Remove
+                </button>
               </div>
             </div>
           </div>
         )}
       </SheetContent>
+      <ParcelDetailSheet parcel={openParcel} onClose={() => setOpenParcel(null)} />
     </Sheet>
-  );
-}
-
-// Sub-components
-
-function DetailRow({
-  icon,
-  label,
-  value,
-  isBadge = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  isBadge?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between py-1.5 first:pt-0 last:pb-0">
-      <div className="flex items-center gap-3.5">
-        {icon}
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-          {label}
-        </span>
-      </div>
-      {isBadge ? (
-        <span
-          className={cn(
-            "text-[9px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider",
-            value === "ADMIN"
-              ? "bg-blue-100 text-blue-700"
-              : value === "STATION_MASTER"
-                ? "bg-amber-100 text-amber-700"
-                : value === "CLERK"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : value === "TRAIN_GUARD"
-                    ? "bg-cyan-100 text-cyan-700"
-                    : "bg-slate-100 text-slate-700",
-          )}
-        >
-          {value.replace("_", " ")}
-        </span>
-      ) : (
-        <span className="text-xs font-semibold text-slate-700 uppercase tracking-tight truncate max-w-[240px]">
-          {value}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function StatBox({
-  icon,
-  bg,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  bg: string;
-  label: string;
-  value: number;
-}) {
-  const colorName = bg.replace("bg-", "").replace("-50", "");
-  
-  const [counted, setCounted] = useState(0);
-  useEffect(() => {
-    if (!value) {
-      setCounted(0);
-      return;
-    }
-    const steps = 30;
-    const increment = value / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setCounted(value);
-        clearInterval(timer);
-      } else {
-        setCounted(Math.floor(current));
-      }
-    }, 800 / steps);
-    return () => clearInterval(timer);
-  }, [value]);
-
-  const colorMap: Record<string, { border: string; bg: string; text: string; bar: string }> = {
-    emerald: {
-      border: "border-emerald-100/80",
-      bg: "bg-emerald-50/50",
-      text: "text-emerald-600",
-      bar: "bg-emerald-500",
-    },
-    blue: {
-      border: "border-blue-100/80",
-      bg: "bg-blue-50/50",
-      text: "text-blue-600",
-      bar: "bg-blue-500",
-    },
-    indigo: {
-      border: "border-indigo-100/80",
-      bg: "bg-indigo-50/50",
-      text: "text-indigo-600",
-      bar: "bg-indigo-500",
-    },
-    cyan: {
-      border: "border-cyan-100/80",
-      bg: "bg-cyan-50/50",
-      text: "text-cyan-600",
-      bar: "bg-cyan-500",
-    },
-    rose: {
-      border: "border-rose-100/80",
-      bg: "bg-rose-50/50",
-      text: "text-rose-600",
-      bar: "bg-rose-500",
-    },
-    amber: {
-      border: "border-amber-100/80",
-      bg: "bg-amber-50/50",
-      text: "text-amber-600",
-      bar: "bg-amber-500",
-    },
-  };
-
-  const scheme = colorMap[colorName] || {
-    border: "border-slate-100",
-    bg: "bg-slate-50",
-    text: "text-slate-600",
-    bar: "bg-slate-500",
-  };
-
-  return (
-    <div className="group relative flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white transition-all duration-300 hover:shadow-md hover:border-slate-200 overflow-hidden">
-      <div className={cn("p-2.5 rounded-xl shrink-0 transition-transform duration-300 group-hover:scale-110 ", bg)}>
-        {icon}
-      </div>
-
-      <div className="flex flex-col min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none truncate">
-            {label}
-          </span>
-          <span className={cn(
-            "text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border",
-            scheme.bg,
-            scheme.border,
-            scheme.text
-          )}>
-            Activity
-          </span>
-        </div>
-        <span className={cn("text-2xl font-semibold mt-1.5 leading-none tabular-nums", scheme.text)}>
-          {counted.toLocaleString()}
-        </span>
-      </div>
-
-      <div className={cn("absolute left-0 top-0 bottom-0 w-[3px] transition-all duration-300", scheme.bar)} />
-    </div>
   );
 }

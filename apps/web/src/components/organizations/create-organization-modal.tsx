@@ -191,7 +191,7 @@ export function CreateOrganizationModal({
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetTrigger asChild>
-        <button className="h-12 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-[13px] uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 group">
+        <button className="h-12 px-6 bg-[#5C0B19] hover:bg-[#4F0A0C] text-white rounded-xl font-semibold text-[13px] uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 group">
           <Plus
             className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300"
             strokeWidth={3}
@@ -202,7 +202,7 @@ export function CreateOrganizationModal({
 
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header */}
-        <div className="bg-slate-900 px-8 py-6 flex items-center gap-5 shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-6 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="w-11 h-11 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10">
             <Building2 className="w-5 h-5 text-white" strokeWidth={2.5} />
@@ -231,7 +231,7 @@ export function CreateOrganizationModal({
                     done
                       ? "bg-emerald-500 text-white"
                       : active
-                      ? "bg-slate-900 text-white"
+                      ? "bg-[#5C0B19] text-white"
                       : "bg-slate-100 text-slate-300"
                   )}
                 >
@@ -451,7 +451,7 @@ export function CreateOrganizationModal({
                           className={cn(
                             "flex-1 h-12 rounded-xl border font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center justify-center gap-2 transition-all",
                             paymentMethod === m
-                              ? "bg-slate-900 text-white border-slate-900"
+                              ? "bg-[#5C0B19] text-white border-slate-900"
                               : "bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300"
                           )}
                         >
@@ -560,7 +560,7 @@ export function CreateOrganizationModal({
                 type="button"
                 disabled={!canAdvance()}
                 onClick={() => setStep((s) => s + 1)}
-                className="flex-1 h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight className="w-4 h-4" strokeWidth={3} />

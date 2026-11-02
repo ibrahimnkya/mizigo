@@ -177,7 +177,7 @@ export default function DeliverPage() {
                   </div>
                   <button
                     onClick={() => setVerifyingParcelId(item.id)}
-                    className="h-11 px-6 bg-slate-900 text-white rounded-xl text-xs font-semibold  shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
+                    className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-xs font-semibold  shadow-[#5C0B19]/15 hover:bg-[#4F0A0C] transition-all active:scale-95 flex items-center gap-2"
                   >
                     <PackageCheck size={14} />
                     Finalize Handover
@@ -240,7 +240,7 @@ export default function DeliverPage() {
               <button
                 type="submit"
                 disabled={isUpdating || otp.length < 6}
-                className="w-full h-16 bg-slate-900 text-white rounded-xl font-semibold text-lg  shadow-slate-900/10 hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-3 transition-all active:scale-95"
+                className="w-full h-16 bg-[#5C0B19] text-white rounded-xl font-semibold text-lg  shadow-[#5C0B19]/15 hover:bg-[#4F0A0C] disabled:opacity-50 flex items-center justify-center gap-3 transition-all active:scale-95"
               >
                 {isUpdating ? (
                   <Loader2 className="animate-spin" />

@@ -330,7 +330,7 @@ function PaymentConfigPageInner() {
                     type="submit"
                     form="payment-gateway-form"
                     disabled={isCreating || isUpdating}
-                    className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+                    className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
                   >
                     {isCreating || isUpdating ? (
                       <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -394,7 +394,7 @@ function PaymentConfigPageInner() {
                   >
                     <div className="flex items-center justify-between">
                       <div className={cn(
-                        "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
+                        "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-[#5C0B19] group-hover:text-white group-hover:scale-110",
                         stat.color,
                       )}>
                         <stat.icon size={20} strokeWidth={2.5} />
@@ -460,7 +460,7 @@ function PaymentConfigPageInner() {
                       </div>
                       <button
                         onClick={() => refetchProviders()}
-                        className="h-9 px-4 bg-slate-900 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all hover:bg-slate-800"
+                        className="h-9 px-4 bg-[#5C0B19] text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all hover:bg-[#4F0A0C]"
                       >
                         Retry
                       </button>
@@ -523,7 +523,7 @@ function PaymentConfigPageInner() {
                 </div>
 
                 {/* Live Push Test Panel */}
-                <div className="lg:col-span-2 bg-slate-900 rounded-xl p-8 text-white overflow-hidden relative  flex flex-col min-h-[420px]">
+                <div className="lg:col-span-2 bg-[#5C0B19] rounded-xl p-8 text-white overflow-hidden relative  flex flex-col min-h-[420px]">
                   <div className="relative z-10 flex flex-col flex-1">
                     <div className="flex items-center gap-3 text-blue-400 mb-6">
                       <ShieldCheck size={20} strokeWidth={2.5} />
@@ -561,7 +561,7 @@ function PaymentConfigPageInner() {
                               required
                             >
                               {activeProviders.map((p) => (
-                                <option key={p.id} value={p.code} className="bg-slate-900 text-white">
+                                <option key={p.id} value={p.code} className="bg-[#5C0B19] text-white">
                                   {p.name}
                                 </option>
                               ))}
@@ -616,7 +616,7 @@ function PaymentConfigPageInner() {
                         <button
                           type="submit"
                           disabled={isTesting || !activeConfig}
-                          className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] transition-all  shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+                          className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-[#4F0A0C] disabled:text-slate-500 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] transition-all  shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
                         >
                           {isTesting ? (
                             <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

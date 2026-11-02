@@ -377,7 +377,7 @@ function PlatformAgentsPageInner() {
           action={
             <button
               onClick={openCreateAgent}
-              className="h-11 px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 transition-all active:scale-95 shrink-0"
+              className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-[#5C0B19] px-5 text-[13px] font-semibold text-white transition hover:bg-[#4F0A0C] active:scale-95"
             >
               <Plus size={14} strokeWidth={3} />
               Register Agent
@@ -391,80 +391,86 @@ function PlatformAgentsPageInner() {
             {/* Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: "Total Agents", val: totalAgents, icon: Layers, color: "text-blue-500", bg: "bg-blue-50" },
-                { label: "Active & Approved", val: activeAgents, icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-50" },
-                { label: "Pending KYC", val: pendingKyc, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
-                { label: "Commission Collected", val: formatCurrency(totalCollected), icon: CircleDollarSign, color: "text-indigo-500", bg: "bg-indigo-50" },
+                { label: "Agents", val: totalAgents, icon: Layers, color: "text-orange-500", bg: "bg-orange-50" },
+                { label: "Active and approved", val: activeAgents, icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-50" },
+                { label: "Waiting for KYC review", val: pendingKyc, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
+                { label: "Commission collected", val: formatCurrency(totalCollected), icon: CircleDollarSign, color: "text-[#5C0B19]", bg: "bg-[#FBF1F2]" },
               ].map((stat, i) => (
-                <div key={i} className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px]  hover:border-slate-300 transition-all hover: hover:shadow-slate-100/50">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={cn("p-2.5 rounded-xl", stat.bg)}>
-                      <stat.icon className={cn("w-5 h-5", stat.color)} />
-                    </div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] leading-none">{stat.label}</span>
+                <div key={i} className="flex items-center gap-4 rounded-[24px] border border-[#E2E2E2] bg-white p-5">
+                  <span className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", stat.bg)}>
+                    <stat.icon className={cn("h-[22px] w-[22px]", stat.color)} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[13px] text-slate-500">{stat.label}</p>
+                    <p className="truncate text-[24px] font-semibold leading-tight tabular-nums text-[#1C1C1E]">{stat.val}</p>
                   </div>
-                  <span className="text-[26px] font-semibold text-slate-900 tabular-nums">{stat.val}</span>
                 </div>
               ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Dark explainer card */}
-              <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
-                <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-                <div className="relative z-10 space-y-6">
-                  <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200">
-                    <ShieldCheck className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <h3 className="text-[24px] font-semibold tracking-tight leading-none mb-3">Agent Network</h3>
-                  <p className="text-slate-400 text-[13px] font-bold leading-relaxed opacity-85">
-                    Platform agents and business partners generate revenue on your behalf. They submit KYC, get approved, and earn commissions on the parcels they refer.
+              {/* KYC call to action */}
+              <div className="bridge-card flex min-h-[320px] flex-col justify-between p-6 lg:col-span-1">
+                <div>
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                    <ShieldCheck className="h-6 w-6 text-orange-300" />
+                  </span>
+                  <p className="mt-5 text-[14px] text-white/70">Waiting for KYC review</p>
+                  <p className="text-[44px] font-semibold leading-none tabular-nums">{pendingKyc}</p>
+                  <p className="mt-2 text-[14px] text-white/70">
+                    {pendingKyc
+                      ? "Check their documents so they can start taking parcels."
+                      : "All agents have been reviewed."}
                   </p>
-                  <div className="grid grid-cols-2 gap-3 pt-4">
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500 mb-1">Independent</p>
-                      <p className="text-xl font-semibold text-white tabular-nums">{independentAgents}</p>
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/15 bg-white/10 px-3.5 py-2.5">
+                      <p className="text-[12px] text-white/60">Independent</p>
+                      <p className="text-[20px] font-semibold tabular-nums">{independentAgents}</p>
                     </div>
-                    <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500 mb-1">Businesses</p>
-                      <p className="text-xl font-semibold text-white tabular-nums">{businesses}</p>
+                    <div className="rounded-2xl border border-white/15 bg-white/10 px-3.5 py-2.5">
+                      <p className="text-[12px] text-white/60">Businesses</p>
+                      <p className="text-[20px] font-semibold tabular-nums">{businesses}</p>
                     </div>
                   </div>
                 </div>
-                <div className="relative z-10 flex items-center gap-3 pt-6 border-t border-slate-200">
-                  <TrendingUp className="w-5 h-5 text-emerald-400" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Commission-based partner model</span>
-                </div>
+                {pendingKyc > 0 && (
+                  <a
+                    href="?tab=kyc+review"
+                    className="mt-6 flex h-11 items-center justify-center rounded-full bg-orange-500 text-[14px] font-semibold text-white transition hover:bg-orange-600"
+                  >
+                    Review now
+                  </a>
+                )}
               </div>
 
               {/* Active agents quick list */}
               <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex flex-col">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                   <div>
-                    <h3 className="text-md font-semibold text-slate-900 tracking-tight">Active Agent Directory</h3>
-                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mt-0.5">Approved & operational agents</p>
+                    <h3 className="text-[17px] font-semibold text-[#1C1C1E]">Active Agent Directory</h3>
+                    <p className="text-[13px] text-slate-500 mt-0.5">Approved & operational agents</p>
                   </div>
                 </div>
                 <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto pr-1 flex-1">
                   {agents.filter((a) => a.isActive).map((agent, idx) => (
                     <div key={agent.id} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center shrink-0", agent.type === "BUSINESS" ? "bg-indigo-100" : "bg-blue-100")}>
-                          {agent.type === "BUSINESS" ? <Building2 size={14} className="text-indigo-600" /> : <Users size={14} className="text-blue-600" />}
+                        <div className={cn("h-9 w-9 rounded-full flex items-center justify-center shrink-0", agent.type === "BUSINESS" ? "bg-[#FBF1F2]" : "bg-orange-50")}>
+                          {agent.type === "BUSINESS" ? <Building2 size={15} className="text-[#5C0B19]" /> : <Users size={15} className="text-orange-500" />}
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-slate-800 truncate">{agent.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 truncate">{agent.email}</p>
+                          <p className="text-[12px] text-slate-400 truncate">{agent.email}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xs font-semibold text-blue-600">{agent.commissionRate ? `${(agent.commissionRate * 100).toFixed(1)}%` : "—"}</p>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">commission</p>
+                        <p className="text-[13px] font-semibold text-orange-600">{agent.commissionRate ? `${(agent.commissionRate * 100).toFixed(1)}%` : "—"}</p>
+                        <p className="text-[11px] text-slate-400">commission</p>
                       </div>
                     </div>
                   ))}
                   {agents.filter((a) => a.isActive).length === 0 && (
-                    <p className="text-center text-xs text-slate-400 py-12 font-bold uppercase tracking-wider">No active agents yet.</p>
+                    <p className="text-center text-[14px] text-slate-400 py-12">No active agents yet.</p>
                   )}
                 </div>
                 <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
@@ -486,7 +492,7 @@ function PlatformAgentsPageInner() {
                 <Users className="w-12 h-12 text-slate-300 mb-4 animate-pulse" />
                 <h3 className="text-md font-semibold text-slate-700 mb-1">No Platform Agents Registered</h3>
                 <p className="text-slate-400 text-xs font-semibold max-w-sm leading-relaxed mb-6">Register your first independent agent or business partner to get started.</p>
-                <button onClick={openCreateAgent} className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-slate-800 transition-all">
+                <button onClick={openCreateAgent} className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[13px] font-semibold flex items-center gap-2 hover:bg-[#4F0A0C] transition-all">
                   <Plus size={14} strokeWidth={3} />
                   Register First Agent
                 </button>
@@ -564,7 +570,7 @@ function PlatformAgentsPageInner() {
                       {agent.kycStatus === "APPROVED" && (
                         <button
                           onClick={() => openCommissionModal(agent)}
-                          className="h-8 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] flex items-center gap-1.5 transition-all"
+                          className="h-8 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[12px] font-medium flex items-center gap-1.5 transition-all"
                         >
                           <CircleDollarSign size={11} />
                           Record Commission
@@ -613,7 +619,7 @@ function PlatformAgentsPageInner() {
                         <KycBadge status={agent.kycStatus} />
                         <button
                           onClick={() => openKycReview(agent)}
-                          className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] flex items-center gap-1.5 transition-all"
+                          className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[12px] font-medium flex items-center gap-1.5 transition-all"
                         >
                           <Eye size={11} />
                           Review
@@ -684,7 +690,7 @@ function PlatformAgentsPageInner() {
                       <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t border-slate-100 sm:border-t-0">
                         <div className="text-left sm:text-right">
                           <p className="text-sm font-semibold text-blue-600 tabular-nums">{formatCurrency(c.commissionDue)}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">due</p>
+                          <p className="text-[11px] text-slate-400">due</p>
                         </div>
                         {c.collectedAt ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.05em] rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100">
@@ -694,7 +700,7 @@ function PlatformAgentsPageInner() {
                         ) : (
                           <button
                             onClick={() => setCollectModal(c)}
-                            className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] flex items-center gap-1.5 transition-all"
+                            className="h-9 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[12px] font-medium flex items-center gap-1.5 transition-all"
                           >
                             <CheckCircle size={11} />
                             Collect
@@ -793,9 +799,9 @@ function PlatformAgentsPageInner() {
 
             <DialogFooter className="mt-6 flex items-center justify-end gap-3">
               <DialogClose asChild>
-                <button type="button" onClick={resetAgentForm} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95">Cancel</button>
+                <button type="button" onClick={resetAgentForm} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[13px] font-semibold transition-all active:scale-95">Cancel</button>
               </DialogClose>
-              <button type="submit" disabled={isCreating || isUpdating} className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50">
+              <button type="submit" disabled={isCreating || isUpdating} className="h-11 px-6 bg-[#5C0B19] text-white hover:bg-[#4F0A0C] rounded-xl text-[13px] font-semibold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50">
                 {(isCreating || isUpdating) ? <Loader2 size={13} className="animate-spin" /> : null}
                 {agentForm.id ? "Save Changes" : "Register Agent"}
               </button>
@@ -855,13 +861,13 @@ function PlatformAgentsPageInner() {
 
             <DialogFooter className="mt-6 flex items-center justify-end gap-3">
               <DialogClose asChild>
-                <button type="button" className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95">Cancel</button>
+                <button type="button" className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[13px] font-semibold transition-all active:scale-95">Cancel</button>
               </DialogClose>
               <button
                 type="submit"
                 disabled={isUpdatingKyc}
                 className={cn(
-                  "h-11 px-6 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50",
+                  "h-11 px-6 text-white rounded-xl text-[13px] font-semibold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50",
                   kycForm.kycStatus === "APPROVED" ? "bg-emerald-600 hover:bg-emerald-500" :
                   kycForm.kycStatus === "REJECTED" ? "bg-red-600 hover:bg-red-500" :
                   "bg-blue-600 hover:bg-blue-700"
@@ -927,9 +933,9 @@ function PlatformAgentsPageInner() {
 
             <DialogFooter className="mt-6 flex items-center justify-end gap-3">
               <DialogClose asChild>
-                <button type="button" onClick={resetCommissionForm} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95">Cancel</button>
+                <button type="button" onClick={resetCommissionForm} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[13px] font-semibold transition-all active:scale-95">Cancel</button>
               </DialogClose>
-              <button type="submit" disabled={isCreatingCommission} className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50">
+              <button type="submit" disabled={isCreatingCommission} className="h-11 px-6 bg-[#5C0B19] text-white hover:bg-[#4F0A0C] rounded-xl text-[13px] font-semibold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50">
                 {isCreatingCommission ? <Loader2 size={13} className="animate-spin" /> : null}
                 Record Period
               </button>
@@ -964,11 +970,11 @@ function PlatformAgentsPageInner() {
               </div>
 
               <div className="flex items-center justify-end gap-3">
-                <button onClick={() => setCollectModal(null)} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95">Cancel</button>
+                <button onClick={() => setCollectModal(null)} className="h-11 px-5 border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl text-[13px] font-semibold transition-all active:scale-95">Cancel</button>
                 <button
                   disabled={isCollecting}
                   onClick={() => collectCommission({ id: collectModal.id })}
-                  className="h-11 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                  className="h-11 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[13px] font-semibold flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {isCollecting ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
                   Mark as Collected

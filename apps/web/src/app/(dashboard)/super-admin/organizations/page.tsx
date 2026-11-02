@@ -1,7 +1,10 @@
 "use client";
+import { ReportSummary } from "@/components/reports/report-kit";
+import { PrimaryPill } from "@/components/shared/overview-kit";
+import { Building2 as OrgIcon, CheckCircle2, PauseCircle, Percent } from "lucide-react";
 import { Suspense } from "react";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { useOrganizations } from "@/modules/organizations/use-organizations";
 import { DataTable } from "@/components/shared/data-table";
@@ -125,6 +128,7 @@ function OrganizationsPageInner() {
     },
   ];
 
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
 
@@ -142,108 +146,75 @@ function OrganizationsPageInner() {
         />
 
         <div className="mt-2 animate-in fade-in duration-700">
-          {tab.toLowerCase() === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  {
-                    label: "Active Partners",
-                    count: activeOrgs,
-                    icon: ShieldCheck,
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-                  {
-                    label: "Total Organizations",
-                    count: totalOrgs,
-                    icon: Building2,
-                    color: "text-emerald-600",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Average Commission",
-                    count: `${averageRate}%`,
-                    icon: Zap,
-                    color: "text-indigo-600",
-                    bg: "bg-indigo-50",
-                  },
-                  {
-                    label: "Active Ratio",
-                    count: activeRatio,
-                    icon: Globe,
-                    color: "text-slate-600",
-                    bg: "bg-slate-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-5 bg-white border border-[#E2E2E2] rounded-[20px]"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={cn("p-2 rounded-xl", stat.bg)}>
-                        <stat.icon className={cn("w-4 h-4", stat.color)} />
-                      </div>
-                      <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                        {stat.label}
-                      </span>
+          {tab.toLowerCase() === "overview" && (() => {
+            const orgs: any[] = organizations ?? [];
+            const active = orgs.filter((o) => o.isActive).length;
+            const rates = orgs.filter((o) => o.commissionRate != null).map((o) => o.commissionRate * 100);
+            const avgRate = rates.length ? rates.reduce((n, r) => n + r, 0) / rates.length : 0;
+            return (
+              <div className="flex flex-col gap-5">
+                <ReportSummary
+                  label="Organizations"
+                  value={isLoading ? "…" : String(orgs.length)}
+                  note={`${active} active · ${orgs.length - active} paused`}
+                  loading={isLoading}
+                  chips={[
+                    { label: "Active", value: String(active), icon: CheckCircle2 },
+                    { label: "Paused", value: String(orgs.length - active), icon: PauseCircle },
+                    { label: "Average commission", value: rates.length ? `${avgRate.toFixed(1)}%` : "—", icon: Percent },
+                  ]}
+                />
+                <section className="overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                    <div>
+                      <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Your organizations</h2>
+                      <p className="text-[13px] text-slate-500">Partners running parcels on the platform</p>
                     </div>
-                    <span className="text-[26px] font-semibold text-slate-900 tabular-nums">
-                      {stat.count}
-                    </span>
+                    <PrimaryPill onClick={() => router.push("?tab=all")}>Manage organizations</PrimaryPill>
                   </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] flex flex-col min-h-[360px]">
-                  <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-[14px] font-semibold text-slate-800">
-                      Organization Network
-                    </h3>
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <p className="text-[13px] text-slate-500 leading-relaxed mb-5">
-                      Organizations are the root entities that own stations and
-                      fleet. Commissions are applied per organization.
-                    </p>
-                    <div className="space-y-2 mt-auto">
-                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Active Partners
-                        </span>
-                        <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
-                          {activeOrgs}
-                        </span>
-                      </div>
-                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Total Network
-                        </span>
-                        <span className="text-[14px] font-semibold text-blue-600 tabular-nums">
-                          {totalOrgs}
-                        </span>
-                      </div>
+                  {orgs.length === 0 ? (
+                    <p className="px-6 py-12 text-center text-[14px] text-slate-400">No organizations yet.</p>
+                  ) : (
+                    <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {orgs.map((o) => (
+                        <div key={o.id} className="rounded-[20px] border border-[#E2E2E2] p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#FBF1F2]">
+                                {o.logoUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={o.logoUrl} alt="" className="h-full w-full object-contain" />
+                                ) : (
+                                  <Building2 size={19} className="text-[#5C0B19]" />
+                                )}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="truncate text-[16px] font-semibold text-[#1C1C1E]">{o.name}</p>
+                                <p className="truncate text-[12px] text-slate-400">{o.email || o.phone || o.slug || ""}</p>
+                              </div>
+                            </div>
+                            <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold", o.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")}>
+                              {o.isActive ? "Active" : "Paused"}
+                            </span>
+                          </div>
+                          <div className="mt-4 grid grid-cols-2 gap-2">
+                            <div className="rounded-2xl bg-[#F7F5F4] px-3 py-2.5">
+                              <p className="text-[12px] text-slate-500">Commission</p>
+                              <p className="text-[16px] font-semibold text-[#1C1C1E]">{o.commissionRate != null ? `${(o.commissionRate * 100).toFixed(1)}%` : "—"}</p>
+                            </div>
+                            <div className="rounded-2xl bg-[#F7F5F4] px-3 py-2.5">
+                              <p className="text-[12px] text-slate-500">Joined</p>
+                              <p className="text-[16px] font-semibold text-[#1C1C1E]">{o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-GB", { month: "short", year: "numeric" }) : "—"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2] p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-                    <Activity className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
-                    Growth & Commission Trends
-                  </h4>
-                  <p className="text-[13px] text-slate-500 max-w-md">
-                    Detailed graphical analysis of organizational growth and
-                    commission distributions will be populated here as data
-                    accumulates.
-                  </p>
-                </div>
+                  )}
+                </section>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {tab.toLowerCase() === "all" && (
             <div className="bg-white rounded-[20px] border border-[#E2E2E2] overflow-hidden">

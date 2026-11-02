@@ -124,7 +124,7 @@ export function UpdateStationModal({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-[#E2E2E2] rounded-[20px] ">
         {/* Header Section */}
-        <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-5 relative z-10 pr-24">
             <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
@@ -561,7 +561,7 @@ export function UpdateStationModal({
               type="submit"
               form="update-station-form"
               disabled={loading || !name || !code}
-              className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+              className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

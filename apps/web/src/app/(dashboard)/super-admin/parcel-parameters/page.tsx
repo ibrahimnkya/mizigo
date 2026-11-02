@@ -338,7 +338,7 @@ export default function ParcelParametersPage() {
               <button
                 onClick={() => saveParameters()}
                 disabled={isSaving || !hasUnsavedChanges}
-                className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
+                className="h-11 px-6 bg-blue-600 disabled:bg-[#4F0A0C] disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
               >
                 {isSaving ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -391,7 +391,7 @@ export default function ParcelParametersPage() {
                 />
                 <button
                   onClick={addType}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-[#5C0B19] text-white rounded-xl flex items-center justify-center hover:bg-[#4F0A0C] transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -479,7 +479,7 @@ export default function ParcelParametersPage() {
                 />
                 <button
                   onClick={addCondition}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-[#5C0B19] text-white rounded-xl flex items-center justify-center hover:bg-[#4F0A0C] transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -567,7 +567,7 @@ export default function ParcelParametersPage() {
                 />
                 <button
                   onClick={addSize}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-[#5C0B19] text-white rounded-xl flex items-center justify-center hover:bg-[#4F0A0C] transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -658,7 +658,7 @@ export default function ParcelParametersPage() {
                 />
                 <button
                   onClick={addPriority}
-                  className="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-all"
+                  className="w-11 h-11 bg-[#5C0B19] text-white rounded-xl flex items-center justify-center hover:bg-[#4F0A0C] transition-all"
                 >
                   <Plus size={16} strokeWidth={2.5} />
                 </button>
@@ -776,7 +776,7 @@ export default function ParcelParametersPage() {
             </DialogClose>
             <button
               onClick={saveEditedParam}
-              className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em]  shadow-slate-900/10 transition-all active:scale-95"
+              className="h-11 px-6 bg-[#5C0B19] text-white hover:bg-[#4F0A0C] rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em]  shadow-[#5C0B19]/15 transition-all active:scale-95"
             >
               Update Parameter
             </button>

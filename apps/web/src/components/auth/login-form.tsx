@@ -19,7 +19,7 @@ function LoginButton() {
       type="submit"
       aria-disabled={pending}
       disabled={pending}
-      className="w-full h-11 bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white text-[13px] font-semibold rounded-xl flex items-center justify-center gap-2 transition-all  active:translate-y-0  shadow-slate-900/20"
+      className="w-full h-11 bg-[#5C0B19] hover:bg-[#4F0A0C] disabled:opacity-60 text-white text-[13px] font-semibold rounded-xl flex items-center justify-center gap-2 transition-all  active:translate-y-0  shadow-slate-900/20"
     >
       {pending ? (
         <>

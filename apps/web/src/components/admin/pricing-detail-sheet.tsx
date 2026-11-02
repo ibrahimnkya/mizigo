@@ -136,7 +136,7 @@ export function PricingDetailSheet({
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
-        <div className="bg-slate-900 px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-8 flex items-center justify-between shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="flex items-center gap-5 relative z-10 pr-16">
             <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
@@ -494,7 +494,7 @@ export function PricingDetailSheet({
         <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl transition-all active:scale-[0.98]"
+            className="w-full h-14 bg-[#5C0B19] hover:bg-[#4F0A0C] text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl transition-all active:scale-[0.98]"
           >
             Close
           </button>

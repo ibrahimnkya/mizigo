@@ -14,11 +14,16 @@ api.interceptors.request.use(
   async (config) => {
     // Client-side session retrieval
     if (typeof window !== "undefined") {
-      const session = await getSession();
-      const token = (session?.user as any)?.token;
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Public pages (e.g. tracking) must still work when there is no session
+      // or the auth endpoint is unavailable, so never let this throw.
+      try {
+        const session = await getSession();
+        const token = (session?.user as any)?.token;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch {
+        /* no session — send the request without a token */
       }
     }
     return config;

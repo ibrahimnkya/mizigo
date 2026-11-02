@@ -367,7 +367,7 @@ function SmsConfigPageInner() {
                   <button type="button" onClick={() => setOpenEditor(false)} className="flex-1 h-14 rounded-xl bg-white border border-slate-200 text-slate-400 text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-50 transition-all">
                     Cancel
                   </button>
-                  <button type="submit" form="sms-gateway-form" disabled={isCreating || isUpdating} className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
+                  <button type="submit" form="sms-gateway-form" disabled={isCreating || isUpdating} className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all flex items-center justify-center gap-3">
                     {(isCreating || isUpdating) ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 size={16} />{activeConfig ? "Update Gateway" : "Save Gateway"}</>}
                   </button>
                 </div>
@@ -395,7 +395,7 @@ function SmsConfigPageInner() {
                 ].map((stat, i) => (
                   <div key={i} className="flex flex-col p-6 bg-white border border-[#E2E2E2] rounded-[20px]  group hover:border-slate-300 transition-all hover: hover:shadow-slate-100/50">
                     <div className="flex items-center justify-between mb-4">
-                      <div className={cn("w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white", stat.color)}>
+                      <div className={cn("w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-[#5C0B19] group-hover:text-white", stat.color)}>
                         <stat.icon size={20} strokeWidth={2.5} />
                       </div>
                       <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400">{stat.tag}</span>
@@ -409,7 +409,7 @@ function SmsConfigPageInner() {
               {/* Hero + Test Panel */}
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Hero Card */}
-                <div className="lg:col-span-2 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[420px]">
+                <div className="lg:col-span-2 bg-[#5C0B19] rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[420px]">
                   <div className="absolute top-[-80px] right-[-80px] w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
                   <div className="relative z-10">
                     <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200">
@@ -568,7 +568,7 @@ function SmsConfigPageInner() {
                               key={p}
                               type="button"
                               onClick={() => insertVariable(def.key, p)}
-                              className="text-[9px] font-semibold font-mono px-2 py-1 bg-slate-900 hover:bg-blue-600 text-slate-100 rounded-xl tracking-wide transition-colors cursor-pointer"
+                              className="text-[9px] font-semibold font-mono px-2 py-1 bg-[#5C0B19] hover:bg-blue-600 text-slate-100 rounded-xl tracking-wide transition-colors cursor-pointer"
                               title="Click to insert at cursor"
                             >
                               {p}
@@ -624,7 +624,7 @@ function SmsConfigPageInner() {
                   </div>
                   <Sheet open={openEditor} onOpenChange={setOpenEditor}>
                     <SheetTrigger asChild>
-                      <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-slate-800 transition-all active:scale-95">
+                      <button className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-[#4F0A0C] transition-all active:scale-95">
                         <Settings size={14} strokeWidth={3} />
                         {activeConfig ? "Edit Gateway" : "Configure Gateway"}
                       </button>
@@ -661,7 +661,7 @@ function SmsConfigPageInner() {
               {settingsResponse && (
                 <div className="bg-white border border-[#E2E2E2] rounded-[20px]  overflow-hidden">
                   <div className="p-6 border-b border-slate-50 bg-slate-50/40 flex items-center gap-3">
-                    <div className="p-2 bg-slate-900 rounded-xl text-white">
+                    <div className="p-2 bg-[#5C0B19] rounded-xl text-white">
                       <Database size={16} strokeWidth={2.5} />
                     </div>
                     <div>

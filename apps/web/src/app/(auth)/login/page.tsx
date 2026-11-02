@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Activity,
   Search,
 } from "lucide-react";
 import api from "@/lib/api/client";
@@ -139,235 +138,180 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen w-full bg-[#F3F3F3] text-[#1C1C1E] font-sans flex items-center justify-center p-3 sm:p-5 lg:p-8">
-      {/* Card wrapper */}
-      <div className="w-full max-w-[1100px] bg-white rounded-[24px] sm:rounded-[32px] border border-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.07)] overflow-hidden flex flex-col lg:flex-row lg:p-3 lg:gap-3 relative">
+  const orgLogo = branding?.logoUrl;
+  const orgName = branding?.name;
 
-        {/* LEFT: Branding panel — desktop only */}
-        <div className="hidden lg:flex w-[46%] min-h-[680px] relative overflow-hidden bg-gradient-to-br from-[#5C0B19] to-[#4F0A0C] rounded-[28px] flex-col justify-between p-10 xl:p-12 shrink-0 select-none">
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/brand/station_header.png"
-              alt="Mizigo Ambient"
-              fill
-              className="object-cover object-bottom opacity-30"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#4F0A0C]/20 to-[#4F0A0C]/70" />
-            <div className="absolute -top-40 -left-40 w-96 h-96 bg-orange-500/20 rounded-full blur-[120px]" />
-            <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_2px_2px,rgba(255,255,255,0.03)_1px,transparent_0)] bg-[length:24px_24px]" />
-          </div>
-          <div className="relative z-10 flex items-center gap-3">
-            {branding?.logoUrl ? (
-              // Org-supplied logo is an arbitrary external URL, so it can't go
-              // through next/image's optimizer without an allow-listed domain.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={branding.logoUrl}
-                alt={`${branding.name || "Organization"} logo`}
-                className="h-10 w-auto max-w-[10rem] object-contain"
-              />
-            ) : (
-              <>
-                <Image src="/brand/logo_white.png" alt="MiziGO" width={112} height={63} className="h-12 w-auto" />
-              </>
-            )}
-          </div>
-          <div className="relative z-10 space-y-5 my-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/15 rounded-2xl">
-              <Activity size={11} className="text-orange-400 animate-pulse" />
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/80">
-                {branding?.name ? `Signing in to ${branding.name}` : "Live Network System"}
-              </span>
-            </div>
-            <h1 className="text-4xl xl:text-5xl font-black tracking-tight leading-tight uppercase text-white">
-              The Future of{" "}
-              <span className="text-orange-500">Cargo</span>{" "}
-              Telemetry
-            </h1>
-            <p className="text-white/70 font-medium text-sm xl:text-base leading-relaxed">
-              Mizigo provides real-time logistics mapping, cargo routing analytics, and workforce automation for national rail cargo operations.
-            </p>
-          </div>
-          <div className="relative z-10 flex items-center gap-5 opacity-30 text-[10px] font-bold tracking-widest text-slate-400">
-            <span>SECURE PROTOCOL v2.1.0</span>
-            <span className="h-3 w-px bg-white/20" />
-            <span>© 2026 MIZIGO</span>
-          </div>
+  const Brand = ({ light }: { light?: boolean }) =>
+    orgLogo ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={orgLogo} alt={orgName || "Logo"} className="h-10 w-auto max-w-[10rem] object-contain" />
+    ) : (
+      <span className="flex items-center gap-2.5">
+        <Image src="/brand/logo_icon.png" alt="" width={40} height={40} className="h-10 w-10" priority />
+        <Image
+          src={light ? "/brand/logo_text.png" : "/brand/logo_text_dark.png"}
+          alt="MiziGO"
+          width={110}
+          height={34}
+          className="h-7 w-auto"
+          priority
+        />
+      </span>
+    );
+
+  return (
+    <div className="flex min-h-screen w-full bg-[#F3F3F3] text-[#1C1C1E] lg:p-4">
+      {/* Brand panel */}
+      <aside className="relative hidden w-[46%] shrink-0 flex-col justify-between overflow-hidden rounded-[32px] bg-gradient-to-br from-[#5C0B19] to-[#4F0A0C] p-10 text-white lg:flex xl:p-12">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-bridge bg-cover bg-bottom opacity-30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-[#4F0A0C]/60" />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-orange-500/20 blur-[100px]" />
+
+        <a href="/" className="relative z-10 w-fit" aria-label="MiziGO home">
+          <Brand light />
+        </a>
+
+        <div className="relative z-10">
+          <h1 className="text-[40px] font-semibold leading-[1.1] tracking-tight xl:text-[46px]">
+            Welcome to the <span className="text-orange-400">staff portal</span>
+          </h1>
+          <p className="mt-3 max-w-md text-[16px] leading-relaxed text-white/70">
+            Everything your station needs to move parcels across the SGR.
+          </p>
         </div>
 
-        {/* RIGHT: Auth form */}
-        <div className="flex-1 flex flex-col bg-white relative overflow-hidden">
-          {/* Ambient glow on mobile */}
-          <div className="absolute inset-0 z-0 lg:hidden pointer-events-none">
-            <div className="absolute -top-32 -right-32 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px]" />
-            <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-indigo-500/5 rounded-full blur-[100px]" />
-          </div>
+        <p className="relative z-10 text-[13px] text-white/45">© {new Date().getFullYear()} MiziGO</p>
+      </aside>
 
-          {/* Top bar */}
-          <header className="relative z-10 flex justify-between items-center px-6 sm:px-10 py-5 shrink-0">
-            <div className="lg:hidden flex items-center gap-2.5">
-              {branding?.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={branding.logoUrl}
-                  alt={`${branding.name || "Organization"} logo`}
-                  className="h-8 w-auto max-w-[8rem] object-contain"
-                />
-              ) : (
-                <>
-                  <Image src="/brand/logo_icon.png" alt="MiziGO" width={30} height={30} />
-                  <Image src="/brand/logo_text.png" alt="MiziGO" width={78} height={24} />
-                </>
-              )}
-            </div>
-            <div className="hidden lg:block" />
-            <button
-              onClick={() => router.push("/")}
-              className="h-9 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl text-[9px] font-black border border-slate-100 transition-all flex items-center gap-2 uppercase tracking-widest"
-            >
-              <Search size={11} className="text-orange-500" />
-              Track
-            </button>
-          </header>
+      {/* Form */}
+      <main className="flex flex-1 flex-col">
+        <header className="flex items-center justify-between px-6 py-5 sm:px-10">
+          <a href="/" className="lg:hidden" aria-label="MiziGO home">
+            <Brand />
+          </a>
+          <span className="hidden lg:block" />
+          <a
+            href="/"
+            className="flex h-10 items-center gap-2 rounded-full border border-[#E2E2E2] bg-white px-4 text-[14px] font-medium text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600"
+          >
+            <Search size={15} /> Track a parcel
+          </a>
+        </header>
 
-          {/* Form area — scrollable on small screens */}
-          <div className="relative z-10 flex-1 flex flex-col justify-center items-center px-6 sm:px-10 py-6 overflow-y-auto">
-            <div className="w-full max-w-[400px] space-y-7 animate-in fade-in slide-in-from-bottom-6 duration-700">
-              {/* Heading */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-full">
-                  <ShieldCheck size={12} className="text-orange-500" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-orange-700">Secure Access Portal</span>
-                </div>
-                <div>
-                  <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-slate-900 uppercase leading-none">
-                    Access Portal
-                  </h2>
-                  <p className="text-slate-500 font-semibold text-xs mt-2 leading-relaxed">
-                    Enter your account details to receive your access OTP.
-                  </p>
+        <div className="flex flex-1 items-center justify-center px-6 pb-10 sm:px-10">
+          <div className="w-full max-w-[400px]">
+            <h2 className="text-[30px] font-semibold tracking-tight">Sign in</h2>
+            <p className="mt-1 text-[15px] text-slate-500">
+              {orgName ? `Sign in to ${orgName}.` : "Use your email or phone and your 6-digit access code."}
+            </p>
+
+            <form ref={formRef} onSubmit={handleAuth} className="mt-8 space-y-5">
+              {/* Identifier */}
+              <div>
+                <label htmlFor="identifier" className="text-[14px] font-medium text-slate-600">
+                  Email or phone
+                </label>
+                <div className="relative mt-1.5">
+                  <UserCircle
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    id="identifier"
+                    type="text"
+                    required
+                    autoComplete="username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="e.g. clerk@mizigo.co.tz"
+                    className="h-14 w-full rounded-2xl border border-[#E2E2E2] bg-white pl-12 pr-4 text-[15px] outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+                  />
                 </div>
               </div>
 
-              {/* Form */}
-              <form ref={formRef} onSubmit={handleAuth} className="space-y-5">
-                {/* Identifier */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-0.5">
-                    Email or Phone
-                  </label>
-                  <div className="relative group">
-                    <UserCircle
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors pointer-events-none"
-                      size={17}
-                    />
+              {/* Access code */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[14px] font-medium text-slate-600">Access code</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="flex items-center gap-1.5 text-[13px] text-slate-500 transition hover:text-slate-800"
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+                <div className="mt-1.5 flex justify-between gap-2">
+                  {otp.map((digit, index) => (
                     <input
-                      type="text"
+                      key={index}
+                      ref={(el) => {
+                        inputsRef.current[index] = el;
+                      }}
+                      type={showPassword ? "text" : "password"}
+                      inputMode="numeric"
+                      autoComplete={index === 0 ? "one-time-code" : "off"}
+                      aria-label={`Digit ${index + 1}`}
+                      maxLength={1}
+                      size={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(e.target.value, index)}
+                      onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                      onPaste={handleOtpPaste}
                       required
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="e.g. operator@mizigo.com"
-                      className="w-full h-12 sm:h-14 bg-slate-50 border border-slate-100 focus:border-orange-500 rounded-2xl pl-11 pr-4 font-semibold text-slate-900 focus:bg-white outline-none transition-all placeholder:text-slate-300 text-sm tracking-wide focus:ring-4 focus:ring-orange-500/10"
+                      className={[
+                        "aspect-square min-w-0 flex-1 rounded-2xl border text-center text-[22px] font-semibold outline-none transition",
+                        otpComplete
+                          ? "border-orange-500 bg-orange-50 text-orange-700 ring-4 ring-orange-500/10"
+                          : "border-[#E2E2E2] bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10",
+                      ].join(" ")}
                     />
-                  </div>
+                  ))}
                 </div>
-
-                {/* OTP */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Access Code</label>
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      disabled={resendStatus === "sending" || !identifier.trim()}
-                      className="text-[9px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-500 disabled:opacity-30 transition-opacity"
-                    >
-                      {resendStatus === "sending" ? "Sending..." : resendStatus === "success" ? "Sent ✓" : "Resend Code"}
-                    </button>
-                  </div>
-
-                  {/* OTP inputs — full width, equal sizing */}
-                  <div className="flex justify-between gap-1.5 sm:gap-2">
-                    {otp.map((data, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => { inputsRef.current[index] = el; }}
-                        type={showPassword ? "text" : "password"}
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={data}
-                        onChange={(e) => handleOtpChange(e.target.value, index)}
-                        onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                        onPaste={handleOtpPaste}
-                        className={[
-                          "flex-1 min-w-0 aspect-square text-center text-lg sm:text-xl font-black rounded-2xl transition-all outline-none",
-                          otpComplete
-                            ? "bg-emerald-50 border border-emerald-400 ring-4 ring-emerald-500/10 text-emerald-700 scale-[1.04]"
-                            : "bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 text-slate-900",
-                        ].join(" ")}
-                        required
-                      />
-                    ))}
-                  </div>
-
-                  {otpComplete && (
-                    <div className="flex items-center justify-center gap-1.5 animate-in fade-in duration-200 pt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                      <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">
-                        {loading ? "Signing in…" : "Verifying…"}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5"
-                    >
-                      {showPassword ? <><EyeOff size={10} strokeWidth={2.5} /> Hide</> : <><Eye size={10} strokeWidth={2.5} /> Show</>}
-                    </button>
-                  </div>
+                <div className="mt-2 flex items-center justify-between text-[13px]">
+                  <span className="text-slate-400">
+                    {otpComplete ? (loading ? "Signing in…" : "Checking…") : "Didn't get a code?"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendStatus === "sending" || !identifier.trim()}
+                    className="font-semibold text-orange-600 transition hover:text-orange-700 disabled:opacity-40"
+                  >
+                    {resendStatus === "sending"
+                      ? "Sending…"
+                      : resendStatus === "success"
+                        ? "Code sent ✓"
+                        : resendStatus === "error"
+                          ? "Try again"
+                          : "Send a new code"}
+                  </button>
                 </div>
+              </div>
 
-                {/* Error */}
-                {errorMessage && (
-                  <div className="flex items-start gap-3 px-4 py-3 bg-rose-50 border border-rose-100 rounded-2xl animate-in slide-in-from-top-2">
-                    <AlertCircle size={15} className="text-rose-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-relaxed">
-                      {errorMessage}
-                    </p>
-                  </div>
-                )}
+              {errorMessage && (
+                <div className="flex items-start gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+                  <AlertCircle size={17} className="mt-0.5 shrink-0 text-rose-500" />
+                  <p className="text-[14px] text-rose-700">{errorMessage}</p>
+                </div>
+              )}
 
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading || !identifier.trim() || password.length < 6}
-                  className="h-12 sm:h-14 w-full bg-[#5C0B19] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] shadow-lg shadow-[#5C0B19]/20 hover:bg-[#4F0A0C] hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:pointer-events-none group mt-1"
-                >
-                  {loading ? (
-                    <Loader2 className="animate-spin" size={15} strokeWidth={3} />
-                  ) : (
-                    <>
-                      Sign In
-                      <ArrowRight size={13} strokeWidth={3} className="group-hover:translate-x-0.5 transition-transform" />
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#5C0B19] text-[16px] font-semibold text-white transition hover:bg-[#4F0A0C] active:scale-[0.99] disabled:opacity-60"
+              >
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <>Sign in <ArrowRight size={18} /></>}
+              </button>
+            </form>
+
+            <p className="mt-8 flex items-center justify-center gap-2 text-[13px] text-slate-400">
+              <ShieldCheck size={15} className="text-orange-500" /> Your session locks automatically when you step away.
+            </p>
           </div>
-
-          {/* Mobile footer */}
-          <footer className="relative z-10 lg:hidden py-5 text-center text-[9px] font-black uppercase tracking-widest text-slate-400 shrink-0 border-t border-slate-100 px-6">
-            Mizigo Logistics · Secure Encryption Portal
-          </footer>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

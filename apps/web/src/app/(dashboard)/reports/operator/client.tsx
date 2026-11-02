@@ -252,7 +252,7 @@ export function OperatorReportClient({
               {({ loading }) => (
                 <button
                   disabled={loading}
-                  className="h-14 px-8 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-[12px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                  className="h-14 px-8 rounded-xl bg-[#5C0B19] hover:bg-black text-white font-semibold text-[12px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
                 >
                   {loading ? (
                     <div className="w-5 h-5 rounded-full border-2 border-slate-200 border-t-white animate-spin" />
@@ -405,7 +405,7 @@ export function OperatorReportClient({
         {/* Performance Sidebar */}
         <div className="space-y-10">
           {/* Leaderboard Card */}
-          <div className="bg-slate-900 rounded-xl p-10 text-white relative overflow-hidden  shadow-slate-200 border border-slate-800">
+          <div className="bg-[#5C0B19] rounded-xl p-10 text-white relative overflow-hidden  shadow-slate-200 border border-[#651422]">
             <Medal
               size={160}
               className="absolute -bottom-10 -right-10 text-white/5 rotate-12"

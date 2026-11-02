@@ -1,15 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useUIStore } from "@/store/ui-store";
-import {
-  Bell,
-  Menu,
-  LayoutGrid,
-  ChevronDown,
-  Lock,
-  LogOut,
-} from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
+import { Bell, ChevronDown, Loader2, Lock, LogOut, Menu, Search, UserRound } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,121 +14,151 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { signOut } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { useUIStore } from "@/store/ui-store";
 import { sidebarItems } from "./sidebar";
-import { Breadcrumbs } from "./breadcrumbs";
+import { ThemeSwitcher } from "./theme-switcher";
+import { useTrackParcel } from "@/components/parcel/use-track-parcel";
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: "Super admin",
+  ADMIN: "Admin",
+  STATION_MASTER: "Station master",
+  CLERK: "Clerk",
+  TRAIN_GUARD: "Train guard",
+  AGENT: "Agent",
+};
 
 export function Topbar() {
   const { data: session } = useSession();
   const { toggleSidebar } = useUIStore();
   const pathname = usePathname();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
 
   const user = session?.user as any;
+  const role: string | undefined = user?.role;
 
-  const activeItem = sidebarItems.find((item) => {
-    if (item.href === pathname) return true;
-    if (item.href !== "/" && pathname.startsWith(item.href + "/")) return true;
-    if (item.children?.some((child) => child.href === pathname)) return true;
-    return false;
+  // Most specific sidebar entry for this page (and visible to this role).
+  const activeItem = sidebarItems
+    .filter((item) => !role || item.roles.includes(role))
+    .filter((item) => item.href && (pathname === item.href || pathname.startsWith(item.href + "/")))
+    .sort((a, b) => (b.href?.length ?? 0) - (a.href?.length ?? 0))[0];
+
+  const { data: unread = 0 } = useQuery({
+    queryKey: ["notifications-unread"],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications");
+      if (!res.ok) return 0;
+      const list = await res.json();
+      return Array.isArray(list) ? list.filter((n: { read?: boolean }) => !n.read).length : 0;
+    },
+    enabled: !!user,
+    refetchInterval: 60_000,
   });
 
-  return (
-    <header className="h-16 border-b border-[#E2E2E2] bg-white/85 backdrop-blur-xl sticky top-0 z-30 flex items-center justify-between px-5">
-      {/* Left */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={toggleSidebar}
-          className="lg:hidden p-1.5 hover:bg-slate-100 rounded-xl transition-colors"
-        >
-          <Menu className="h-5 w-5 text-slate-600" />
-        </button>
+  const lookup = useTrackParcel();
+  const track = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (await lookup.track(query)) setQuery("");
+  };
 
-        <div className="hidden lg:flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
-            {activeItem?.icon ? (
-              <activeItem.icon className="h-5 w-5 text-orange-500" />
-            ) : (
-              <LayoutGrid className="h-5 w-5 text-orange-500" />
-            )}
-          </div>
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-2">
-              <span className="text-[17px] font-semibold text-[#1C1C1E] leading-none">
-                {activeItem?.title || user?.organization?.name || "Mizigo Platform"}
-              </span>
-              {user?.station?.name && (
-                <span className="text-[10px] font-semibold text-white bg-orange-500 px-2 py-0.5 rounded-full leading-none">
-                  {user.station.name}
-                </span>
-              )}
-            </div>
-            <Breadcrumbs className="mt-0.5" />
-          </div>
-        </div>
+  const iconBtn =
+    "relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-500 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600";
+
+  return (
+    <header className="sticky top-0 z-30 flex h-[72px] shrink-0 items-center gap-4 border-b border-[#E2E2E2] bg-[#F3F3F3]/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      {/* Left: menu + where am I */}
+      <button onClick={toggleSidebar} aria-label="Open menu" className={`${iconBtn} lg:hidden`}>
+        <Menu size={18} />
+      </button>
+
+      <div className="min-w-0 flex-1">
+        {activeItem?.section && (
+          <p className="truncate text-[12px] font-medium uppercase tracking-[0.08em] text-slate-400">
+            {activeItem.section}
+          </p>
+        )}
+        <h1 className="truncate text-[19px] font-semibold leading-tight text-[#1C1C1E]">
+          {activeItem?.title ?? "MiziGO"}
+        </h1>
       </div>
 
+      {/* Search */}
+      <form onSubmit={track} className="relative hidden w-full max-w-xs md:block">
+        {lookup.loading ? (
+          <Loader2 size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 animate-spin text-orange-500" />
+        ) : (
+          <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        )}
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Track a parcel number"
+          aria-label="Track a parcel number"
+          className="h-10 w-full rounded-full border border-[#E2E2E2] bg-white pl-11 pr-4 text-[14px] uppercase tracking-wide text-slate-700 outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+        />
+      </form>
+
       {/* Right */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => useUIStore.getState().setLocked(true)}
-          className="hidden lg:flex h-9 w-9 flex items-center justify-center bg-slate-100 hover:bg-orange-50 hover:text-orange-500 rounded-full transition-colors text-slate-500"
-          title="Lock Session"
-        >
-          <Lock className="h-4 w-4" />
-        </button>
+      <div className="flex items-center gap-2">
+        <ThemeSwitcher />
 
-        <button className="relative h-9 w-9 flex items-center justify-center bg-slate-100 hover:bg-orange-50 hover:text-orange-500 rounded-full transition-colors text-slate-500">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-red-500 border border-white rounded-full" />
-        </button>
-
-        <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+        <Link href="/notifications" aria-label={unread ? `${unread} unread notifications` : "Notifications"} className={iconBtn}>
+          <Bell size={17} />
+          {unread > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-semibold text-white ring-2 ring-[#F3F3F3]">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
+        </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 transition-colors outline-none">
-              <div className="h-8 w-8 rounded-full bg-[#5C0B19] flex items-center justify-center text-white font-bold text-[11px] shrink-0">
-                {user?.name?.charAt(0) || "U"}
-              </div>
-              <div className="hidden sm:flex flex-col items-start leading-none">
-                <span className="text-[13px] font-semibold text-slate-700">
-                  {user?.name || "User"}
+            <button className="flex h-10 items-center gap-2.5 rounded-full border border-[#E2E2E2] bg-white pl-1 pr-3 outline-none transition hover:border-orange-200">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5C0B19] text-[13px] font-semibold text-white">
+                {(user?.name || "U").charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden flex-col items-start leading-tight sm:flex">
+                <span className="max-w-[9rem] truncate text-[13px] font-semibold text-[#1C1C1E]">
+                  {user?.name || "Account"}
                 </span>
-              </div>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                {role && <span className="text-[11px] text-slate-500">{ROLE_LABELS[role] ?? role}</span>}
+              </span>
+              <ChevronDown size={15} className="text-slate-400" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56 bg-white border border-[#E2E2E2] text-slate-600 shadow-premium rounded-2xl p-1.5 z-50"
             align="end"
             sideOffset={8}
+            className="z-50 w-60 rounded-2xl border border-[#E2E2E2] bg-white p-1.5 text-slate-600 shadow-premium"
           >
-            <DropdownMenuLabel className="px-3 py-2 flex flex-col gap-0.5">
-              <span className="text-[13px] font-semibold text-slate-800">
-                {user?.name || "User"}
-              </span>
-              <span className="text-[11px] text-slate-400">{user?.email || ""}</span>
+            <DropdownMenuLabel className="flex flex-col gap-0.5 px-3 py-2">
+              <span className="text-[14px] font-semibold text-[#1C1C1E]">{user?.name || "Account"}</span>
+              <span className="truncate text-[12px] font-normal text-slate-400">{user?.email || ""}</span>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-slate-100 mx-1" />
-            <DropdownMenuItem
-              className="hover:bg-slate-50 focus:bg-slate-50 cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2 m-0.5"
-              onClick={() => useUIStore.getState().setLocked(true)}
-            >
-              <Lock className="h-4 w-4 text-slate-400" />
-              Lock Screen
+            <DropdownMenuSeparator className="mx-1 bg-slate-100" />
+            <DropdownMenuItem asChild className="cursor-pointer rounded-xl px-3 py-2.5 text-[14px]">
+              <Link href="/profile" className="flex items-center gap-2.5">
+                <UserRound size={16} className="text-slate-400" /> My profile
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-slate-100 mx-1" />
             <DropdownMenuItem
-              className="hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer rounded-xl px-3 py-2 text-[13px] font-medium flex items-center gap-2 m-0.5 text-red-500"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={() => useUIStore.getState().setLocked(true)}
+              className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px]"
             >
-              <LogOut className="h-4 w-4" />
-              Sign out
+              <Lock size={16} className="text-slate-400" /> Lock screen
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="mx-1 bg-slate-100" />
+            <DropdownMenuItem
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] text-rose-600 focus:bg-rose-50 focus:text-rose-600"
+            >
+              <LogOut size={16} /> Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {lookup.sheet}
     </header>
   );
 }

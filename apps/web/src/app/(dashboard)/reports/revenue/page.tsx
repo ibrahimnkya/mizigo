@@ -1,134 +1,162 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  TrendingUp,
-  Coins,
-  Wallet,
-  CreditCard,
-  Activity,
-  ArrowUpRight,
-} from "lucide-react";
+import { format } from "date-fns";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Package, Receipt, Trophy, Wallet } from "lucide-react";
 import api from "@/lib/api/client";
-import { DataTable } from "@/components/shared/data-table";
 import { cn } from "@/lib/utils";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
-import { useState, useMemo } from "react";
+import { DataTable } from "@/components/shared/data-table";
+import {
+  CustomRange,
+  RangeKey,
+  FilterField,
+  ReportCard,
+  ReportFilters,
+  Segmented,
+  ReportHeader,
+  ReportSummary,
+  num,
+  rangeLabel,
+  rangeParams,
+  tsh,
+  useStations,
+} from "@/components/reports/report-kit";
+
+type GroupBy = "day" | "week" | "month";
+
+const periodLabel = (date: string, g: GroupBy) => {
+  const d = new Date(date);
+  if (g === "month") return format(d, "MMM yyyy");
+  if (g === "week") return `Week of ${format(d, "d MMM")}`;
+  return format(d, "d MMM");
+};
 
 export default function RevenueReportPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { data: reportData, isLoading } = useQuery({
-    queryKey: ["reports", "revenue"],
-    queryFn: async () => {
-      const res = await api.get("/reports/revenue");
-      return res.data.data || res.data;
-    },
+  const [range, setRange] = useState<RangeKey>("30d");
+  const [custom, setCustom] = useState<CustomRange>({ from: "", to: "" });
+  const [stationId, setStationId] = useState("");
+  const [groupBy, setGroupBy] = useState<GroupBy>("day");
+  const params = { ...rangeParams(range, custom), ...(stationId ? { stationId } : {}), groupBy };
+  const { data: stations = [] } = useStations();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["reports", "revenue", params],
+    queryFn: async () => (await api.get("/reports/revenue", { params })).data?.data,
+    placeholderData: (prev) => prev,
   });
 
-  const ledgerData = reportData?.chartData || [];
-
-  const filteredData = ledgerData.filter((v: any) =>
-    v.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const pdfData = useMemo(
-    () =>
-      filteredData.map((v: any) => ({
-        period: v.name,
-        revenue: new Intl.NumberFormat("en-TZ", {
-          style: "currency",
-          currency: "TZS",
-        }).format(v.total || 0),
-        status: "Verified",
-      })),
-    [filteredData],
-  );
-
-  const pdfColumns = [
-    { header: "Reporting Period", key: "period" },
-    { header: "Revenue Collected", key: "revenue" },
-    { header: "Verification Status", key: "status" },
-  ];
+  const series: any[] = (data?.series ?? []).map((b: any) => ({ ...b, label: periodLabel(b.date, groupBy) }));
+  const s = data?.summary ?? {};
+  const stationName = stations.find((x) => x.id === stationId)?.name;
+  const subtitle = `${rangeLabel(range, custom)} · ${stationName ? `Sent from ${stationName}` : "All stations"}`;
 
   const columns = [
+    { header: "Period", accessor: (r: any) => <span className="font-medium text-[#1C1C1E]">{r.label}</span> },
+    { header: "Parcels", align: "right" as const, accessor: (r: any) => <span className="tabular-nums">{num(r.parcels)}</span> },
+    { header: "Paid", align: "right" as const, accessor: (r: any) => <span className="tabular-nums">{num(r.paid)}</span> },
     {
-      header: "Reporting Period",
-      accessor: (item: any) => (
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
-            <Coins className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-slate-900 text-[13px]">
-              {item.name}
-            </span>
-            <span className="text-[11px] font-medium text-slate-500">
-              Fiscal Cycle
-            </span>
-          </div>
-        </div>
-      ),
+      header: "Not paid",
+      align: "right" as const,
+      accessor: (r: any) => <span className={cn("tabular-nums", r.unpaid ? "text-orange-600" : "text-slate-400")}>{num(r.unpaid)}</span>,
     },
     {
       header: "Revenue",
-      accessor: (item: any) => (
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1 text-emerald-600">
-            <TrendingUp className="w-4 h-4" strokeWidth={3} />
-            <span className="text-[14px] font-semibold">
-              {new Intl.NumberFormat("en-TZ", {
-                style: "currency",
-                currency: "TZS",
-                maximumSignificantDigits: 3,
-              }).format(item.total || 0)}
-            </span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Audit Status",
-      accessor: (item: any) => (
-        <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-600">
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-          Verified
-        </div>
-      ),
-    },
-    {
-      header: "Actions",
-      accessor: (item: any) => (
-        <div className="flex items-center justify-end pr-4">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-8 px-3 text-[12px] font-semibold transition-colors flex items-center gap-1.5">
-            Details <ArrowUpRight size={12} />
-          </button>
-        </div>
-      ),
+      align: "right" as const,
+      accessor: (r: any) => <span className="text-[14px] font-semibold tabular-nums text-[#1C1C1E]">{tsh(r.revenue)}</span>,
     },
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-        <ReportPageHeader
-          title="Revenue Overview"
-          subtitle="Earnings, collections, and financial intelligence"
-          icon={TrendingUp}
-          onSearch={setSearchQuery}
-          pdfData={pdfData}
-          pdfColumns={pdfColumns}
+    <div className="flex flex-col gap-5 pb-4">
+      <ReportHeader
+        title="Revenue"
+        subtitle={subtitle}
+        exportSpec={{
+          title: "Revenue report",
+          subtitle,
+          columns: [
+            { header: "Period", key: "label" },
+            { header: "Parcels", key: "parcels" },
+            { header: "Paid", key: "paid" },
+            { header: "Not paid", key: "unpaid" },
+            { header: "Revenue", key: "revenueText" },
+          ],
+          rows: series.map((r) => ({ ...r, revenueText: tsh(r.revenue) })),
+        }}
+      >
+        <ReportFilters
+          onDark
+          range={range}
+          onRange={setRange}
+          custom={custom}
+          onCustom={setCustom}
+          stationId={stationId}
+          onStation={setStationId}
+          extra={
+            <FilterField label="Group by" className="w-full sm:w-56">
+              <Segmented
+                value={groupBy}
+                onChange={setGroupBy}
+                options={[
+                  { value: "day", label: "Day" },
+                  { value: "week", label: "Week" },
+                  { value: "month", label: "Month" },
+                ]}
+              />
+            </FilterField>
+          }
         />
+      </ReportHeader>
+      <ReportSummary
+        label="Revenue collected"
+        value={tsh(s.revenue)}
+        note={s.outstanding ? `${tsh(s.outstanding)} not yet paid` : undefined}
+        loading={isLoading}
+        chips={[
+          { label: "Parcels", value: num(s.parcels), icon: Package },
+          { label: "Paid parcels", value: num(s.paidParcels), icon: Receipt },
+          { label: "Average per parcel", value: tsh(s.average), icon: Wallet },
+          {
+            label: "Best period",
+            value: s.bestPeriod ? periodLabel(s.bestPeriod.date, groupBy) : "—",
+            icon: Trophy,
+          },
+        ]}
+      />
 
-        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
-          <DataTable
-            title="Revenue List"
-            columns={columns}
-            data={filteredData}
-            isLoading={isLoading}
-            searchKey="name"
-            searchPlaceholder="Search periods..."
-            hideInternalSearch
-          />
+      <ReportCard title="Revenue over time" aside={`By ${groupBy}`}>
+        <div className="h-[280px] px-3 pb-3 pt-5">
+          {series.length === 0 && !isLoading ? (
+            <div className="flex h-full items-center justify-center text-[14px] text-slate-400">No revenue in this period.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={series} margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.08} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#94a3b8" }} />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={84}
+                  tick={{ fontSize: 12, fill: "#94a3b8" }}
+                  tickFormatter={(v: number) => Math.round(v).toLocaleString("en-US")}
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(247,138,31,0.08)" }}
+                  contentStyle={{ borderRadius: 14, border: "1px solid #E2E2E2", fontSize: 13 }}
+                  formatter={(v: any) => [tsh(Number(v)), "Revenue"]}
+                />
+                <Bar dataKey="revenue" fill="#F78A1F" radius={[8, 8, 0, 0]} maxBarSize={44} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
+      </ReportCard>
+
+      <ReportCard title="Breakdown" aside={`${series.length} periods`}>
+        <DataTable data={[...series].reverse()} columns={columns as any} isLoading={isLoading} hideActions hideInternalSearch emptyMessage="No parcels in this period." />
+      </ReportCard>
     </div>
   );
 }

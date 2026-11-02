@@ -301,7 +301,7 @@ function IntegrationsPageInner() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
+                <div className="lg:col-span-1 bg-[#5C0B19] rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
                   <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
 
                   <div className="relative z-10">
@@ -464,7 +464,7 @@ function IntegrationsPageInner() {
 
                   {/* Payment Sandbox Test */}
                   {paymentIntegration && (
-                    <div className="bg-slate-950 text-white rounded-xl p-6 space-y-4 ">
+                    <div className="bg-[#4F0A0C] text-white rounded-xl p-6 space-y-4 ">
                       <div className="flex items-center gap-2 text-blue-400">
                         <Zap size={14} className="animate-pulse" />
                         <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
@@ -489,7 +489,7 @@ function IntegrationsPageInner() {
                               required
                             >
                               {activeProviders.map((p: any) => (
-                                <option key={p.id} value={p.code} className="bg-slate-900 text-white">
+                                <option key={p.id} value={p.code} className="bg-[#5C0B19] text-white">
                                   {p.name}
                                 </option>
                               ))}
@@ -500,11 +500,11 @@ function IntegrationsPageInner() {
                               onChange={(e) => setTestPaymentChannel(e.target.value)}
                               className="w-full h-10 bg-white/5 border border-slate-200 text-white rounded-xl text-xs px-3 outline-none focus:bg-white/10 focus:border-slate-200 transition-all"
                             >
-                              <option value="Tigo" className="bg-slate-900 text-white">Tigo Pesa</option>
-                              <option value="Airtel" className="bg-slate-900 text-white">Airtel Money</option>
-                              <option value="Halopesa" className="bg-slate-900 text-white">HaloPesa</option>
-                              <option value="Azampesa" className="bg-slate-900 text-white">AzamPesa</option>
-                              <option value="Vodacom" className="bg-slate-900 text-white">M-Pesa (Vodacom)</option>
+                              <option value="Tigo" className="bg-[#5C0B19] text-white">Tigo Pesa</option>
+                              <option value="Airtel" className="bg-[#5C0B19] text-white">Airtel Money</option>
+                              <option value="Halopesa" className="bg-[#5C0B19] text-white">HaloPesa</option>
+                              <option value="Azampesa" className="bg-[#5C0B19] text-white">AzamPesa</option>
+                              <option value="Vodacom" className="bg-[#5C0B19] text-white">M-Pesa (Vodacom)</option>
                             </select>
                           )}
                         </div>
@@ -549,7 +549,7 @@ function IntegrationsPageInner() {
                           });
                         }}
                         disabled={isTestingPayment}
-                        className="w-full h-10 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex items-center justify-center gap-2"
+                        className="w-full h-10 bg-blue-600 hover:bg-blue-700 disabled:bg-[#4F0A0C] disabled:text-slate-500 text-white rounded-xl font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex items-center justify-center gap-2"
                       >
                         {isTestingPayment ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -567,12 +567,12 @@ function IntegrationsPageInner() {
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
                   <Sheet open={openPaymentEditor} onOpenChange={setOpenPaymentEditor}>
                     <SheetTrigger asChild>
-                      <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-slate-800 transition-all">
+                      <button className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-[#4F0A0C] transition-all">
                         Configure Credentials
                       </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:w-[600px] p-0 border border-slate-100 bg-white  flex flex-col text-left">
-                      <div className="bg-slate-900 px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
+                      <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
                         <CreditCard className="w-8 h-8 text-blue-400" />
                         <div>
                           <SheetTitle className="text-lg font-semibold text-white uppercase tracking-tight">
@@ -663,7 +663,7 @@ function IntegrationsPageInner() {
                           <button
                             type="submit"
                             disabled={isUpdatingPayment}
-                            className="flex-[1.5] h-14 bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2"
+                            className="flex-[1.5] h-14 bg-[#5C0B19] text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2"
                           >
                             {isUpdatingPayment ? (
                               <Loader2 className="w-5 h-5 animate-spin" />
@@ -744,7 +744,7 @@ function IntegrationsPageInner() {
 
                   {/* SMS Sandbox Test */}
                   {smsIntegration && (
-                    <div className="bg-slate-950 text-white rounded-xl p-6 space-y-4 ">
+                    <div className="bg-[#4F0A0C] text-white rounded-xl p-6 space-y-4 ">
                       <div className="flex items-center gap-2 text-amber-400">
                         <Zap size={14} className="animate-pulse" />
                         <span className="text-[9px] font-semibold uppercase tracking-[0.05em]">
@@ -788,7 +788,7 @@ function IntegrationsPageInner() {
                           });
                         }}
                         disabled={isTestingSms}
-                        className="w-full h-10 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex items-center justify-center gap-2"
+                        className="w-full h-10 bg-amber-600 hover:bg-amber-700 disabled:bg-[#4F0A0C] disabled:text-slate-500 text-white rounded-xl font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex items-center justify-center gap-2"
                       >
                         {isTestingSms ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -806,12 +806,12 @@ function IntegrationsPageInner() {
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
                   <Sheet open={openSmsEditor} onOpenChange={setOpenSmsEditor}>
                     <SheetTrigger asChild>
-                      <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-slate-800 transition-all">
+                      <button className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-[#4F0A0C] transition-all">
                         Configure Credentials
                       </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:w-[600px] p-0 border border-slate-100 bg-white  flex flex-col text-left">
-                      <div className="bg-slate-900 px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
+                      <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
                         <MessageSquare className="w-8 h-8 text-amber-400" />
                         <div>
                           <SheetTitle className="text-lg font-semibold text-white uppercase tracking-tight">
@@ -890,7 +890,7 @@ function IntegrationsPageInner() {
                           <button
                             type="submit"
                             disabled={isUpdatingSms}
-                            className="flex-[1.5] h-14 bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2"
+                            className="flex-[1.5] h-14 bg-[#5C0B19] text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2"
                           >
                             {isUpdatingSms ? (
                               <Loader2 className="w-5 h-5 animate-spin" />
@@ -981,12 +981,12 @@ function IntegrationsPageInner() {
                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
                   <Sheet open={openTrcEditor} onOpenChange={setOpenTrcEditor}>
                     <SheetTrigger asChild>
-                      <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-slate-800 transition-all">
+                      <button className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] shadow-md hover:bg-[#4F0A0C] transition-all">
                         Configure TRC
                       </button>
                     </SheetTrigger>
                     <SheetContent className="w-full sm:w-[600px] p-0 border border-slate-100 bg-white  flex flex-col text-left">
-                      <div className="bg-slate-900 px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
+                      <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-4 text-white relative shrink-0">
                         <Receipt className="w-8 h-8 text-violet-400" />
                         <div>
                           <SheetTitle className="text-lg font-semibold text-white uppercase tracking-tight">
@@ -1026,7 +1026,7 @@ function IntegrationsPageInner() {
                         </div>
                         <div className="pt-4 flex gap-3">
                           <button type="button" onClick={() => setOpenTrcEditor(false)} className="flex-1 h-14 bg-white border border-slate-200 text-slate-400 text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl">Cancel</button>
-                          <button type="submit" disabled={isUpdatingTrc} className="flex-[1.5] h-14 bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2">
+                          <button type="submit" disabled={isUpdatingTrc} className="flex-[1.5] h-14 bg-[#5C0B19] text-white text-[10px] font-semibold uppercase tracking-[0.05em] rounded-xl flex items-center justify-center gap-2">
                             {isUpdatingTrc ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle2 size={16} /> Save Changes</>}
                           </button>
                         </div>

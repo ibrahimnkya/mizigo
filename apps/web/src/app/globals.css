@@ -120,3 +120,146 @@
     @apply inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white;
   }
 }
+
+/* ── Portal themes (match the mobile app: TRC Default, Mid-Night, Daylight) ──
+   Daylight is the base design. The dark themes remap the shared surface,
+   border and text colours used across portal pages. Scoped to .portal so the
+   public site (landing, tracking, login) is unaffected. */
+[data-theme="trc"] .portal {
+  --p-page: #4f0a0c;
+  --p-card: #612224;
+  --p-soft: #6b2a2c;
+  --p-hover: #6e2b2d;
+  --p-line: #651422;
+  --p-ink: #ffffff;
+  --p-ink-2: rgba(255, 255, 255, 0.82);
+  --p-muted: rgba(255, 255, 255, 0.6);
+  --p-faint: rgba(255, 255, 255, 0.4);
+  --p-side: #3f0709;
+}
+[data-theme="midnight"] .portal {
+  --p-page: #161616;
+  --p-card: #222222;
+  --p-soft: #2a2a2a;
+  --p-hover: #2c2c2c;
+  --p-line: #2e2e2e;
+  --p-ink: #f5f5f5;
+  --p-ink-2: rgba(245, 245, 245, 0.82);
+  --p-muted: rgba(245, 245, 245, 0.58);
+  --p-faint: rgba(245, 245, 245, 0.38);
+  --p-side: #1b1b1b;
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal {
+  color-scheme: dark;
+  color: var(--p-ink);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.bg-\[\#F3F3F3\], .bg-\[\#F3F3F3\]\/85) {
+  background-color: var(--p-page);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.bg-white, .bg-card, .bg-popover) {
+  background-color: var(--p-card);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.bg-\[\#F7F5F4\], .bg-slate-50, .bg-slate-100, .bg-\[\#F7F5F4\]) {
+  background-color: var(--p-soft);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-white):hover {
+  background-color: var(--p-hover);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.border-\[\#E2E2E2\], .border-slate-100, .border-slate-200, .border-slate-50, .border-input, .border-border) {
+  border-color: var(--p-line);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.divide-slate-100, .divide-slate-50) > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--p-line);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.text-\[\#1C1C1E\], .text-slate-900, .text-slate-800, .text-foreground) {
+  color: var(--p-ink);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.text-slate-700, .text-slate-600) {
+  color: var(--p-ink-2);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.text-slate-500, .text-muted-foreground) {
+  color: var(--p-muted);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.text-slate-400, .text-slate-300, .placeholder\:text-slate-400::placeholder) {
+  color: var(--p-faint);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.bg-orange-50, .bg-\[\#FBF1F2\]) {
+  background-color: rgba(247, 138, 31, 0.16);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.16);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.16);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.16);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.text-orange-900, .text-rose-900, .text-rose-700, .text-emerald-700, .text-amber-700) {
+  filter: brightness(1.6);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .bg-\[\#4F0A0C\].border-r {
+  background-color: var(--p-side);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(input, textarea, select) {
+  color: var(--p-ink);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .bridge-card {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(
+    .focus\:bg-slate-50:focus,
+    .data-\[highlighted\]\:bg-slate-50[data-highlighted],
+    .hover\:bg-slate-50:hover
+  ) {
+  background-color: var(--p-hover);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(
+    .hover\:bg-orange-50:hover,
+    .focus\:bg-orange-50:focus,
+    .hover\:bg-orange-100:hover,
+    .hover\:bg-orange-50\/40:hover
+  ) {
+  background-color: rgba(247, 138, 31, 0.2);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal :is(.hover\:border-orange-200:hover, .hover\:border-orange-300:hover) {
+  border-color: rgba(247, 138, 31, 0.6);
+}
+:is([data-theme="trc"], [data-theme="midnight"]) .portal .border-slate-300 {
+  border-color: var(--p-faint);
+}
+
+/* Buttons placed inside a maroon page header: primary → orange accent,
+   light outline buttons → translucent white, so they stay visible. */
+.page-hero :is(.bg-\[\#5C0B19\], .bg-primary, .bg-blue-600, .bg-blue-700, .bg-indigo-600) {
+  background-color: #f78a1f;
+  color: #fff;
+}
+.page-hero :is(.hover\:bg-\[\#4F0A0C\], .hover\:bg-primary\/90, .hover\:bg-blue-700, .hover\:bg-blue-500, .hover\:bg-indigo-700):hover {
+  background-color: #dd720b;
+}
+.page-hero :is(button, a).bg-white {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+.page-hero :is(button, a).bg-white:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Filters rendered inside the maroon page header. */
+.report-filters-dark .text-slate-500 { color: rgba(255, 255, 255, 0.7); }
+.report-filters-dark .bg-slate-100 { background-color: rgba(255, 255, 255, 0.12); }
+.report-filters-dark .text-slate-600 { color: rgba(255, 255, 255, 0.8); }
+.report-filters-dark :is(.hover\:bg-white:hover) { background-color: rgba(255, 255, 255, 0.18); color: #fff; }
+.report-filters-dark .border-\[\#E2E2E2\] { border-color: rgba(255, 255, 255, 0.2); }
+.report-filters-dark .bg-white { background-color: rgba(255, 255, 255, 0.1); }
+.report-filters-dark :is(select, input) { color: #fff; }
+.report-filters-dark select option { color: #1c1c1e; }
+.report-filters-dark .text-slate-400 { color: rgba(255, 255, 255, 0.55); }
+.report-filters-dark input::-webkit-calendar-picker-indicator { filter: invert(1); }
+.report-filters-dark button.bg-white.shadow-sm,
+.page-hero .report-filters-dark button.bg-white.shadow-sm {
+  background-color: #fff;
+  color: #1c1c1e;
+}

@@ -1,145 +1,121 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Timer, Activity, ArrowUpRight, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Gauge, Timer, Zap } from "lucide-react";
 import api from "@/lib/api/client";
-import { DataTable } from "@/components/shared/data-table";
 import { cn } from "@/lib/utils";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
-import { useState, useMemo } from "react";
+import { DataTable } from "@/components/shared/data-table";
+import {
+  CustomRange,
+  MiniBar,
+  RangeKey,
+  ReportCard,
+  ReportFilters,
+  ReportHeader,
+  ReportSummary,
+  hoursLabel,
+  num,
+  rangeLabel,
+  rangeParams,
+  useStations,
+} from "@/components/reports/report-kit";
 
 export default function TurnaroundReportPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { data: reportData, isLoading } = useQuery({
-    queryKey: ["reports", "turnaround"],
-    queryFn: async () => {
-      const res = await api.get("/reports/turnaround");
-      return res.data.data || res.data;
-    },
+  const [range, setRange] = useState<RangeKey>("30d");
+  const [custom, setCustom] = useState<CustomRange>({ from: "", to: "" });
+  const [stationId, setStationId] = useState("");
+  const params = { ...rangeParams(range, custom), ...(stationId ? { stationId } : {}) };
+  const { data: stations = [] } = useStations();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["reports", "turnaround", params],
+    queryFn: async () => (await api.get("/reports/turnaround", { params })).data?.data,
+    placeholderData: (prev) => prev,
   });
 
-  const trends = reportData?.speedTrend || [];
-
-  const filteredData = trends.filter((v: any) =>
-    v.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const pdfData = useMemo(
-    () =>
-      filteredData.map((v: any) => ({
-        date: v.name,
-        speed: `${v.speed} MINS`,
-        efficiency: `${Math.max(0, 100 - (v.speed / 1440) * 100).toFixed(0)}%`,
-      })),
-    [filteredData],
-  );
-
-  const pdfColumns = [
-    { header: "Reporting Date", key: "date" },
-    { header: "Average Speed", key: "speed" },
-    { header: "Efficiency Rating", key: "efficiency" },
-  ];
+  const rows: any[] = data?.routes ?? [];
+  const s = data?.summary ?? {};
+  const slowest = useMemo(() => Math.max(0, ...rows.map((r) => r.averageHours)), [rows]);
+  const stationName = stations.find((x) => x.id === stationId)?.name;
+  const subtitle = `Delivered ${rangeLabel(range, custom).toLowerCase()} · ${stationName ?? "All stations"}`;
 
   const columns = [
     {
-      header: "Date",
-      accessor: (item: any) => (
+      header: "Route",
+      accessor: (r: any) => (
+        <div className="flex items-center gap-2 text-[14px] font-semibold text-[#1C1C1E]">
+          <span className="max-w-[140px] truncate">{r.from}</span>
+          <ArrowRight size={14} className="shrink-0 text-orange-500" />
+          <span className="max-w-[140px] truncate">{r.to}</span>
+        </div>
+      ),
+    },
+    { header: "Delivered", align: "right" as const, accessor: (r: any) => <span className="tabular-nums">{num(r.parcels)}</span> },
+    {
+      header: "Average",
+      accessor: (r: any) => (
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-            <Activity className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-slate-900 text-[13px] tracking-tight uppercase">
-              {item.name}
-            </span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.05em]">
-              Reporting Date
-            </span>
-          </div>
+          <MiniBar value={r.averageHours} max={slowest} />
+          <span className={cn("text-[13px] font-semibold tabular-nums", r.averageHours > 48 ? "text-orange-600" : "text-slate-700")}>
+            {hoursLabel(r.averageHours)}
+          </span>
         </div>
       ),
     },
-    {
-      header: "Average Time",
-      accessor: (item: any) => (
-        <div className="flex items-center gap-2">
-          <div
-            className={cn(
-              "px-3 py-1.5 rounded-xl border text-[12px] font-semibold tracking-tight ",
-              item.speed < 120
-                ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                : item.speed < 240
-                  ? "bg-blue-50 text-blue-600 border-blue-100"
-                  : "bg-rose-50 text-rose-600 border-rose-100",
-            )}
-          >
-            {item.speed} MINS
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Efficiency",
-      accessor: (item: any) => {
-        const efficiency = Math.max(0, 100 - (item.speed / 1440) * 100);
-        return (
-          <div className="flex flex-col gap-2 w-full max-w-[150px]">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase">
-                {efficiency.toFixed(0)}% Optimal
-              </span>
-            </div>
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-1000",
-                  efficiency > 80
-                    ? "bg-emerald-500"
-                    : efficiency > 50
-                      ? "bg-blue-500"
-                      : "bg-rose-500",
-                )}
-                style={{ width: `${efficiency}%` }}
-              />
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      header: "Actions",
-      accessor: (item: any) => (
-        <div className="flex items-center justify-end pr-4">
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
-            View Logs <ArrowUpRight size={12} strokeWidth={3} />
-          </button>
-        </div>
-      ),
-    },
+    { header: "Fastest", align: "right" as const, accessor: (r: any) => <span className="tabular-nums">{hoursLabel(r.fastestHours)}</span> },
+    { header: "Slowest", align: "right" as const, accessor: (r: any) => <span className="tabular-nums">{hoursLabel(r.slowestHours)}</span> },
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-        <ReportPageHeader
-          title="Turnaround Intelligence"
-          subtitle="Monitoring operational velocity and node throughput"
-          icon={Timer}
-          onSearch={setSearchQuery}
-          pdfData={pdfData}
-          pdfColumns={pdfColumns}
+    <div className="flex flex-col gap-5 pb-4">
+      <ReportHeader
+        title="Turnaround time"
+        subtitle={subtitle}
+        exportSpec={{
+          title: "Turnaround report",
+          subtitle,
+          columns: [
+            { header: "From", key: "from" },
+            { header: "To", key: "to" },
+            { header: "Delivered", key: "parcels" },
+            { header: "Average", key: "avg" },
+            { header: "Fastest", key: "fast" },
+            { header: "Slowest", key: "slow" },
+          ],
+          rows: rows.map((r) => ({
+            ...r,
+            avg: hoursLabel(r.averageHours),
+            fast: hoursLabel(r.fastestHours),
+            slow: hoursLabel(r.slowestHours),
+          })),
+        }}
+      >
+        <ReportFilters
+          onDark
+          range={range}
+          onRange={setRange}
+          custom={custom}
+          onCustom={setCustom}
+          stationId={stationId}
+          onStation={setStationId}
         />
-
-        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden">
-          <DataTable
-            title="Delivery Speed List"
-            columns={columns}
-            data={filteredData}
-            isLoading={isLoading}
-            searchKey="name"
-            searchPlaceholder="Search dates..."
-            hideInternalSearch
-          />
-        </div>
+      </ReportHeader>
+      <ReportSummary
+        label="Average time to deliver"
+        value={hoursLabel(s.averageHours)}
+        note="From drop-off at the station to pickup by the receiver"
+        loading={isLoading}
+        chips={[
+          { label: "Delivered", value: num(s.delivered), icon: CheckCircle2 },
+          { label: "Typical (median)", value: hoursLabel(s.medianHours), icon: Gauge },
+          { label: "Fastest", value: hoursLabel(s.fastestHours), icon: Zap },
+          { label: "Within 48 hours", value: s.delivered ? `${s.within48h}%` : "—", icon: Timer },
+        ]}
+      />
+      <ReportCard title="By route" aside={`${rows.length} routes`}>
+        <DataTable data={rows} columns={columns as any} isLoading={isLoading} hideActions hideInternalSearch emptyMessage="No deliveries in this period." />
+      </ReportCard>
     </div>
   );
 }

@@ -92,7 +92,7 @@ export default function SuperAdminLegalPage() {
             <button
               onClick={() => saveLegalConfig()}
               disabled={isSaving || !hasUnsavedChanges}
-              className="h-11 px-6 bg-blue-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
+              className="h-11 px-6 bg-blue-600 disabled:bg-[#4F0A0C] disabled:text-slate-500 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-blue-600/10 hover:bg-blue-500 transition-all active:scale-95"
             >
               {isSaving ? (
                 <Loader2 size={13} className="animate-spin" />

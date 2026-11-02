@@ -119,7 +119,7 @@ function TrackingPageInner() {
           />
           <button
             disabled={isSearching}
-            className="absolute right-2 top-2 bottom-2 px-8 bg-slate-900 text-white rounded-xl text-sm font-semibold  hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
+            className="absolute right-2 top-2 bottom-2 px-8 bg-[#5C0B19] text-white rounded-xl text-sm font-semibold  hover:bg-[#4F0A0C] transition-all active:scale-95 flex items-center gap-2"
           >
             {isSearching ? (
               <Loader2 className="animate-spin h-4 w-4" />
@@ -208,7 +208,7 @@ function TrackingPageInner() {
           </div>
 
           {/* Right: Timeline */}
-          <div className="bg-slate-900 rounded-xl p-10 text-white  relative overflow-hidden min-h-[500px]">
+          <div className="bg-[#5C0B19] rounded-xl p-10 text-white  relative overflow-hidden min-h-[500px]">
             <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
 
             <div className="relative z-10 space-y-10">
@@ -230,7 +230,7 @@ function TrackingPageInner() {
                     <div
                       className={cn(
                         "h-7 w-7 rounded-full flex items-center justify-center shrink-0 z-10 border-4 border-slate-900",
-                        event.isDone || i === 0 ? event.color : "bg-slate-800",
+                        event.isDone || i === 0 ? event.color : "bg-[#4F0A0C]",
                       )}
                     >
                       <event.icon

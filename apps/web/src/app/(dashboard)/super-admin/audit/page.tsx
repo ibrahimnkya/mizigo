@@ -1,6 +1,9 @@
 "use client";
+import { ReportSummary } from "@/components/reports/report-kit";
+import { BreakdownCard, PrimaryPill } from "@/components/shared/overview-kit";
+import { CalendarCheck, CalendarRange, Cpu, UserRound } from "lucide-react";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 
 function AuditLogsPageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
   const [selectedLog, setSelectedLog] = useState<any>(null);
@@ -136,100 +140,54 @@ function AuditLogsPageInner() {
         />
 
         <div className="mt-2 animate-in fade-in duration-700">
-          {tab.toLowerCase() === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  {
-                    label: "Total Events",
-                    count: totalLogs,
-                    icon: History,
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-                  {
-                    label: "System Actions",
-                    count: systemLogs,
-                    icon: Database,
-                    color: "text-emerald-600",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "User Actions",
-                    count: userLogs,
-                    icon: UserCircle,
-                    color: "text-indigo-600",
-                    bg: "bg-indigo-50",
-                  },
-                  {
-                    label: "Security Alerts",
-                    count: "0",
-                    icon: ShieldAlert,
-                    color: "text-rose-600",
-                    bg: "bg-rose-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-5 bg-white border border-[#E2E2E2] rounded-[20px]"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={cn("p-2 rounded-xl", stat.bg)}>
-                        <stat.icon className={cn("w-4 h-4", stat.color)} />
-                      </div>
-                      <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <span className="text-[26px] font-semibold text-slate-900 tabular-nums">
-                      {stat.count}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] flex flex-col min-h-[360px]">
-                  <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
-                    <Fingerprint className="h-4 w-4 text-slate-500" strokeWidth={2.5} />
-                    <h3 className="text-[14px] font-semibold text-slate-800">
-                      Audit Trails
-                    </h3>
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <p className="text-[13px] text-slate-500 leading-relaxed mb-5">
-                      Every state change, authentication event, and secure
-                      protocol invocation is immutably logged for strict
-                      compliance monitoring.
-                    </p>
-                    <div className="space-y-2 mt-auto">
-                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Trace Count
-                        </span>
-                        <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
-                          {totalLogs}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2] p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-                    <Activity className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
-                    Audit Event Frequency
-                  </h4>
-                  <p className="text-[13px] text-slate-500 max-w-md">
-                    Detailed graphical analysis of system load and event action
-                    velocity will be populated here.
-                  </p>
+          {tab.toLowerCase() === "overview" && (() => {
+            const now = Date.now();
+            const startToday = new Date();
+            startToday.setHours(0, 0, 0, 0);
+            const today = logs.filter((l: any) => new Date(l.createdAt) >= startToday).length;
+            const week = logs.filter((l: any) => now - new Date(l.createdAt).getTime() < 7 * 86_400_000).length;
+            const tally = (key: (l: any) => string | undefined) => {
+              const m = new Map<string, number>();
+              logs.forEach((l: any) => {
+                const k = key(l);
+                if (k) m.set(k, (m.get(k) ?? 0) + 1);
+              });
+              return [...m.entries()].map(([label, value]) => ({ label, value }));
+            };
+            const actions = tally((l) => String(l.action ?? "").replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()));
+            const people = tally((l) => l.user?.name);
+            return (
+              <div className="flex flex-col gap-5">
+                <ReportSummary
+                  label="Recorded activity"
+                  value={isLoading ? "…" : logs.length.toLocaleString("en-US")}
+                  note="Every sign-in, approval and change on the platform"
+                  loading={isLoading}
+                  chips={[
+                    { label: "Today", value: today.toLocaleString("en-US"), icon: CalendarCheck },
+                    { label: "Last 7 days", value: week.toLocaleString("en-US"), icon: CalendarRange },
+                    { label: "People involved", value: String(people.length), icon: UserRound },
+                    { label: "By the system", value: logs.filter((l: any) => !l.user).length.toLocaleString("en-US"), icon: Cpu },
+                  ]}
+                />
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <BreakdownCard
+                    title="Most common actions"
+                    subtitle="What happens most often"
+                    items={actions.sort((a, b) => b.value - a.value).slice(0, 8)}
+                    empty="No activity recorded yet."
+                    action={<PrimaryPill onClick={() => router.push("?tab=all")}>Full log</PrimaryPill>}
+                  />
+                  <BreakdownCard
+                    title="Most active people"
+                    subtitle="Who made the most changes"
+                    items={people.sort((a, b) => b.value - a.value).slice(0, 8)}
+                    empty="No one has made changes yet."
+                  />
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {tab.toLowerCase() === "all" && (
             <div className="bg-white rounded-[20px] border border-[#E2E2E2] overflow-hidden">

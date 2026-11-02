@@ -62,14 +62,14 @@ export function ViewOrganizationModal({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all duration-300  border border-slate-100 active:scale-90">
+        <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-[#5C0B19] hover:text-white transition-all duration-300  border border-slate-100 active:scale-90">
           <ShieldCheck size={16} strokeWidth={3} />
         </button>
       </SheetTrigger>
 
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
-        <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10   overflow-hidden">
             {organization.logoUrl ? (
@@ -281,7 +281,7 @@ export function ViewOrganizationModal({
           </div>
         </div>
 
-        <div className="bg-slate-900 p-6 flex items-center justify-between mt-auto">
+        <div className="bg-[#5C0B19] p-6 flex items-center justify-between mt-auto">
           <div className="flex items-center gap-2">
             <UserCircle className="w-5 h-5 text-slate-500" />
             <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em]">

@@ -81,7 +81,7 @@ export default function PlatformSettingsPage() {
             <button
               onClick={() => updateSettings(form)}
               disabled={isUpdating || Object.keys(form).length === 0}
-              className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
+              className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-[#5C0B19]/15 hover:bg-[#4F0A0C] transition-all active:scale-95 disabled:opacity-50 disabled:grayscale"
             >
               {isUpdating ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -207,7 +207,7 @@ export default function PlatformSettingsPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-950 rounded-xl border border-slate-200 relative overflow-hidden group">
+              <div className="p-6 bg-[#4F0A0C] rounded-xl border border-slate-200 relative overflow-hidden group">
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <h4 className="text-white font-semibold text-[14px]">
@@ -228,7 +228,7 @@ export default function PlatformSettingsPage() {
                       "w-12 h-6 rounded-full p-1 cursor-pointer transition-all duration-300",
                       currentSettings.MAINTENANCE_MODE
                         ? "bg-red-600"
-                        : "bg-slate-800",
+                        : "bg-[#4F0A0C]",
                     )}
                   >
                     <div
@@ -281,7 +281,7 @@ export default function PlatformSettingsPage() {
               <div className="flex items-center justify-between">
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white group-hover:scale-110",
+                    "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-[#5C0B19] group-hover:text-white group-hover:scale-110",
                     stat.color,
                   )}
                 >

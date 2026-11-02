@@ -47,7 +47,7 @@ export function StationList({ organizationId }: StationListProps) {
             className={cn(
               "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300",
               s.isActive
-                ? "bg-slate-900 shadow-slate-100"
+                ? "bg-[#5C0B19] shadow-slate-100"
                 : "bg-slate-200 shadow-transparent grayscale",
             )}
           >
@@ -127,7 +127,7 @@ export function StationList({ organizationId }: StationListProps) {
               setSelectedStation(s);
               setIsViewOpen(true);
             }}
-            className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all duration-300  border border-slate-100 active:scale-90"
+            className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-[#5C0B19] hover:text-white transition-all duration-300  border border-slate-100 active:scale-90"
           >
             <Eye size={15} strokeWidth={2.5} />
           </button>
@@ -136,7 +136,7 @@ export function StationList({ organizationId }: StationListProps) {
               setSelectedStation(s);
               setIsUpdateOpen(true);
             }}
-            className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
+            className="h-9 px-4 bg-[#5C0B19] hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
           >
             Manage
           </button>

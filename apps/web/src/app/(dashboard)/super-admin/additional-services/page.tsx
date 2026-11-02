@@ -312,7 +312,7 @@ function AdditionalServicesPageInner() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Marketing / Explainer Callout */}
-              <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
+              <div className="lg:col-span-1 bg-[#5C0B19] rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[400px]">
                 <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
                 
                 <div className="relative z-10 space-y-6">
@@ -492,7 +492,7 @@ function AdditionalServicesPageInner() {
                 </p>
                 <button
                   onClick={handleCreateClick}
-                  className="h-11 px-6 bg-slate-900 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-slate-800 transition-all"
+                  className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2 hover:bg-[#4F0A0C] transition-all"
                 >
                   <Plus size={14} strokeWidth={3} />
                   Create First Service
@@ -592,7 +592,7 @@ function AdditionalServicesPageInner() {
               <button
                 type="submit"
                 disabled={isCreating || isUpdating}
-                className="h-11 px-6 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-slate-900/10 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-400"
+                className="h-11 px-6 bg-[#5C0B19] text-white hover:bg-[#4F0A0C] rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] flex items-center gap-2  shadow-[#5C0B19]/15 transition-all active:scale-95 disabled:bg-slate-100 disabled:text-slate-400"
               >
                 {(isCreating || isUpdating) ? (
                   <Loader2 size={13} className="animate-spin" />

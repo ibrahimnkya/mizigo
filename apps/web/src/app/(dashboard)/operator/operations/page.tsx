@@ -154,7 +154,7 @@ export default async function OperationsPage() {
                 <div
                   className={cn(
                     "w-14 h-14 rounded-xl flex items-center justify-center transition-all",
-                    "bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-slate-900 group-hover:text-white",
+                    "bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-[#5C0B19] group-hover:text-white",
                   )}
                 >
                   <card.icon size={24} strokeWidth={2.5} />
@@ -207,7 +207,7 @@ export default async function OperationsPage() {
         </div>
 
         {/* Footer CTA - Search/Track */}
-        <div className="bg-slate-900 rounded-xl p-8 flex items-center justify-between text-white relative overflow-hidden mt-6  shadow-slate-900/20">
+        <div className="bg-[#5C0B19] rounded-xl p-8 flex items-center justify-between text-white relative overflow-hidden mt-6  shadow-slate-900/20">
           <div className="relative z-10">
             <h4 className="text-[22px] font-semibold mb-1 tracking-tight">
               Terminal Tracking Node

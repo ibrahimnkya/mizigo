@@ -28,7 +28,7 @@ export default async function PricingPage() {
               Manage dynamic pricing conditions and discounts across terminals.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl  shadow-slate-900/10 transition-all  active:translate-y-0 whitespace-nowrap">
+          <button className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl  shadow-[#5C0B19]/15 transition-all  active:translate-y-0 whitespace-nowrap">
             <Plus size={14} strokeWidth={2.5} /> Add Rule
           </button>
         </div>

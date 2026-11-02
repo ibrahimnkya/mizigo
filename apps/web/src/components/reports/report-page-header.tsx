@@ -78,6 +78,10 @@ interface ReportPageHeaderProps {
   exportData?: any[];
   exportColumns?: { header: string; key: string; width?: number }[];
   dateRange?: string;
+  /** Show the date-range picker (writes ?from&to to the URL). Off by default. */
+  showDateRange?: boolean;
+  /** Extra content shown inside the maroon header, below the title (e.g. filters). */
+  heroContent?: React.ReactNode;
 }
 
 const PRESETS = [
@@ -102,6 +106,8 @@ function ReportPageHeaderInner({
   exportData,
   exportColumns,
   dateRange: dateRangeProp,
+  showDateRange = false,
+  heroContent,
 }: ReportPageHeaderProps) {
   const Icon: LucideIcon =
     (iconName ? ICON_MAP[iconName] : typeof icon === "string" ? ICON_MAP[icon] : icon) ?? FileBarChart2;
@@ -127,6 +133,7 @@ function ReportPageHeaderInner({
 
   useEffect(() => {
     setIsClient(true);
+    if (!showDateRange) return;
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
     if (fromParam && toParam) {
@@ -158,7 +165,7 @@ function ReportPageHeaderInner({
   };
 
   if (!isClient) {
-    return <div className="h-14 bg-slate-100 rounded-xl animate-pulse mb-5" />;
+    return <div className="mb-5 h-14 animate-pulse rounded-2xl bg-slate-100" />;
   }
 
   const hasExport =
@@ -173,44 +180,45 @@ function ReportPageHeaderInner({
   return (
     <>
       {/* Header card */}
-      <div className="bg-white border border-[#E2E2E2] rounded-[20px] mb-5 overflow-hidden">
-        {/* Main row */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3 px-4 py-3">
+      <div className="mb-5">
+        {/* Main row — maroon bridge card, like the app's screen headers */}
+        <div className="page-hero bridge-card px-5 py-5 md:px-6 md:py-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           {/* Left: back + identity */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {!hideBackArrow && (
               <>
                 <button
                   onClick={() => router.back()}
-                  title="Go back"
-                  className="h-8 w-8 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors shrink-0"
+                  aria-label="Go back"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
                 >
-                  <ArrowLeft size={14} strokeWidth={2} />
+                  <ArrowLeft size={18} />
                 </button>
-                <div className="h-4 w-px bg-slate-200 shrink-0" />
               </>
             )}
-            <div className="h-8 w-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-              <Icon size={15} className="text-blue-600" strokeWidth={2} />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">
+              <Icon size={22} className="text-orange-300" />
             </div>
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-slate-800 leading-none truncate">{title}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5 leading-none truncate">{subtitle}</p>
+              <h1 className="truncate text-[26px] font-semibold leading-tight text-white">{title}</h1>
+              {subtitle && <p className="truncate text-[14px] text-white/70">{subtitle}</p>}
             </div>
           </div>
 
           {/* Right: controls */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Date range picker */}
+            {showDateRange && (
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
-                <button className="flex items-center gap-2 h-8 px-3 bg-white border border-[#E2E2E2] rounded-[20px] text-[12px] font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors">
-                  <CalendarIcon size={12} className="text-slate-400 shrink-0" />
+                <button className="flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-medium text-white transition hover:bg-white/20">
+                  <CalendarIcon size={14} className="shrink-0 text-white/70" />
                   <span className="tabular-nums">
                     {dateRange?.from ? format(dateRange.from, "MMM d") : "Start"}
                     {dateRange?.to ? ` - ${format(dateRange.to, "MMM d, yyyy")}` : ""}
                   </span>
-                  <ChevronDown size={11} className="text-slate-400 shrink-0" />
+                  <ChevronDown size={12} className="shrink-0 text-white/70" />
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -225,7 +233,7 @@ function ReportPageHeaderInner({
                     <button
                       key={p.label}
                       onClick={() => handleDateChange(p.getValue())}
-                      className="px-2.5 py-1 rounded-xl text-[11px] font-medium border border-slate-200 text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                      className="px-2.5 py-1 rounded-xl text-[11px] font-medium border border-slate-200 text-slate-600 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors"
                     >
                       {p.label}
                     </button>
@@ -249,21 +257,23 @@ function ReportPageHeaderInner({
                   </span>
                   <button
                     onClick={() => setOpen(false)}
-                    className="h-7 px-4 bg-blue-600 text-white rounded-xl text-[11px] font-semibold hover:bg-blue-700 transition-colors"
+                    className="h-8 rounded-full bg-orange-500 px-4 text-[12px] font-semibold text-white transition hover:bg-orange-600"
                   >
                     Apply
                   </button>
                 </div>
               </PopoverContent>
             </Popover>
+            )}
 
             {/* Search */}
             {onSearch && (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="h-8 w-8 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                aria-label="Search"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
               >
-                <Search size={14} />
+                <Search size={16} />
               </button>
             )}
 
@@ -273,7 +283,7 @@ function ReportPageHeaderInner({
                 <button
                   ref={downloadBtnRef}
                   onClick={handleDownloadToggle}
-                  className="flex items-center gap-1.5 h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-[12px] transition-colors"
+                  className="flex h-10 items-center gap-2 rounded-full bg-orange-500 px-4 text-[13px] font-semibold text-white transition hover:bg-orange-600"
                 >
                   <Download size={13} strokeWidth={2} />
                   Download
@@ -348,10 +358,12 @@ function ReportPageHeaderInner({
             ) : null)}
           </div>
         </div>
+        {heroContent && <div className="mt-5 border-t border-white/15 pt-5">{heroContent}</div>}
+        </div>
 
         {/* Tabs (Atlassian border-bottom style) */}
         {tabs && tabs.length > 0 && (
-          <div className="border-t border-slate-200 px-4 flex items-center gap-0 overflow-x-auto">
+          <div className="mt-4 flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-full border border-[#E2E2E2] bg-white p-1">
             {tabs.map((t) => {
               const isActive = t.toLowerCase() === currentTab?.toLowerCase();
               return (
@@ -364,10 +376,8 @@ function ReportPageHeaderInner({
                     router.push(`?${params.toString()}`, { scroll: false });
                   }}
                   className={cn(
-                    "px-4 py-2.5 text-[13px] font-medium border-b-2 whitespace-nowrap transition-colors shrink-0",
-                    isActive
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300",
+                    "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold transition",
+                    isActive ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50 hover:text-[#1C1C1E]",
                   )}
                 >
                   {t}
@@ -385,7 +395,7 @@ function ReportPageHeaderInner({
             className="absolute inset-0 bg-black/30"
             onClick={() => setIsSearchOpen(false)}
           />
-          <div className="relative w-full max-w-2xl bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white shadow-premium">
             <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
               <Search size={16} className="text-slate-400 shrink-0" />
               <input

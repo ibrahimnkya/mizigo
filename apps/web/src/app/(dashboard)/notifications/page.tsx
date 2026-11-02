@@ -94,7 +94,7 @@ export default async function NotificationsPage() {
             <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-semibold text-slate-500 hover:text-slate-700 border border-slate-200 bg-white rounded-xl hover:bg-slate-50 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <Archive size={13} /> Archive all
             </button>
-            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all  active:translate-y-0  shadow-slate-900/10">
+            <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all  active:translate-y-0  shadow-[#5C0B19]/15">
               <Check size={13} strokeWidth={2.5} /> Mark all read
             </button>
           </div>

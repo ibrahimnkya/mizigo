@@ -181,135 +181,120 @@ export function SessionLock() {
 
   if (status !== "authenticated") return null;
 
+  const user = session?.user as { name?: string | null; email?: string | null } | undefined;
+  const filled = otp.join("").length === 6;
+
   return (
     <Dialog open={isLocked} onOpenChange={() => {}}>
       <DialogContent
-        overlayClassName=" bg-slate-900/30"
-        className="max-w-[500px] p-0 overflow-hidden bg-white border border-slate-100 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.3)] rounded-3xl animate-in fade-in zoom-in-95 duration-500 [&>button]:hidden"
+        overlayClassName="bg-[#2A0508]/50 backdrop-blur-md"
+        className="w-[calc(100%-2rem)] max-w-[420px] grid-cols-1 gap-0 overflow-hidden rounded-[32px] border-0 bg-white p-0 shadow-[0_40px_120px_-20px_rgba(0,0,0,0.5)] sm:rounded-[32px] [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        {/* Visual Header */}
-        <div className="bg-slate-900 px-10 py-10 flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-indigo-500/10 pointer-events-none" />
-          <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px]" />
-          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px]" />
-
-          <div className="w-20 h-20 rounded-[1.5rem] bg-white/5 border border-slate-200 flex items-center justify-center mb-6 relative z-10 -2xl ">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-[1.5rem]" />
-            <Lock className="w-10 h-10 text-white" strokeWidth={2.5} />
+        {/* Header — maroon bridge card, like the app */}
+        <div className="bridge-card rounded-none px-8 pb-9 pt-7 text-center">
+          <div className="flex items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo_icon.png" alt="" className="h-8 w-8" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo_text.png" alt="MiziGO" className="h-5 w-auto" />
           </div>
-
-          <div className="relative z-10">
-            <DialogTitle className="text-[20px] font-semibold text-slate-800 tracking-tight leading-tight">
-              Screen Locked
-            </DialogTitle>
-            <DialogDescription className="text-slate-400 text-[12px] font-bold uppercase tracking-[0.25em] mt-3 flex items-center justify-center gap-2.5">
-              <TimerReset
-                className="w-3.5 h-3.5 text-slate-400"
-                strokeWidth={3}
-              />
-              Enter your PIN to continue
-            </DialogDescription>
+          <div className="relative mx-auto mt-7 h-[72px] w-[72px]">
+            <span className="absolute inset-0 animate-ping rounded-full bg-orange-400/20 [animation-duration:2.5s]" />
+            <span className="relative flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#F78A1F] to-[#D9620B] shadow-[0_12px_30px_-8px_rgba(247,138,31,0.7)] ring-[6px] ring-white/10">
+              <Lock className="h-8 w-8 text-white" strokeWidth={2.2} />
+            </span>
           </div>
+          <DialogTitle className="mt-4 text-[22px] font-semibold text-white">Screen locked</DialogTitle>
+          <DialogDescription className="mx-auto mt-1 max-w-[280px] text-[14px] leading-snug text-white/70">
+            Locked to keep your account safe. Enter your 6-digit access code to continue.
+          </DialogDescription>
         </div>
 
-        {/* Authentication Form */}
-        <div className="p-8">
-          <div className="mb-8 flex items-center gap-5 p-5 bg-slate-50/50 rounded-xl border border-slate-100 ">
-            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center font-semibold text-white text-md  shadow-slate-900/20">
-              {session?.user?.name?.substring(0, 2).toUpperCase() || "AD"}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[14px] font-semibold text-slate-900 truncate uppercase tracking-tight leading-none mb-1.5">
-                {session?.user?.name}
-              </span>
-              <span className="text-[11px] font-bold text-slate-400 truncate tracking-tight opacity-80">
-                {session?.user?.email}
-              </span>
+        <form onSubmit={handleUnlock} className="relative z-[2] -mt-5 flex min-w-0 flex-col gap-5 rounded-t-[28px] bg-white px-6 pb-6 pt-6 sm:px-7">
+          {/* Who */}
+          <div className="flex items-center gap-3 rounded-2xl border border-[#E2E2E2] bg-[#F7F5F4] px-4 py-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#5C0B19] text-[15px] font-semibold text-white">
+              {(user?.name || "U").charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold text-[#1C1C1E]">{user?.name || "Signed-in user"}</p>
+              <p className="truncate text-[13px] text-slate-500">{user?.email}</p>
             </div>
           </div>
 
-          <form onSubmit={handleUnlock} className="space-y-8">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between ml-1">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400">
-                  Enter PIN
-                </label>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between gap-2.5 mx-auto w-full max-w-[360px]">
-                  {otp.map((data, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => {
-                        inputsRef.current[index] = el;
-                      }}
-                      type={showPassword ? "text" : "password"}
-                      maxLength={1}
-                      value={data}
-                      onChange={(e) => handleOtpChange(e.target.value, index)}
-                      onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                      onPaste={handleOtpPaste}
-                      className="w-11 h-11 sm:w-12 sm:h-12 text-center text-lg font-semibold bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 rounded-xl transition-all outline-none text-slate-900"
-                      required
-                    />
-                  ))}
-                </div>
-
-                <div className="flex justify-end pr-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5"
-                  >
-                    {showPassword ? (
-                      <>
-                        <EyeOff className="w-4 h-4" strokeWidth={2.5} /> Hide
-                        Password
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-4 h-4" strokeWidth={2.5} /> Show
-                        Password
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-rose-50 border border-rose-100 text-rose-600 text-[13px] font-bold p-5 rounded-xl flex items-center gap-4 animate-in slide-in-from-top-2 duration-300">
-                <ShieldOff className="w-5 h-5 shrink-0" strokeWidth={2.5} />
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-5">
-              <Button
-                type="submit"
-                disabled={loading || !password}
-                className="h-16 w-full bg-slate-900 hover:bg-blue-600 text-white rounded-xl font-semibold text-[13px] uppercase tracking-[0.25em] transition-all  shadow-slate-900/10 active:scale-[0.98] flex items-center justify-center gap-3 border-none"
-              >
-                {loading ? (
-                  <Loader2 className="w-6 h-6 animate-spin" strokeWidth={3} />
-                ) : (
-                  "Unlock"
-                )}
-              </Button>
-
+          {/* Code */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[14px] font-medium text-slate-600">Access code</span>
               <button
                 type="button"
-                onClick={() => signOut({ redirectTo: "/login" })}
-                className="h-10 w-full text-[11px] font-semibold uppercase tracking-[0.05em] text-slate-400 hover:text-rose-600 transition-colors flex items-center justify-center gap-2.5"
+                onClick={() => setShowPassword(!showPassword)}
+                className="flex items-center gap-1.5 text-[13px] text-slate-500 transition hover:text-slate-800"
               >
-                <LogOut className="w-4 h-4" />
-                Sign out of account
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-          </form>
-        </div>
+            <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    inputsRef.current[index] = el;
+                  }}
+                  type={showPassword ? "text" : "password"}
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  aria-label={`Digit ${index + 1}`}
+                  maxLength={1}
+                  size={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(e.target.value, index)}
+                  onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                  onPaste={handleOtpPaste}
+                  disabled={loading}
+                  required
+                  className={[
+                    "h-14 w-full min-w-0 rounded-2xl border p-0 text-center text-[22px] font-semibold text-[#1C1C1E] outline-none transition disabled:opacity-60",
+                    error
+                      ? "border-rose-300 bg-rose-50"
+                      : filled
+                        ? "border-orange-500 bg-orange-50 text-orange-700 ring-4 ring-orange-500/10"
+                        : "border-[#E2E2E2] bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10",
+                  ].join(" ")}
+                />
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-[14px] text-rose-700">
+              <ShieldOff className="h-5 w-5 shrink-0 text-rose-500" />
+              {error}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading || !password}
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-full border-0 bg-[#5C0B19] text-[16px] font-semibold text-white transition hover:bg-[#4F0A0C] active:scale-[0.99] disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Unlock"}
+          </Button>
+
+          <p className="text-center text-[14px] text-slate-500">
+            Not you?{" "}
+            <button
+              type="button"
+              onClick={() => signOut({ redirectTo: "/login" })}
+              className="font-semibold text-orange-600 transition hover:text-orange-700"
+            >
+              Sign out
+            </button>
+          </p>
+        </form>
       </DialogContent>
     </Dialog>
   );

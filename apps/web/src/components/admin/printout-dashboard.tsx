@@ -268,7 +268,7 @@ function ReceiptPreview({ cfg, orgName, lc }: { cfg: ReceiptConfig; orgName: str
       narrow ? "max-w-[280px] sm:max-w-[300px]" : "max-w-full",
     )} style={{ fontSize: cfg.fontSize === "small" ? 9 : cfg.fontSize === "large" ? 13 : 11 }}>
       {/* Header */}
-      <div className="bg-slate-900 text-white px-3 py-2.5 text-center">
+      <div className="bg-[#5C0B19] text-white px-3 py-2.5 text-center">
         {cfg.showLogo && (
           <div className="flex justify-center mb-1.5">
             <LogoMark lc={lc} orgName={cfg.orgName || orgName} size="md" />

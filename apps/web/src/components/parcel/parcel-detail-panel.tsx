@@ -18,8 +18,11 @@ import {
   Phone,
   MapPin,
   Route,
+  PackageSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trackingNote } from "@/lib/tracking-note";
+import api from "@/lib/api/client";
 import {
   PaymentGatewayService,
   PaymentChannel,
@@ -154,7 +157,7 @@ function readMeta(raw: unknown): Record<string, any> {
 const tsh = (n: number) => `TSh ${Math.round(n).toLocaleString("en-US")}`;
 const fmtDate = (d: string | Date) =>
   new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-const city = (s?: string | null) => (s || "—").split(",")[0].trim();
+const city = (s?: string | null) => (s || "—").split(",")[0]!.trim();
 
 function Field({ label, value }: { label: string; value?: string | number | null }) {
   return (
@@ -253,6 +256,11 @@ function ParcelHero({ parcel }: { parcel: ParcelDetail }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {meta.lostReport && !meta.lostReport.resolved && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white">
+              <PackageSearch size={13} /> Reported missing
+            </span>
+          )}
           {express && <span className="accent-pill">Express</span>}
           <StatusPill status={parcel.status} onDark />
         </div>
@@ -323,9 +331,9 @@ function Journey({ parcel }: { parcel: ParcelDetail }) {
                   </p>
                   <p className="text-[12px] text-slate-400">{fmtDate(e.timestamp)}</p>
                 </div>
-                {(e.description || e.location) && (
+                {trackingNote(e) && (
                   <p className="mt-0.5 text-[13px] text-slate-500">
-                    {[e.description, e.location].filter(Boolean).join(" · ")}
+                    {trackingNote(e)}
                   </p>
                 )}
               </div>
@@ -334,6 +342,116 @@ function Journey({ parcel }: { parcel: ParcelDetail }) {
         </ol>
       )}
     </Section>
+  );
+}
+
+// ── Lost parcel (staff) ────────────────────────────────────────────────────────
+
+const LOST_STAFF_ROLES = ["SUPER_ADMIN", "ADMIN", "STATION_MASTER", "CLERK", "TRAIN_GUARD"];
+
+export function LostParcelPanel({
+  parcel,
+  userRole,
+  onDone,
+}: {
+  parcel: ParcelDetail;
+  userRole?: string;
+  onDone: () => void;
+}) {
+  const meta = readMeta(parcel.additionalServices);
+  const report = meta.lostReport && !meta.lostReport.resolved ? meta.lostReport : null;
+  const [mode, setMode] = useState<"idle" | "lost">("idle");
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState<"" | "lost" | "found">("");
+  const [error, setError] = useState("");
+
+  if (!userRole || !LOST_STAFF_ROLES.includes(userRole)) return null;
+  if (["DELIVERED", "CANCELED", "REJECTED", "LOST"].includes(parcel.status)) return null;
+
+  const call = async (kind: "lost" | "found") => {
+    setBusy(kind);
+    setError("");
+    try {
+      if (kind === "lost") await api.post(`/parcel/${parcel.id}/mark-lost`, { reason });
+      else await api.post(`/parcel/${parcel.id}/resolve-lost-report`, {});
+      onDone();
+    } catch (err: any) {
+      setError(err?.response?.data?.error?.message || "Something went wrong. Please try again.");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  return (
+    <div className={cn("rounded-[24px] border p-5", report ? "border-rose-200 bg-rose-50" : "border-[#E2E2E2] bg-white")}>
+      <div className="flex items-center gap-2.5">
+        <span className={cn("flex h-8 w-8 items-center justify-center rounded-full", report ? "bg-white" : "bg-rose-50")}>
+          <PackageSearch size={15} className="text-rose-600" />
+        </span>
+        <h3 className="text-[16px] font-semibold text-[#1C1C1E]">{report ? "Reported missing" : "Lost parcel"}</h3>
+      </div>
+
+      {report ? (
+        <div className="mt-3 text-[14px] text-rose-900">
+          <p>
+            The {report.reportedBy === "RECEIVER" ? "receiver" : "sender"} reported this parcel missing on{" "}
+            {fmtDate(report.reportedAt)}.
+          </p>
+          {report.details && <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-slate-700">“{report.details}”</p>}
+        </div>
+      ) : (
+        <p className="mt-3 text-[14px] text-slate-500">Mark this parcel as lost if it can&apos;t be located.</p>
+      )}
+
+      {mode === "lost" && (
+        <textarea
+          rows={2}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason (optional)"
+          className="mt-3 w-full resize-none rounded-2xl border border-[#E2E2E2] bg-white px-4 py-3 text-[14px] outline-none focus:border-orange-500"
+        />
+      )}
+      {error && <p className="mt-3 text-[13px] text-rose-700">{error}</p>}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {mode === "lost" ? (
+          <>
+            <button
+              onClick={() => call("lost")}
+              disabled={!!busy}
+              className="flex h-10 items-center gap-2 rounded-full bg-rose-600 px-5 text-[13px] font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
+            >
+              {busy === "lost" && <Loader2 size={14} className="animate-spin" />} Confirm lost
+            </button>
+            <button
+              onClick={() => setMode("idle")}
+              className="h-10 rounded-full px-4 text-[13px] font-semibold text-slate-600 hover:bg-white"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setMode("lost")}
+              className="h-10 rounded-full border border-rose-200 bg-white px-5 text-[13px] font-semibold text-rose-600 transition hover:bg-rose-600 hover:text-white"
+            >
+              Mark as lost
+            </button>
+            {report && (
+              <button
+                onClick={() => call("found")}
+                disabled={!!busy}
+                className="flex h-10 items-center gap-2 rounded-full bg-[#5C0B19] px-5 text-[13px] font-semibold text-white transition hover:bg-[#4F0A0C] disabled:opacity-60"
+              >
+                {busy === "found" && <Loader2 size={14} className="animate-spin" />} Parcel found
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -413,8 +531,8 @@ function DetailsTab({
           <div className="flex flex-col gap-4">
             <ContactRow
               label="Sender"
-              name={meta.senderName || parcel.user?.name}
-              phone={meta.senderPhone || parcel.user?.phone}
+              name={meta.senderName || "Not recorded"}
+              phone={meta.senderPhone || null}
             />
             <div className="h-px bg-slate-100" />
             <ContactRow label="Receiver" name={parcel.receiverName} phone={parcel.receiverPhone} />
@@ -426,6 +544,8 @@ function DetailsTab({
             )}
           </div>
         </Section>
+
+        <LostParcelPanel parcel={parcel} userRole={userRole} onDone={onActionSuccess} />
 
         {/* Payment (for agents when status is PAYMENT_PENDING) */}
         {parcel.status === "PAYMENT_PENDING" && userRole === "AGENT" && (
@@ -496,7 +616,7 @@ function ReceiptTab({ parcel }: { parcel: ParcelDetail }) {
     { label: "Paid At", value: paidAt },
     { label: "Parcel ID", value: `#${parcel.id.slice(-8).toUpperCase()}` },
     { label: "Route", value: `${parcel.fromAddress} → ${parcel.toAddress}` },
-    { label: "Customer", value: parcel.user?.name ?? "—" },
+    { label: "Sender", value: readMeta(parcel.additionalServices).senderName ?? "—" },
   ];
 
   return (
@@ -505,7 +625,7 @@ function ReceiptTab({ parcel }: { parcel: ParcelDetail }) {
         {/* Receipt card */}
         <div className="bg-white border border-[#E2E2E2] rounded-[20px] shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden">
           {/* Header */}
-          <div className="bg-slate-900 px-6 py-7 text-white">
+          <div className="bg-[#5C0B19] px-6 py-7 text-white">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
@@ -588,7 +708,7 @@ function ReceiptTab({ parcel }: { parcel: ParcelDetail }) {
 
 // ── Action Panel ───────────────────────────────────────────────────────────────
 
-function ActionPanel({
+export function ActionPanel({
   parcel,
   onSuccess,
 }: {
@@ -731,7 +851,7 @@ function ActionPanel({
 
 // ── Parcel Payment Section (For Agents) ──────────────────────────────────────────
 
-function ParcelPaymentSection({
+export function ParcelPaymentSection({
   parcel,
   onPaymentInitiated,
 }: {

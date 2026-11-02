@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { SessionLock } from "@/components/auth/session-lock";
 import { BrandingProvider } from "@/providers/branding-provider";
+import { PortalScope } from "@/components/layout/theme-switcher";
 
 export default function DashboardLayout({
   children,
@@ -10,7 +11,8 @@ export default function DashboardLayout({
 }) {
   return (
     <BrandingProvider>
-      <div className="flex h-screen overflow-hidden bg-[#F3F3F3]">
+      <div className="portal flex h-screen overflow-hidden bg-[#F3F3F3]">
+        <PortalScope />
         <SessionLock />
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden lg:ml-60">

@@ -80,7 +80,7 @@ export function PricingRuleBuilder({
       className="space-y-8 animate-in slide-in-from-right-4 duration-300"
     >
       {/* Header Info */}
-      <div className="bg-slate-900 rounded-xl p-6 text-white flex items-center justify-between border border-slate-800 ">
+      <div className="bg-[#5C0B19] rounded-xl p-6 text-white flex items-center justify-between border border-[#651422] ">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center border border-slate-200">
             <MoneyBagIcon size={24} className="text-blue-400" />
@@ -278,7 +278,7 @@ export function PricingRuleBuilder({
       <div className="pt-8 border-t border-slate-100 flex justify-end">
         <button
           disabled={isLoading}
-          className="h-14 px-10 bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+          className="h-14 px-10 bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  shadow-slate-900/20 hover:bg-[#4F0A0C] transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
         >
           {isLoading ? (
             <div className="flex items-center gap-2">

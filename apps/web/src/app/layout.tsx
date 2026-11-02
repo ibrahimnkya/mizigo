@@ -22,6 +22,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply the saved portal theme before first paint (no flash). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.dataset.theme=localStorage.getItem("mzg-theme")||"daylight"}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${outfit.variable} ${outfit.className}`} suppressHydrationWarning>
         <SessionProvider>
           <QueryProvider>

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/card";
+import { ParcelDetailSheet } from "@/components/parcel/parcel-detail-sheet";
 import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Check, X, Clock, Package, User, MapPin } from "lucide-react";
@@ -23,6 +25,7 @@ export function ActionRequiredPanel({
   requests: ParcelRequest[];
   role: string;
 }) {
+  const [openParcel, setOpenParcel] = useState<any | null>(null);
   const isAdminOrOps = ["ADMIN", "SUPER_ADMIN", "CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(role);
 
   if (!requests || requests.length === 0) {
@@ -43,6 +46,7 @@ export function ActionRequiredPanel({
   }
 
   return (
+    <>
     <Card className="border-none shadow-md bg-white overflow-hidden">
       <CardHeader className="border-b border-slate-50 pb-4">
         <div className="flex items-center justify-between">
@@ -101,15 +105,14 @@ export function ActionRequiredPanel({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 pt-1">
-                    <Link href={`/parcel/${request.id}`}>
                       <Button
+                        onClick={() => setOpenParcel(request)}
                         size="sm"
                         variant="outline"
                         className="h-8 text-[11px] font-bold border-indigo-100 text-indigo-600 hover:bg-indigo-50"
                       >
                         {isAwaitingPayment ? "Pay Now" : "View"}
                       </Button>
-                    </Link>
                   </div>
                 </div>
               </div>
@@ -128,6 +131,8 @@ export function ActionRequiredPanel({
         </Button>
       </div>
     </Card>
+      <ParcelDetailSheet parcel={openParcel} onClose={() => setOpenParcel(null)} />
+    </>
   );
 }
 

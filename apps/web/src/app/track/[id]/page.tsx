@@ -1,498 +1,609 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import api from "@/lib/api/client";
-import {
-  Package,
-  MapPin,
-  Search,
-  Loader2,
-  CheckCircle2,
-  Clock,
-  Home,
-  AlertCircle,
-  Copy,
-  Printer,
-  ShieldCheck,
-  Phone,
-  Activity,
-  TrainFront,
-  Tag,
-  Info,
-} from "lucide-react";
+import Link from "next/link";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useState } from "react";
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  Loader2,
+  MapPin,
+  Printer,
+  Search,
+  SearchX,
+  ShieldCheck,
+  TrainFront,
+  MoreHorizontal,
+  PackageSearch,
+  X,
+} from "lucide-react";
+import api from "@/lib/api/client";
+import { cn } from "@/lib/utils";
+import { trackingNote } from "@/lib/tracking-note";
+
+/* ─── Status wording (plain language, like the app) ───────────────────────── */
+
+const STATUS: Record<string, { label: string; headline: (to: string) => string }> = {
+  PENDING: { label: "Request received", headline: () => "We're preparing your parcel" },
+  APPROVED: { label: "Approved", headline: () => "Approved and waiting for drop-off" },
+  PAYMENT_PENDING: { label: "Awaiting payment", headline: () => "Waiting for payment" },
+  PAID: { label: "Paid", headline: () => "Paid and waiting for drop-off" },
+  RECEIVED: { label: "At the origin station", headline: () => "Received at the station" },
+  DISPATCHED: { label: "On the way", headline: (to) => `On the way to ${to}` },
+  IN_TRANSIT: { label: "On the way", headline: (to) => `On the way to ${to}` },
+  OFFLOADED: { label: "Ready for pickup", headline: (to) => `Ready for pickup in ${to}` },
+  AT_STATION: { label: "Ready for pickup", headline: (to) => `Ready for pickup in ${to}` },
+  DELIVERED: { label: "Delivered", headline: () => "Delivered to the receiver" },
+  COMPLETED: { label: "Delivered", headline: () => "Delivered to the receiver" },
+  DELAYED: { label: "Delayed", headline: () => "Running a little late" },
+  CANCELED: { label: "Cancelled", headline: () => "This parcel was cancelled" },
+  CANCELLED: { label: "Cancelled", headline: () => "This parcel was cancelled" },
+  REJECTED: { label: "Rejected", headline: () => "This request was rejected" },
+  LOST: { label: "Under review", headline: () => "We're looking into this parcel" },
+};
+
+const STEP_LABELS: Record<string, string> = {
+  PENDING: "Requested",
+  RECEIVED: "Received",
+  IN_TRANSIT: "On the way",
+  AT_STATION: "At station",
+  DELIVERED: "Delivered",
+};
+
+const city = (s?: string) => (s || "—").split(",")[0]!.trim();
+const pretty = (s?: string | null) =>
+  s
+    ? s
+        .replace(/_/g, " ")
+        .toLowerCase()
+        .replace(/^\w/, (c) => c.toUpperCase())
+    : null;
+
+/* ─── Shell: maroon top bar with logo + search ────────────────────────────── */
+
+function Shell({
+  children,
+  logo,
+}: {
+  children: React.ReactNode;
+  logo?: { url?: string | null; name?: string | null };
+}) {
+  const router = useRouter();
+  const [q, setQ] = useState("");
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-[#F3F3F3] text-[#1C1C1E] lg:h-screen lg:overflow-hidden">
+      <header className="fixed inset-x-0 top-3 z-50 px-3 text-white sm:top-4 sm:px-5">
+        <nav className="relative z-10 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 rounded-[28px] border border-white/15 bg-[#5C0B19]/80 py-2.5 pl-4 pr-2.5 shadow-[0_16px_40px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:flex-nowrap sm:rounded-full sm:pl-6">
+          <Link href="/" className="flex items-center gap-2.5" aria-label="MiziGO home">
+            {logo?.url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo.url} alt={logo.name || "Logo"} className="h-10 w-auto max-w-[10rem] object-contain" />
+            ) : (
+              <>
+                <Image src="/brand/logo_icon.png" alt="" width={40} height={40} className="h-10 w-10" priority />
+                <Image
+                  src="/brand/logo_text.png"
+                  alt="MiziGO"
+                  width={110}
+                  height={34}
+                  className="h-7 w-auto"
+                  priority
+                />
+              </>
+            )}
+          </Link>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (q.trim()) router.push(`/track/${encodeURIComponent(q.trim().toUpperCase())}`);
+            }}
+            className="relative w-full sm:w-80"
+          >
+            <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value.toUpperCase())}
+              placeholder="Track another parcel"
+              aria-label="Tracking number"
+              className="h-11 w-full rounded-full border border-white/20 bg-white/10 pl-11 pr-12 text-[14px] text-white outline-none backdrop-blur-md placeholder:text-white/45 focus:border-orange-400"
+            />
+            <button
+              type="submit"
+              aria-label="Track"
+              className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 transition hover:bg-orange-600"
+            >
+              <ArrowRight size={16} />
+            </button>
+          </form>
+        </nav>
+      </header>
+      <div className="relative h-52 shrink-0 overflow-hidden bg-gradient-to-b from-[#5C0B19] to-[#4F0A0C] sm:h-36">
+        <div className="pointer-events-none absolute inset-0 bg-bridge bg-cover bg-bottom opacity-25" />
+      </div>
+      <main className="relative z-10 mx-auto -mt-10 flex min-h-0 w-full max-w-6xl flex-1 flex-col px-5 pb-5 sm:px-8">
+        {children}
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}
+
+function Card({ title, children, className }: { title?: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn("flex min-h-0 flex-col rounded-[24px] border border-[#E2E2E2] bg-white p-5", className)}>
+      {title && <h2 className="mb-3 shrink-0 text-[16px] font-semibold">{title}</h2>}
+      {children}
+    </section>
+  );
+}
+
+function Fact({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="rounded-2xl bg-[#F7F5F4] px-3.5 py-2.5">
+      <p className="text-[12px] text-slate-500">{label}</p>
+      <p className="text-[14px] font-semibold">{value || "—"}</p>
+    </div>
+  );
+}
+
+/* ─── Options menu: one control for all parcel actions ───────────────────── */
+
+function ParcelOptions({
+  canReport,
+  onCopy,
+  onPrint,
+  onReport,
+}: {
+  canReport: boolean;
+  onCopy: () => void;
+  onPrint: () => void;
+  onReport: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+
+  const item = "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] transition hover:bg-orange-50";
+  const run = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+
+  return (
+    <div ref={ref} className="relative print:hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex h-10 items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold transition hover:bg-white/20"
+      >
+        <MoreHorizontal size={16} /> Options
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-12 z-30 w-60 rounded-2xl border border-[#E2E2E2] bg-white p-1.5 text-[#1C1C1E] shadow-premium"
+        >
+          <button role="menuitem" onClick={run(onCopy)} className={item}>
+            <Copy size={16} className="text-slate-500" /> Copy tracking link
+          </button>
+          <button role="menuitem" onClick={run(onPrint)} className={item}>
+            <Printer size={16} className="text-slate-500" /> Print
+          </button>
+          {canReport && (
+            <>
+              <div className="my-1 h-px bg-slate-100" />
+              <button role="menuitem" onClick={run(onReport)} className={cn(item, "text-rose-600 hover:bg-rose-50")}>
+                <PackageSearch size={16} /> Report lost parcel
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Report lost: verified by the sender's or receiver's phone ─────────── */
+
+function ReportLostDialog({
+  trackingNumber,
+  onClose,
+  onReported,
+}: {
+  trackingNumber: string;
+  onClose: () => void;
+  onReported: () => void;
+}) {
+  const [phone, setPhone] = useState("");
+  const [details, setDetails] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSending(true);
+    try {
+      await api.post(`/parcel/track/${encodeURIComponent(trackingNumber)}/report-lost`, { phone, details });
+      setDone(true);
+      onReported();
+    } catch (err: any) {
+      setError(err?.response?.data?.error?.message || err?.response?.data?.message || "Couldn't send the report. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-lost-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-[28px] bg-white p-6 text-[#1C1C1E] shadow-premium"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
+            <PackageSearch size={22} className="text-rose-600" />
+          </div>
+          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
+            <X size={18} />
+          </button>
+        </div>
+
+        {done ? (
+          <>
+            <h2 id="report-lost-title" className="mt-4 text-[20px] font-semibold">Report received</h2>
+            <p className="mt-1 text-[15px] text-slate-500">
+              Our station team will look into {trackingNumber} and contact you on the number you gave.
+            </p>
+            <button
+              onClick={onClose}
+              className="mt-6 h-12 w-full rounded-full bg-[#5C0B19] text-[15px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+            >
+              Done
+            </button>
+          </>
+        ) : (
+          <form onSubmit={submit}>
+            <h2 id="report-lost-title" className="mt-4 text-[20px] font-semibold">Report a lost parcel</h2>
+            <p className="mt-1 text-[14px] text-slate-500">
+              To confirm it&apos;s you, enter the sender&apos;s or receiver&apos;s phone number for {trackingNumber}.
+            </p>
+            <label className="mt-5 block text-[13px] font-medium text-slate-600" htmlFor="lost-phone">
+              Phone number
+            </label>
+            <input
+              id="lost-phone"
+              type="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="e.g. 0712 345 678"
+              className="mt-1.5 h-12 w-full rounded-2xl border border-[#E2E2E2] px-4 text-[15px] outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+            />
+            <label className="mt-4 block text-[13px] font-medium text-slate-600" htmlFor="lost-details">
+              What happened? <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <textarea
+              id="lost-details"
+              rows={3}
+              maxLength={500}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="e.g. It was due on Monday and the station says it hasn't arrived."
+              className="mt-1.5 w-full resize-none rounded-2xl border border-[#E2E2E2] px-4 py-3 text-[15px] outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+            />
+            {error && <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-2.5 text-[13px] text-rose-700">{error}</p>}
+            <button
+              type="submit"
+              disabled={sending}
+              className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5C0B19] text-[15px] font-semibold text-white transition hover:bg-[#4F0A0C] disabled:opacity-60"
+            >
+              {sending && <Loader2 size={17} className="animate-spin" />} Send report
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Page ─────────────────────────────────────────────────────────────────── */
 
 export default function PublicTrackingPage() {
   const { id } = useParams();
-  const router = useRouter();
-  const [altSearch, setAltSearch] = useState("");
+  const trackingId = decodeURIComponent(String(id ?? ""));
+  const queryClient = useQueryClient();
+  const [reportOpen, setReportOpen] = useState(false);
 
-  const { data: trackingData, isLoading, error } = useQuery({
-    queryKey: ["public-tracking", id],
-    queryFn: async () => {
-      const { data } = await api.get(`/parcel/track/${id}`);
-      return data.data;
-    },
-    enabled: !!id,
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["public-tracking", trackingId],
+    queryFn: async () => (await api.get(`/parcel/track/${encodeURIComponent(trackingId)}`)).data.data,
+    enabled: !!trackingId,
     retry: 1,
   });
+
+  if (isLoading) {
+    return (
+      <Shell>
+        <div className="flex min-h-[320px] flex-1 flex-col items-center justify-center rounded-[28px] border border-[#E2E2E2] bg-white">
+          <Loader2 size={28} className="animate-spin text-orange-500" />
+          <p className="mt-3 text-[15px] text-slate-500">Finding {trackingId}…</p>
+        </div>
+      </Shell>
+    );
+  }
+
+  const notFound = (error as any)?.response?.status === 404;
+  if (error && !notFound) {
+    return (
+      <Shell>
+        <div className="flex flex-1 flex-col items-center justify-center rounded-[28px] border border-[#E2E2E2] bg-white px-6 py-14 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
+            <SearchX size={28} className="text-orange-500" />
+          </div>
+          <h1 className="mt-4 text-[22px] font-semibold">Tracking is unavailable right now</h1>
+          <p className="mt-1 max-w-md text-[15px] text-slate-500">
+            We couldn&apos;t reach the tracking service. Please try again in a moment.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 rounded-full bg-[#5C0B19] px-6 py-3 text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+          >
+            Try again
+          </button>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (error || !data?.parcel) {
+    return (
+      <Shell>
+        <div className="flex flex-1 flex-col items-center justify-center rounded-[28px] border border-[#E2E2E2] bg-white px-6 py-14 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
+            <SearchX size={28} className="text-orange-500" />
+          </div>
+          <h1 className="mt-4 text-[22px] font-semibold">We couldn&apos;t find “{trackingId}”</h1>
+          <p className="mt-1 max-w-md text-[15px] text-slate-500">
+            Check the tracking number on your receipt or SMS and try again using the search above.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 rounded-full bg-[#5C0B19] px-6 py-3 text-[14px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+          >
+            Back to home
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
+
+  const parcel = data.parcel;
+  const masked: boolean = !!data.isPrivacyMasked;
+  const history: { id: string; status: string; location?: string; description?: string; timestamp: string }[] = [
+    ...(data.trackingHistory ?? []),
+  ].reverse();
+  const steps: { status: string; reached: boolean }[] = data.statusTimeline ?? [];
+  const to = city(parcel.route?.destinationStation);
+  const from = city(parcel.route?.receivingStation);
+  const meta = STATUS[parcel.status] ?? {
+    label: pretty(parcel.status) ?? "",
+    headline: () => pretty(parcel.status) ?? "",
+  };
+  const reachedCount = steps.filter((s) => s.reached).length;
+  const stopped = ["CANCELED", "CANCELLED", "REJECTED", "LOST"].includes(parcel.status);
+
+  const openReport = !!parcel.lostReport && !parcel.lostReport.resolved;
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Tracking link copied");
   };
 
-  const handleAltSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (altSearch.trim()) router.push(`/track/${altSearch.trim().toUpperCase()}`);
-  };
-
-  const getStatusDetails = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return { icon: Clock, color: "text-amber-400", bg: "bg-amber-400/10", border: "border-amber-400/20", label: "Processing" };
-      case "RECEIVED":
-        return { icon: Package, color: "text-blue-400", bg: "bg-blue-400/10", border: "border-blue-400/20", label: "Received" };
-      case "IN_TRANSIT":
-        return { icon: TrainFront, color: "text-indigo-400", bg: "bg-indigo-400/10", border: "border-indigo-400/20", label: "In Transit" };
-      case "AT_STATION":
-        return { icon: MapPin, color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20", label: "Ready for Pickup" };
-      case "COMPLETED":
-        return { icon: CheckCircle2, color: "text-teal-400", bg: "bg-teal-400/10", border: "border-teal-400/20", label: "Delivered" };
-      case "CANCELLED":
-        return { icon: AlertCircle, color: "text-rose-400", bg: "bg-rose-400/10", border: "border-rose-400/20", label: "Cancelled" };
-      default:
-        return { icon: Package, color: "text-slate-400", bg: "bg-slate-400/10", border: "border-slate-400/20", label: status };
-    }
-  };
-
-  /* ─── Loading ─── */
-  if (isLoading) {
-    return (
-      <div className="min-h-screen w-full bg-slate-950 text-white font-sans flex flex-col items-center justify-center p-6 relative">
-        <div className="absolute inset-0 z-0">
-          <Image src="/side.png" alt="Mizigo" fill className="object-cover opacity-50 brightness-75" priority />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 to-slate-950" />
-        </div>
-        <div className="relative z-10 flex flex-col items-center gap-8 text-center">
-          <div className="relative w-20 h-20 bg-slate-900/70 backdrop-blur-3xl border border-white/10 rounded-[14px] flex items-center justify-center shadow-2xl shadow-blue-500/20">
-            <div className="absolute inset-0 bg-blue-500/10 animate-pulse rounded-[14px]" />
-            <Activity className="text-blue-400 w-9 h-9 animate-bounce" />
-          </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl font-black tracking-tight text-white uppercase">
-              Finding <span className="text-blue-500">Parcel</span>
-            </h2>
-            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl">
-              <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
-              <p className="text-slate-400 font-mono text-[10px] uppercase tracking-[0.3em] font-black">{id}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ─── Not Found ─── */
-  if (error || !trackingData) {
-    return (
-      <div className="min-h-screen w-full bg-slate-950 text-white font-sans flex flex-col relative">
-        <div className="absolute inset-0 z-0">
-          <Image src="/side.png" alt="Mizigo" fill className="object-cover opacity-50 brightness-75" priority />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 to-slate-950" />
-        </div>
-
-        <nav className="relative z-50 flex justify-between items-center px-5 sm:px-8 md:px-12 py-5 md:py-7 max-w-[1400px] mx-auto w-full">
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push("/")}>
-            <Image src="/mono.png" alt="Icon" width={34} height={34} className="rounded-2xl shadow-xl shadow-blue-500/20" />
-            <Image src="/word.png" alt="Mizigo" width={80} height={22} className="opacity-90 mt-0.5" />
-          </div>
-          <button
-            onClick={() => router.push("/")}
-            className="h-10 px-5 bg-blue-600/10 backdrop-blur-md text-white rounded-2xl text-[9px] sm:text-[10px] font-black border border-blue-500/20 hover:bg-blue-600 hover:border-blue-500 transition-all flex items-center gap-2 uppercase tracking-widest"
-          >
-            <Search size={12} className="text-blue-400" />
-            <span className="hidden sm:inline">Track Another</span>
-            <span className="sm:hidden">Search</span>
-          </button>
-        </nav>
-
-        <main className="flex-1 relative z-10 flex items-center justify-center p-5">
-          <div className="w-full max-w-lg bg-slate-900/70 backdrop-blur-3xl border border-white/10 rounded-[16px] p-8 sm:p-12 shadow-2xl text-center animate-in fade-in slide-in-from-bottom-10 duration-800">
-            <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-[12px] flex items-center justify-center mx-auto mb-8 border border-rose-500/20">
-              <Search size={28} strokeWidth={2} />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tighter mb-3 text-white uppercase">
-              Parcel <span className="text-rose-500">Not Found</span>
-            </h1>
-            <p className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-400 leading-relaxed mb-10 opacity-70">
-              Could not resolve{" "}
-              <span className="text-rose-400 font-mono">{id}</span>.{" "}
-              Verify the parcel code or search by phone number.
-            </p>
-            <form onSubmit={handleAltSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Enter phone number or parcel ID…"
-                value={altSearch}
-                onChange={(e) => setAltSearch(e.target.value)}
-                className="w-full h-14 bg-white/5 border border-white/10 rounded-[12px] px-5 pr-28 text-sm font-bold text-white focus:border-rose-500/50 focus:bg-white/8 outline-none transition-all placeholder:text-slate-600 tracking-wide uppercase"
-              />
-              <button className="absolute right-2 top-2 h-10 px-5 bg-white/10 hover:bg-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white transition-all">
-                Search
-              </button>
-            </form>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  const { parcel, statusTimeline, isPrivacyMasked } = trackingData;
-  const activeStatus = getStatusDetails(parcel.status);
-  const organization = parcel.organization;
-  const brandColor: string | undefined = organization?.primaryColor || undefined;
-
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-white font-sans overflow-x-hidden pb-16 sm:pb-20">
-      {/* Background — only top portion */}
-      <div className="absolute inset-x-0 top-0 h-[500px] z-0 pointer-events-none">
-        <Image src="/side.png" alt="Mizigo" fill className="object-cover opacity-50 brightness-75" priority />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/60 to-slate-950" />
-      </div>
-
-      {/* Sticky Navbar */}
-      <nav className="sticky top-0 z-50 h-16 sm:h-20 px-4 sm:px-8 md:px-12 flex items-center justify-between border-b border-white/5 bg-slate-950/85 backdrop-blur-2xl">
-        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-          <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => router.push("/")}>
-            {organization?.logoUrl ? (
-              // Org-supplied logo is an arbitrary external URL, so it can't go
-              // through next/image's optimizer without an allow-listed domain.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={organization.logoUrl}
-                alt={`${organization.name || "Organization"} logo`}
-                className="h-8 sm:h-9 w-auto max-w-[9rem] object-contain rounded-2xl"
-              />
-            ) : (
-              <>
-                <Image src="/mono.png" alt="Icon" width={32} height={32} className="rounded-2xl shadow-xl shadow-blue-500/20 sm:w-9 sm:h-9" />
-                <Image src="/word.png" alt="Mizigo" width={72} height={20} className="opacity-90 hidden sm:block" />
-              </>
-            )}
-          </div>
-          <div className="h-8 w-px bg-white/10 hidden sm:block" />
-          <div className="hidden sm:flex flex-col min-w-0">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">
-              {organization?.name || "Parcel Status"}
-            </span>
-            <span
-              className="text-sm font-mono font-black text-blue-400 tracking-widest truncate"
-              style={brandColor ? { color: brandColor } : undefined}
-            >
-              {parcel.trackingNumber}
-            </span>
-          </div>
-          {/* Mobile tracking number */}
-          <span
-            className="sm:hidden text-xs font-mono font-black text-blue-400 tracking-wider truncate"
-            style={brandColor ? { color: brandColor } : undefined}
-          >
-            {parcel.trackingNumber}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => router.push("/")}
-            className="h-9 sm:h-11 px-3 sm:px-5 bg-blue-600/10 hover:bg-blue-600 rounded-2xl border border-blue-500/20 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-white transition-all flex items-center gap-2"
-          >
-            <Search size={13} className="text-blue-400" />
-            <span className="hidden sm:inline">Track Another</span>
-          </button>
-          <button
-            onClick={copyLink}
-            className="hidden sm:flex items-center gap-2 h-11 px-5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all"
-          >
-            <Copy size={14} /> Copy
-          </button>
-          <button
-            onClick={copyLink}
-            className="sm:hidden h-9 w-9 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center text-slate-300"
-          >
-            <Copy size={14} />
-          </button>
-          <button className="h-9 w-9 sm:h-11 sm:w-11 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 flex items-center justify-center text-slate-300 transition-all">
-            <Printer size={16} />
-          </button>
-        </div>
-      </nav>
-
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-12 py-8 sm:py-12 relative z-10 space-y-6 sm:space-y-10">
-
-        {/* Privacy banner */}
-        {isPrivacyMasked && (
-          <div className="bg-blue-500/10 border border-blue-500/20 p-4 sm:p-6 rounded-[12px] backdrop-blur-3xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
-            <div className="h-10 w-10 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 shrink-0">
-              <ShieldCheck size={20} />
+    <Shell logo={{ url: parcel.organization?.logoUrl, name: parcel.organization?.name }}>
+      <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        {/* Hero */}
+        <section className="bridge-card flex flex-col p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/staff_parcel.png" alt="" className="h-10 w-10 object-contain" />
+              </div>
+              <div>
+                <p className="text-[13px] text-white/65">Tracking number</p>
+                <p className="text-[24px] font-semibold tracking-wide sm:text-[28px]">{parcel.trackingNumber}</p>
+              </div>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-200/70 leading-relaxed">
-              <span className="text-blue-500 font-black mr-2 px-2 py-0.5 bg-blue-500/20 rounded">PRIVACY PROTECTED</span>
-              Some details are hidden. Use the full Parcel ID to see more.
+            <ParcelOptions
+              canReport={!stopped && !openReport}
+              onCopy={copyLink}
+              onPrint={() => window.print()}
+              onReport={() => setReportOpen(true)}
+            />
+          </div>
+
+          <div className="mt-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cn("accent-pill", stopped && "bg-white/20")}>{meta.label}</span>
+              {openReport && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+                  <PackageSearch size={13} /> Reported missing · we&apos;re looking into it
+                </span>
+              )}
+            </div>
+            <h1 className="mt-3 text-[28px] font-semibold leading-tight sm:text-[32px]">{meta.headline(to)}</h1>
+            <p className="mt-1 text-[14px] text-white/65">
+              Last update {format(new Date(parcel.updatedAt), "d MMM yyyy, HH:mm")}
             </p>
           </div>
-        )}
 
-        {/* Hero grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-          {/* Main status card */}
-          <div className="xl:col-span-2 bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[16px] p-7 sm:p-10 md:p-12 shadow-2xl relative overflow-hidden group">
-            <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-blue-500/5 to-transparent pointer-events-none group-hover:from-blue-500/8 transition-colors duration-700" />
-            <div className="relative z-10 flex flex-col sm:flex-row gap-8 sm:gap-10 justify-between items-start sm:items-center">
-              <div className="space-y-6 flex-1 min-w-0">
-                {/* Status badge */}
-                <div className={cn("inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border-2", activeStatus.bg, activeStatus.border)}>
-                  <Activity size={13} className={cn("animate-pulse", activeStatus.color)} />
-                  <span className={cn("text-[11px] font-black uppercase tracking-[0.2em]", activeStatus.color)}>
-                    {activeStatus.label}
-                  </span>
-                </div>
-
-                {/* Destination */}
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="h-7 w-7 bg-blue-600/20 rounded-2xl flex items-center justify-center shrink-0">
-                      <MapPin size={14} className="text-blue-400" />
-                    </div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Destination</span>
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-black tracking-tighter text-white uppercase leading-[0.85] mb-3 truncate">
-                    {parcel.route.destinationStation.split(",")[0]}
-                  </h1>
-                  <p className="text-slate-400 font-bold text-sm tracking-wide uppercase opacity-70">
-                    From{" "}
-                    <span className="text-blue-400">{parcel.route.receivingStation.split(",")[0]}</span>
-                  </p>
-                </div>
-
-                {/* Meta info */}
-                <div className="flex flex-wrap gap-6 sm:gap-10 pt-5 border-t border-white/5">
-                  <div>
-                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Last Update</p>
-                    <p className="text-sm font-mono font-black text-slate-300">
-                      {format(new Date(parcel.updatedAt), "MMM dd, HH:mm")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Reference</p>
-                    <p className="text-sm font-mono font-black text-blue-400/80 tracking-widest uppercase truncate max-w-[180px]">
-                      {parcel.trackingNumber}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status icon — hidden on small, visible on sm+ */}
-              <div className="hidden sm:flex flex-col items-center shrink-0">
-                <div className={cn(
-                  "h-36 w-36 md:h-44 md:w-44 rounded-[14px] flex items-center justify-center border-2 border-dashed shadow-2xl rotate-3 group-hover:rotate-6 transition-transform duration-700",
-                  activeStatus.bg, activeStatus.border,
-                )}>
-                  <activeStatus.icon size={64} className={cn(activeStatus.color, "drop-shadow-[0_0_24px_currentColor]")} strokeWidth={1.5} />
-                </div>
-              </div>
+          <div className="mt-5 flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-md">
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] text-white/60">From</p>
+              <p className="truncate text-[18px] font-semibold">{from}</p>
+            </div>
+            <div className="flex flex-[1.2] items-center gap-2">
+              <span className="h-2 w-2 rounded-full border-2 border-orange-400" />
+              <span className="h-px flex-1 border-t border-dashed border-white/40" />
+              <TrainFront size={18} className="text-orange-400" />
+              <span className="h-px flex-1 border-t border-dashed border-white/40" />
+              <MapPin size={14} className="text-orange-400" />
+            </div>
+            <div className="min-w-0 flex-1 text-right">
+              <p className="text-[12px] text-white/60">To</p>
+              <p className="truncate text-[18px] font-semibold">{to}</p>
             </div>
           </div>
 
-          {/* Specs card */}
-          <div className="bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[16px] p-7 sm:p-10 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/3 to-transparent pointer-events-none" />
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-7 flex items-center gap-3">
-              <span className="h-3.5 w-3.5 bg-blue-600 rounded-full animate-pulse" />
-              Parcel Details
-            </h3>
-            <div className="space-y-6 flex-1">
-              {[
-                { icon: Package, label: "Package Size", value: parcel.packageSize?.replace("_", " ") || "N/A" },
-                { icon: Tag, label: "Category", value: parcel.parcelType?.replace("_", " ") || "N/A" },
-                { icon: Activity, label: "Priority", value: parcel.urgency, accent: true },
-              ].map(({ icon: Icon, label, value, accent }) => (
-                <div key={label} className="flex items-center gap-5 group/item">
-                  <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center text-slate-400 shrink-0 border border-white/10 group-hover/item:border-blue-500/40 group-hover/item:text-blue-400 transition-all">
-                    <Icon size={22} strokeWidth={1.5} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-0.5">{label}</p>
-                    <p className={cn("text-base font-black tracking-tight uppercase truncate", accent ? "text-blue-400" : "text-slate-200")}>
-                      {value}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[16px] p-7 sm:p-10 md:p-12 shadow-2xl">
-          <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.25em] mb-8 flex items-center gap-3">
-            <span className="h-3.5 w-3.5 bg-blue-600 rounded-full animate-pulse" />
-            Parcel Timeline
-          </h3>
-
-          {/* Horizontal timeline (md+) */}
-          <div className="hidden md:block overflow-x-auto no-scrollbar">
-            <div className="min-w-[700px] relative py-8">
-              <div className="absolute top-[56px] left-12 right-12 h-[2px] bg-white/5" />
-              {(() => {
-                const reachedCount = statusTimeline.filter((s: any) => s.reached).length;
-                const pct = reachedCount > 1 ? ((reachedCount - 1) / (statusTimeline.length - 1)) * 100 : 0;
-                return (
-                  <div
-                    className="absolute top-[56px] left-12 h-[2px] bg-blue-600 shadow-[0_0_16px_rgba(59,130,246,0.7)] transition-all duration-1000"
-                    style={{ width: `calc(${pct}% - 24px)` }}
-                  />
-                );
-              })()}
-              <div className="relative flex justify-between">
-                {statusTimeline.map((step: any, i: number) => {
-                  const sd = getStatusDetails(step.status);
-                  const isCurrent = step.status === parcel.status;
-                  const isDone = step.reached && !isCurrent;
+          {/* Progress */}
+          {!stopped && steps.length > 0 && (
+            <div className="relative mt-auto pt-6">
+              <div className="absolute left-4 right-4 top-[2.5rem] h-1 rounded-full bg-white/15" />
+              <div
+                className="absolute left-4 top-[2.5rem] h-1 rounded-full bg-orange-500 transition-all"
+                style={{
+                  width: `calc((100% - 2rem) * ${Math.max(0, reachedCount - 1) / Math.max(1, steps.length - 1)})`,
+                }}
+              />
+              <ol className="relative flex justify-between">
+                {steps.map((s, i) => {
+                  const current = s.reached && (i === steps.length - 1 || !steps[i + 1]?.reached);
                   return (
-                    <div key={i} className="flex flex-col items-center w-28 gap-5 relative z-10">
-                      <div className={cn(
-                        "h-14 w-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-700 bg-slate-900 shadow-xl",
-                        isCurrent ? "border-blue-500 text-blue-400 scale-125 shadow-[0_0_24px_rgba(59,130,246,0.4)]"
-                          : isDone ? "border-slate-700 text-slate-400"
-                          : "border-white/5 text-slate-800 opacity-40",
-                      )}>
-                        <sd.icon size={26} strokeWidth={isCurrent ? 2.5 : 1.5} />
-                      </div>
-                      <div className="text-center space-y-1">
-                        <span className={cn("text-[10px] font-black uppercase tracking-widest block",
-                          isCurrent ? "text-blue-400" : isDone ? "text-slate-400" : "text-slate-700",
-                        )}>{sd.label}</span>
-                        {isCurrent && (
-                          <span className="text-[8px] font-black text-blue-500/50 uppercase tracking-[0.2em] animate-pulse">Live</span>
+                    <li key={s.status} className="flex w-16 flex-col items-center text-center sm:w-20">
+                      <span
+                        className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-full border-4 border-[#5C0B19]",
+                          s.reached ? "bg-orange-500 text-white" : "bg-white/20 text-white/60",
+                          current && "ring-4 ring-orange-500/30",
                         )}
-                      </div>
-                    </div>
+                      >
+                        {s.reached ? (
+                          <Check size={15} strokeWidth={3} />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-white/60" />
+                        )}
+                      </span>
+                      <span
+                        className={cn(
+                          "mt-2 text-[12px] leading-tight",
+                          s.reached ? "font-semibold text-white" : "text-white/55",
+                        )}
+                      >
+                        {STEP_LABELS[s.status] ?? pretty(s.status)}
+                      </span>
+                    </li>
                   );
                 })}
-              </div>
+              </ol>
             </div>
-          </div>
+          )}
+        </section>
 
-          {/* Vertical timeline (mobile < md) */}
-          <div className="md:hidden space-y-0">
-            {statusTimeline.map((step: any, i: number) => {
-              const sd = getStatusDetails(step.status);
-              const isCurrent = step.status === parcel.status;
-              const isDone = step.reached && !isCurrent;
-              const isLast = i === statusTimeline.length - 1;
-              return (
-                <div key={i} className="flex gap-4 relative">
-                  {/* Line + node column */}
-                  <div className="flex flex-col items-center shrink-0">
-                    <div className={cn(
-                      "h-11 w-11 rounded-2xl flex items-center justify-center border-2 shrink-0 transition-all duration-500",
-                      isCurrent ? "border-blue-500 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.4)] bg-blue-500/10 scale-105"
-                        : isDone ? "border-slate-700 text-slate-400 bg-slate-900"
-                        : "border-white/5 text-slate-700 bg-slate-900 opacity-40",
-                    )}>
-                      <sd.icon size={20} strokeWidth={isCurrent ? 2.5 : 1.5} />
+        <div className="flex min-h-0 flex-col gap-5">
+          <Card title="Journey" className="lg:flex-1">
+            {history.length === 0 ? (
+              <p className="text-[14px] text-slate-500">No scans yet. Updates appear here as the parcel moves.</p>
+            ) : (
+              <ol className="min-h-0 flex-1 overflow-y-auto pr-1">
+                {history.map((e, i) => (
+                  <li key={e.id} className="relative flex gap-4 pb-5 last:pb-0">
+                    {i < history.length - 1 && (
+                      <span className="absolute bottom-0 left-[11px] top-6 w-px bg-slate-200" />
+                    )}
+                    <span
+                      className={cn(
+                        "relative mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                        i === 0 ? "bg-orange-500" : "bg-slate-200",
+                      )}
+                    >
+                      <span className={cn("h-2 w-2 rounded-full", i === 0 ? "bg-white" : "bg-slate-400")} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-x-3">
+                        <p className={cn("text-[14px] font-semibold", i === 0 ? "text-[#1C1C1E]" : "text-slate-600")}>
+                          {STATUS[e.status]?.label ?? pretty(e.status)}
+                        </p>
+                        <p className="text-[12px] text-slate-400">{format(new Date(e.timestamp), "d MMM, HH:mm")}</p>
+                      </div>
+                      {trackingNote(e) && (
+                        <p className="mt-0.5 text-[13px] text-slate-500">
+                          {trackingNote(e)}
+                        </p>
+                      )}
                     </div>
-                    {!isLast && (
-                      <div className={cn("w-[2px] flex-1 my-2 rounded-full min-h-[28px]",
-                        isDone || isCurrent ? "bg-blue-600/40" : "bg-white/5",
-                      )} />
-                    )}
-                  </div>
-                  {/* Content */}
-                  <div className={cn("pb-6 pt-2 min-w-0", isLast && "pb-0")}>
-                    <p className={cn("text-[11px] font-black uppercase tracking-widest",
-                      isCurrent ? "text-blue-400" : isDone ? "text-slate-300" : "text-slate-600",
-                    )}>
-                      {sd.label}
-                    </p>
-                    {isCurrent && (
-                      <span className="inline-flex items-center gap-1.5 mt-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
-                        <span className="text-[8px] font-black text-blue-500/70 uppercase tracking-[0.2em]">Live Tracking</span>
-                      </span>
-                    )}
-                    {step.timestamp && (
-                      <p className="text-[10px] font-bold text-slate-600 mt-0.5">
-                        {format(new Date(step.timestamp), "MMM dd · HH:mm")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </Card>
 
-        {/* Bottom details grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-          {/* Delivery info */}
-          <div className="bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[16px] p-7 sm:p-10 space-y-7 shadow-2xl">
-            <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
-              <Info size={15} className="text-blue-500" /> Delivery Info
-            </h3>
-            <div className="space-y-3">
-              {[
-                { label: "Service Type", value: "SGR Rail Freight" },
-                { label: "Condition", value: parcel.condition },
-                { label: "Payment", value: parcel.paymentStatus, accent: true },
-              ].map(({ label, value, accent }) => (
-                <div key={label} className="flex justify-between items-center p-4 bg-white/4 rounded-2xl border border-white/5 hover:border-white/10 transition-colors group">
-                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest group-hover:text-slate-400 transition-colors">{label}</span>
-                  <span className={cn("text-xs font-black uppercase", accent ? "text-amber-400" : "text-white")}>{value}</span>
-                </div>
-              ))}
+          <Card title="Parcel">
+            <div className="grid grid-cols-3 gap-2.5">
+              <Fact label="Item" value={parcel.itemName} />
+              <Fact label="Type" value={pretty(parcel.parcelType)} />
+              <Fact label="Size" value={pretty(parcel.packageSize || parcel.parcelSize)} />
+              <Fact label="Priority" value={parcel.urgency} />
+              <Fact label="Payment" value={parcel.paymentStatus === "PAID" ? "Paid" : pretty(parcel.paymentStatus)} />
+              <Fact label="Condition" value={pretty(parcel.condition)} />
             </div>
-          </div>
+          </Card>
 
-          {/* Security token */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-950 border border-white/10 shadow-2xl rounded-[16px] p-7 sm:p-10 relative overflow-hidden flex flex-col justify-center gap-6 group">
-            <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-8 transition-opacity duration-700">
-              <ShieldCheck size={200} />
-            </div>
-            <div className="relative z-10 space-y-5">
-              <div className="h-12 w-12 bg-blue-600/20 text-blue-500 rounded-2xl flex items-center justify-center border border-blue-500/30">
-                <ShieldCheck size={24} />
+          <Card title="Receiver">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#5C0B19] text-[15px] font-semibold text-white">
+                {(parcel.receiver?.name || "?").charAt(0).toUpperCase()}
               </div>
-              <h3 className="text-2xl font-black tracking-tighter text-white uppercase">
-                Security <span className="text-blue-500">Token</span>
-              </h3>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] leading-relaxed max-w-sm opacity-80">
-                Present the 6-digit code sent to the registered phone to collect your parcel.
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-semibold">{parcel.receiver?.name || "—"}</p>
+                {parcel.receiver?.phone && (
+                  <p className="text-[13px] text-slate-500">•••• {String(parcel.receiver.phone).slice(-4)}</p>
+                )}
+              </div>
+            </div>
+            <div className="mt-4 flex gap-3 rounded-2xl bg-orange-50 px-4 py-3">
+              <ShieldCheck size={18} className="mt-0.5 shrink-0 text-orange-500" />
+              <p className="text-[13px] leading-snug text-orange-900">
+                The receiver collects the parcel with the one-time code sent by SMS. Never share it with anyone else.
               </p>
-              <div className="inline-flex items-center gap-3 px-5 py-3 bg-black/50 rounded-2xl border border-white/10 backdrop-blur-md">
-                <Phone size={15} className="text-blue-400" />
-                <span className="font-mono text-lg font-black text-white tracking-[0.3em] uppercase">
-                  ***{parcel.receiver?.phone?.slice(-4)}
-                </span>
-              </div>
             </div>
-          </div>
+            {masked && (
+              <p className="mt-3 text-[12px] text-slate-400">
+                Some details are hidden because you searched by phone number.
+              </p>
+            )}
+          </Card>
         </div>
-      </main>
-
-      <footer className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-12 py-8 flex flex-col sm:flex-row justify-between items-center gap-5 border-t border-white/5 mt-10 opacity-40">
-        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">© 2026 MIZIGO CORE</span>
-        <div className="flex items-center gap-2.5">
-          <Activity size={13} className="text-blue-600" />
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-600">National Logistics Network</span>
-        </div>
-      </footer>
-    </div>
+      </div>
+      {reportOpen && (
+        <ReportLostDialog
+          trackingNumber={parcel.trackingNumber}
+          onClose={() => setReportOpen(false)}
+          onReported={() => queryClient.invalidateQueries({ queryKey: ["public-tracking", trackingId] })}
+        />
+      )}
+    </Shell>
   );
 }

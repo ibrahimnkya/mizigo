@@ -79,11 +79,7 @@ export default function OperatorReportsPage() {
       header: "Value",
       accessor: (item: any) => (
         <span className="font-semibold text-slate-900 text-[12px] tabular-nums">
-          {new Intl.NumberFormat("en-TZ", {
-            style: "currency",
-            currency: "TZS",
-            maximumSignificantDigits: 3,
-          }).format(item.totalPrice || 0)}
+          {`TSh ${Math.round(item.totalPrice || 0).toLocaleString("en-US")}`}
         </span>
       ),
     },

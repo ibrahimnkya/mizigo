@@ -154,7 +154,7 @@ export function UserActionMenu({
           </TooltipTrigger>
           <TooltipContent
             side="top"
-            className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
+            className="bg-[#5C0B19] text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
           >
             View Details
           </TooltipContent>
@@ -173,7 +173,7 @@ export function UserActionMenu({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
+              className="bg-[#5C0B19] text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
             >
               Edit Member
             </TooltipContent>
@@ -198,7 +198,7 @@ export function UserActionMenu({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-slate-900 text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
+              className="bg-[#5C0B19] text-white border-none font-bold text-[11px] px-3 py-1.5 rounded-xl "
             >
               {user.role?.name === "AGENT" ? "Archive Agent" : "Delete Account"}
             </TooltipContent>
@@ -210,7 +210,7 @@ export function UserActionMenu({
       <Sheet open={viewOpen} onOpenChange={setViewOpen}>
         <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
           {/* Premium Header */}
-          <div className="bg-slate-900 px-8 py-10 flex flex-col items-center gap-6 shrink-0 relative overflow-hidden">
+          <div className="bg-[#5C0B19] px-8 py-10 flex flex-col items-center gap-6 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
 
             <div className="w-24 h-24 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center relative z-10  ">
@@ -440,7 +440,7 @@ export function UserActionMenu({
             )}
 
             {/* Security Notice */}
-            <div className="p-6 bg-slate-900 rounded-xl relative overflow-hidden group">
+            <div className="p-6 bg-[#5C0B19] rounded-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
@@ -479,7 +479,7 @@ export function UserActionMenu({
       {/* DELETE CONFIRMATION */}
       <Sheet open={deleteOpen} onOpenChange={setDeleteOpen}>
         <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
-          <div className="bg-slate-900 px-8 py-10 flex flex-col items-center text-center gap-6 shrink-0 relative overflow-hidden">
+          <div className="bg-[#5C0B19] px-8 py-10 flex flex-col items-center text-center gap-6 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-rose-600/20 to-transparent pointer-events-none" />
             <div className="w-20 h-20 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center relative z-10  ">
               <AlertTriangle

@@ -70,8 +70,15 @@ async function getParcels(filters: {
       },
     });
 
+    const metaOf = (item: any) =>
+      item.additionalServices && typeof item.additionalServices === "object" && !Array.isArray(item.additionalServices)
+        ? item.additionalServices
+        : {};
     return parcels.map((item: any) => ({
       id: item.id,
+      senderName: metaOf(item).senderName ?? null,
+      senderPhone: metaOf(item).senderPhone ?? null,
+      paymentStatus: metaOf(item).paymentStatus === "PAID" ? "PAID" : null,
       trackingNumber: item.trackingNumber,
       weight: item.weight,
       fromAddress: item.origin?.name ?? item.fromAddress,

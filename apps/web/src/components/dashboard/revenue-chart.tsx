@@ -50,7 +50,7 @@ export function RevenueChart({
             fontWeight={600}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `TZS ${value}`}
+            tickFormatter={(value) => `TSh ${Math.round(Number(value) || 0).toLocaleString("en-US")}`}
           />
           <Tooltip
             contentStyle={{

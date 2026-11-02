@@ -39,12 +39,12 @@ function Calendar({
         week: "flex w-full mt-2",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-bold aria-selected:opacity-100 rounded-2xl hover:bg-slate-900 hover:text-white transition-all flex flex-col items-center justify-center group",
+          "h-9 w-9 p-0 font-bold aria-selected:opacity-100 rounded-2xl hover:bg-[#5C0B19] hover:text-white transition-all flex flex-col items-center justify-center group",
         ),
         day_range_start: "day-range-start",
         day_range_end: "day-range-end",
         day_selected:
-          "bg-slate-900 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-900 focus:text-white shadow-lg shadow-slate-900/10",
+          "bg-[#5C0B19] text-white hover:bg-[#5C0B19] hover:text-white focus:bg-[#5C0B19] focus:text-white shadow-lg shadow-[#5C0B19]/15",
         day_today: "bg-blue-50/50 text-blue-600 font-black",
         day_outside:
           "day-outside text-slate-200 opacity-30 aria-selected:bg-slate-50/50 aria-selected:text-slate-300 aria-selected:opacity-20",

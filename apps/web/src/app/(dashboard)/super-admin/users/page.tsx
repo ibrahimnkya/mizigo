@@ -1,7 +1,7 @@
 "use client";
 import { Suspense } from "react";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api/client";
@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import { ProvisionUserModal } from "@/components/users/provision-user-modal";
 import { cn } from "@/lib/utils";
+import { PeopleOverview } from "@/components/users/people-overview";
 
 function GlobalUsersPageInner() {
   const {
@@ -118,6 +119,7 @@ function GlobalUsersPageInner() {
     },
   ];
 
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
 
@@ -136,118 +138,13 @@ function GlobalUsersPageInner() {
 
         <div className="mt-2 animate-in fade-in duration-700">
           {tab.toLowerCase() === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  {
-                    label: "Super Admins",
-                    count: users?.filter(
-                      (u: any) => (u.role?.name || u.role) === "SUPER_ADMIN",
-                    ).length,
-                    icon: ShieldCheck,
-                    color: "text-rose-600",
-                    bg: "bg-rose-50",
-                  },
-                  {
-                    label: "Org Admins",
-                    count: users?.filter(
-                      (u: any) =>
-                        (u.role?.name || u.role) === "ADMIN" ||
-                        (u.role?.name || u.role) === "ORG_ADMIN",
-                    ).length,
-                    icon: BadgeCheck,
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
-                  },
-                  {
-                    label: "System Staffs",
-                    count: users?.filter(
-                      (u: any) => ["CLERK", "TRAIN_GUARD", "STATION_MASTER", "AGENT", "OPERATOR"].includes(u.role?.name || u.role),
-                    ).length,
-                    icon: UserCheck,
-                    color: "text-emerald-600",
-                    bg: "bg-emerald-50",
-                  },
-                  {
-                    label: "Total Users",
-                    count: users?.length,
-                    icon: Users,
-                    color: "text-slate-600",
-                    bg: "bg-slate-50",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-col p-5 bg-white border border-[#E2E2E2] rounded-[20px]"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className={cn("p-2 rounded-xl", stat.bg)}>
-                        <stat.icon className={cn("w-4 h-4", stat.color)} />
-                      </div>
-                      <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                        {stat.label}
-                      </span>
-                    </div>
-                    <span className="text-[26px] font-semibold text-slate-900 tabular-nums">
-                      {stat.count || 0}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] flex flex-col min-h-[360px]">
-                  <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-[14px] font-semibold text-slate-800">
-                      Identity Provisioning
-                    </h3>
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <p className="text-[13px] text-slate-500 leading-relaxed mb-5">
-                      Users form the core of the platform's authentication
-                      matrix. Access levels strictly dictate service capability
-                      across all modules.
-                    </p>
-                    <div className="space-y-2 mt-auto">
-                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Privileged Access
-                        </span>
-                        <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
-                          {users?.filter((u: any) =>
-                            ["SUPER_ADMIN", "ADMIN", "ORG_ADMIN"].includes(
-                              u.role?.name || u.role,
-                            ),
-                          ).length || 0}
-                        </span>
-                      </div>
-                      <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Total Entities
-                        </span>
-                        <span className="text-[14px] font-semibold text-blue-600 tabular-nums">
-                          {users?.length || 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2] p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-                    <Activity className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
-                    User Access Distribution
-                  </h4>
-                  <p className="text-[13px] text-slate-500 max-w-md">
-                    Detailed graphical analysis of role distributions and system
-                    access metrics will be populated here as new users register.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <PeopleOverview
+              users={Array.isArray(users) ? users : (users as any)?.data ?? []}
+              loading={isLoading}
+              title="Platform admins"
+              manageLabel="Manage admins"
+              onManage={() => router.push("?tab=all")}
+            />
           )}
 
           {tab.toLowerCase() === "all" && (

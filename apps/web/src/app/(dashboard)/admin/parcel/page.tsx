@@ -23,11 +23,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
+import { ParcelDetailSheet } from "@/components/parcel/parcel-detail-sheet";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function AdminParcelPage() {
   const [tab, setTab] = useState<"overview" | "table">("overview");
+  const [openParcel, setOpenParcel] = useState<any | null>(null);
   const [filter, setFilter] = useState("ALL");
   const [selectedStation, setSelectedStation] = useState("ALL");
   const { data: parcels, isLoading } = useParcelList();
@@ -119,7 +121,7 @@ export default function AdminParcelPage() {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300 bg-slate-900 shadow-slate-100",
+              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300 bg-[#5C0B19] shadow-slate-100",
             )}
           >
             <Package className="h-5 w-5 text-white" />
@@ -185,12 +187,12 @@ export default function AdminParcelPage() {
       header: "Action Suite",
       accessor: (item: any) => (
         <div className="flex items-center justify-end gap-2 pr-4">
-          <Link
-            href={`/parcel/${item.id}`}
-            className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
+          <button
+            onClick={() => setOpenParcel(item)}
+            className="flex h-9 items-center gap-2 rounded-full bg-[#5C0B19] px-4 text-[13px] font-semibold text-white transition hover:bg-[#4F0A0C] active:scale-95"
           >
-            Details
-          </Link>
+            View
+          </button>
           {item.status === "PENDING" && (
             <>
               <button
@@ -302,7 +304,7 @@ export default function AdminParcelPage() {
                 className={cn(
                   "px-6 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all flex items-center gap-2",
                   tab === "overview"
-                    ? "bg-slate-900 text-white "
+                    ? "bg-[#5C0B19] text-white "
                     : "text-slate-400 hover:text-slate-600",
                 )}
               >
@@ -314,7 +316,7 @@ export default function AdminParcelPage() {
                 className={cn(
                   "px-6 py-2.5 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all flex items-center gap-2",
                   tab === "table"
-                    ? "bg-slate-900 text-white "
+                    ? "bg-[#5C0B19] text-white "
                     : "text-slate-400 hover:text-slate-600",
                 )}
               >
@@ -340,7 +342,7 @@ export default function AdminParcelPage() {
                     <div
                       className={cn(
                         "w-14 h-14 rounded-xl flex items-center justify-center transition-all",
-                        "bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-slate-900 group-hover:text-white",
+                        "bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-[#5C0B19] group-hover:text-white",
                       )}
                     >
                       <card.icon size={24} strokeWidth={2.5} />
@@ -394,7 +396,7 @@ export default function AdminParcelPage() {
             </div>
 
             {/* Footer CTA */}
-            <div className="bg-slate-900 rounded-xl p-8 flex items-center justify-between text-white relative overflow-hidden mt-6  shadow-slate-900/20">
+            <div className="bg-[#5C0B19] rounded-xl p-8 flex items-center justify-between text-white relative overflow-hidden mt-6  shadow-slate-900/20">
               <div className="relative z-10">
                 <h4 className="text-[22px] font-semibold mb-1 tracking-tight">
                   Tracking Protocol Terminal
@@ -425,7 +427,7 @@ export default function AdminParcelPage() {
                     className={cn(
                       "px-4 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all",
                       filter === f
-                        ? "bg-slate-900 text-white "
+                        ? "bg-[#5C0B19] text-white "
                         : "text-slate-400 hover:text-slate-600",
                     )}
                   >
@@ -461,6 +463,7 @@ export default function AdminParcelPage() {
             />
           </div>
         )}
+      <ParcelDetailSheet parcel={openParcel} onClose={() => setOpenParcel(null)} />
     </div>
   );
 }

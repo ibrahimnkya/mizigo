@@ -72,7 +72,7 @@ export default function OperatorOverviewPage() {
           {/* Activity Pillar */}
           <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all ">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-[#5C0B19] group-hover:text-white transition-all ">
                 <Package2 size={22} strokeWidth={2.5} />
               </div>
               <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400">
@@ -95,7 +95,7 @@ export default function OperatorOverviewPage() {
           {/* Monetary Contribution */}
           <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center  group-hover:bg-slate-900 group-hover:text-white transition-all">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center  group-hover:bg-[#5C0B19] group-hover:text-white transition-all">
                 <TrendingUp size={22} strokeWidth={2.5} />
               </div>
               <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600">
@@ -127,7 +127,7 @@ export default function OperatorOverviewPage() {
           {/* Temporal Efficiency */}
           <div className="bg-white p-10 rounded-xl border border-slate-100  flex flex-col gap-10 group hover:border-slate-200 transition-all">
             <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center  group-hover:bg-slate-900 group-hover:text-white transition-all">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center  group-hover:bg-[#5C0B19] group-hover:text-white transition-all">
                 <Timer size={22} strokeWidth={2.5} />
               </div>
               <span className="text-[10px] font-semibold uppercase tracking-[0.05em] px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 transition-all">

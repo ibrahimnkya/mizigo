@@ -248,7 +248,7 @@ export function LogoUploadField({
             type="button"
             onClick={handleUrlSubmit}
             disabled={!urlDraft.trim() || processing}
-            className="shrink-0 h-12 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all disabled:opacity-40"
+            className="shrink-0 h-12 px-4 bg-[#5C0B19] hover:bg-[#4F0A0C] text-white rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all disabled:opacity-40"
           >
             {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Use"}
           </button>

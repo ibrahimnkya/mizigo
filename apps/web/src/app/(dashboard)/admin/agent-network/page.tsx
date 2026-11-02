@@ -1,28 +1,12 @@
 "use client";
 
+import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Briefcase, Building2, CheckCircle2, Mail, Phone, Search, Store, User, X } from "lucide-react";
 import api from "@/lib/api/client";
-import { useState, Suspense } from "react";
-import {
-  Building,
-  Search,
-  MapPin,
-  Phone,
-  Mail,
-  User,
-  Briefcase,
-  Users,
-  Building2,
-  Map,
-  Loader2,
-  Globe,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
-import { Input } from "@repo/ui/input";
-import { Label } from "@repo/ui/label";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { ReportSummary } from "@/components/reports/report-kit";
 
 interface PlatformAgent {
   id: string;
@@ -38,14 +22,17 @@ interface PlatformAgent {
   createdAt: string;
 }
 
-// ─── Inner Page Component ─────────────────────────────────────────────────────
+const TYPES = [
+  { value: "", label: "All" },
+  { value: "BUSINESS", label: "Businesses" },
+  { value: "INDEPENDENT", label: "Independent" },
+];
 
 function AgentNetworkPageInner() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string>("");
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("");
 
-  // Fetch Agent Network List
-  const { data: agents = [], isLoading, refetch, isFetching } = useQuery<PlatformAgent[]>({
+  const { data: agents = [], isLoading } = useQuery<PlatformAgent[]>({
     queryKey: ["agent-network"],
     queryFn: async () => {
       const { data } = await api.get("/platform-agents/network");
@@ -53,199 +40,152 @@ function AgentNetworkPageInner() {
     },
   });
 
-  // Filter Agents Locally
-  const filteredAgents = agents.filter((agent) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      agent.name.toLowerCase().includes(query) ||
-      (agent.businessName?.toLowerCase().includes(query) ?? false) ||
-      (agent.address?.toLowerCase().includes(query) ?? false) ||
-      (agent.email.toLowerCase().includes(query)) ||
-      (agent.phone?.includes(query) ?? false);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return agents.filter(
+      (a) =>
+        (!type || a.type === type) &&
+        (!q ||
+          [a.name, a.businessName, a.address, a.email, a.phone].some((v) => String(v ?? "").toLowerCase().includes(q))),
+    );
+  }, [agents, query, type]);
 
-    const matchesType = !selectedType || agent.type === selectedType;
-
-    return matchesSearch && matchesType;
-  });
-
-  // Stats
-  const totalOffices = agents.length;
-  const corporateOffices = agents.filter((a) => a.type === "BUSINESS").length;
-  const independentOffices = agents.filter((a) => a.type === "INDEPENDENT").length;
+  const stats = [
+    { label: "Businesses", value: agents.filter((a) => a.type === "BUSINESS").length, icon: Building2 },
+    { label: "Independent", value: agents.filter((a) => a.type === "INDEPENDENT").length, icon: User },
+    { label: "Active", value: agents.filter((a) => a.isActive).length, icon: CheckCircle2 },
+    { label: "Paused", value: agents.filter((a) => !a.isActive).length, icon: Store },
+  ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-4">
+      <ReportPageHeader
+        title="Agent network"
+        subtitle="Where customers can drop off and collect parcels"
+        iconName="MapPin"
+        hideBackArrow
+      />
 
-        <ReportPageHeader
-          title="Agent Network & Offices"
-          subtitle="Explore authorized agent locations, drop-off points, and network offices"
-          iconName="Building"
-          hideBackArrow={true}
-        />
+      <ReportSummary
+        label="Agent offices"
+        value={isLoading ? "…" : String(agents.length)}
+        note="Where customers can drop off and collect parcels"
+        loading={isLoading}
+        chips={stats.map((x) => ({ label: x.label, value: isLoading ? "…" : String(x.value), icon: x.icon }))}
+      />
 
-        {/* ── Overview Stats cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
-            <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-              <Building2 size={24} />
-            </div>
-            <div>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Total Agent Offices</span>
-              <span className="text-[26px] font-semibold text-slate-900 leading-none">{totalOffices}</span>
-            </div>
+      <section className="overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white">
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-4">
+          <label className="relative flex h-11 min-w-[240px] flex-1 items-center rounded-2xl border border-[#E2E2E2] bg-white focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/10">
+            <Search size={16} className="pointer-events-none absolute left-3.5 text-slate-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search name, business, area, phone or email"
+              className="h-full w-full bg-transparent pl-10 pr-10 text-[14px] text-slate-700 outline-none placeholder:text-slate-400"
+            />
+            {query && (
+              <button onClick={() => setQuery("")} aria-label="Clear" className="absolute right-2.5 rounded-full p-1 text-slate-400 hover:bg-slate-100">
+                <X size={14} />
+              </button>
+            )}
+          </label>
+          <div className="flex h-11 gap-1 rounded-2xl bg-slate-100 p-1">
+            {TYPES.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => setType(t.value)}
+                className={cn(
+                  "rounded-xl px-3.5 text-[13px] font-semibold transition",
+                  type === t.value ? "bg-white text-[#1C1C1E] shadow-sm" : "text-slate-500 hover:text-[#1C1C1E]",
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-
-          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
-            <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-              <Briefcase size={24} />
-            </div>
-            <div>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Business / Corporate</span>
-              <span className="text-[26px] font-semibold text-slate-900 leading-none">{corporateOffices}</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-6  flex items-center gap-5">
-            <div className="w-14 h-14 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-              <User size={24} />
-            </div>
-            <div>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 block mb-0.5">Independent Agents</span>
-              <span className="text-[26px] font-semibold text-slate-900 leading-none">{independentOffices}</span>
-            </div>
-          </div>
+          <span className="ml-auto text-[13px] text-slate-500">
+            {filtered.length} of {agents.length}
+          </span>
         </div>
 
-        {/* ── Filter Bar ── */}
-        <div className="bg-white border border-[#E2E2E2] rounded-[20px]  p-6 flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1 space-y-2 w-full">
-            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Search Locations & Names</Label>
-            <div className="relative">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by agent name, business office, city, address..."
-                className="h-12 pl-10 bg-slate-50 border-slate-100 rounded-xl text-[13px] font-bold"
-              />
-            </div>
-          </div>
-
-          <div className="w-full md:w-[240px] space-y-2">
-            <Label className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400">Office Type</Label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full h-12 px-4 bg-slate-50 border border-slate-100 rounded-xl text-[13px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option value="">All Types</option>
-              <option value="BUSINESS">Business Office</option>
-              <option value="INDEPENDENT">Independent Agent</option>
-            </select>
-          </div>
-        </div>
-
-        {/* ── Network Grid ── */}
         {isLoading ? (
-          <div className="bg-white border border-[#E2E2E2] rounded-[20px]  min-h-[400px] flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em] animate-pulse">Loading agent network...</span>
+          <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-[210px] animate-pulse rounded-[20px] bg-slate-100" />
+            ))}
           </div>
-        ) : filteredAgents.length === 0 ? (
-          <div className="bg-white border border-[#E2E2E2] rounded-[20px]  min-h-[400px] flex flex-col items-center justify-center text-center p-8">
-            <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-              <Map size={24} />
-            </div>
-            <h3 className="text-sm font-semibold text-slate-700">No agent offices found</h3>
-            <p className="text-[12px] text-slate-400 max-w-[320px] leading-relaxed mt-1">
-              Try adjusting your search queries or category filters to find the right agent office.
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-14 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-50">
+              <Store size={26} className="text-orange-500" />
+            </span>
+            <p className="mt-4 text-[17px] font-semibold text-[#1C1C1E]">
+              {agents.length ? "No agents match your search" : "No agent offices yet"}
+            </p>
+            <p className="mt-1 text-[14px] text-slate-500">
+              {agents.length ? "Try a different name or area." : "Approved agents will appear here."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAgents.map((agent) => {
-              const isBusiness = agent.type === "BUSINESS";
-
+          <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+            {filtered.map((a) => {
+              const business = a.type === "BUSINESS";
               return (
-                <div
-                  key={agent.id}
-                  className="bg-white border border-slate-100 hover:border-blue-200 rounded-xl p-6  transition-all duration-300  flex flex-col justify-between group relative overflow-hidden"
+                <article
+                  key={a.id}
+                  className="flex flex-col rounded-[24px] border border-[#E2E2E2] bg-white p-5 transition hover:border-orange-300 hover:shadow-premium"
                 >
-                  {/* Subtle top decoration */}
-                  <div className={cn(
-                    "absolute top-0 left-0 right-0 h-1.5",
-                    isBusiness ? "bg-emerald-500" : "bg-purple-500"
-                  )} />
-
-                  <div>
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <span className={cn(
-                          "px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.05em] rounded-md border block w-fit mb-2",
-                          isBusiness
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                            : "bg-purple-50 text-purple-700 border-purple-100"
-                        )}>
-                          {isBusiness ? "Business" : "Independent"}
-                        </span>
-                        <h4 className="text-[16px] font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                          {agent.businessName || agent.name}
-                        </h4>
-                        {isBusiness && agent.businessName && (
-                          <span className="text-[11px] font-bold text-slate-400 block mt-0.5">
-                            Rep: {agent.name}
-                          </span>
-                        )}
-                      </div>
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border",
-                        isBusiness
-                          ? "bg-emerald-50/50 border-emerald-100 text-emerald-600"
-                          : "bg-purple-50/50 border-purple-100 text-purple-600"
-                      )}>
-                        {isBusiness ? <Building size={16} /> : <User size={16} />}
-                      </div>
-                    </div>
-
-                    {/* Address / Location */}
-                    <div className="flex items-start gap-2.5 py-3 border-t border-slate-50 text-[13px] font-medium text-slate-500">
-                      <MapPin size={15} className="text-slate-400 mt-0.5 shrink-0" />
-                      <span>{agent.address || "Address not registered"}</span>
-                    </div>
+                  <div className="flex items-start justify-between">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50">
+                      {business ? <Briefcase size={22} className="text-orange-500" /> : <User size={22} className="text-orange-500" />}
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-0.5 text-[12px] font-semibold",
+                        a.isActive ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-500",
+                      )}
+                    >
+                      {a.isActive ? "Active" : "Paused"}
+                    </span>
                   </div>
-
-                  {/* Contact details footer */}
-                  <div className="pt-4 border-t border-slate-50 mt-4 space-y-2">
-                    {agent.phone && (
-                      <div className="flex items-center gap-2.5 text-[12px] font-bold text-slate-700">
-                        <Phone size={13} className="text-slate-400 shrink-0" />
-                        <span className="font-mono">{agent.phone}</span>
-                      </div>
+                  <p className="mt-4 truncate text-[16px] font-semibold text-[#1C1C1E]">{a.businessName || a.name}</p>
+                  <p className="mt-0.5 line-clamp-2 text-[13px] text-slate-500">{a.address || "No address on file"}</p>
+                  <p className="mt-3 truncate text-[12px] text-slate-400">
+                    {business ? `Run by ${a.name}` : "Independent"}
+                    {a.commissionRate != null ? ` · ${+(a.commissionRate * 100).toFixed(2)}% commission` : ""}
+                  </p>
+                  <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
+                    {a.phone && (
+                      <a
+                        href={`tel:${a.phone}`}
+                        aria-label={`Call ${a.businessName || a.name}`}
+                        className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#5C0B19] text-[13px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+                      >
+                        <Phone size={14} /> Call
+                      </a>
                     )}
-                    <div className="flex items-center gap-2.5 text-[12px] font-bold text-slate-700">
-                      <Mail size={13} className="text-slate-400 shrink-0" />
-                      <span className="truncate">{agent.email}</span>
-                    </div>
+                    <a
+                      href={`mailto:${a.email}`}
+                      aria-label={`Email ${a.businessName || a.name}`}
+                      className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E2E2E2] text-[13px] font-semibold text-[#5C0B19] transition hover:bg-[#FBF1F2]"
+                    >
+                      <Mail size={14} /> Email
+                    </a>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
+      </section>
     </div>
   );
 }
 
-// ─── Export ───────────────────────────────────────────────────────────────────
-
 export default function AgentNetworkPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense fallback={<div className="h-40 animate-pulse rounded-[24px] bg-slate-100" />}>
       <AgentNetworkPageInner />
     </Suspense>
   );

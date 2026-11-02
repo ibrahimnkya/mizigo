@@ -194,7 +194,7 @@ export function PricingModal({ open, onOpenChange, rule, organizationId }: Prici
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100  flex flex-col rounded-xl">
         {/* Header Section */}
-        <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10">
             <Calculator className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -248,7 +248,7 @@ export function PricingModal({ open, onOpenChange, rule, organizationId }: Prici
                   className={cn(
                     "h-12 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] border transition-all flex items-center justify-center gap-2",
                     type === "FIXED"
-                      ? "bg-slate-900 text-white border-slate-900 "
+                      ? "bg-[#5C0B19] text-white border-slate-900 "
                       : "bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100",
                   )}
                 >
@@ -260,7 +260,7 @@ export function PricingModal({ open, onOpenChange, rule, organizationId }: Prici
                   className={cn(
                     "h-12 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] border transition-all flex items-center justify-center gap-2",
                     type === "MULTIPLIER"
-                      ? "bg-slate-900 text-white border-slate-900 "
+                      ? "bg-[#5C0B19] text-white border-slate-900 "
                       : "bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100",
                   )}
                 >
@@ -428,7 +428,7 @@ export function PricingModal({ open, onOpenChange, rule, organizationId }: Prici
             type="submit"
             form="pricing-form"
             disabled={isLoading || !name || !value}
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

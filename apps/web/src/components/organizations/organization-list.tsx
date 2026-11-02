@@ -27,7 +27,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
             className={cn(
               "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300",
               org.isActive
-                ? "bg-slate-900 shadow-slate-100"
+                ? "bg-[#5C0B19] shadow-slate-100"
                 : "bg-slate-200 shadow-transparent grayscale",
             )}
           >
@@ -107,7 +107,7 @@ export function OrganizationList({ tab = "overview" }: { tab?: string }) {
         <div className="flex items-center justify-end gap-2 pr-4">
           <UpdateOrganizationModal organization={org} onSuccess={refetch} />
           <StatusConfirmationModal organization={org} onSuccess={refetch} />
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
+          <button className="h-9 px-4 bg-[#5C0B19] hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
             Manage
           </button>
         </div>

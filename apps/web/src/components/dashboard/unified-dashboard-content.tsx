@@ -3,6 +3,7 @@
 import { Search, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTrackParcel } from "@/components/parcel/use-track-parcel";
 
 interface UnifiedDashboardContentProps {
   role: string;
@@ -16,22 +17,17 @@ export function UnifiedDashboardContent({
   const router = useRouter();
   const [trackingNumber, setTrackingNumber] = useState("");
 
-  const handleTrack = (e?: React.FormEvent) => {
+  const lookup = useTrackParcel();
+  const handleTrack = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (trackingNumber.trim()) {
-      const target =
-        ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"].includes(role)
-          ? `/operator/operations?tab=track&q=${trackingNumber}`
-          : `/parcel/track?q=${trackingNumber}`;
-      router.push(target);
-    }
+    if (await lookup.track(trackingNumber)) setTrackingNumber("");
   };
 
   const quickActions = [
     { title: "Parcels", desc: "Every parcel across your network", image: "/brand/staff_parcel.png", href: "/parcel" },
     { title: "Reports", desc: "Today's performance at a glance", image: "/brand/staff_reports.png", href: "/reports" },
-    { title: "Finance", desc: "Revenue and settlements", image: "/brand/3d_send.png", href: "/admin/finance" },
-    { title: "Track parcel", desc: "Find any parcel in seconds", image: "/brand/3d_track.png", href: "/parcel" },
+    { title: "Finance", desc: "Revenue and settlements", image: "/brand/staff_reports.png", href: "/admin/finance" },
+    { title: "Track parcel", desc: "Find any parcel in seconds", image: "/brand/staff_parcel.png", href: "/parcel" },
   ];
 
   const hour = new Date().getHours();
@@ -98,6 +94,7 @@ export function UnifiedDashboardContent({
           ))}
         </section>
       </div>
+      {lookup.sheet}
     </div>
   );
 }

@@ -16,7 +16,7 @@ export default function LegalLayout({
   children,
 }: LegalLayoutProps) {
   return (
-    <div className="min-h-screen w-screen relative bg-slate-950 text-white selection:bg-blue-500/30 font-sans overflow-x-hidden pb-20">
+    <div className="min-h-screen w-screen relative bg-[#4F0A0C] text-white selection:bg-blue-500/30 font-sans overflow-x-hidden pb-20">
       {/* Immersive Background Layer - Consistent with track/home */}
       <div className="absolute inset-0 z-0 h-[600px] pointer-events-none">
         <Image

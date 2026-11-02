@@ -280,7 +280,7 @@ export default async function OrgPerformancePage() {
                           />
 
                           {/* Tooltip on hover */}
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover/bar:opacity-100 whitespace-nowrap z-10 transition-opacity">
+                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#5C0B19] text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover/bar:opacity-100 whitespace-nowrap z-10 transition-opacity">
                             {d.approved} approved of {d.total}
                           </div>
                         </div>

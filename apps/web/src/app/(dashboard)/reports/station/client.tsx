@@ -370,7 +370,7 @@ export function StationReportClient({
                       }
                     }}
                     disabled={!dateRange?.from || !dateRange?.to}
-                    className="h-8 px-4 bg-slate-900 text-white rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
+                    className="h-8 px-4 bg-[#5C0B19] text-white rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50"
                   >
                     Apply Range
                   </button>
@@ -393,7 +393,7 @@ export function StationReportClient({
               {({ loading }) => (
                 <button
                   disabled={loading}
-                  className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-[10px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
+                  className="h-10 px-6 rounded-xl bg-[#5C0B19] hover:bg-black text-white font-semibold text-[10px] uppercase tracking-[0.05em]  shadow-slate-200 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-white animate-spin" />
@@ -487,7 +487,7 @@ export function StationReportClient({
 
         {/* Performance Sidebar */}
         <div className="space-y-8">
-          <div className="bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  border border-slate-800">
+          <div className="bg-[#5C0B19] rounded-xl p-8 text-white relative overflow-hidden  border border-[#651422]">
             <Globe
               size={120}
               className="absolute -bottom-6 -right-6 text-white/5 rotate-12 pointer-events-none"

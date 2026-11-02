@@ -113,7 +113,7 @@ export default async function AuditLogsPage() {
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             Active Monitoring
           </span>
-          <button className="flex items-center gap-2.5 px-6 h-12 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all  shadow-slate-200 active:scale-95 text-[12px] font-semibold uppercase tracking-[0.05em] border-none">
+          <button className="flex items-center gap-2.5 px-6 h-12 bg-[#5C0B19] text-white rounded-xl hover:bg-[#4F0A0C] transition-all  shadow-slate-200 active:scale-95 text-[12px] font-semibold uppercase tracking-[0.05em] border-none">
             <Download size={16} strokeWidth={2.5} />
             Audit Report
           </button>

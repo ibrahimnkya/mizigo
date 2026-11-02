@@ -48,7 +48,7 @@ export function OrganizationReportClient({
       header: "Station",
       accessor: (item: any) => (
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-[#5C0B19] text-white flex items-center justify-center">
             <MapPin className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
@@ -100,7 +100,7 @@ export function OrganizationReportClient({
       header: "Actions",
       accessor: (item: any) => (
         <div className="flex items-center justify-end pr-4">
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
+          <button className="h-9 px-4 bg-[#5C0B19] hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2">
             View <ArrowUpRight size={12} strokeWidth={3} />
           </button>
         </div>

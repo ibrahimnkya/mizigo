@@ -268,7 +268,7 @@ export function ReportsDashboard({
                     <button
                       key={p.label}
                       onClick={() => setDateRange(p.getValue())}
-                      className="px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-[0.05em] border border-slate-200 text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
+                      className="px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-[0.05em] border border-slate-200 text-slate-500 hover:bg-[#5C0B19] hover:text-white hover:border-slate-900 transition-all"
                     >
                       {p.label}
                     </button>
@@ -296,7 +296,7 @@ export function ReportsDashboard({
                   </span>
                   <button
                     onClick={() => setIsCalendarOpen(false)}
-                    className="h-7 px-4 bg-slate-900 text-white rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-600 transition-all active:scale-95"
+                    className="h-7 px-4 bg-[#5C0B19] text-white rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] hover:bg-blue-600 transition-all active:scale-95"
                   >
                     Apply
                   </button>
@@ -418,7 +418,7 @@ export function ReportsDashboard({
 
               <button
                 onClick={() => setQuery("")}
-                className="mt-10 h-12 px-8 bg-slate-900 text-white rounded-xl font-semibold text-[12px] uppercase tracking-[0.05em]  shadow-slate-900/20 hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-2"
+                className="mt-10 h-12 px-8 bg-[#5C0B19] text-white rounded-xl font-semibold text-[12px] uppercase tracking-[0.05em]  shadow-slate-900/20 hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-2"
               >
                 <X size={16} strokeWidth={3} /> Reset Search
               </button>

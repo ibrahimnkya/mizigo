@@ -15,6 +15,21 @@ import {
   Coins,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  CustomRange,
+  RangeKey,
+  ReportFilters,
+  ReportSummary,
+  rangeLabel,
+  rangeParams,
+} from "@/components/reports/report-kit";
+import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { PaymentDetailSheet, paymentStatus } from "./payment-detail-sheet";
+import { Receipt } from "lucide-react";
+import { downloadExcel } from "@/lib/export";
+import { FileSpreadsheet } from "lucide-react";
+import { BreakdownCard } from "@/components/shared/overview-kit";
+import { CheckCircle2 as PaidIcon, Clock3, Percent, XCircle as FailedIcon } from "lucide-react";
 import api from "@/lib/api/client";
 import { DataTable } from "@/components/shared/data-table";
 import { format } from "date-fns";
@@ -174,19 +189,34 @@ function PaymentStatCard({
   );
 }
 
+const STATUS_TITLES: Record<string, string> = {
+  SUCCESS: "Successful payments",
+  PENDING: "Pending payments",
+  FAILED: "Failed payments",
+  REFUNDED: "Refunds",
+};
+
 export function PaymentList({
   status,
   tab = "overview",
+  title,
 }: {
   status?: string | string[];
   tab?: string;
+  title?: string;
 }) {
+  const firstStatus = Array.isArray(status) ? status[0] : status;
+  const pageTitle = title ?? (firstStatus ? STATUS_TITLES[firstStatus] ?? "Payments" : "Payments");
   const [selectedStationId, setSelectedStationId] = useState<string>("");
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [range, setRange] = useState<RangeKey>("month");
+  const [custom, setCustom] = useState<CustomRange>({ from: "", to: "" });
+  const dates = rangeParams(range, custom);
   const { data: stations } = useStations();
   const stationList = Array.isArray(stations) ? stations : [];
 
   const { data: payments, isLoading } = useQuery({
-    queryKey: ["payments", status, selectedStationId],
+    queryKey: ["payments", status, selectedStationId, dates],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (status) {
@@ -199,6 +229,8 @@ export function PaymentList({
       if (selectedStationId) {
         params.append("stationId", selectedStationId);
       }
+      if (dates.dateFrom) params.append("dateFrom", dates.dateFrom);
+      if (dates.dateTo) params.append("dateTo", dates.dateTo);
       const { data } = await api.get(`/payments?${params.toString()}`);
       return data.data || [];
     },
@@ -222,11 +254,8 @@ export function PaymentList({
     ? ((totalPaid.length / rawPayments.length) * 100).toFixed(1) + "%"
     : "0%";
 
-  const formatAmount = (amt: number) => {
-    if (amt >= 1000000) return `TSh ${(amt / 1000000).toFixed(1)}M`;
-    if (amt >= 1000) return `TSh ${(amt / 1000).toFixed(1)}K`;
-    return `TSh ${amt.toLocaleString()}`;
-  };
+  // Always the full figure, e.g. TSh 1,250,000 — never abbreviated.
+  const formatAmount = (amt: number) => `TSh ${Math.round(amt || 0).toLocaleString("en-US")}`;
 
   const columns = [
     {
@@ -237,7 +266,7 @@ export function PaymentList({
             className={cn(
               "h-10 w-10 rounded-xl flex items-center justify-center ",
               pay.status === "SUCCESS"
-                ? "bg-slate-900"
+                ? "bg-[#5C0B19]"
                 : "bg-slate-200 grayscale",
             )}
           >
@@ -327,163 +356,162 @@ export function PaymentList({
 
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-700">
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E2E2E2] rounded-[20px] px-6 py-4  flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-            <Database size={18} strokeWidth={2.5} />
-          </div>
-          <div>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">Filter Location</span>
-            <h4 className="text-[14px] font-semibold text-slate-900 leading-none mt-1">Origin Station</h4>
-          </div>
-        </div>
-        
-        <div className="w-full sm:w-72">
-          <select
-            value={selectedStationId}
-            onChange={(e) => setSelectedStationId(e.target.value)}
-            className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-blue-500 hover:bg-slate-100/50 transition-all cursor-pointer "
-          >
-            <option value="">All Stations</option>
-            {stationList.map((st: any) => (
-              <option key={st.id} value={st.id}>
-                {st.name} ({st.code})
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="[&_>_div]:!mb-0">
+        <ReportPageHeader
+          title={pageTitle}
+          subtitle="Every payment for parcels, by period and station"
+          iconName="CreditCard"
+          hideBackArrow
+          tabs={["Overview", "All"]}
+          tabParamName="tab"
+          activeTab={tab}
+          heroContent={
+            <ReportFilters
+              onDark
+              range={range}
+              onRange={setRange}
+              custom={custom}
+              onCustom={setCustom}
+              stationId={selectedStationId}
+              onStation={setSelectedStationId}
+              extra={
+                <button
+                  onClick={() =>
+                    downloadExcel({
+                      title: pageTitle,
+                      subtitle: `${rangeLabel(range, custom)} · ${stationList.find((x: any) => x.id === selectedStationId)?.name ?? "All stations"}`,
+                      filename: `payments-${new Date().toISOString().slice(0, 10)}`,
+                      columns: [
+                        { header: "Date", key: "date" },
+                        { header: "Parcel", key: "parcel" },
+                        { header: "Reference", key: "reference" },
+                        { header: "Method", key: "method" },
+                        { header: "Status", key: "status" },
+                        { header: "Amount", key: "amount" },
+                      ],
+                      data: rawPayments.map((p: any) => ({
+                        date: p.createdAt ? new Date(p.createdAt).toLocaleString("en-GB") : "",
+                        parcel: p.parcel?.trackingNumber ?? "",
+                        reference: p.transactionReference ?? "",
+                        method: p.paymentMethod ?? "",
+                        status: p.status,
+                        amount: formatAmount(p.amount || 0),
+                      })),
+                    })
+                  }
+                  disabled={!rawPayments.length}
+                  style={{ marginLeft: "auto" }}
+                  className="flex h-11 items-center gap-2 rounded-full bg-orange-500 px-5 text-[13px] font-semibold text-white transition hover:bg-orange-600 disabled:opacity-40"
+                >
+                  <FileSpreadsheet size={15} /> Export to Excel
+                </button>
+              }
+            />
+          }
+        />
       </div>
 
-      {/* Stats Overview Tab */}
-      {tab.toLowerCase() === "overview" && (
-        <div className="flex flex-col gap-6 w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <PaymentStatCard
-              label="Total Paid"
-              value={totalPaidAmount}
-              isCurrency={true}
-              icon={Coins}
-              iconBg="bg-emerald-50"
-              iconColor="text-emerald-600"
-              tag="SUCCESS"
-              tagBg="bg-emerald-50/50 border-emerald-100"
-              tagColor="text-emerald-700"
-              accentBar="bg-emerald-500"
-              description="Successfully processed payments"
-              seed={1}
+      {tab.toLowerCase() === "overview" && (() => {
+        const failed = rawPayments.filter((p: any) => p.status === "FAILED").length;
+        const byMethod = new Map<string, number>();
+        totalPaid.forEach((p: any) => {
+          const m = String(p.paymentMethod || p.provider || "Other").replace(/_/g, " ");
+          byMethod.set(m, (byMethod.get(m) ?? 0) + (p.amount || 0));
+        });
+        const recent = [...rawPayments]
+          .sort((x: any, y: any) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime())
+          .slice(0, 10);
+        const tone = (st: string) =>
+          st === "SUCCESS" || st === "PAID"
+            ? "bg-emerald-50 text-emerald-700"
+            : st === "PENDING"
+              ? "bg-amber-50 text-amber-700"
+              : "bg-rose-50 text-rose-700";
+        return (
+          <div className="flex flex-col gap-5">
+            <ReportSummary
+              label="Money received"
+              value={isLoading ? "…" : formatAmount(totalPaidAmount)}
+              note={totalPendingAmount ? `${formatAmount(totalPendingAmount)} still pending` : "Nothing pending"}
+              loading={isLoading}
+              chips={[
+                { label: "Paid", value: totalPaid.length.toLocaleString("en-US"), icon: PaidIcon },
+                { label: "Pending", value: totalPending.length.toLocaleString("en-US"), icon: Clock3 },
+                { label: "Success rate", value: rawPayments.length ? successRate : "—", icon: Percent },
+                { label: "Failed", value: failed.toLocaleString("en-US"), icon: FailedIcon },
+              ]}
             />
-            <PaymentStatCard
-              label="Pending Payments"
-              value={totalPendingAmount}
-              isCurrency={true}
-              icon={CreditCard}
-              iconBg="bg-blue-50"
-              iconColor="text-blue-600"
-              tag="PENDING"
-              tagBg="bg-blue-50/50 border-blue-100"
-              tagColor="text-blue-700"
-              accentBar="bg-blue-500"
-              description="Awaiting gateway confirmation"
-              seed={2}
-            />
-            <PaymentStatCard
-              label="Success Rate"
-              value={rawPayments.length ? Math.round((totalPaid.length / rawPayments.length) * 100) : 0}
-              isPercent={true}
-              icon={TrendingUp}
-              iconBg="bg-indigo-50"
-              iconColor="text-indigo-600"
-              tag="CONVERSION"
-              tagBg="bg-indigo-50/50 border-indigo-100"
-              tagColor="text-indigo-700"
-              accentBar="bg-indigo-500"
-              description="Ratio of successful transactions"
-              seed={3}
-            />
-            <PaymentStatCard
-              label="Total Transactions"
-              value={rawPayments.length}
-              icon={Activity}
-              iconBg="bg-violet-50"
-              iconColor="text-violet-600"
-              tag="VOLUME"
-              tagBg="bg-violet-50/50 border-violet-100"
-              tagColor="text-violet-700"
-              accentBar="bg-violet-500"
-              description="All payment records in database"
-              seed={4}
+            <section className="overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                <div>
+                  <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Recent payments</h2>
+                  <p className="text-[13px] text-slate-500">Latest {recent.length} · click a row to see its details</p>
+                </div>
+                <a
+                  href="?tab=all"
+                  className="flex h-10 items-center rounded-full bg-[#5C0B19] px-4 text-[13px] font-semibold text-white transition hover:bg-[#4F0A0C]"
+                >
+                  All payments
+                </a>
+              </div>
+              {recent.length === 0 ? (
+                <p className="px-6 py-12 text-center text-[14px] text-slate-400">No payments in this period.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left">
+                    <thead>
+                      <tr className="bg-[#F7F5F4] text-[12px] font-semibold text-slate-500">
+                        <th className="px-5 py-3">Date</th>
+                        <th className="px-5 py-3">Parcel</th>
+                        <th className="px-5 py-3">Station</th>
+                        <th className="px-5 py-3">Method</th>
+                        <th className="px-5 py-3">Status</th>
+                        <th className="px-5 py-3 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {recent.map((p: any) => {
+                        const st = paymentStatus(p.status);
+                        return (
+                          <tr
+                            key={p.id}
+                            onClick={() => setSelectedPayment(p)}
+                            className="cursor-pointer text-[14px] transition hover:bg-orange-50/40"
+                          >
+                            <td className="whitespace-nowrap px-5 py-3.5 text-slate-500">
+                              {p.createdAt
+                                ? new Date(p.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                                : "—"}
+                            </td>
+                            <td className="px-5 py-3.5 font-semibold tracking-wide text-[#1C1C1E]">{p.parcel?.trackingNumber ?? "—"}</td>
+                            <td className="px-5 py-3.5 text-slate-600">{p.parcel?.origin?.name ?? "—"}</td>
+                            <td className="px-5 py-3.5 capitalize text-slate-600">{p.paymentMethod ? String(p.paymentMethod).replace(/_/g, " ").toLowerCase() : "—"}</td>
+                            <td className="px-5 py-3.5">
+                              <span className={"rounded-full px-2.5 py-1 text-[12px] font-semibold " + st.tone}>{st.label}</span>
+                            </td>
+                            <td className="whitespace-nowrap px-5 py-3.5 text-right font-semibold tabular-nums text-[#1C1C1E]">
+                              {formatAmount(p.amount || 0)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+
+            <BreakdownCard
+              title="By payment method"
+              subtitle="Money received per method"
+              items={[...byMethod.entries()].map(([label, value]) => ({ label, value }))}
+              format={(n) => formatAmount(n)}
+              empty="No successful payments yet."
             />
           </div>
+        );
+      })()}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* How It Works Section */}
-            <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[320px]">
-              <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-
-              <div className="relative z-10">
-                <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200   shadow-blue-500/10">
-                  <Wallet className="h-6 w-6 text-blue-400" strokeWidth={2.5} />
-                </div>
-                <h3 className="text-[20px] font-semibold tracking-tight leading-none mb-3">
-                  Payment Flow
-                </h3>
-                <p className="text-slate-400 text-[12px] font-bold leading-relaxed opacity-80 mb-6">
-                  Payments are processed through integrated gateways in
-                  real-time. Successful transactions automatically update parcel
-                  statuses.
-                </p>
-              </div>
-
-              <div className="relative z-10 space-y-3">
-                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 group-hover:text-white transition-colors">
-                      Total Verified
-                    </span>
-                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
-                      Paid Volume
-                    </span>
-                  </div>
-                  <span className="text-[14px] font-semibold text-emerald-400 tabular-nums">
-                    {formatAmount(totalPaidAmount)}
-                  </span>
-                </div>
-                <div className="px-4 py-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 group-hover:text-white transition-colors">
-                      Pending
-                    </span>
-                    <span className="text-[8px] font-bold text-slate-600 uppercase tracking-tight">
-                      Awaiting
-                    </span>
-                  </div>
-                  <span className="text-[14px] font-semibold text-amber-400 tabular-nums">
-                    {formatAmount(totalPendingAmount)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Placeholder for Graphs or other analytical tools */}
-            <div className="lg:col-span-2 bg-white rounded-[20px] border border-[#E2E2E2]  p-8 flex flex-col items-center justify-center text-center min-h-[320px]">
-              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
-                <TrendingUp className="w-8 h-8 text-blue-500" />
-              </div>
-              <h4 className="text-[16px] font-semibold text-slate-900 mb-2">
-                Revenue Activity Graph
-              </h4>
-              <p className="text-[13px] text-slate-400 max-w-md">
-                Detailed graphical analysis of payment inflows, transaction
-                volumes, and revenue trends will be populated here as
-                transactions occur.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Table Tab */}
       {tab.toLowerCase() === "all" && (
         <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden p-4">
           <DataTable
@@ -492,9 +520,11 @@ export function PaymentList({
             columns={columns}
             isLoading={isLoading}
             hideInternalSearch={true}
+            onRowClick={(p: any) => setSelectedPayment(p)}
           />
         </div>
       )}
+      <PaymentDetailSheet payment={selectedPayment} onClose={() => setSelectedPayment(null)} />
     </div>
   );
 }

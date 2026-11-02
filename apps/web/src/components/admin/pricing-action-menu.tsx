@@ -20,7 +20,7 @@ export function PricingActionMenu({ rule, onView }: PricingActionMenuProps) {
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="h-9 w-9 flex items-center justify-center hover:bg-slate-900 hover:text-white rounded-xl transition-all border border-slate-100 bg-white  active:scale-95 group/btn"
+          className="h-9 w-9 flex items-center justify-center hover:bg-[#5C0B19] hover:text-white rounded-xl transition-all border border-slate-100 bg-white  active:scale-95 group/btn"
         >
           <MoreVertical className="h-4 w-4 text-slate-400 group-hover/btn:text-white transition-colors" />
         </button>

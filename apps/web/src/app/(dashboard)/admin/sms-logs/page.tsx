@@ -70,6 +70,7 @@ function SmsLogsPageInner() {
   const [status, setStatus] = useState("");
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   // Selected SMS details for viewing modal
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -78,11 +79,11 @@ function SmsLogsPageInner() {
 
   // Fetch SMS Logs
   const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["sms-logs", page, phoneNumber, status, selectedOrgId],
+    queryKey: ["sms-logs", page, pageSize, phoneNumber, status, selectedOrgId],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append("page", String(page));
-      params.append("limit", "15");
+      params.append("limit", String(pageSize));
       if (phoneNumber) params.append("phoneNumber", phoneNumber);
       if (status) params.append("status", status);
       if (selectedOrgId) params.append("organizationId", selectedOrgId);
@@ -120,7 +121,20 @@ function SmsLogsPageInner() {
   });
 
   const logs: AuditLog[] = data?.data || [];
-  const pagination = data?.pagination || { total: 0, totalPages: 1 };
+  // The API returns paging info in `meta` (older builds used `pagination`).
+  const pagination = data?.meta?.totalPages ? data.meta : data?.pagination || { total: 0, totalPages: 1 };
+  const totalPages = Math.max(1, Number(pagination.totalPages) || 1);
+  const total = Number(pagination.total) || 0;
+  const pages = (() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const set = [...new Set([1, totalPages, page - 1, page, page + 1])].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
+    const out: (number | "…")[] = [];
+    set.forEach((p, i) => {
+      if (i && p - (set[i - 1] as number) > 1) out.push("…");
+      out.push(p);
+    });
+    return out;
+  })();
 
   return (
     <div className="flex flex-col gap-5">
@@ -301,27 +315,69 @@ function SmsLogsPageInner() {
           )}
 
           {/* ── Pagination ── */}
-          {pagination.totalPages > 1 && (
-            <div className="p-6 border-t border-slate-50 flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.05em]">
-                Showing page {page} of {pagination.totalPages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  className="h-10 px-4 border border-slate-100 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="h-10 px-4 border border-slate-100 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 rounded-xl text-[11px] font-semibold uppercase tracking-[0.05em] transition-all"
-                >
-                  Next
-                </button>
+          {total > 0 && (
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 sm:flex-row">
+              <div className="flex items-center gap-4 text-[13px] text-slate-500">
+                <span>
+                  Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total.toLocaleString("en-US")}
+                </span>
+                <label className="flex items-center gap-2">
+                  Rows
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="h-8 cursor-pointer rounded-full border border-[#E2E2E2] bg-white px-2.5 text-[13px] font-medium text-slate-700 outline-none focus:border-orange-500"
+                  >
+                    {[10, 20, 50, 100].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
+              {totalPages > 1 && (
+                <nav aria-label="Pagination" className="flex items-center gap-1">
+                  <button
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label="Previous page"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    ‹
+                  </button>
+                  {pages.map((p, i) =>
+                    p === "…" ? (
+                      <span key={`gap-${i}`} className="w-7 text-center text-[13px] text-slate-400">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        aria-current={p === page ? "page" : undefined}
+                        className={
+                          "h-9 min-w-9 rounded-full px-3 text-[13px] font-semibold tabular-nums transition " +
+                          (p === page ? "bg-orange-500 text-white" : "text-slate-600 hover:bg-orange-50 hover:text-orange-600")
+                        }
+                      >
+                        {p}
+                      </button>
+                    ),
+                  )}
+                  <button
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    aria-label="Next page"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    ›
+                  </button>
+                </nav>
+              )}
             </div>
           )}
         </div>

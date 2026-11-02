@@ -1,20 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import {
-  Building2,
-  MapPin,
-  Package2,
-  Activity,
-  RefreshCw,
-  FileText,
-  TrendingUp,
-  AlertCircle,
-} from "lucide-react";
+import { Activity, ArrowRight, Building2, MapPin, Package, RefreshCw, TriangleAlert, Users } from "lucide-react";
 import api from "@/lib/api/client";
 import { cn } from "@/lib/utils";
-import { ReportPageHeader } from "@/components/reports/report-page-header";
+import { trackingNote } from "@/lib/tracking-note";
+import { ParcelDetailSheet } from "@/components/parcel/parcel-detail-sheet";
 import { formatDistanceToNow } from "date-fns";
 
 // Animated counter
@@ -35,99 +29,64 @@ function useCountUp(target: number, duration = 1000): number {
   return value;
 }
 
-// Lozenge — Atlassian-style status pill
-function Lozenge({ action }: { action: string }) {
-  const a = action.toUpperCase();
-  const style =
-    a.includes("CREATE") || a.includes("REGISTER") ? "bg-green-50 text-green-700 border-green-100" :
-    a.includes("UPDATE") || a.includes("EDIT")       ? "bg-blue-50  text-blue-700  border-blue-100"  :
-    a.includes("DELETE") || a.includes("CANCEL")     ? "bg-red-50   text-red-700   border-red-100"   :
-    a.includes("LOGIN")  || a.includes("AUTH")       ? "bg-purple-50 text-purple-700 border-purple-100" :
-                                                        "bg-slate-50  text-slate-600  border-slate-200";
+type Period = "today" | "week" | "month" | "year" | "all";
+const PERIODS: { key: Period; label: string; compare: string }[] = [
+  { key: "today", label: "Today", compare: "yesterday" },
+  { key: "week", label: "This week", compare: "last week" },
+  { key: "month", label: "This month", compare: "last month" },
+  { key: "year", label: "This year", compare: "last year" },
+  { key: "all", label: "All time", compare: "" },
+];
+
+function periodStart(p: Period): Date | null {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  if (p === "today") return d;
+  if (p === "week") {
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+    return d;
+  }
+  if (p === "month") return new Date(d.getFullYear(), d.getMonth(), 1);
+  if (p === "year") return new Date(d.getFullYear(), 0, 1);
+  return null;
+}
+
+function Trend({ now, before }: { now: number; before: number | undefined }) {
+  if (before === undefined) return null;
+  if (!before) return now ? <span className="text-[12px] text-white/70">New this period</span> : null;
+  const pct = Math.round(((now - before) / before) * 100);
   return (
-    <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-lg text-[10px] font-semibold border leading-none shrink-0", style)}>
-      {action.replace(/_/g, " ")}
+    <span className={cn("rounded-full px-2 py-0.5 text-[12px] font-semibold", pct >= 0 ? "bg-white/15" : "bg-black/20")}>
+      {pct >= 0 ? "▲" : "▼"} {Math.abs(pct)}%
     </span>
   );
 }
 
-// Stat tile — Atlassian design
-function StatTile({
-  label,
-  value,
-  icon: Icon,
-  accent = false,
-  sub,
-}: {
-  label: string;
-  value: number | string;
-  icon: React.ElementType;
-  accent?: boolean;
-  sub?: string;
-}) {
-  const numeric = typeof value === "number" ? value : null;
-  const counted = useCountUp(numeric ?? 0);
-
-  return (
-    <div className={cn(
-      "bg-white border rounded-xl p-5 flex flex-col gap-3",
-      accent ? "border-blue-200 border-l-[3px] border-l-blue-600" : "border-slate-200",
-    )}>
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">{label}</p>
-        <div className={cn(
-          "h-7 w-7 rounded-xl flex items-center justify-center shrink-0",
-          accent ? "bg-blue-50" : "bg-slate-50",
-        )}>
-          <Icon size={14} strokeWidth={2} className={accent ? "text-blue-600" : "text-slate-400"} />
-        </div>
-      </div>
-      <div>
-        <p className={cn(
-          "text-[30px] font-semibold tabular-nums leading-none",
-          accent ? "text-blue-700" : "text-slate-900",
-        )}>
-          {numeric !== null ? counted.toLocaleString() : value}
-        </p>
-        {sub && <p className="text-[12px] text-slate-400 mt-1.5">{sub}</p>}
-      </div>
-    </div>
-  );
-}
-
-// Loading skeleton
-function SkeletonTile() {
-  return (
-    <div className="bg-white border border-[#E2E2E2] rounded-[20px] p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="h-3 w-24 bg-slate-100 rounded-lg animate-pulse" />
-        <div className="h-7 w-7 bg-slate-100 rounded-xl animate-pulse" />
-      </div>
-      <div className="h-8 w-28 bg-slate-100 rounded-lg animate-pulse" />
-      <div className="h-3 w-20 bg-slate-100 rounded-lg animate-pulse" />
-    </div>
-  );
-}
-
 export default function AdminOverviewPage() {
+  const [period, setPeriod] = useState<Period>("month");
+  const [openParcel, setOpenParcel] = useState<any | null>(null);
   const {
     data: reportData,
     isLoading,
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ["reports", "admin", "overview"],
+    queryKey: ["reports", "admin", "overview", period],
     queryFn: async () => {
-      const res = await api.get("/reports/admin/overview");
+      const start = periodStart(period);
+      const params = start ? `?from=${start.toISOString()}&to=${new Date().toISOString()}` : "";
+      const res = await api.get(`/reports/admin/overview${params}`);
       return res.data.data || res.data;
     },
   });
+  const periodMeta = PERIODS.find((p) => p.key === period)!;
 
-  const { data: activityData } = useQuery({
-    queryKey: ["admin", "activity", "recent"],
+  const { data: activityData, isLoading: activityLoading } = useQuery({
+    queryKey: ["dashboard", "parcel-activity"],
     queryFn: async () => {
-      const res = await api.get("/audit-logs?limit=8");
-      return res.data.data?.items || res.data.items || [];
+      const res = await api.get("/reports/parcel-activity?limit=12");
+      const body = res.data?.data ?? res.data;
+      return Array.isArray(body) ? body : [];
     },
     refetchInterval: 30000,
   });
@@ -137,199 +96,252 @@ export default function AdminOverviewPage() {
     totalOrganizations: 0,
     totalStations: 0,
     totalParcel: 0,
-  };
+    totalUsers: 0,
+    statusCounts: {},
+    previous: null,
+  } as any;
 
   const revenue = useCountUp(overview.totalRevenue, 1400);
 
-  return (
-    <div className="flex flex-col gap-5">
-      {/* Header */}
-      <ReportPageHeader
-        title="Platform Overview"
-        subtitle="Real-time summary of revenue, operations, and platform activity"
-        iconName="FileBarChart2"
-        hideBackArrow
-        action={
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="flex items-center gap-1.5 h-8 px-3 bg-white border border-[#E2E2E2] rounded-[20px] text-[12px] font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={12} className={isFetching ? "animate-spin" : ""} />
-            Refresh
-          </button>
-        }
-      />
+  const { data: session } = useSession();
+  const firstName = ((session?.user as any)?.name || "").split(" ")[0];
+  const isSuperAdmin = (session?.user as any)?.role === "SUPER_ADMIN";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const fmt = (n: number) => Number(n || 0).toLocaleString("en-US");
 
-      {/* Revenue + quick stats */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map((i) => <SkeletonTile key={i} />)}
-        </div>
-      ) : (
-        <>
-          {/* Revenue — full width accent tile */}
-          <div className="bg-white border border-blue-200 border-l-[3px] border-l-blue-600 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em] mb-1.5">
-                Total Revenue
+  const stats = [
+    { label: period === "all" ? "Parcels" : `Parcels · ${periodMeta.label.toLowerCase()}`, value: overview.totalParcel, icon: Package },
+    { label: "Stations", value: overview.totalStations, icon: MapPin },
+    { label: "Organizations", value: overview.totalOrganizations, icon: Building2 },
+    { label: "Active users", value: overview.totalUsers ?? 0, icon: Users },
+  ];
+
+  // Status breakdown comes from /reports/admin/overview. Older API versions
+  // don't send it — show "—" then rather than misleading zeros.
+  const hasBreakdown = !!reportData?.statusCounts;
+  const sc: Record<string, number> = overview.statusCounts ?? {};
+  const pipeline = [
+    { label: "Received", value: (sc.RECEIVED ?? 0) + (sc.PENDING ?? 0) + (sc.APPROVED ?? 0) + (sc.PAID ?? 0), image: "/brand/staff_receive.png", href: "/parcel/received" },
+    { label: "On the way", value: (sc.DISPATCHED ?? 0) + (sc.IN_TRANSIT ?? 0), image: "/brand/staff_parcel.png", href: "/parcel/dispatched" },
+    { label: "Waiting for pickup", value: (sc.OFFLOADED ?? 0) + (sc.AT_STATION ?? 0), image: "/brand/staff_parcel.png", href: "/parcel/offloaded" },
+    { label: "Delivered", value: sc.DELIVERED ?? 0, image: "/brand/staff_deliver.png", href: "/parcel/delivered" },
+    { label: "Problems", value: (sc.LOST ?? 0) + (sc.DELAYED ?? 0) + (sc.CANCELED ?? 0), image: "", href: "/parcel/lost" },
+  ];
+
+  const actions = [
+    { title: "Parcels", text: "Every parcel by status", href: "/parcel", image: "/brand/staff_parcel.png" },
+    { title: "Reports", text: "Detailed business reports", href: "/reports", image: "/brand/staff_reports.png" },
+    { title: "Payments", text: "All transactions", href: "/admin/payments", image: "/brand/staff_receive.png" },
+    { title: "Stations", text: "Stations and service points", href: isSuperAdmin ? "/super-admin/stations" : "/admin/stations", image: "/brand/staff_deliver.png" },
+  ];
+
+  const STATUS_TONE: Record<string, { label: string; tone: string }> = {
+    PENDING: { label: "Requested", tone: "bg-slate-100 text-slate-600" },
+    RECEIVED: { label: "Received", tone: "bg-[#FBF1F2] text-[#5C0B19]" },
+    DISPATCHED: { label: "Dispatched", tone: "bg-orange-50 text-orange-700" },
+    IN_TRANSIT: { label: "On the way", tone: "bg-orange-50 text-orange-700" },
+    OFFLOADED: { label: "Offloaded", tone: "bg-amber-50 text-amber-700" },
+    AT_STATION: { label: "At station", tone: "bg-amber-50 text-amber-700" },
+    DELIVERED: { label: "Delivered", tone: "bg-emerald-50 text-emerald-700" },
+    CANCELED: { label: "Cancelled", tone: "bg-slate-100 text-slate-600" },
+    LOST: { label: "Lost", tone: "bg-rose-50 text-rose-700" },
+    DELAYED: { label: "Delayed", tone: "bg-rose-50 text-rose-700" },
+  };
+
+  return (
+    <div className="flex flex-col gap-4 lg:h-full lg:min-h-0">
+      {/* Hero */}
+      <section className="bridge-card shrink-0 p-5 md:px-7 md:py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[14px] text-white/70">
+              {greeting}
+              {firstName ? `, ${firstName}` : ""} · Revenue {periodMeta.label.toLowerCase()}
+            </p>
+            {isLoading ? (
+              <div className="mt-2 h-10 w-60 animate-pulse rounded-xl bg-white/15" />
+            ) : (
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <p className="text-[38px] font-semibold leading-none tabular-nums">TSh {fmt(revenue)}</p>
+                <Trend now={overview.totalRevenue} before={overview.previous?.totalRevenue} />
+              </div>
+            )}
+            {overview.previous && (
+              <p className="mt-1.5 text-[13px] text-white/55">
+                vs TSh {fmt(overview.previous.totalRevenue)} {periodMeta.compare}
               </p>
-              <p className="text-[36px] font-semibold text-blue-700 tabular-nums leading-none">
-                {new Intl.NumberFormat("en-TZ", {
-                  style: "currency",
-                  currency: "TZS",
-                  maximumFractionDigits: 0,
-                }).format(revenue)}
-              </p>
-            </div>
-            <div className="flex items-center gap-6 sm:gap-8 border-t sm:border-t-0 sm:border-l border-slate-200 sm:pl-8 pt-3 sm:pt-0">
-              {[
-                { label: "Organizations", value: overview.totalOrganizations },
-                { label: "Stations",      value: overview.totalStations },
-                { label: "Parcels",       value: overview.totalParcel },
-              ].map((s, i, arr) => (
-                <div key={s.label} className={cn("text-center sm:text-left", i < arr.length - 1 && "pr-6 sm:pr-8 border-r border-slate-200")}>
-                  <p className="text-[10px] font-medium text-slate-400 uppercase tracking-[0.05em] mb-0.5">{s.label}</p>
-                  <p className="text-[20px] font-semibold text-slate-800 tabular-nums leading-none">{s.value}</p>
-                </div>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1 rounded-full bg-white/10 p-1">
+              {PERIODS.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => setPeriod(p.key)}
+                  className={cn(
+                    "rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition",
+                    period === p.key ? "bg-orange-500 text-white" : "text-white/70 hover:text-white",
+                  )}
+                >
+                  {p.label}
+                </button>
               ))}
             </div>
+            <button
+              onClick={() => refetch()}
+              disabled={isFetching}
+              aria-label="Refresh"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20 disabled:opacity-60"
+            >
+              <RefreshCw size={15} className={isFetching ? "animate-spin" : ""} />
+            </button>
           </div>
+        </div>
 
-          {/* Secondary stats row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatTile
-              label="Organizations"
-              value={overview.totalOrganizations}
-              icon={Building2}
-              sub="Registered tenants"
-            />
-            <StatTile
-              label="Stations"
-              value={overview.totalStations}
-              icon={MapPin}
-              sub="Active service points"
-            />
-            <StatTile
-              label="Parcels handled"
-              value={overview.totalParcel}
-              icon={Package2}
-              sub="All-time shipments"
-            />
-            <StatTile
-              label="System health"
-              value="98.4%"
-              icon={TrendingUp}
-              accent
-              sub="Uptime this period"
-            />
-          </div>
-        </>
-      )}
-
-      {/* Lower section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Activity feed */}
-        <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden flex flex-col">
-          <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <Activity size={14} className="text-slate-400" strokeWidth={2} />
-              <span className="text-[14px] font-semibold text-slate-800">Platform Activity</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {stats.map((st) => (
+            <div
+              key={st.label}
+              className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-2.5 backdrop-blur-md"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+                <st.icon size={17} className="text-orange-300" />
               </span>
-              <span className="text-[11px] text-slate-400 font-medium">Live</span>
+              <div className="min-w-0">
+                <p className="truncate text-[12px] text-white/60">{st.label}</p>
+                {isLoading ? (
+                  <div className="mt-1 h-5 w-12 animate-pulse rounded-lg bg-white/15" />
+                ) : (
+                  <p className="text-[20px] font-semibold leading-tight tabular-nums">{fmt(st.value)}</p>
+                )}
+              </div>
             </div>
-          </div>
+          ))}
+        </div>
+      </section>
 
-          <div className="flex-1 divide-y divide-slate-100 overflow-y-auto">
-            {activityData && activityData.length > 0 ? (
-              activityData.map((item: any, i: number) => (
-                <div key={item.id || i} className="flex items-start gap-3 px-4 py-3">
-                  <div className="flex-1 min-w-0 flex flex-col gap-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Lozenge action={item.action || "event"} />
-                      {item.resource && (
-                        <span className="text-[11px] text-slate-400">{item.resource}</span>
-                      )}
-                    </div>
-                    {item.user?.name && (
-                      <span className="text-[12px] font-medium text-slate-600">{item.user.name}</span>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-slate-400 shrink-0 mt-0.5">
-                    {item.createdAt
-                      ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })
-                      : ""}
-                  </span>
-                </div>
-              ))
-            ) : isLoading ? (
-              <div className="divide-y divide-slate-100">
-                {[1,2,3,4,5].map((i) => (
-                  <div key={i} className="px-4 py-3 flex items-center gap-3">
-                    <div className="h-5 w-20 bg-slate-100 rounded-lg animate-pulse" />
-                    <div className="h-4 w-32 bg-slate-100 rounded-lg animate-pulse" />
-                  </div>
+      {/* Parcels in the period, by where they are now */}
+      <div className="grid shrink-0 grid-cols-2 gap-3 md:grid-cols-5">
+        {pipeline.map((p) => (
+          <Link
+            key={p.label}
+            href={p.href}
+            className="flex items-center gap-3 rounded-[20px] border border-[#E2E2E2] bg-white p-3.5 transition hover:-translate-y-0.5 hover:shadow-premium"
+          >
+            <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl", p.image ? "bg-orange-50" : "bg-rose-50")}>
+              {p.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={p.image} alt="" className="h-8 w-8 object-contain" />
+              ) : (
+                <TriangleAlert size={20} className="text-rose-500" />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-[12px] text-slate-500">{p.label}</span>
+              {isLoading ? (
+                <span className="mt-1 block h-6 w-10 animate-pulse rounded-lg bg-slate-100" />
+              ) : !hasBreakdown ? (
+                <span className="block text-[22px] font-semibold leading-tight text-slate-300">—</span>
+              ) : p.value === 0 ? (
+                <span className="block text-[15px] font-medium text-slate-400">None</span>
+              ) : (
+                <span className="block text-[22px] font-semibold leading-tight tabular-nums text-[#1C1C1E]">{fmt(p.value)}</span>
+              )}
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_400px]">
+        {/* Quick actions */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-rows-2">
+          {actions.map((a) => (
+            <Link
+              key={a.title}
+              href={a.href}
+              className="group flex items-center gap-4 rounded-[24px] border border-[#E2E2E2] bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-premium"
+            >
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={a.image} alt="" className="h-10 w-10 object-contain transition-transform group-hover:scale-110" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16px] font-semibold text-[#1C1C1E]">{a.title}</span>
+                <span className="block text-[13px] text-slate-500">{a.text}</span>
+              </span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition group-hover:bg-orange-500 group-hover:text-white">
+                <ArrowRight size={16} />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Recent parcel activity */}
+        <div className="flex min-h-[320px] flex-col overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white lg:min-h-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3.5">
+            <h2 className="text-[16px] font-semibold text-[#1C1C1E]">Recent parcel activity</h2>
+            <Link href="/parcel" className="text-[13px] font-semibold text-orange-600 hover:text-orange-700">
+              All parcels
+            </Link>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {activityLoading ? (
+              <div className="space-y-3 p-5">
+                {[1, 2, 3, 4].map((n) => (
+                  <div key={n} className="h-12 animate-pulse rounded-2xl bg-slate-100" />
                 ))}
               </div>
+            ) : activityData && activityData.length > 0 ? (
+              <ul className="divide-y divide-slate-100">
+                {activityData.map((e: any) => {
+                  const tone = STATUS_TONE[e.status] ?? { label: e.status, tone: "bg-slate-100 text-slate-600" };
+                  const note = trackingNote(e);
+                  return (
+                    <li key={e.id}>
+                      <button
+                        type="button"
+                        onClick={() => e.parcel?.id && setOpenParcel({ id: e.parcel.id, trackingNumber: e.parcel.trackingNumber })}
+                        className="flex w-full items-start gap-3 px-5 py-3 text-left transition hover:bg-slate-50"
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/brand/staff_parcel.png" alt="" className="h-6 w-6 object-contain" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-2">
+                            <span className="text-[14px] font-semibold tracking-wide text-[#1C1C1E]">
+                              {e.parcel?.trackingNumber ?? "Parcel"}
+                            </span>
+                            <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", tone.tone)}>
+                              {tone.label}
+                            </span>
+                          </span>
+                          <span className="block truncate text-[13px] text-slate-500">
+                            {note || [e.parcel?.from, e.parcel?.to].filter(Boolean).join(" → ")}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-[12px] text-slate-400">
+                          {e.timestamp ? formatDistanceToNow(new Date(e.timestamp), { addSuffix: true }) : ""}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-                <AlertCircle size={20} className="text-slate-300" />
-                <p className="text-[13px] font-medium text-slate-400">No recent activity</p>
+              <div className="flex h-full flex-col items-center justify-center px-6 py-10 text-center">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-50">
+                  <Activity size={24} className="text-orange-500" />
+                </span>
+                <p className="mt-3 text-[15px] font-semibold text-[#1C1C1E]">No parcel activity yet</p>
+                <p className="mt-1 text-[13px] text-slate-500">Received, dispatched and delivered parcels will show here.</p>
               </div>
             )}
           </div>
-
-          <div className="border-t border-slate-200 px-4 py-2.5 shrink-0">
-            <a
-              href="/super-admin/audit"
-              className="flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              <FileText size={13} />
-              View all audit logs
-            </a>
-          </div>
-        </div>
-
-        {/* System info panel */}
-        <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden flex flex-col">
-          <div className="px-4 py-3 border-b border-slate-200 shrink-0">
-            <span className="text-[14px] font-semibold text-slate-800">System Status</span>
-          </div>
-          <div className="flex-1 divide-y divide-slate-100">
-            {[
-              { label: "API Health",      status: "Operational",  ok: true  },
-              { label: "Payment Gateway", status: "Operational",  ok: true  },
-              { label: "SMS Service",     status: "Operational",  ok: true  },
-              { label: "Mobile Backend",  status: "Operational",  ok: true  },
-              { label: "Database",        status: "Operational",  ok: true  },
-            ].map((row) => (
-              <div key={row.label} className="flex items-center justify-between px-4 py-3">
-                <span className="text-[13px] font-medium text-slate-700">{row.label}</span>
-                <span className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold border",
-                  row.ok
-                    ? "bg-green-50 text-green-700 border-green-100"
-                    : "bg-red-50 text-red-700 border-red-100",
-                )}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", row.ok ? "bg-green-500" : "bg-red-500")} />
-                  {row.status}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-slate-200 px-4 py-3 shrink-0">
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              All systems are currently operating normally. Uptime monitored continuously.
-            </p>
-          </div>
         </div>
       </div>
+      <ParcelDetailSheet parcel={openParcel} onClose={() => setOpenParcel(null)} />
     </div>
   );
 }

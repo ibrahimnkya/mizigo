@@ -60,7 +60,7 @@ export default function AdminReportsPage() {
             <Calendar size={16} />
             Past 30 Days
           </button>
-          <button className="h-11 px-6 bg-slate-900 text-white rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-slate-800 transition-all  shadow-slate-900/10">
+          <button className="h-11 px-6 bg-[#5C0B19] text-white rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-[#4F0A0C] transition-all  shadow-[#5C0B19]/15">
             <Download size={16} />
             Export Master Log
           </button>

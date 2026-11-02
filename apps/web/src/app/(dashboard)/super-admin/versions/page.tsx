@@ -186,7 +186,7 @@ function VersionSheet({
             type="submit"
             form="version-form"
             disabled={isPending}
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />
@@ -364,7 +364,7 @@ function AppVersionsPageInner() {
                     <div className="flex items-center justify-between mb-4">
                       <div
                         className={cn(
-                          "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-slate-900 group-hover:text-white",
+                          "w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 transition-all group-hover:bg-[#5C0B19] group-hover:text-white",
                           stat.color
                         )}
                       >
@@ -387,7 +387,7 @@ function AppVersionsPageInner() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 bg-slate-900 rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[360px]">
+                <div className="lg:col-span-1 bg-[#5C0B19] rounded-xl p-8 text-white relative overflow-hidden  flex flex-col justify-between min-h-[360px]">
                   <div className="absolute top-[-100px] right-[-100px] w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
                   <div className="relative z-10">
                     <div className="h-12 w-12 rounded-xl bg-white/10 flex items-center justify-center mb-8 border border-slate-200   shadow-blue-500/10">
@@ -429,7 +429,7 @@ function AppVersionsPageInner() {
             <div className="bg-white border border-[#E2E2E2] rounded-[20px] overflow-hidden p-1">
               <div className="bg-white rounded-[20px] border border-[#E2E2E2]  overflow-hidden">
                 <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center gap-3">
-                  <div className="p-2 bg-slate-900 rounded-xl text-white">
+                  <div className="p-2 bg-[#5C0B19] rounded-xl text-white">
                     <History size={16} strokeWidth={2.5} />
                   </div>
                   <div>
@@ -463,7 +463,7 @@ function AppVersionsPageInner() {
                           <tr key={v.id} className="hover:bg-slate-50/50 transition-colors group">
                             <td className="px-6 py-5">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                <div className="w-9 h-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-400 group-hover:bg-[#5C0B19] group-hover:text-white transition-all">
                                   <Package size={16} strokeWidth={2.5} />
                                 </div>
                                 <div>
@@ -508,7 +508,7 @@ function AppVersionsPageInner() {
                                 )}
                                 <button
                                   onClick={() => setEditingVersion(v)}
-                                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all inline-flex items-center justify-center"
+                                  className="h-8 w-8 bg-slate-50 text-slate-400 rounded-xl hover:bg-[#5C0B19] hover:text-white transition-all inline-flex items-center justify-center"
                                   title="Edit"
                                 >
                                   <Pencil size={13} strokeWidth={2.5} />

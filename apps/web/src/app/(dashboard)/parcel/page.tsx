@@ -136,7 +136,7 @@ export default async function ParcelPage() {
       title: "Dispatched",
       description: "Loaded on the train and on the way.",
       href: "/parcel/dispatched",
-      image: "/brand/3d_send.png",
+      image: "/brand/staff_parcel.png",
       tone: "orange",
       count: (stats.DISPATCHED || 0) + inTransitCount,
       snapshot: [

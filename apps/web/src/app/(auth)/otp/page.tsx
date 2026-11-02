@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function OTPPage() {
   return (
-    <div className="h-[100dvh] w-screen relative bg-slate-950 text-white selection:bg-blue-500/30 font-sans overflow-hidden">
+    <div className="h-[100dvh] w-screen relative bg-[#4F0A0C] text-white selection:bg-blue-500/30 font-sans overflow-hidden">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <Image
           src="/side.png"

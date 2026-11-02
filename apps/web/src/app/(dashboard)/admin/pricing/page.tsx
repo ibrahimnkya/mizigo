@@ -1,4 +1,7 @@
 "use client";
+import { ReportSummary } from "@/components/reports/report-kit";
+import { PrimaryPill } from "@/components/shared/overview-kit";
+import { CheckCircle2, PauseCircle, SlidersHorizontal, TrainFront } from "lucide-react";
 
 import { DataTable } from "@/components/shared/data-table";
 import { cn } from "@/lib/utils";
@@ -17,7 +20,7 @@ import { PricingActionMenu } from "@/components/admin/pricing-action-menu";
 import { PricingDetailSheet } from "@/components/admin/pricing-detail-sheet";
 import { usePricingRules } from "@/modules/pricing/use-pricing";
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
 import { useSession } from "next-auth/react";
@@ -126,6 +129,7 @@ function PricingPageInner() {
   const { data: rules, isLoading } = usePricingRules(selectedOrgId || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewRule, setViewRule] = useState<any>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
 
@@ -155,7 +159,7 @@ function PricingPageInner() {
             className={cn(
               "h-9 w-9 rounded-xl border flex items-center justify-center shrink-0",
               rule.isActive
-                ? "bg-slate-900 border-slate-700"
+                ? "bg-[#5C0B19] border-slate-700"
                 : "bg-slate-100 border-slate-200",
             )}
           >
@@ -299,127 +303,104 @@ function PricingPageInner() {
         />
 
         <div className="mt-2 animate-in fade-in duration-700">
-          {tab.toLowerCase() === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <PricingCard
-                  label="Active Rules"
-                  value={activeRules}
-                  icon={Calculator}
-                  iconBg="bg-blue-50"
-                  iconColor="text-blue-600"
-                  tag="System"
-                  tagBg="bg-blue-50"
-                  tagColor="text-blue-700 border-blue-200"
-                  accentBar=""
-                  description="Total custom pricing matrices currently in active deployment"
-                  seed={21}
+          {tab.toLowerCase() === "overview" && (() => {
+            const all: any[] = rules ?? [];
+            const meta = (r: any) => {
+              try {
+                return JSON.parse(r.condition || "{}");
+              } catch {
+                return {};
+              }
+            };
+            const tariffs = all.filter((r) => r.type === "SGR_TARIFF");
+            const others = all.filter((r) => r.type !== "SGR_TARIFF");
+            const charge = (r: any) => {
+              const c = meta(r).parcelCategory ?? {};
+              if (r.type === "MULTIPLIER") return `× ${r.value}`;
+              if (c.chargingMode === "Percentage_Wise") return `${r.value}% of declared value`;
+              return `TSh ${Number(r.value || 0).toLocaleString("en-US")}`;
+            };
+            return (
+              <div className="flex flex-col gap-5">
+                <ReportSummary
+                  label="Pricing rules"
+                  value={isLoading ? "…" : String(all.length)}
+                  note="Prices come from the SGR tariff matched by weight, plus extra services"
+                  loading={isLoading}
+                  chips={[
+                    { label: "Active", value: String(all.filter((r) => r.isActive).length), icon: CheckCircle2 },
+                    { label: "SGR tariffs", value: String(tariffs.length), icon: TrainFront },
+                    { label: "Other rules", value: String(others.length), icon: SlidersHorizontal },
+                    { label: "Paused", value: String(all.filter((r) => !r.isActive).length), icon: PauseCircle },
+                  ]}
                 />
-                <PricingCard
-                  label="Base Price Multiplier"
-                  value={`${baseMultiplier}x`}
-                  icon={TrendingUp}
-                  iconBg="bg-emerald-50"
-                  iconColor="text-emerald-600"
-                  tag="Multiplier"
-                  tagBg="bg-emerald-50"
-                  tagColor="text-emerald-700 border-emerald-200"
-                  accentBar=""
-                  description="Base rate coefficient applied to standard distance"
-                  seed={43}
-                />
-                <PricingCard
-                  label="Express Delivery Markup"
-                  value={`+${expressPremium}%`}
-                  icon={BadgePercent}
-                  iconBg="bg-indigo-50"
-                  iconColor="text-indigo-600"
-                  tag="Premium"
-                  tagBg="bg-indigo-50"
-                  tagColor="text-indigo-700 border-indigo-200"
-                  accentBar=""
-                  description="Percent surcharge automatically added for priority delivery"
-                  seed={65}
-                />
-                <PricingCard
-                  label="Global Coverage"
-                  value="100%"
-                  icon={Globe}
-                  iconBg="bg-slate-100"
-                  iconColor="text-slate-600"
-                  tag="Network"
-                  tagBg="bg-slate-50"
-                  tagColor="text-slate-600 border-slate-200"
-                  accentBar=""
-                  description="Status of operational coverage for pricing lookups"
-                  seed={87}
-                />
+                <section className="overflow-hidden rounded-[24px] border border-[#E2E2E2] bg-white">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                    <div>
+                      <h2 className="text-[17px] font-semibold text-[#1C1C1E]">SGR tariffs</h2>
+                      <p className="text-[13px] text-slate-500">The lightest tariff that can carry a parcel&apos;s weight is used</p>
+                    </div>
+                    <PrimaryPill onClick={() => router.push("?tab=all")}>Manage rules</PrimaryPill>
+                  </div>
+                  {tariffs.length === 0 ? (
+                    <p className="px-6 py-12 text-center text-[14px] text-slate-400">No SGR tariffs set up yet.</p>
+                  ) : (
+                    <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
+                      {[...tariffs]
+                        .sort((a, b) => (meta(a).parcelCategory?.maxWeightInKg ?? 1e9) - (meta(b).parcelCategory?.maxWeightInKg ?? 1e9))
+                        .map((r) => {
+                          const c = meta(r).parcelCategory ?? {};
+                          return (
+                            <div key={r.id} className="rounded-[20px] border border-[#E2E2E2] p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex min-w-0 items-center gap-3">
+                                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
+                                    <TrainFront size={19} className="text-orange-500" />
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-[15px] font-semibold text-[#1C1C1E]">{c.name || r.name}</p>
+                                    <p className="truncate text-[12px] text-slate-400">{c.code || r.name}</p>
+                                  </div>
+                                </div>
+                                <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold", r.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")}>
+                                  {r.isActive ? "Active" : "Paused"}
+                                </span>
+                              </div>
+                              <div className="mt-4 grid grid-cols-2 gap-2">
+                                <div className="rounded-2xl bg-[#F7F5F4] px-3 py-2.5">
+                                  <p className="text-[12px] text-slate-500">Charge</p>
+                                  <p className="text-[15px] font-semibold text-[#1C1C1E]">{charge(r)}</p>
+                                </div>
+                                <div className="rounded-2xl bg-[#F7F5F4] px-3 py-2.5">
+                                  <p className="text-[12px] text-slate-500">Up to</p>
+                                  <p className="text-[15px] font-semibold text-[#1C1C1E]">{c.maxWeightInKg ? `${c.maxWeightInKg} kg` : "Any weight"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                  {others.length > 0 && (
+                    <div className="border-t border-slate-100 px-5 py-4">
+                      <p className="mb-2 text-[14px] font-semibold text-[#1C1C1E]">Other rules</p>
+                      <ul className="divide-y divide-slate-100">
+                        {others.map((r) => (
+                          <li key={r.id} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
+                            <span className="min-w-0 truncate text-[#1C1C1E]">
+                              {r.name}
+                              {r.condition && <span className="ml-2 text-[12px] text-slate-400">{r.condition}</span>}
+                            </span>
+                            <span className="shrink-0 font-semibold tabular-nums text-[#1C1C1E]">{charge(r)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </section>
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* How It Works Section */}
-                <div className="lg:col-span-1 bg-white border border-[#E2E2E2] rounded-[20px] p-6 flex flex-col justify-between min-h-[400px]">
-                  <div>
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-6">
-                      <Database className="h-5 w-5 text-slate-600" strokeWidth={2} />
-                    </div>
-                    <h3 className="text-[20px] font-semibold text-slate-800 mb-2">
-                      How It Works
-                    </h3>
-                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed mb-6">
-                      Rules are applied automatically when parcels are
-                      processed. Multipliers increase the base price; fixed
-                      amounts add a set fee.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Dangerous Goods
-                        </span>
-                        <span className="text-[11px] font-medium text-slate-400">
-                          Multiplier
-                        </span>
-                      </div>
-                      <span className="text-[14px] font-semibold text-emerald-600 tabular-nums">
-                        {hazardousMultiplier}x
-                      </span>
-                    </div>
-                    <div className="px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.05em]">
-                          Express Delivery
-                        </span>
-                        <span className="text-[11px] font-medium text-slate-400">
-                          Price increase
-                        </span>
-                      </div>
-                      <span className="text-[14px] font-semibold text-blue-600 tabular-nums">
-                        +{expressPremium}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Placeholder for Graphs or other analytical tools */}
-                <div className="lg:col-span-2 bg-white border border-[#E2E2E2] rounded-[20px] p-8 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center mb-4">
-                    <TrendingUp className="w-6 h-6 text-blue-600" strokeWidth={2} />
-                  </div>
-                  <h4 className="text-[14px] font-semibold text-slate-800 mb-2">
-                    Pricing Activity Graph
-                  </h4>
-                  <p className="text-[13px] font-medium text-slate-500 max-w-md">
-                    Detailed graphical analysis of pricing rules application and
-                    revenue impact will be populated here as parcel data
-                    accumulates.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {tab.toLowerCase() === "all" && (
             <div className="space-y-4">

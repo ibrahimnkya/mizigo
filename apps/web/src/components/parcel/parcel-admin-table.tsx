@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DataTable } from "@/components/shared/data-table";
+import { ParcelDetailSheet } from "./parcel-detail-sheet";
 
 // ── Status config ──────────────────────────────────────────────────────────────
 
@@ -92,8 +93,8 @@ const STATUS_META: Record<
   },
   LOST: {
     label: "Lost",
-    dot: "bg-slate-900",
-    className: "bg-slate-900 text-white border-slate-700",
+    dot: "bg-[#5C0B19]",
+    className: "bg-[#5C0B19] text-white border-slate-700",
   },
 };
 
@@ -122,6 +123,9 @@ export interface ParcelItem {
   id: string;
   trackingNumber?: string;
   weight?: number | null;
+  senderName?: string | null;
+  senderPhone?: string | null;
+  paymentStatus?: string | null;
   fromAddress: string;
   toAddress: string;
   serviceType: string;
@@ -425,6 +429,7 @@ export function ParcelAdminTable({
   const isSuperAdmin = (session?.user as any)?.role === "SUPER_ADMIN";
 
   const [approveTarget, setApproveTarget] = useState<ParcelItem | null>(null);
+  const [selected, setSelected] = useState<ParcelItem | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ParcelItem | null>(null);
   const refresh = useCallback(() => router.refresh(), [router]);
 
@@ -492,7 +497,7 @@ export function ParcelAdminTable({
     return initialItems.filter((item) => {
       if (
         q &&
-        ![item.trackingNumber, item.receiverName, item.receiverPhone, item.origin?.name, item.destination?.name]
+        ![item.trackingNumber, item.senderName, item.senderPhone, item.receiverName, item.receiverPhone, item.origin?.name, item.destination?.name]
           .some((v) => v?.toLowerCase().includes(q))
       )
         return false;
@@ -575,11 +580,17 @@ export function ParcelAdminTable({
         ]
       : []),
     {
-      header: "Receiver",
+      header: "Sender → Receiver",
       accessor: (item: ParcelItem) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-[#1C1C1E] text-[13px]">{item.receiverName || "—"}</span>
-          {item.receiverPhone && <span className="text-[12px] text-slate-400">{item.receiverPhone}</span>}
+        <div className="flex flex-col text-[13px]">
+          <span className="font-medium text-[#1C1C1E]">
+            {item.senderName || "Sender not recorded"}
+            {item.senderPhone && <span className="ml-1.5 text-[12px] font-normal text-slate-400">{item.senderPhone}</span>}
+          </span>
+          <span className="text-slate-500">
+            to {item.receiverName || "—"}
+            {item.receiverPhone && <span className="ml-1.5 text-[12px] text-slate-400">{item.receiverPhone}</span>}
+          </span>
         </div>
       ),
     },
@@ -621,7 +632,7 @@ export function ParcelAdminTable({
           <div className="flex items-center justify-end gap-2">
             {canApprove && (
               <button
-                onClick={() => setApproveTarget(item)}
+                onClick={(e) => { e.stopPropagation(); setApproveTarget(item); }}
                 title="Approve"
                 className="h-9 w-9 flex items-center justify-center rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition"
               >
@@ -630,7 +641,7 @@ export function ParcelAdminTable({
             )}
             {canReject && (
               <button
-                onClick={() => setRejectTarget(item)}
+                onClick={(e) => { e.stopPropagation(); setRejectTarget(item); }}
                 title="Reject"
                 className="h-9 w-9 flex items-center justify-center rounded-full bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition"
               >
@@ -638,7 +649,7 @@ export function ParcelAdminTable({
               </button>
             )}
             <button
-              onClick={() => router.push(`/parcel/${item.id}`)}
+              onClick={(e) => { e.stopPropagation(); setSelected(item); }}
               className="h-9 px-4 rounded-full bg-[#5C0B19] hover:bg-[#4F0A0C] text-white text-[13px] font-semibold flex items-center gap-1.5 transition active:scale-95"
             >
               View <ArrowUpRight size={14} />
@@ -658,7 +669,7 @@ export function ParcelAdminTable({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tracking number, receiver, phone or station"
+            placeholder="Search tracking number, sender, receiver, phone or station"
             className="h-10 w-full rounded-full border border-[#E2E2E2] bg-white pl-10 pr-4 text-[13px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
           />
         </div>
@@ -723,7 +734,10 @@ export function ParcelAdminTable({
         hideActions={true}
         hideInternalSearch={true}
         emptyMessage={initialItems.length === 0 ? "No parcels here yet." : "No parcels match your search or filters."}
+        onRowClick={(item: ParcelItem) => setSelected(item)}
       />
+
+      <ParcelDetailSheet parcel={selected} onClose={() => setSelected(null)} />
 
       {approveTarget && (
         <ApproveModal

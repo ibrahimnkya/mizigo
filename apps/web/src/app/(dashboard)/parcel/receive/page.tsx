@@ -273,7 +273,7 @@ export default function ReceiveParcelPage() {
           >
             New Entry
           </button>
-          <button className="bg-slate-900 text-white px-8 py-4 rounded-xl font-semibold text-xs uppercase tracking-[0.05em]  shadow-slate-900/20  transition-all active:scale-95 flex items-center gap-3">
+          <button className="bg-[#5C0B19] text-white px-8 py-4 rounded-xl font-semibold text-xs uppercase tracking-[0.05em]  shadow-slate-900/20  transition-all active:scale-95 flex items-center gap-3">
             <Printer size={16} />
             Print Ticket
           </button>
@@ -558,7 +558,7 @@ export default function ReceiveParcelPage() {
                 {/* Sender */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                    <div className="h-8 w-8 bg-[#5C0B19] rounded-xl flex items-center justify-center text-white">
                       <User size={14} />
                     </div>
                     <h3 className="text-[11px] font-semibold text-slate-900 uppercase tracking-[0.05em]">
@@ -756,7 +756,7 @@ export default function ReceiveParcelPage() {
                         className={cn(
                           "p-6 rounded-xl border-2 text-left transition-all group relative",
                           formData.paymentMode === mode.id
-                            ? "bg-slate-900 border-slate-900  shadow-slate-300"
+                            ? "bg-[#5C0B19] border-slate-900  shadow-slate-300"
                             : "bg-white border-slate-100 hover:border-slate-200",
                         )}
                       >
@@ -837,7 +837,7 @@ export default function ReceiveParcelPage() {
                   <button
                     onClick={handleSubmit} // Finalize record without payment
                     disabled={loading}
-                    className="w-full h-16 bg-slate-900 text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
+                    className="w-full h-16 bg-[#5C0B19] text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin" size={18} />
@@ -873,7 +873,7 @@ export default function ReceiveParcelPage() {
                             className={cn(
                               "h-20 rounded-xl border-2 font-semibold text-[10px] uppercase tracking-[0.05em] transition-all flex flex-col items-center justify-center gap-2",
                               formData.paymentChannel === ch.name
-                                ? "bg-slate-900 text-white border-slate-900  scale-[1.03]"
+                                ? "bg-[#5C0B19] text-white border-slate-900  scale-[1.03]"
                                 : "bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100",
                             )}
                           >
@@ -889,7 +889,7 @@ export default function ReceiveParcelPage() {
                             className={cn(
                               "h-20 rounded-xl border-2 font-semibold text-[10px] uppercase tracking-[0.05em] transition-all",
                               formData.paymentChannel === ch
-                                ? "bg-slate-900 text-white border-slate-900"
+                                ? "bg-[#5C0B19] text-white border-slate-900"
                                 : "bg-slate-50 border-transparent text-slate-400",
                             )}
                           >
@@ -950,7 +950,7 @@ export default function ReceiveParcelPage() {
                         <button
                           onClick={handleSubmit} // Finalize record
                           disabled={loading}
-                          className="w-full h-16 bg-slate-900 text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
+                          className="w-full h-16 bg-[#5C0B19] text-white rounded-xl font-semibold text-sm uppercase tracking-[0.05em]  flex items-center justify-center gap-3  transition-all active:scale-95"
                         >
                           {loading ? (
                             <Loader2 className="animate-spin" size={18} />
@@ -986,7 +986,7 @@ export default function ReceiveParcelPage() {
             {step < 4 && (
               <button
                 onClick={handleNext}
-                className="h-14 px-10 bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  flex items-center gap-3  transition-all active:scale-95"
+                className="h-14 px-10 bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] rounded-xl  flex items-center gap-3  transition-all active:scale-95"
               >
                 Next Step
                 <ChevronRight size={14} strokeWidth={3} />

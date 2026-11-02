@@ -40,7 +40,7 @@ export default function DispatchPage() {
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300 bg-slate-900 shadow-slate-100",
+              "h-10 w-10 rounded-xl flex items-center justify-center  transition-all duration-300 bg-[#5C0B19] shadow-slate-100",
             )}
           >
             <Package className="h-5 w-5 text-white" />
@@ -116,7 +116,7 @@ export default function DispatchPage() {
           <button
             onClick={() => handleDispatch(item.id)}
             disabled={isUpdating}
-            className="h-9 px-4 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
+            className="h-9 px-4 bg-[#5C0B19] hover:bg-emerald-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95  flex items-center gap-2"
           >
             {isUpdating ? (
               <Loader2 size={12} className="animate-spin" />
@@ -159,7 +159,7 @@ export default function DispatchPage() {
               {parcel?.length || 0} Units
             </span>
           </div>
-          <button className="h-12 px-6 bg-slate-900 text-white rounded-xl text-sm font-semibold flex items-center gap-2  shadow-slate-900/10 border border-slate-200 active:scale-95 transition-all">
+          <button className="h-12 px-6 bg-[#5C0B19] text-white rounded-xl text-sm font-semibold flex items-center gap-2  shadow-[#5C0B19]/15 border border-slate-200 active:scale-95 transition-all">
             <Truck size={18} />
             Bulk Dispatch
           </button>

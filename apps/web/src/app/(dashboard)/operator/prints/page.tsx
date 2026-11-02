@@ -170,7 +170,7 @@ export default function OperatorPrintsPage() {
                     setIsPrinting(true);
                     setTimeout(() => setIsPrinting(false), 2000);
                   }}
-                  className="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white  shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-95"
+                  className="h-12 w-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 text-white  shadow-[#5C0B19]/15 hover:bg-[#4F0A0C] transition-all active:scale-95"
                 >
                   {isPrinting ? (
                     <RefreshCcw size={20} className="animate-spin" />

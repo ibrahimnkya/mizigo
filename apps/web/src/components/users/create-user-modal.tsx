@@ -422,7 +422,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all font-bold flex items-center gap-2.5 active:scale-95 group">
+        <Button className="h-11 px-6 rounded-xl bg-[#5C0B19] hover:bg-[#4F0A0C] text-white transition-all font-bold flex items-center gap-2.5 active:scale-95 group">
           <div className="bg-white/20 p-1 rounded-xl group-hover:rotate-12 transition-transform">
             <UserPlus size={16} strokeWidth={2.5} />
           </div>
@@ -433,7 +433,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden bg-white border border-slate-100 rounded-l-2xl ">
         <div className="flex flex-col max-h-[100vh] overflow-hidden h-full">
           {/* Header Section */}
-          <div className="bg-slate-900 px-6 py-6 flex items-center gap-4 shrink-0 relative overflow-hidden">
+          <div className="bg-[#5C0B19] px-6 py-6 flex items-center gap-4 shrink-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
             <div
               className={cn(
@@ -466,7 +466,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                       className={cn(
                         "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold transition-all duration-300",
                         step === s.num
-                          ? "bg-slate-900 text-white  shadow-slate-900/10 scale-105"
+                          ? "bg-[#5C0B19] text-white  shadow-[#5C0B19]/15 scale-105"
                           : step > s.num
                             ? "bg-emerald-500 text-white"
                             : "bg-slate-200 text-slate-400",
@@ -775,7 +775,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   >
                     <div className="space-y-4">
                       {/* Summary Card */}
-                      <div className="bg-slate-900 text-white rounded-xl p-5  relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                      <div className="bg-[#5C0B19] text-white rounded-xl p-5  relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
                         <div className="absolute top-[-50px] right-[-50px] w-36 h-36 bg-white/5 rounded-full blur-[30px] pointer-events-none" />
 
                         <div>
@@ -783,7 +783,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                             className={cn(
                               "text-[8px] font-semibold uppercase px-2 py-0.5 rounded-xl w-fit tracking-[0.05em] border",
                               roleColors[selectedRole] ||
-                                "bg-slate-800 text-slate-300 border-slate-700",
+                                "bg-[#4F0A0C] text-slate-300 border-slate-700",
                             )}
                           >
                             {selectedRole.replace("_", " ")}
@@ -948,7 +948,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                   type="button"
                   onClick={step === 1 ? handleNextToStep2 : handleNextToStep3}
                   disabled={checkingAvailability}
-                  className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-[0.98] disabled:opacity-60"
+                  className="h-11 px-6 rounded-xl bg-[#5C0B19] text-white text-[10px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all shadow-md flex items-center gap-2 active:scale-[0.98] disabled:opacity-60"
                 >
                   {checkingAvailability && step === 2 ? (
                     <>
@@ -1018,7 +1018,7 @@ export function CreateUserModal({ currentUserRole }: CreateUserModalProps) {
                     "w-full h-10 rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] transition-all",
                     alertModal.type === "success"
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "bg-slate-900 hover:bg-slate-800 text-white",
+                      : "bg-[#5C0B19] hover:bg-[#4F0A0C] text-white",
                   )}
                 >
                   Continue

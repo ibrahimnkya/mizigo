@@ -170,7 +170,7 @@ function SummaryBlock({ accent }: { accent: { bg: string; text: string } }) {
 function ReportPreview({ cfg }: { cfg: ReportsConfig }) {
   const accent = ACCENT[cfg.accentColor];
   const headerBg =
-    cfg.headerStyle === "dark"     ? "bg-slate-900 text-white"
+    cfg.headerStyle === "dark"     ? "bg-[#5C0B19] text-white"
     : cfg.headerStyle === "light"  ? "bg-white text-slate-900 border-b border-slate-100"
     : cfg.headerStyle === "gradient" ? `bg-gradient-to-r from-slate-900 to-slate-800 text-white`
     : "bg-transparent text-slate-900 border-b-2 border-slate-900";
@@ -379,7 +379,7 @@ export function ReportsConfigDashboard() {
                   onClick={() => setActiveSection(id)}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[9px] font-semibold uppercase tracking-[0.05em] transition-all",
-                    activeSection === id ? "bg-slate-900 text-white " : "text-slate-400 hover:text-slate-600",
+                    activeSection === id ? "bg-[#5C0B19] text-white " : "text-slate-400 hover:text-slate-600",
                   )}
                 >
                   <Icon size={11} />
@@ -428,7 +428,7 @@ export function ReportsConfigDashboard() {
                         onClick={() => set("headerStyle", id)}
                         className={cn(
                           "flex flex-col items-start px-3 py-2.5 rounded-xl border text-left transition-all",
-                          cfg.headerStyle === id ? "bg-slate-900 border-slate-900 text-white" : "bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200",
+                          cfg.headerStyle === id ? "bg-[#5C0B19] border-slate-900 text-white" : "bg-slate-50 border-slate-100 text-slate-500 hover:border-slate-200",
                         )}
                       >
                         <span className="text-[10px] font-semibold">{label}</span>
@@ -465,7 +465,7 @@ export function ReportsConfigDashboard() {
                         onClick={() => set("tableDensity", d)}
                         className={cn(
                           "py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] border transition-all capitalize",
-                          cfg.tableDensity === d ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
+                          cfg.tableDensity === d ? "bg-[#5C0B19] text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
                         )}
                       >
                         {d}
@@ -565,7 +565,7 @@ export function ReportsConfigDashboard() {
                         onClick={() => set("currencySymbol", sym)}
                         className={cn(
                           "py-2.5 rounded-xl text-[10px] font-semibold border transition-all",
-                          cfg.currencySymbol === sym ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
+                          cfg.currencySymbol === sym ? "bg-[#5C0B19] text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
                         )}
                       >
                         {sym}
@@ -588,7 +588,7 @@ export function ReportsConfigDashboard() {
                         onClick={() => set("defaultRange", id)}
                         className={cn(
                           "py-2.5 rounded-xl text-[10px] font-semibold border transition-all",
-                          cfg.defaultRange === id ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
+                          cfg.defaultRange === id ? "bg-[#5C0B19] text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
                         )}
                       >
                         {label}
@@ -610,7 +610,7 @@ export function ReportsConfigDashboard() {
                         onClick={() => set("pdfOrientation", o)}
                         className={cn(
                           "py-2.5 rounded-xl text-[10px] font-semibold border transition-all capitalize",
-                          cfg.pdfOrientation === o ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
+                          cfg.pdfOrientation === o ? "bg-[#5C0B19] text-white border-slate-900" : "bg-slate-50 text-slate-500 border-slate-100 hover:border-slate-200",
                         )}
                       >
                         {o}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -63,6 +63,13 @@ export function DataTable<T>({
   }, [data, search, searchKey]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
+  // New filters/search → back to the first page (and never past the last one).
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data.length, search]);
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
@@ -217,7 +224,7 @@ export function DataTable<T>({
                   {!hideActions && (
                     <td className="px-6 py-[18px] text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button className="h-9 w-9 flex items-center justify-center hover:bg-slate-900 hover:text-white rounded-xl border border-slate-100 bg-white ">
+                        <button className="h-9 w-9 flex items-center justify-center hover:bg-[#5C0B19] hover:text-white rounded-xl border border-slate-100 bg-white ">
                           <MoreVertical className="h-4 w-4 text-slate-400" />
                         </button>
                       </div>
@@ -230,62 +237,90 @@ export function DataTable<T>({
         </table>
       </div>
 
-      {/* Footer */}
-      <div className="px-6 py-5 border-t border-slate-100 bg-slate-50/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto text-center sm:text-left">
-          <span className="text-[12px] text-slate-500 font-medium">
-            Showing {(currentPage - 1) * pageSize + 1} to{" "}
-            {Math.min(currentPage * pageSize, filteredData.length)} of{" "}
-            {filteredData.length} entries
-          </span>
-
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-[12px] text-slate-500 font-medium">
-              Show
+      {/* Footer: count, page size and page numbers */}
+      {(filteredData.length > 0 || isLoading) && (
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 sm:flex-row">
+          <div className="flex items-center gap-4 text-[13px] text-slate-500">
+            <span>
+              {filteredData.length === 0
+                ? "No results"
+                : `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filteredData.length)} of ${filteredData.length.toLocaleString("en-US")}`}
             </span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="h-8 px-2 bg-white border border-[#E2E2E2] rounded-[20px] text-[11px] font-bold outline-none focus:ring-2 focus:ring-orange-500/10 transition-all"
-            >
-              {[10, 20, 30, 40, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 w-full sm:w-auto">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E2E2] bg-white hover:bg-orange-50 hover:border-orange-200 disabled:opacity-30 transition-all "
-          >
-            <ChevronLeft className="h-4 w-4 text-slate-600" strokeWidth={3} />
-          </button>
-
-          <div className="flex items-center bg-white border border-[#E2E2E2] rounded-[20px] px-3 py-1.5 ">
-            <span className="text-[13px] font-medium text-slate-700">
-              Page {currentPage} of {totalPages || 1}
-            </span>
+            <label className="flex items-center gap-2">
+              Rows
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="h-8 cursor-pointer rounded-full border border-[#E2E2E2] bg-white px-2.5 text-[13px] font-medium text-slate-700 outline-none focus:border-orange-500"
+              >
+                {[10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
-          <button
-            disabled={currentPage === totalPages || totalPages === 0}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-            }
-            className="h-9 w-9 flex items-center justify-center rounded-full border border-[#E2E2E2] bg-white hover:bg-orange-50 hover:border-orange-200 disabled:opacity-30 transition-all "
-          >
-            <ChevronRight className="h-4 w-4 text-slate-600" strokeWidth={3} />
-          </button>
+          {totalPages > 1 && (
+            <nav aria-label="Pagination" className="flex items-center gap-1">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                aria-label="Previous page"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 disabled:pointer-events-none disabled:opacity-30"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {pageList(currentPage, totalPages).map((p, i) =>
+                p === "…" ? (
+                  <span key={`gap-${i}`} className="w-7 text-center text-[13px] text-slate-400">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={cn(
+                      "h-9 min-w-9 rounded-full px-3 text-[13px] font-semibold tabular-nums transition",
+                      p === currentPage
+                        ? "bg-orange-500 text-white"
+                        : "text-slate-600 hover:bg-orange-50 hover:text-orange-600",
+                    )}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                aria-label="Next page"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-600 transition hover:border-orange-200 hover:bg-orange-50 disabled:pointer-events-none disabled:opacity-30"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </nav>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
+}
+
+/** Page numbers with gaps, e.g. 1 … 4 5 6 … 12 */
+function pageList(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = new Set([1, total, current - 1, current, current + 1]);
+  const sorted = [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const out: (number | "…")[] = [];
+  sorted.forEach((p, i) => {
+    if (i && p - (sorted[i - 1] as number) > 1) out.push("…");
+    out.push(p);
+  });
+  return out;
 }

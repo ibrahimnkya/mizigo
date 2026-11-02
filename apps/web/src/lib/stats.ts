@@ -305,7 +305,7 @@ export async function getStats(user: { id: string; role: string }) {
             ? Math.round(((rb._sum.amount || 0) / totalRev) * 100)
             : 0,
         amount: rb._sum.amount || 0,
-        raw: `TZS ${((rb._sum.amount || 0) / 1000).toLocaleString()}K`,
+        raw: `TSh ${Math.round(rb._sum.amount || 0).toLocaleString("en-US")}`,
       }))
       .sort((a: any, b: any) => b.amount - a.amount);
 

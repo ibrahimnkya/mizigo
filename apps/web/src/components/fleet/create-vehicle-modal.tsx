@@ -69,7 +69,7 @@ export function CreateVehicleModal() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="h-12 px-6 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center gap-3 transition-all active:scale-95 group  shadow-slate-900/10">
+        <button className="h-12 px-6 bg-[#5C0B19] border border-[#651422] hover:bg-[#4F0A0C] text-white rounded-xl font-semibold text-[11px] uppercase tracking-[0.05em] flex items-center gap-3 transition-all active:scale-95 group  shadow-[#5C0B19]/15">
           <Plus
             size={14}
             strokeWidth={3}
@@ -81,7 +81,7 @@ export function CreateVehicleModal() {
 
       <SheetContent className="w-full sm:w-[600px] sm:max-w-[600px] p-0 overflow-hidden border border-slate-100 bg-white  rounded-xl flex flex-col">
         {/* Header Section */}
-        <div className="bg-slate-900 px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
+        <div className="bg-[#5C0B19] px-8 py-8 flex items-center gap-5 shrink-0 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
           <div className="w-12 h-12 rounded-xl bg-white/10 border border-slate-200 flex items-center justify-center shrink-0 relative z-10  ">
             <TrainFront className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -214,7 +214,7 @@ export function CreateVehicleModal() {
             type="submit"
             form="rail-asset-form"
             disabled={isPending}
-            className="flex-[1.5] h-14 rounded-xl bg-slate-900 text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-slate-800 transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
+            className="flex-[1.5] h-14 rounded-xl bg-[#5C0B19] text-white text-[11px] font-semibold uppercase tracking-[0.05em] hover:bg-[#4F0A0C] transition-all  shadow-slate-200 flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             {isPending ? (
               <Loader2 className="w-5 h-5 animate-spin" strokeWidth={3} />

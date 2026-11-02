@@ -12,7 +12,7 @@ import {
 
 const ROLE_BADGE: Record<string, string> = {
   SUPER_ADMIN:
-    "bg-slate-900 text-white border-slate-900  shadow-slate-100",
+    "bg-[#5C0B19] text-white border-slate-900  shadow-slate-100",
   ADMIN: "bg-blue-50 text-blue-700 border-blue-100",
   STATION_MASTER: "bg-amber-50 text-amber-700 border-amber-100",
   CLERK: "bg-emerald-50 text-emerald-700 border-emerald-100",
@@ -127,7 +127,7 @@ export function UserListContent({
       accessor: (user: any) => (
         <div className="flex items-center justify-end gap-2 pr-4">
           <UserActionMenu user={user} currentUserRole={currentUserRole} />
-          <button className="h-9 px-4 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95 ">
+          <button className="h-9 px-4 bg-[#5C0B19] hover:bg-blue-600 text-white rounded-xl text-[10px] font-semibold uppercase tracking-[0.05em] transition-all active:scale-95 ">
             View Profile
           </button>
         </div>

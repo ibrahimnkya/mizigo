@@ -54,274 +54,261 @@ export interface SidebarItem {
 }
 
 export const sidebarItems: SidebarItem[] = [
-  // --- STATION DESK ---
   {
     title: "Home",
-    subtitle: "Overview and quick access",
+    subtitle: "Today at your station",
     icon: LayoutDashboard,
     href: "/operator",
     roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
-    section: "My Station",
+    section: "My station",
   },
   {
-    title: "Parcel Management",
-    subtitle: "View and manage parcels",
+    title: "Parcels",
+    subtitle: "Every parcel at your station",
     icon: Package,
     href: "/parcel",
     roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
-    section: "My Station",
+    section: "My station",
   },
   {
     title: "Reports",
-    subtitle: "View station performance",
+    subtitle: "Your station's performance",
     icon: BarChart3,
     href: "/operator/reports",
     roles: ["CLERK", "STATION_MASTER", "TRAIN_GUARD", "AGENT"],
-    section: "My Station",
+    section: "My station",
   },
-
-  // --- REPORTS SUITE ---
   {
-    title: "Overview",
-    subtitle: "Summary of all activities",
+    title: "Dashboard",
+    subtitle: "Today across the network",
     icon: LayoutDashboard,
     href: "/reports/admin/overview",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Reports",
+    section: "Overview",
   },
   {
     title: "Reports",
-    subtitle: "View detailed business reports",
+    subtitle: "Detailed business reports",
     icon: BarChart3,
     href: "/reports",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Reports",
+    section: "Overview",
   },
-
-  // --- PARCEL MANAGEMENT ---
   {
-    title: "All Parcels",
-    subtitle: "View all parcels across stations",
+    title: "Parcels",
+    subtitle: "Every parcel across stations",
     icon: Package,
     href: "/parcel",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Parcels",
-  },
-
-  // --- FINANCE & PRICING ---
-  {
-    title: "Overview",
-    subtitle: "View revenue and earnings",
-    icon: CreditCard,
-    href: "/admin/finance",
-    roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Finance & Pricing",
+    section: "Operations",
   },
   {
-    title: "Payments",
-    subtitle: "View all payment transactions",
-    icon: Activity,
-    href: "/admin/payments",
-    roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Finance & Pricing",
-  },
-  {
-    title: "Pricing",
-    subtitle: "Manage pricing rules and tariffs",
-    icon: Target,
-    href: "/admin/pricing",
-    roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Finance & Pricing",
-  },
-
-  // --- RAIL & FACILITIES ---
-  {
-    title: "Rail Network",
-    subtitle: "Manage trains and rolling stock",
-    icon: TrainFront,
-    href: "/super-admin/fleet",
-    roles: ["SUPER_ADMIN"],
-    section: "Rail & Facilities",
-  },
-  {
-    title: "Fleet Management",
-    subtitle: "Manage locomotives and wagons",
-    icon: TrainFront,
-    href: "/admin/fleet",
-    roles: ["ADMIN"],
-    section: "Rail & Facilities",
-  },
-  {
-    title: "Organizations",
-    subtitle: "Manage partners and operators",
-    icon: Building,
-    href: "/super-admin/organizations",
-    roles: ["SUPER_ADMIN"],
-    section: "Rail & Facilities",
-  },
-  {
-    title: "Station Network",
-    subtitle: "Manage stations and service points",
+    title: "Stations",
+    subtitle: "Stations and service points",
     icon: Target,
     href: "/super-admin/stations",
     roles: ["SUPER_ADMIN"],
-    section: "Rail & Facilities",
+    section: "Operations",
   },
   {
-    title: "Station Network",
-    subtitle: "Manage your stations",
+    title: "Stations",
+    subtitle: "Your stations",
     icon: Target,
     href: "/admin/stations",
     roles: ["ADMIN"],
-    section: "Rail & Facilities",
+    section: "Operations",
   },
-
-  // --- USER MANAGEMENT ---
   {
-    title: "Platform Users",
-    subtitle: "Manage system administrators",
-    icon: Users,
-    href: "/super-admin/users",
+    title: "Trains & wagons",
+    subtitle: "Locomotives and rolling stock",
+    icon: TrainFront,
+    href: "/super-admin/fleet",
     roles: ["SUPER_ADMIN"],
-    section: "Users",
+    section: "Operations",
   },
   {
-    title: "Platform Agents",
-    subtitle: "Agents & businesses - KYC, commissions",
-    icon: Building,
-    href: "/super-admin/platform-agents",
-    roles: ["SUPER_ADMIN"],
-    section: "Users",
+    title: "Trains & wagons",
+    subtitle: "Locomotives and rolling stock",
+    icon: TrainFront,
+    href: "/admin/fleet",
+    roles: ["ADMIN"],
+    section: "Operations",
   },
   {
-    title: "Agent Network",
-    subtitle: "View agent offices & locations",
+    title: "Agent network",
+    subtitle: "Agent offices and locations",
     icon: MapPin,
     href: "/admin/agent-network",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Users",
+    section: "Operations",
+  },
+  {
+    title: "Organizations",
+    subtitle: "Partners and operators",
+    icon: Building,
+    href: "/super-admin/organizations",
+    roles: ["SUPER_ADMIN"],
+    section: "Operations",
+  },
+  {
+    title: "Revenue",
+    subtitle: "Earnings and settlements",
+    icon: CreditCard,
+    href: "/admin/finance",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    section: "Finance",
+  },
+  {
+    title: "Payments",
+    subtitle: "All payment transactions",
+    icon: Activity,
+    href: "/admin/payments",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    section: "Finance",
+  },
+  {
+    title: "Pricing",
+    subtitle: "Tariffs and pricing rules",
+    icon: Target,
+    href: "/admin/pricing",
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    section: "Finance",
   },
   {
     title: "Staff",
-    subtitle: "Manage staff members",
+    subtitle: "Station and office staff",
     icon: Users,
     href: "/admin/users",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Users",
+    section: "People",
   },
   {
-    title: "Roles",
+    title: "Platform agents",
+    subtitle: "Agents, KYC and commissions",
+    icon: Building,
+    href: "/super-admin/platform-agents",
+    roles: ["SUPER_ADMIN"],
+    section: "People",
+  },
+  {
+    title: "Platform admins",
+    subtitle: "System administrators",
+    icon: Users,
+    href: "/super-admin/users",
+    roles: ["SUPER_ADMIN"],
+    section: "People",
+  },
+  {
+    title: "Roles & access",
     icon: ShieldCheck,
-    subtitle: "Manage access and permissions",
+    subtitle: "Roles and permissions",
     href: "/super-admin/roles",
     roles: ["SUPER_ADMIN"],
-    section: "Users",
+    section: "People",
   },
   {
-    title: "Audit Logs",
-    subtitle: "View activity history",
+    title: "Audit log",
+    subtitle: "Who did what, and when",
     icon: ClipboardList,
     href: "/super-admin/audit",
     roles: ["SUPER_ADMIN"],
-    section: "Users",
+    section: "Activity",
   },
   {
-    title: "SMS Logs",
-    subtitle: "View outgoing notification logs",
+    title: "SMS log",
+    subtitle: "Messages sent to customers",
     icon: (props: any) => <HugeiconsIcon icon={MessageSecure01Icon} {...props} />,
     href: "/admin/sms-logs",
     roles: ["SUPER_ADMIN", "ADMIN"],
-    section: "Users",
-  },
-
-  // --- PLATFORM CONFIGURATION ---
-  {
-    title: "Integrations",
-    subtitle: "Connect external services",
-    icon: (props: any) => <HugeiconsIcon icon={ApiIcon} {...props} />,
-    href: "/super-admin/integrations",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "Activity",
   },
   {
-    title: "SMS Settings",
-    subtitle: "Configure SMS notifications",
-    icon: (props: any) => <HugeiconsIcon icon={MessageSecure01Icon} {...props} />,
-    href: "/super-admin/sms",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
-  },
-  {
-    title: "Payment Settings",
-    subtitle: "Configure payment gateways",
-    icon: CreditCard,
-    href: "/super-admin/payment",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
-  },
-  {
-    title: "App Updates",
-    subtitle: "Manage mobile app versions",
-    icon: Package,
-    href: "/super-admin/versions",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
-  },
-  {
-    title: "Parcel Parameters",
-    subtitle: "Configure type, conditions, sizes",
+    title: "Parcel options",
+    subtitle: "Types, sizes and conditions",
     icon: ClipboardList,
     href: "/super-admin/parcel-parameters",
     roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "Parcel setup",
   },
   {
-    title: "Additional Services",
-    subtitle: "Manage service offerings & prices",
+    title: "Extra services",
+    subtitle: "Services and their prices",
     icon: Sparkles,
     href: "/super-admin/additional-services",
     roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "Parcel setup",
   },
   {
-    title: "Legal Policies",
-    subtitle: "Terms and Privacy Policy settings",
-    icon: ShieldCheck,
-    href: "/super-admin/legal",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
-  },
-  {
-    title: "Module Config",
-    subtitle: "Enable or disable features per organisation",
-    icon: Layout,
-    href: "/super-admin/modules",
-    roles: ["SUPER_ADMIN"],
-    section: "Settings",
-  },
-  {
-    title: "Printout Config",
-    subtitle: "Configure receipts, stickers & manifests",
+    title: "Printouts",
+    subtitle: "Receipts, stickers and manifests",
     icon: Printer,
     href: "/super-admin/printout",
     roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "Parcel setup",
   },
   {
-    title: "Reports Config",
-    subtitle: "Customise report look & feel",
+    title: "Report layout",
+    subtitle: "How reports look",
     icon: FileBarChart,
     href: "/super-admin/reports-config",
     roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "Parcel setup",
   },
   {
-    title: "Settings",
+    title: "General",
     subtitle: "General system settings",
     icon: Settings,
     href: "/super-admin/settings",
     roles: ["SUPER_ADMIN"],
-    section: "Settings",
+    section: "System",
+  },
+  {
+    title: "Modules",
+    subtitle: "Features per organization",
+    icon: Layout,
+    href: "/super-admin/modules",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
+  },
+  {
+    title: "Integrations",
+    subtitle: "Connected services",
+    icon: (props: any) => <HugeiconsIcon icon={ApiIcon} {...props} />,
+    href: "/super-admin/integrations",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
+  },
+  {
+    title: "Payment gateways",
+    subtitle: "Payment providers",
+    icon: CreditCard,
+    href: "/super-admin/payment",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
+  },
+  {
+    title: "SMS gateway",
+    subtitle: "SMS provider and sender",
+    icon: (props: any) => <HugeiconsIcon icon={MessageSecure01Icon} {...props} />,
+    href: "/super-admin/sms",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
+  },
+  {
+    title: "App updates",
+    subtitle: "Mobile app versions",
+    icon: Package,
+    href: "/super-admin/versions",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
+  },
+  {
+    title: "Legal",
+    subtitle: "Terms and privacy policy",
+    icon: ShieldCheck,
+    href: "/super-admin/legal",
+    roles: ["SUPER_ADMIN"],
+    section: "System",
   },
 ];
 
@@ -351,7 +338,7 @@ function NavItem({
         <button
           onClick={() => toggleMenu(item.title)}
           className={cn(
-            "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors",
+            "w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors",
             isActive
               ? "bg-white/10 text-white"
               : "text-white/65 hover:bg-white/[0.06] hover:text-white",
@@ -397,7 +384,7 @@ function NavItem({
     <Link
       href={item.href || "#"}
       className={cn(
-        "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors",
+        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-colors",
         isActive
           ? "bg-orange-500 text-white shadow-[0_8px_20px_-10px_rgba(247,138,31,0.8)]"
           : "text-white/65 hover:bg-white/[0.06] hover:text-white",
@@ -421,7 +408,6 @@ export function Sidebar() {
   const { data: session, status } = useSession();
   const { sidebarOpen, setSidebarOpen } = useUIStore();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const branding = useBranding();
 
   const userRole = session?.user?.role as string;
@@ -453,18 +439,7 @@ export function Sidebar() {
       ),
     }));
 
-  useEffect(() => {
-    setCollapsedSections((prev) => {
-      const next = { ...prev };
-      Array.from(new Set(filteredItems.map((i) => i.section).filter(Boolean))).forEach((s) => {
-        if (next[s!] === undefined) next[s!] = false;
-      });
-      return next;
-    });
-  }, [filteredItems.length]);
 
-  const toggleSection = (section: string) =>
-    setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }));
 
   const activeSidebarHref = (() => {
     const hrefs: string[] = [];
@@ -512,7 +487,7 @@ export function Sidebar() {
 
       <div className={sidebarClass}>
         {/* Logo */}
-        <div className="h-14 flex items-center px-4 border-b border-[#651422] shrink-0">
+        <div className="h-16 flex items-center px-5 border-b border-[#651422] shrink-0">
           <Link
             href="/"
             className="flex items-center gap-2.5 hover:opacity-85 transition-opacity"
@@ -526,18 +501,18 @@ export function Sidebar() {
               hidden={!branding.logoUrl}
             />
             <span style={{ display: branding.logoUrl ? "none" : "contents" }}>
-              <Image src="/brand/logo_white.png" alt="MiziGO" width={112} height={63} className="h-9 w-auto" priority />
+              <Image src="/brand/logo_icon.png" alt="" width={34} height={34} className="h-9 w-9" priority />
+              <Image src="/brand/logo_text.png" alt="MiziGO" width={96} height={30} className="h-6 w-auto" priority />
             </span>
           </Link>
         </div>
 
         {/* Nav */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 sidebar-scroll">
-          <nav className="flex flex-col gap-0.5">
+        <div className="flex-1 overflow-y-auto py-4 px-3 sidebar-scroll">
+          <nav className="flex flex-col gap-1">
             {filteredItems.map((item, index) => {
               const showSection = item.section && item.section !== lastSection;
               if (showSection) lastSection = item.section!;
-              const isCollapsed = item.section ? collapsedSections[item.section] : false;
               const isActive =
                 (item.href ? item.href === activeSidebarHref : false) ||
                 (item.children?.some((c) => c.href === activeSidebarHref) ?? false);
@@ -545,31 +520,23 @@ export function Sidebar() {
               return (
                 <div key={index}>
                   {showSection && (
-                    <button
-                      onClick={() => toggleSection(item.section!)}
-                      className="w-full flex items-center justify-between px-3 pt-5 pb-1.5 group"
+                    <p
+                      className={cn(
+                        "px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40",
+                        index === 0 ? "pt-1" : "pt-6",
+                      )}
                     >
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-white/40 group-hover:text-white/60 transition-colors">
-                        {item.section}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          "h-3 w-3 text-white/30 transition-transform duration-200",
-                          isCollapsed && "-rotate-90",
-                        )}
-                      />
-                    </button>
+                      {item.section}
+                    </p>
                   )}
-                  {!isCollapsed && (
-                    <NavItem
-                      item={item}
-                      isActive={isActive}
-                      openMenu={openMenu}
-                      toggleMenu={toggleMenu}
-                      pathname={pathname}
-                      activeSidebarHref={activeSidebarHref}
-                    />
-                  )}
+                  <NavItem
+                    item={item}
+                    isActive={isActive}
+                    openMenu={openMenu}
+                    toggleMenu={toggleMenu}
+                    pathname={pathname}
+                    activeSidebarHref={activeSidebarHref}
+                  />
                 </div>
               );
             })}
