@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
@@ -25,7 +25,7 @@ interface PublicBranding {
   secondaryColor?: string | null;
 }
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orgSlug = searchParams.get("org");
@@ -313,5 +313,14 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  // useSearchParams (for ?org=) needs a Suspense boundary for static rendering.
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F3F3F3]" />}>
+      <LoginPageInner />
+    </Suspense>
   );
 }
