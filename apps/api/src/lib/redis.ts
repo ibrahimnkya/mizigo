@@ -7,15 +7,26 @@ class RedisClient {
 
   public static getInstance(): Redis {
     if (!RedisClient.instance) {
+      // Redis only powers live "active users" stats, so it must never slow
+      // down a request: fail fast when it's unavailable instead of queueing.
       RedisClient.instance = new Redis(REDIS_URL, {
+        enableOfflineQueue: false,
+        maxRetriesPerRequest: 1,
+        connectTimeout: 2000,
         retryStrategy(times) {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
+          return Math.min(times * 1000, 30000);
         },
       });
 
+      let warned = false;
       RedisClient.instance.on("error", (err) => {
-        console.error("Redis Error:", err);
+        if (!warned) {
+          console.warn("Redis unavailable — live user stats disabled until it reconnects:", err.message);
+          warned = true;
+        }
+      });
+      RedisClient.instance.on("ready", () => {
+        warned = false;
       });
     }
     return RedisClient.instance;
@@ -24,6 +35,7 @@ class RedisClient {
   // Live Stats Helpers
   public static async trackLogin(userId: string, deviceId: string) {
     const redis = RedisClient.getInstance();
+    if (redis.status !== "ready") return;
     const pipeline = redis.pipeline();
 
     // Globally count active users (unique)
@@ -39,6 +51,7 @@ class RedisClient {
 
   public static async trackLogout(userId: string, deviceId: string) {
     const redis = RedisClient.getInstance();
+    if (redis.status !== "ready") return;
     const pipeline = redis.pipeline();
 
     // De-tracking logic might be complex if we want true "is currently online"
@@ -53,11 +66,16 @@ class RedisClient {
 
   public static async getMetrics() {
     const redis = RedisClient.getInstance();
-    const [activeUsers, activeDevices] = await Promise.all([
-      redis.scard("active_users"),
-      redis.scard("active_devices"),
-    ]);
-    return { activeUsers, activeDevices };
+    if (redis.status !== "ready") return { activeUsers: 0, activeDevices: 0 };
+    try {
+      const [activeUsers, activeDevices] = await Promise.all([
+        redis.scard("active_users"),
+        redis.scard("active_devices"),
+      ]);
+      return { activeUsers, activeDevices };
+    } catch {
+      return { activeUsers: 0, activeDevices: 0 };
+    }
   }
 }
 

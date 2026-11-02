@@ -32,6 +32,8 @@ router.get("/", async (req: Request, res: Response) => {
             name: true,
           },
         },
+        // How busy each wagon is: parcels loaded and guards assigned.
+        _count: { select: { parcels: true, guards: true } },
       },
       orderBy: { plateNumber: "asc" },
     });

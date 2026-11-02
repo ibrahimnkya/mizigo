@@ -23,6 +23,15 @@ type ParcelMeta = {
   packageName?: string; // legacy key — kept for backwards compat
   declaredValue?: number;
   paymentMode?: string;
+  /** Customer report that the parcel is missing, pending staff review. */
+  lostReport?: {
+    reportedAt: string;
+    reportedBy: "SENDER" | "RECEIVER";
+    details?: string;
+    resolved?: boolean;
+    resolvedAt?: string;
+    resolution?: "MARKED_LOST" | "FOUND";
+  };
 };
 
 const router: Router = Router();
@@ -171,6 +180,16 @@ const computeServiceFees = async (services: unknown, organizationId?: string | n
   return { total: lines.reduce((sum, l) => sum + l.amount, 0), lines };
 };
 
+/// Name of the staff member making the request, for tracking notes.
+/// The login token only carries id/role, so look the name up.
+const actorName = async (req: Request): Promise<string> => {
+  const fromToken = (req.user as any)?.name;
+  if (fromToken) return fromToken;
+  if (!req.user?.id) return "station staff";
+  const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: { name: true } });
+  return user?.name || "station staff";
+};
+
 /// Picks the SGR tariff purely by weight: the tariff with the smallest weight
 /// limit that can still carry the parcel (e.g. ≤ 0.5 kg → envelope tariff,
 /// above that → other parcels, including anything over 5 kg). Parcel type and
@@ -274,6 +293,9 @@ const formatParcelResponse = (parcel: any) => {
       phone: meta.senderPhone || null,
     },
     paymentStatus: meta.paymentStatus || "PENDING",
+    lostReport: meta.lostReport
+      ? { reportedAt: meta.lostReport.reportedAt, resolved: !!meta.lostReport.resolved }
+      : null,
     paymentMode: meta.paymentMode || "PAY_AS_YOU_GO",
     status: normalizeStatus(parcel.status),
     price: parcel.amount ?? null,
@@ -571,8 +593,8 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       data: {
         parcelId: parcel.id,
         status: "RECEIVED",
-        location: String(receivingStationId),
-        description: `Parcel received at station by ${clerk?.name || "clerk"}`,
+        location: originStation?.name ?? null,
+        description: `Received by ${clerk?.name || "station staff"}`,
       },
     });
 
@@ -1219,7 +1241,7 @@ router.post("/dispatch", ...secure, async (req: Request, res: Response) => {
         parcelId: parcelId,
         status: "DISPATCHED",
         location: updatedParcel.origin?.name || "Hub",
-        description: `Dispatched by ${(req.user as any)?.name} with vehicle ${updatedParcel.vehicle?.plateNumber || "Unknown"}`,
+        description: `Dispatched by ${await actorName(req)} with vehicle ${updatedParcel.vehicle?.plateNumber || "Unknown"}`,
       },
     });
 
@@ -1333,7 +1355,7 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
         status: "OFFLOADED",
         location: updatedParcel.destination?.name || "Station",
         description:
-          `Offloaded by ${(req.user as any)?.name} at ${updatedParcel.destination?.name || "Station"}` +
+          `Offloaded by ${await actorName(req)} at ${updatedParcel.destination?.name || "Station"}` +
           (receivingClerk ? `, handed to ${receivingClerk.name ?? "clerk"}` : ""),
       },
     });
@@ -1438,7 +1460,7 @@ router.post("/:id/deliver", ...secure, async (req: Request, res: Response) => {
         parcelId: id,
         status: "DELIVERED",
         location: "Receiver Address",
-        description: `Delivered by ${(req.user as any)?.name}`,
+        description: `Delivered by ${await actorName(req)}`,
       },
     });
 
@@ -1490,7 +1512,7 @@ router.post("/:id/cancel", ...secure, async (req: Request, res: Response) => {
       data: {
         parcelId: id,
         status: "CANCELED",
-        description: `Canceled by ${(req.user as any)?.name}. Reason: ${cancellationReason}`,
+        description: `Canceled by ${await actorName(req)}. Reason: ${cancellationReason}`,
       },
     });
 
@@ -1603,6 +1625,165 @@ router.get(
   },
 );
 
+// ── Lost parcels ────────────────────────────────────────────────────────────────
+
+const LOST_BLOCKED = ["DELIVERED", "CANCELED", "REJECTED", "LOST"];
+const STAFF_LOST_ROLES = ["SUPER_ADMIN", "ADMIN", "STATION_MASTER", "CLERK", "TRAIN_GUARD"];
+const phoneTail = (p?: string | null) => String(p ?? "").replace(/\D/g, "").slice(-9);
+
+/**
+ * POST /parcel/track/:trackingNumber/report-lost  (public)
+ * Sender or receiver reports a missing parcel. Verified by their phone number.
+ * Flags the parcel for staff review; the status is not changed.
+ */
+router.post(
+  "/track/:trackingNumber/report-lost",
+  publicTrackingLimit,
+  async (req: Request, res: Response) => {
+    try {
+      const { trackingNumber } = req.params;
+      const { phone, details } = req.body ?? {};
+      const tail = phoneTail(phone);
+      if (tail.length < 9) {
+        return sendError(res, "VALIDATION_ERROR", "Enter the sender's or receiver's phone number", 400);
+      }
+
+      const parcel = await (prisma as any).parcel.findFirst({ where: { trackingNumber } });
+      if (!parcel) return sendError(res, "NOT_FOUND", "Parcel not found", 404);
+
+      const meta = readParcelMeta(parcel.additionalServices);
+      const reportedBy =
+        tail === phoneTail(parcel.receiverPhone) ? "RECEIVER" : tail === phoneTail(meta.senderPhone) ? "SENDER" : null;
+      if (!reportedBy) {
+        return sendError(res, "FORBIDDEN", "That phone number doesn't match this parcel's sender or receiver", 403);
+      }
+      if (LOST_BLOCKED.includes(parcel.status)) {
+        return sendError(res, "VALIDATION_ERROR", "This parcel can no longer be reported as lost", 400);
+      }
+      if (meta.lostReport && !meta.lostReport.resolved) {
+        return sendSuccess(res, { alreadyReported: true, reportedAt: meta.lostReport.reportedAt });
+      }
+
+      const note = String(details ?? "").trim().slice(0, 500);
+      const reportedAt = new Date().toISOString();
+      await (prisma as any).parcel.update({
+        where: { id: parcel.id },
+        data: {
+          additionalServices: {
+            ...meta,
+            lostReport: { reportedAt, reportedBy, ...(note ? { details: note } : {}), resolved: false },
+          },
+        },
+      });
+      await (prisma as any).parcelTracking.create({
+        data: {
+          parcelId: parcel.id,
+          status: parcel.status,
+          description: `Reported missing by the ${reportedBy === "RECEIVER" ? "receiver" : "sender"}. Staff are looking into it.`,
+        },
+      });
+
+      return sendSuccess(res, { alreadyReported: false, reportedAt });
+    } catch (error: any) {
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  },
+);
+
+const loadStaffParcel = async (req: Request, res: Response) => {
+  if (!STAFF_LOST_ROLES.includes(String(req.user?.role))) {
+    sendError(res, "FORBIDDEN", "You don't have permission to do this", 403);
+    return null;
+  }
+  const parcel = await (prisma as any).parcel.findUnique({ where: { id: req.params.id } });
+  if (
+    !parcel ||
+    (req.user?.role !== "SUPER_ADMIN" && parcel.organizationId && parcel.organizationId !== req.user?.organizationId)
+  ) {
+    sendError(res, "NOT_FOUND", "Parcel not found", 404);
+    return null;
+  }
+  return parcel;
+};
+
+/**
+ * POST /parcel/:id/mark-lost  (staff)
+ * Sets the parcel to LOST and closes any open customer report.
+ */
+router.post("/:id/mark-lost", ...secure, async (req: Request, res: Response) => {
+  try {
+    const parcel = await loadStaffParcel(req, res);
+    if (!parcel) return;
+    if (LOST_BLOCKED.includes(parcel.status)) {
+      return sendError(res, "VALIDATION_ERROR", "This parcel can't be marked as lost", 400);
+    }
+    const reason = String(req.body?.reason ?? "").trim().slice(0, 500);
+    const meta = readParcelMeta(parcel.additionalServices);
+    const now = new Date().toISOString();
+    const updated = await (prisma as any).parcel.update({
+      where: { id: parcel.id },
+      data: {
+        status: "LOST",
+        additionalServices: meta.lostReport
+          ? { ...meta, lostReport: { ...meta.lostReport, resolved: true, resolvedAt: now, resolution: "MARKED_LOST" } }
+          : meta,
+      },
+    });
+    await (prisma as any).parcelTracking.create({
+      data: {
+        parcelId: parcel.id,
+        status: "LOST",
+        description: `Marked as lost by ${await actorName(req)}${reason ? `. Reason: ${reason}` : ""}`,
+      },
+    });
+    await logAudit({
+      userId: req.user!.id,
+      action: "PARCEL_MARKED_LOST",
+      resource: `Parcel:${parcel.id}`,
+      details: { reason },
+    }).catch(() => {});
+    return sendSuccess(res, { id: updated.id, status: updated.status });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+/**
+ * POST /parcel/:id/resolve-lost-report  (staff)
+ * Closes a customer's lost report when the parcel has been found.
+ */
+router.post("/:id/resolve-lost-report", ...secure, async (req: Request, res: Response) => {
+  try {
+    const parcel = await loadStaffParcel(req, res);
+    if (!parcel) return;
+    const meta = readParcelMeta(parcel.additionalServices);
+    if (!meta.lostReport || meta.lostReport.resolved) {
+      return sendError(res, "VALIDATION_ERROR", "There's no open lost report on this parcel", 400);
+    }
+    const note = String(req.body?.note ?? "").trim().slice(0, 500);
+    await (prisma as any).parcel.update({
+      where: { id: parcel.id },
+      data: {
+        additionalServices: {
+          ...meta,
+          lostReport: { ...meta.lostReport, resolved: true, resolvedAt: new Date().toISOString(), resolution: "FOUND" },
+        },
+      },
+    });
+    await (prisma as any).parcelTracking.create({
+      data: {
+        parcelId: parcel.id,
+        status: parcel.status,
+        description: `Located by ${await actorName(req)}${note ? `. ${note}` : ""}`,
+      },
+    });
+    return sendSuccess(res, { resolved: true });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+
 router.get("/:id", ...secure, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -1624,7 +1805,30 @@ router.get("/:id", ...secure, async (req: Request, res: Response) => {
 
     if (!parcel)
       return sendError(res, "NOT_FOUND", "Parcel request not found", 404);
-    return sendSuccess(res, formatParcelResponse(parcel));
+    // Summary fields plus everything the staff detail views need. Additive,
+    // so existing clients (mobile) keep working.
+    const meta = readParcelMeta(parcel.additionalServices) as any;
+    return sendSuccess(res, {
+      ...formatParcelResponse(parcel),
+      amount: parcel.amount,
+      weight: parcel.weight,
+      length: parcel.length ?? null,
+      width: parcel.width ?? null,
+      height: parcel.height ?? null,
+      isFragile: parcel.isFragile,
+      receiverPays: parcel.receiverPays,
+      specialInstructions: parcel.specialInstructions ?? null,
+      rejectionReason: parcel.rejectionReason ?? null,
+      services: Array.isArray(meta.services) ? meta.services : [],
+      additionalServices: parcel.additionalServices ?? null,
+      payment: parcel.payment ?? null,
+      tracking: parcel.tracking ?? [],
+      user: parcel.user ?? null,
+      approvedBy: parcel.approvedBy ?? null,
+      dispatcher: parcel.dispatcher ?? null,
+      offloader: parcel.offloader ?? null,
+      deliverer: parcel.deliverer ?? null,
+    });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }

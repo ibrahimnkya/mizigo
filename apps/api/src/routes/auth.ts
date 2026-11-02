@@ -105,7 +105,8 @@ const issueSessionTokens = async (params: {
     data: { refreshTokenHash: hashToken(refreshToken), expiresAt },
   });
 
-  await trackLogin(params.userId, params.deviceId);
+  // Best-effort stats; never block or fail the login on it.
+  trackLogin(params.userId, params.deviceId).catch(() => {});
 
   return { accessToken, refreshToken, sessionId: session.id, expiresAt };
 };
@@ -656,7 +657,7 @@ router.post(
       });
 
       // De-track real-time metric
-      await trackLogout(req.user.id, req.user.deviceId || "unknown");
+      trackLogout(req.user.id, req.user.deviceId || "unknown").catch(() => {});
     }
     return sendSuccess(res, { message: "Logged out successfully" });
   },

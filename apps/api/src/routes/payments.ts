@@ -26,21 +26,25 @@ export const getCallbackUrl = () => {
  */
 router.get("/", authenticate, async (req: Request, res: Response) => {
   try {
-    const { status, stationId } = req.query;
+    const { status, stationId, dateFrom, dateTo } = req.query;
     const where: any = { deletedAt: null };
     if (req.user?.role !== "SUPER_ADMIN") {
-      where.organizationId = req.user?.organizationId ?? null;
+      // payment.organizationId is often empty — also match via the parcel's org.
+      const orgId = req.user?.organizationId ?? null;
+      where.AND = [{ OR: [{ organizationId: orgId }, { parcel: { organizationId: orgId } }] }];
+    }
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) where.createdAt.gte = new Date(String(dateFrom));
+      if (dateTo) where.createdAt.lte = new Date(String(dateTo));
     }
     if (status) {
       where.status = String(status);
     }
     if (stationId) {
-      where.parcel = {
-        OR: [
-          { originId: String(stationId) },
-          { fromAddress: String(stationId) }
-        ]
-      };
+      (where.AND ??= []).push({
+        parcel: { OR: [{ originId: String(stationId) }, { fromAddress: String(stationId) }] },
+      });
     }
     const payments = await prisma.payment.findMany({
       where,
@@ -53,13 +57,17 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
             receiverName: true,
             receiverPhone: true,
             serviceType: true,
+            status: true,
+            amount: true,
+            additionalServices: true,
             origin: {
               select: {
                 id: true,
                 name: true,
                 code: true,
               }
-            }
+            },
+            destination: { select: { id: true, name: true, code: true } },
           },
         },
       },

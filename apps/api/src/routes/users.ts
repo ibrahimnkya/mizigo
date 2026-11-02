@@ -48,6 +48,7 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
       where: whereClause,
       include: {
         role: { select: { name: true } },
+        station: { select: { id: true, name: true } },
         organization: { select: { name: true } },
         station: { select: { name: true, code: true } },
       },
