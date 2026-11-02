@@ -10,6 +10,18 @@ const router: Router = Router();
 
 const secure = [authenticate, requireTenantContext];
 
+/// Read-only org lookups for station staff (clerks, guards…). Their token may
+/// carry no organizationId, so fall back to the user's record, then their station's.
+const resolveOrgId = async (req: Request): Promise<string | null> => {
+  if (req.user?.organizationId) return req.user.organizationId;
+  if (!req.user?.id) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { organizationId: true, station: { select: { organizationId: true } } },
+  });
+  return user?.organizationId ?? user?.station?.organizationId ?? null;
+};
+
 const HEX_COLOR_RE = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 const SLUG_RE = /^[a-z0-9-]+$/;
 
@@ -149,12 +161,11 @@ router.get("/", ...secure, async (req: Request, res: Response) => {
  * GET /api/v1/organizations/branding
  * Self-service: returns the branding of the authenticated user's own organization.
  */
-router.get("/branding", ...secure, async (req: Request, res: Response) => {
+router.get("/branding", authenticate, async (req: Request, res: Response) => {
   try {
-    const orgId = req.user?.organizationId;
-    if (!orgId) {
-      return sendError(res, "FORBIDDEN", "No organization context", 403);
-    }
+    const orgId = await resolveOrgId(req);
+    // No organization → default MiziGO branding on the client.
+    if (!orgId) return sendSuccess(res, null);
     const organization = await prisma.organization.findUnique({
       where: { id: orgId },
       select: {
@@ -277,9 +288,9 @@ router.get(
  * GET /api/v1/organizations/print-config
  * Returns the print configuration for the authenticated user's organization.
  */
-router.get("/print-config", ...secure, async (req: Request, res: Response) => {
+router.get("/print-config", authenticate, async (req: Request, res: Response) => {
   try {
-    const orgId = req.user?.organizationId;
+    const orgId = await resolveOrgId(req);
     if (!orgId) {
       return sendSuccess(res, {});
     }
