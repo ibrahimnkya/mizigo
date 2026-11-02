@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/staff_palette.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -18,9 +19,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Book in seconds',
-      description: 'Create a shipment quickly with smart suggestions and your saved addresses.',
+      description: 'Book a parcel quickly with smart suggestions and your saved addresses.',
       icon: Icons.timer_outlined,
-      iconColor: const Color(0xFF3B82F6),
+      iconColor: const Color(0xFF5C0B19),
       isDarkBackground: true,
     ),
     OnboardingData(
@@ -34,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Secure payment & quick POD',
       description: 'Pay safely through trusted methods and receive instant proof of delivery.',
       icon: Icons.verified_user_outlined,
-      iconColor: const Color(0xFF3B82F6),
+      iconColor: const Color(0xFF5C0B19),
       isDarkBackground: false,
     ),
   ];
@@ -68,11 +69,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentData = _pages[_currentIndex];
-    final isDark = currentData.isDarkBackground;
+    // Follows the selected app theme (TRC / Mid-Night dark, Daylight light).
+    final isDark = StaffPalette.of(context).isDark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+      backgroundColor: StaffPalette.of(context).background,
       body: SafeArea(
         child: Column(
           children: [
@@ -145,13 +146,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: 180,
                           height: 180,
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.blue.withValues(alpha: 0.05),
+                            color: StaffPalette.of(context).surface(0.08),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             page.icon,
                             size: 80,
-                            color: page.iconColor,
+                            // Maroon icons disappear on the dark themes; use orange there.
+                            color: isDark && page.iconColor == const Color(0xFF5C0B19)
+                                ? const Color(0xFFF78A1F)
+                                : page.iconColor,
                           ),
                         ),
                         const SizedBox(height: 60),
@@ -216,7 +220,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 56,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: const [Color(0xFF3B82F6), Color(0xFF06B6D4)],
+                        colors: const [Color(0xFFF78A1F), Color(0xFFEA7A12)],
                       ),
                       borderRadius: BorderRadius.circular(28),
                     ),

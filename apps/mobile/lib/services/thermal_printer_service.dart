@@ -1,8 +1,20 @@
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
+import 'api_service.dart';
 
 class ThermalPrinterService {
+  Future<PaperSize> _paperSize() async {
+    try {
+      final config = await ApiService.getPrintConfig();
+      return (config['paperSize'] as String? ?? '') == 'thermal58'
+          ? PaperSize.mm58
+          : PaperSize.mm80;
+    } catch (_) {
+      return PaperSize.mm80;
+    }
+  }
+
   /// Generates ESC/POS command bytes for a standard delivery manifest.
   Future<List<int>> generateDeliveryManifest({
     required String trackingId,
@@ -16,7 +28,7 @@ class ThermalPrinterService {
     required bool isPaid,
   }) async {
     final profile = await CapabilityProfile.load();
-    final generator = Generator(PaperSize.mm58, profile);
+    final generator = Generator(await _paperSize(), profile);
     List<int> bytes = [];
 
     bytes += generator.reset();
@@ -151,9 +163,8 @@ class ThermalPrinterService {
     );
     bytes += generator.feed(1);
 
-    // QR Code
     bytes += generator.qrcode(
-      'https://mizigo.app/track/$trackingId',
+      trackingId,
       size: QRSize.size4,
     );
     bytes += generator.feed(1);
@@ -171,7 +182,7 @@ class ThermalPrinterService {
   /// Generates a simple test ticket to verify printer connection and alignment.
   Future<List<int>> generateTestTicket() async {
     final profile = await CapabilityProfile.load();
-    final generator = Generator(PaperSize.mm58, profile);
+    final generator = Generator(await _paperSize(), profile);
     List<int> bytes = [];
 
     bytes += generator.reset();

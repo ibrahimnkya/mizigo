@@ -62,15 +62,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
 
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Payment method added successfully',
-            style: GoogleFonts.inter(),
-          ),
-          backgroundColor: Colors.green,
-        ),
-      );
+      MizigoToasts.showSuccess(context, 'Payment method added successfully');
     }
   }
 
@@ -99,7 +91,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
                   Icon(
                     Icons.phone_android,
                     color: _selectedType == 0
-                        ? const Color(0xFF3B82F6)
+                        ? const Color(0xFF5C0B19)
                         : const Color(0xFF94A3B8),
                   ),
                   const SizedBox(height: 8),
@@ -111,7 +103,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
                           ? FontWeight.w600
                           : FontWeight.w500,
                       color: _selectedType == 0
-                          ? const Color(0xFF3B82F6)
+                          ? const Color(0xFF5C0B19)
                           : const Color(0xFF64748B),
                     ),
                   ),
@@ -142,7 +134,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
                   Icon(
                     Icons.credit_card,
                     color: _selectedType == 1
-                        ? const Color(0xFF3B82F6)
+                        ? const Color(0xFF5C0B19)
                         : const Color(0xFF94A3B8),
                   ),
                   const SizedBox(height: 8),
@@ -154,7 +146,7 @@ class _AddPaymentMethodScreenState extends State<AddPaymentMethodScreen> {
                           ? FontWeight.w600
                           : FontWeight.w500,
                       color: _selectedType == 1
-                          ? const Color(0xFF3B82F6)
+                          ? const Color(0xFF5C0B19)
                           : const Color(0xFF64748B),
                     ),
                   ),

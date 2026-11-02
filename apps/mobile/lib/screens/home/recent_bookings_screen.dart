@@ -12,10 +12,12 @@ import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/shimmer_utils.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../providers/printer_provider.dart';
 import '../../utils/receipt_pdf_generator.dart';
+import '../../widgets/printer_selection_sheet.dart';
+import '../../widgets/profile/premium_settings_components.dart';
+import '../../widgets/staff/staff_settings.dart';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -23,7 +25,7 @@ Color _statusBg(ParcelStatus status) {
   return switch (status) {
     ParcelStatus.delivered => const Color(0xFFF0FDF4),
     ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFFEFF6FF),
-    ParcelStatus.canceled => const Color(0xFFFFF1F2),
+    ParcelStatus.canceled || ParcelStatus.lost => const Color(0xFFFFF1F2),
     ParcelStatus.received => const Color(0xFFF8FAFC),
   };
 }
@@ -32,7 +34,7 @@ Color _statusFg(ParcelStatus status) {
   return switch (status) {
     ParcelStatus.delivered => const Color(0xFF16A34A),
     ParcelStatus.inTransit || ParcelStatus.atStation || ParcelStatus.dispatched || ParcelStatus.offloaded => const Color(0xFF2563EB),
-    ParcelStatus.canceled => const Color(0xFFE11D48),
+    ParcelStatus.canceled || ParcelStatus.lost => const Color(0xFFE11D48),
     ParcelStatus.received => const Color(0xFF64748B),
   };
 }
@@ -310,7 +312,7 @@ class _RecentBookingsScreenState extends State<RecentBookingsScreen>
               icon: const Icon(Icons.refresh_rounded),
               label: Text('Retry', style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
               style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: const Color(0xFF5C0B19),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
@@ -357,6 +359,7 @@ class BookingListCard extends StatelessWidget {
       case ParcelStatus.offloaded:
         progress = 0.45;
         break;
+      case ParcelStatus.lost:
       case ParcelStatus.canceled:
         progress = 0.0;
         break;
@@ -534,7 +537,7 @@ class BookingListCard extends StatelessWidget {
                           child: Container(
                             height: 4,
                             decoration: BoxDecoration(
-                              color: parcel.status == ParcelStatus.canceled ? const Color(0xFFE11D48) : const Color(0xFF3B82F6),
+                              color: parcel.status == ParcelStatus.canceled ? const Color(0xFFE11D48) : const Color(0xFF5C0B19),
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -546,11 +549,11 @@ class BookingListCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6),
+                              color: const Color(0xFF5C0B19),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+                                  color: const Color(0xFF5C0B19).withValues(alpha: 0.3),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -679,7 +682,7 @@ class BookingListCard extends StatelessWidget {
                         const Icon(
                           Icons.arrow_downward_rounded,
                           size: 13,
-                          color: Color(0xFF3B82F6),
+                          color: Color(0xFF5C0B19),
                         ),
                         const Gap(4),
                         Expanded(
@@ -749,14 +752,14 @@ class BookingListCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF3B82F6),
+                      color: const Color(0xFF5C0B19),
                     ),
                   ),
                   const Gap(2),
                   const HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
                     size: 16,
-                    color: Color(0xFF3B82F6),
+                    color: Color(0xFF5C0B19),
                   ),
                 ],
               ),
@@ -820,25 +823,118 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
   Future<void> _dispatchParcel() async {
     setState(() => _isLoading = true);
+    List<Map<String, dynamic>> vehicles = [];
+    List<Map<String, dynamic>> guards = [];
     try {
-      await ApiService.updateParcelStatus(_currentParcel.id, 'In Transit', location: 'Dispatched to train');
+      final results = await Future.wait([ApiService.getVehicles(), ApiService.getOperators()]);
+      vehicles = List<Map<String, dynamic>>.from(results[0]);
+      final allOps = List<Map<String, dynamic>>.from(results[1]);
+      guards = allOps.where((o) => (o['role']?['name'] ?? '') == 'TRAIN_GUARD').toList();
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
+    if (!mounted) return;
+
+    String? selectedVehicleId;
+    String? selectedGuardId;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final filteredGuards = selectedVehicleId == null
+              ? guards
+              : guards.where((g) => (g['wagon']?['id'] ?? g['wagonId']) == selectedVehicleId).toList();
+          final displayGuards = filteredGuards.isEmpty ? guards : filteredGuards;
+
+          Widget idDropdown({
+            required String hint,
+            required String? value,
+            required List<Map<String, dynamic>> items,
+            required String labelKey,
+            required void Function(String?) onChanged,
+          }) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppTheme.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: value,
+                  hint: Text(hint, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14)),
+                  dropdownColor: AppTheme.surface,
+                  isExpanded: true,
+                  items: items.map((item) => DropdownMenuItem<String>(
+                    value: item['id'] as String?,
+                    child: Text((item[labelKey] as String?) ?? 'Unknown', style: const TextStyle(fontSize: 14)),
+                  )).toList(),
+                  onChanged: onChanged,
+                ),
+              ),
+            );
+          }
+
+          return AlertDialog(
+            title: Text('Dispatch Assignment', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                idDropdown(
+                  hint: 'Select Wagon / Train',
+                  value: selectedVehicleId,
+                  items: vehicles,
+                  labelKey: 'plateNumber',
+                  onChanged: (id) => setDialogState(() {
+                    selectedVehicleId = id;
+                    selectedGuardId = null;
+                  }),
+                ),
+                const Gap(16),
+                idDropdown(
+                  hint: 'Select Train Guard',
+                  value: selectedGuardId,
+                  items: displayGuards,
+                  labelKey: 'name',
+                  onChanged: (id) => setDialogState(() => selectedGuardId = id),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: (selectedVehicleId == null || selectedGuardId == null)
+                    ? null
+                    : () => Navigator.pop(ctx, {'vehicleId': selectedVehicleId!, 'guardId': selectedGuardId!}),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF5C0B19)),
+                child: const Text('Dispatch', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.dispatchParcel(
+        _currentParcel.id,
+        result['vehicleId']!,
+        DateTime.now(),
+      );
       await _fetchFullParcel();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Parcel successfully dispatched ✓'),
-            backgroundColor: Color(0xFF10B981),
-          ),
-        );
+        MizigoToasts.showSuccess(context, 'Parcel successfully dispatched ✓');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to dispatch: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        MizigoToasts.showError(context, 'Failed to dispatch: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -848,24 +944,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Future<void> _offloadParcel() async {
     setState(() => _isLoading = true);
     try {
-      await ApiService.updateParcelStatus(_currentParcel.id, 'Offloaded', location: 'Offloaded at station');
+      await ApiService.offloadParcel(_currentParcel.id);
       await _fetchFullParcel();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Parcel successfully offloaded ✓'),
-            backgroundColor: Color(0xFF10B981),
-          ),
-        );
+        MizigoToasts.showSuccess(context, 'Parcel successfully offloaded ✓');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to offload: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        MizigoToasts.showError(context, 'Failed to offload: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -982,12 +1068,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                           verified = true;
                           Navigator.pop(sheetCtx);
                         } else {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a valid 6-digit code.'),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
+                          MizigoToasts.showError(ctx, 'Please enter a valid 6-digit code.');
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -1020,18 +1101,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         await ApiService.deliverParcel(_currentParcel.id, otp);
         await _fetchFullParcel();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Parcel marked as Delivered ✓'),
-              backgroundColor: Color(0xFF10B981),
-            ),
-          );
+          MizigoToasts.showSuccess(context, 'Parcel marked as Delivered ✓');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
-          );
+          MizigoToasts.showError(context, 'Failed: $e');
         }
       } finally {
         if (mounted) {
@@ -1101,40 +1175,24 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     if (shouldCancel == true) {
       if (reasonController.text.trim().isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cancellation reason is required'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          MizigoToasts.showError(context, 'Cancellation reason is required');
         }
         return;
       }
 
       setState(() => _isLoading = true);
       try {
-        await ApiService.updateParcelStatus(
+        await ApiService.cancelParcel(
           widget.parcel.id,
-          'Canceled',
-          location: 'Canceled by user. Reason: ${reasonController.text.trim()}',
+          reasonController.text.trim(),
         );
         await _fetchFullParcel();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Booking canceled successfully ✓'),
-              backgroundColor: Color(0xFF10B981),
-            ),
-          );
+          MizigoToasts.showSuccess(context, 'Booking canceled successfully ✓');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to cancel booking: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          MizigoToasts.showError(context, 'Failed to cancel booking: $e');
         }
       } finally {
         if (mounted) {
@@ -1144,87 +1202,71 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
-  Future<void> _generateAndPrintPdf(BuildContext context) async {
+  Future<void> _handlePrintReceipt(BuildContext context) async {
     final parcel = _currentParcel;
-    final pdfBytes = await ReceiptPdfGenerator.generate(
-      trackingId: parcel.trackingNumber ?? parcel.id,
-      fromAddress: parcel.fromAddress,
-      toAddress: parcel.toAddress,
-      serviceType: parcel.serviceType,
-      parcelSize: parcel.parcelSize,
-      parcelType: parcel.parcelType,
-      senderName: parcel.senderName ?? 'N/A',
-      senderPhone: parcel.senderPhone ?? 'N/A',
-      receiverName: parcel.receiverName,
-      receiverPhone: parcel.receiverPhone,
-      price: parcel.amount ?? 0.0,
-      receiverPays: parcel.receiverPays,
-      status: parcel.status.displayLabel,
-      createdAt: parcel.createdAt,
-    );
+    final provider = context.read<PrinterProvider>();
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdfBytes,
-      name: 'mizigo_receipt_${parcel.id}',
-    );
+    final packageData = {
+      'trackingId': parcel.trackingNumber ?? parcel.id,
+      'description': parcel.parcelType.isNotEmpty ? parcel.parcelType : parcel.serviceType,
+      'senderName': parcel.senderName ?? 'N/A',
+      'receiverName': parcel.receiverName,
+      'origin': parcel.fromAddress,
+      'destination': parcel.toAddress,
+      'price': parcel.amount ?? 0.0,
+      'quantity': 1,
+    };
+
+    if (provider.isConnected) {
+      _executePrint(context, provider, packageData);
+    } else {
+      PrinterSelectionSheet.show(
+        context,
+        onDeviceSelected: (_) => _executePrint(context, provider, packageData),
+      );
+    }
   }
 
-  Future<void> _generateAndSharePdf(BuildContext context) async {
-    final parcel = _currentParcel;
-    final pdfBytes = await ReceiptPdfGenerator.generate(
-      trackingId: parcel.trackingNumber ?? parcel.id,
-      fromAddress: parcel.fromAddress,
-      toAddress: parcel.toAddress,
-      serviceType: parcel.serviceType,
-      parcelSize: parcel.parcelSize,
-      parcelType: parcel.parcelType,
-      senderName: parcel.senderName ?? 'N/A',
-      senderPhone: parcel.senderPhone ?? 'N/A',
-      receiverName: parcel.receiverName,
-      receiverPhone: parcel.receiverPhone,
-      price: parcel.amount ?? 0.0,
-      receiverPays: parcel.receiverPays,
-      status: parcel.status.displayLabel,
-      createdAt: parcel.createdAt,
-    );
+  Future<void> _executePrint(BuildContext context, PrinterProvider provider, Map<String, dynamic> packageData) async {
+    MizigoToasts.showInfo(context, 'Printing receipt...');
 
-    final trackingNum = parcel.trackingNumber ?? parcel.id;
-    final timestamp = intl.DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
+    final success = await provider.printReceipt(packageData);
+    if (!context.mounted) return;
 
-    await Printing.sharePdf(
-      bytes: pdfBytes,
-      filename: 'mizigo_receipt_${trackingNum}_$timestamp.pdf',
-    );
+    success ? MizigoToasts.showSuccess(context, 'Receipt printed successfully!') : MizigoToasts.showError(context, 'Printing failed. Try again.');
   }
 
-  void _shareBooking(BuildContext context) {
+  Future<void> _shareBooking(BuildContext context) async {
     final parcel = _currentParcel;
-    final msg = '''
-📦 Mizigo Booking Confirmation
-━━━━━━━━━━━━━━━━━━━━
-Order: #${parcel.id.toUpperCase().substring(0, parcel.id.length.clamp(0, 8))}
-Type: ${parcel.parcelType.isEmpty ? parcel.serviceType : parcel.parcelType}
-From: ${parcel.fromAddress}
-To: ${parcel.toAddress}
-Receiver: ${parcel.receiverName} (${parcel.receiverPhone})
-Payment: ${parcel.receiverPays ? 'Handled by Receiver' : 'Paid by Sender'}
-Status: ${parcel.status.displayLabel}
-Date: ${intl.DateFormat('d MMM yyyy').format(parcel.createdAt)}
-━━━━━━━━━━━━━━━━━━━━
-Powered by Mizigo Logistics''';
-
-    Clipboard.setData(ClipboardData(text: msg));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Booking details copied!',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-        backgroundColor: const Color(0xFF10B981),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    MizigoToasts.showInfo(context, 'Generating receipt PDF...');
+    try {
+      final bytes = await ReceiptPdfGenerator.generate(
+        trackingId: parcel.trackingNumber ?? parcel.id,
+        fromAddress: parcel.fromAddress,
+        toAddress: parcel.toAddress,
+        serviceType: parcel.serviceType,
+        parcelSize: parcel.parcelSize,
+        parcelType: parcel.parcelType,
+        senderName: parcel.senderName ?? 'N/A',
+        senderPhone: parcel.senderPhone ?? 'N/A',
+        receiverName: parcel.receiverName,
+        receiverPhone: parcel.receiverPhone,
+        price: (parcel.amount ?? 0).toDouble(),
+        receiverPays: parcel.receiverPays,
+        status: parcel.status.displayLabel,
+        createdAt: parcel.createdAt,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'mizigo_receipt_${(parcel.trackingNumber ?? parcel.id).toUpperCase()}.pdf',
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      MizigoToasts.showError(context, 'Failed to generate receipt: $e');
+    }
   }
 
   String _formatDateTime(DateTime dt) {
@@ -1392,7 +1434,7 @@ Powered by Mizigo Logistics''';
                                     ),
                                     const Gap(8),
                                     Text(
-                                      'Shipment Information',
+                                      'Parcel Information',
                                       style: GoogleFonts.outfit(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -1453,15 +1495,7 @@ Powered by Mizigo Logistics''';
                                   value: trackingNum,
                                   onCopy: () {
                                     Clipboard.setData(ClipboardData(text: trackingNum));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Parcel Number copied!', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                                        backgroundColor: const Color(0xFF10B981),
-                                        duration: const Duration(seconds: 2),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      ),
-                                    );
+                                    MizigoToasts.showSuccess(context, 'Parcel Number copied!');
                                   },
                                 ),
                                 const Gap(12),
@@ -1586,7 +1620,7 @@ Powered by Mizigo Logistics''';
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             elevation: 0,
                           ),
-                          onPressed: () => _generateAndPrintPdf(context),
+                          onPressed: () => _handlePrintReceipt(context),
                           icon: const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Colors.white, size: 20),
                           label: Text(
                             'Print Receipt',
@@ -1603,7 +1637,7 @@ Powered by Mizigo Logistics''';
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          onPressed: () => _generateAndSharePdf(context),
+                          onPressed: () { _shareBooking(context); },
                           icon: HugeIcon(icon: HugeIcons.strokeRoundedShare01, color: theme.iconTheme.color ?? Colors.grey, size: 20),
                           label: Text(
                             'Share Info',
@@ -1620,7 +1654,7 @@ Powered by Mizigo Logistics''';
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3B82F6),
+                            backgroundColor: const Color(0xFF5C0B19),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1648,7 +1682,7 @@ Powered by Mizigo Logistics''';
                             elevation: 0,
                           ),
                           onPressed: _offloadParcel,
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedDownload01, color: Colors.white, size: 20),
+                          icon: const HugeIcon(icon: kStaffDownloadIcon, color: Colors.white, size: 20),
                           label: Text(
                             'Offload Parcel',
                             style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold),
@@ -1768,6 +1802,7 @@ class _RouteCard extends StatelessWidget {
       case ParcelStatus.offloaded:
         progress = 0.45;
         break;
+      case ParcelStatus.lost:
       case ParcelStatus.canceled:
         progress = 0.0;
         break;

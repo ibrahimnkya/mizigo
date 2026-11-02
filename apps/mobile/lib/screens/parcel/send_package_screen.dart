@@ -6,38 +6,38 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 
-final _vehicles = [
+// Vehicle display metadata — this is a capacity/logistics choice only.
+// Pricing is computed later (package_details_screen) from actual weight,
+// urgency, cargo type, package size and condition via the real tariff
+// engine (POST /parcel/quote) — not from which vehicle class is picked.
+const List<Map<String, dynamic>> _kVehicleMetadata = [
   {
     'name': 'Bodaboda',
-    'description': 'Perfect for small items like pallets, docum...',
+    'description': 'Perfect for small items like pallets, documents...',
     'dimensions': '0.4 x 0.4 x 0.4 Meter',
     'weight': 'Up to 20kg',
     'image': 'assets/images/vehicle_bodaboda.png',
-    'price': 15000,
   },
   {
     'name': 'Small Vehicle',
-    'description': 'Perfect for small home appliances, and medium size items',
+    'description': 'Perfect for small home appliances and medium size items',
     'dimensions': '1 x 1 x 1 Meter',
     'weight': 'Up to 150kg',
     'image': 'assets/images/vehicle_small.png',
-    'price': 30000,
   },
   {
     'name': 'Minivan / Kirikuu',
-    'description': 'Perfect for small home appliances, and medium size items',
+    'description': 'Perfect for small home appliances and medium size items',
     'dimensions': '1.5 x 1.2 x 1.2 Meter',
     'weight': 'Up to 300kg',
     'image': 'assets/images/vehicle_minivan.png',
-    'price': 50000,
   },
   {
     'name': 'Canter/Fuso',
-    'description': 'Perfect for small home appliances, and medium size items',
+    'description': 'Perfect for small home appliances and medium size items',
     'dimensions': '2.8 x 2 x 2 Meter',
     'weight': 'Up to 5,000kg',
     'image': 'assets/images/vehicle_canter.png',
-    'price': 80000,
   },
   {
     'name': 'Large Truck',
@@ -45,7 +45,6 @@ final _vehicles = [
     'dimensions': '4.2 x 3 x 3 Meter',
     'weight': 'Up to 10,000kg',
     'image': 'assets/images/vehicle_truck.png',
-    'price': 120000,
   },
 ];
 
@@ -67,7 +66,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
   String _pickupLocation = 'Pick-up location';
   String _deliveryLocation = 'Delivery location';
   String? _selectedVehicle;
-  int _selectedHelpers = 0; // Default to 'Driver only' or first option
+  int _selectedHelpers = 0;
 
   static const List<String> _helperVehicles = [
     'Minivan / Kirikuu',
@@ -78,25 +77,6 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
   bool get _locationsSet =>
       !_pickupLocation.contains('location') &&
       !_deliveryLocation.contains('location');
-
-  int get _extraCost {
-    if (_selectedVehicle == null) return 0;
-    if (_selectedVehicle == 'Bodaboda') {
-      return _selectedHelpers == 1 ? 40000 : 0;
-    }
-    // Helpers logic for other vehicles
-    if (!_helperVehicles.contains(_selectedVehicle)) return 0;
-    return (_selectedHelpers + 1) * 20000;
-  }
-
-  int get _totalPrice {
-    if (_selectedVehicle == null) return 0;
-    final vehicle = _vehicles.firstWhere(
-      (v) => v['name'] == _selectedVehicle,
-      orElse: () => _vehicles.first,
-    );
-    return (vehicle['price'] as int) + _extraCost;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,10 +166,10 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                       height: 14,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: const Color(0xFF3B82F6),
+                                        color: const Color(0xFF5C0B19),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF3B82F6).withValues(alpha: 0.35),
+                                            color: const Color(0xFF5C0B19).withValues(alpha: 0.35),
                                             spreadRadius: 3,
                                           ),
                                         ],
@@ -309,7 +289,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                   ],
 
                   if (_locationsSet)
-                    ..._vehicles.map((vehicle) {
+                    ..._kVehicleMetadata.map((vehicle) {
                     final name = vehicle['name'] as String;
                     final isSelected = _selectedVehicle == name;
                     final isBodaboda = name == 'Bodaboda';
@@ -328,7 +308,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFF3B82F6)
+                                ? const Color(0xFF5C0B19)
                                 : AppTheme.border,
                             width: 2,
                           ),
@@ -395,7 +375,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                         Row(
                                           children: [
                                             const Icon(Icons.inventory_2_outlined,
-                                                size: 14, color: Color(0xFF3B82F6)),
+                                                size: 14, color: Color(0xFF5C0B19)),
                                             const Gap(6),
                                             Text(
                                               '${vehicle['dimensions']} • ${vehicle['weight']}',
@@ -415,7 +395,7 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                       width: 28,
                                       height: 28,
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFF3B82F6),
+                                        color: Color(0xFF5C0B19),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -447,14 +427,12 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                               if (isBodaboda) ...[
                                 _HelperOption(
                                   label: 'Driver only',
-                                  cost: 0,
                                   selected: _selectedHelpers == 0,
                                   onTap: () => setState(() => _selectedHelpers = 0),
                                   showDivider: true,
                                 ),
                                 _HelperOption(
                                   label: 'Driver only with backpack',
-                                  cost: 40000,
                                   selected: _selectedHelpers == 1,
                                   onTap: () => setState(() => _selectedHelpers = 1),
                                   showDivider: false,
@@ -462,21 +440,18 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                               ] else ...[
                                 _HelperOption(
                                   label: 'Driver only',
-                                  cost: 20000,
                                   selected: _selectedHelpers == 0,
                                   onTap: () => setState(() => _selectedHelpers = 0),
                                   showDivider: true,
                                 ),
                                 _HelperOption(
                                   label: 'Driver only & 1 helper',
-                                  cost: 40000,
                                   selected: _selectedHelpers == 1,
                                   onTap: () => setState(() => _selectedHelpers = 1),
                                   showDivider: true,
                                 ),
                                 _HelperOption(
                                   label: 'Driver only & 2 helper',
-                                  cost: 60000,
                                   selected: _selectedHelpers == 2,
                                   onTap: () => setState(() => _selectedHelpers = 2),
                                   showDivider: false,
@@ -526,36 +501,18 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Total',
+                        'Vehicle',
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: AppTheme.textSecondary,
                         ),
                       ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.2),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Text(
-                          _selectedVehicle == null
-                              ? 'Select a vehicle'
-                              : 'TZS ${_totalPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                          key: ValueKey<int>(_totalPrice),
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.textPrimary,
-                          ),
+                      Text(
+                        _selectedVehicle ?? 'Select a vehicle',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ],
@@ -570,13 +527,13 @@ class _SendPackageScreenState extends State<SendPackageScreen> {
                                 'pickup': _pickupLocation,
                                 'delivery': _deliveryLocation,
                                 'vehicle': _selectedVehicle,
-                                'price': _totalPrice,
+                                'peopleNeeded': _selectedHelpers,
                                 'deliverySpeed': widget.deliverySpeed,
                                 'lastMileDelivery': widget.lastMileDelivery,
                               });
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
+                        backgroundColor: const Color(0xFF5C0B19),
                         disabledBackgroundColor: AppTheme.border,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -629,14 +586,12 @@ class _DottedLinePainter extends CustomPainter {
 
 class _HelperOption extends StatelessWidget {
   final String label;
-  final int cost;
   final bool selected;
   final VoidCallback onTap;
   final bool showDivider;
 
   const _HelperOption({
     required this.label,
-    required this.cost,
     required this.selected,
     required this.onTap,
     required this.showDivider,
@@ -660,7 +615,7 @@ class _HelperOption extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFF3B82F6)
+                          ? const Color(0xFF5C0B19)
                           : AppTheme.border,
                       width: selected ? 5 : 1.5,
                     ),
@@ -675,14 +630,6 @@ class _HelperOption extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: AppTheme.textPrimary,
                     ),
-                  ),
-                ),
-                Text(
-                  '+ ${cost.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],

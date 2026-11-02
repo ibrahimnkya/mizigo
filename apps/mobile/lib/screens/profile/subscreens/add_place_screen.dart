@@ -101,18 +101,11 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Address saved',
-                          style: GoogleFonts.inter(),
-                        ),
-                      ),
-                    );
+                    MizigoToasts.showInfo(context, 'Address saved');
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
+                    backgroundColor: const Color(0xFF5C0B19),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100),

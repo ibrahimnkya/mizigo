@@ -28,6 +28,7 @@ dependencies:
   intl: ^0.20.2
   lottie: ^3.3.2
   pdf: ^3.11.3
+  package_info_plus: ^10.2.0
   pin_code_fields: ^9.1.0
   printing: ^5.14.2
   provider: ^6.1.5+1
@@ -39,6 +40,8 @@ dependencies:
   image: ^4.3.0
   qr_code_scanner_plus: ^2.1.1
   crypto: ^3.0.7
+  url_launcher: ^6.3.1
+  smart_auth: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -49,7 +52,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/logo_icon.png"
+  image_path: "assets/images/app_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FDEBDB"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
 
 flutter:
   uses-material-design: true

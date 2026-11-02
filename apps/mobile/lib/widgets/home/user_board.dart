@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class UserBoard extends StatelessWidget {
@@ -7,6 +8,7 @@ class UserBoard extends StatelessWidget {
   final bool printerConnected;
   final bool isPrinterLoading;
   final VoidCallback onPrinterTap;
+  final String? roleLabel;
 
   const UserBoard({
     super.key,
@@ -15,6 +17,7 @@ class UserBoard extends StatelessWidget {
     required this.printerConnected,
     required this.isPrinterLoading,
     required this.onPrinterTap,
+    this.roleLabel,
   });
 
   @override
@@ -48,6 +51,25 @@ class UserBoard extends StatelessWidget {
                     letterSpacing: -0.5,
                   ),
                 ),
+                if (roleLabel != null && roleLabel!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      roleLabel!,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

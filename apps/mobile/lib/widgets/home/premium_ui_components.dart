@@ -11,14 +11,14 @@ class ParcelIcon extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+          colors: [Color(0xFF5C0B19), Color(0xFF2563EB)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            color: const Color(0xFF5C0B19).withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

@@ -33,8 +33,11 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
+    // Must match the app icon resource actually declared in
+    // AndroidManifest.xml (android:icon) — that's `launcher_icon`, not the
+    // Flutter-default `ic_launcher` name.
     const initSettings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      android: AndroidInitializationSettings('@mipmap/launcher_icon'),
       iOS: DarwinInitializationSettings(),
     );
     await _localNotifs.initialize(

@@ -10,14 +10,14 @@ class PackageDetailsScreen extends StatefulWidget {
   final String pickup;
   final String delivery;
   final String vehicle;
-  final int basePrice;
+  final int peopleNeeded;
 
   const PackageDetailsScreen({
     super.key,
     required this.pickup,
     required this.delivery,
     required this.vehicle,
-    required this.basePrice,
+    this.peopleNeeded = 0,
   });
 
   @override
@@ -28,11 +28,14 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   final _nameCtrl = TextEditingController();
   final _valueCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
+  final _weightCtrl = TextEditingController();
 
   String? _condition;
   String? _parcelType;
   String? _urgency;
   String? _packageSize;
+  bool _isQuoting = false;
+  String? _quoteError;
 
   late Map<String, String> _apiConditions = Map.from(conditions);
   late Map<String, String> _apiParcelTypes = Map.from(parcelTypes);
@@ -72,7 +75,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   static const Map<String, String> parcelTypes = {
     'Parcel': 'User provides their own packaging',
     'Pallet': 'Stacked bulk goods',
-    'Container': 'Large volume shipments',
+    'Container': 'Large volume parcels',
     'Fragile Goods': 'Handle with extra care',
   };
 
@@ -95,6 +98,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     _nameCtrl.dispose();
     _valueCtrl.dispose();
     _descCtrl.dispose();
+    _weightCtrl.dispose();
     super.dispose();
   }
 
@@ -260,29 +264,62 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     );
   }
 
-  void _onNext() {
+  Future<void> _onNext() async {
     if (_condition == null ||
         _parcelType == null ||
         _urgency == null ||
         _packageSize == null ||
         _nameCtrl.text.isEmpty ||
-        _valueCtrl.text.isEmpty) {
+        _valueCtrl.text.isEmpty ||
+        _weightCtrl.text.isEmpty) {
       return;
     }
-    
-    context.push('/send-package/receiver', extra: {
-      'pickup': widget.pickup,
-      'delivery': widget.delivery,
-      'vehicle': widget.vehicle,
-      'price': widget.basePrice,
-      'packageName': _nameCtrl.text,
-      'packageValue': _valueCtrl.text,
-      'parcelDescription': _descCtrl.text,
-      'condition': _condition,
-      'parcelType': _parcelType,
-      'urgency': _urgency,
-      'packageSize': _packageSize,
+
+    final weight = double.tryParse(_weightCtrl.text.trim());
+    if (weight == null || weight <= 0) {
+      setState(() => _quoteError = 'Enter a valid weight in kg.');
+      return;
+    }
+
+    setState(() {
+      _isQuoting = true;
+      _quoteError = null;
     });
+
+    try {
+      final quote = await ApiService.getPriceQuote(
+        weight: weight,
+        urgency: _urgency!,
+        parcelType: _parcelType!,
+        packageSize: _packageSize!,
+        condition: _condition,
+        declaredValue: double.tryParse(_valueCtrl.text.trim()),
+      );
+      final price = (quote['amount'] as num?)?.toInt() ?? 0;
+
+      if (!mounted) return;
+      context.push('/send-package/receiver', extra: {
+        'pickup': widget.pickup,
+        'delivery': widget.delivery,
+        'vehicle': widget.vehicle,
+        'peopleNeeded': widget.peopleNeeded,
+        'price': price,
+        'weight': weight,
+        'packageName': _nameCtrl.text,
+        'packageValue': _valueCtrl.text,
+        'parcelDescription': _descCtrl.text,
+        'condition': _condition,
+        'parcelType': _parcelType,
+        'urgency': _urgency,
+        'packageSize': _packageSize,
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _quoteError = 'Could not calculate a price quote. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _isQuoting = false);
+    }
   }
 
   @override
@@ -292,7 +329,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
         _urgency != null &&
         _packageSize != null &&
         _nameCtrl.text.isNotEmpty &&
-        _valueCtrl.text.isNotEmpty;
+        _valueCtrl.text.isNotEmpty &&
+        _weightCtrl.text.isNotEmpty &&
+        !_isQuoting;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -425,7 +464,62 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                         ),
                       ),
                     ),
-                    
+
+                    const Gap(24),
+                    Text(
+                      'Weight (kg)',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const Gap(12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppTheme.border,
+                          width: 1,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _weightCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (v) => setState(() {}),
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'e.g., 5',
+                          prefixIcon: Icon(
+                            Icons.scale_outlined,
+                            size: 20,
+                            color: AppTheme.textMuted,
+                          ),
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: AppTheme.textMuted,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    if (_quoteError != null) ...[
+                      const Gap(8),
+                      Text(
+                        _quoteError!,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ],
+
                     const Gap(24),
                     Text(
                       'Specifications',
@@ -574,13 +668,22 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Next',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: _isQuoting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          'Next',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                 ),
               ),
             ),

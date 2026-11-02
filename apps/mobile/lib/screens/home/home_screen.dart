@@ -1,447 +1,767 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/printer_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/parcel_provider.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../models/operation_model.dart';
 import '../../models/parcel_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/parcel_provider.dart';
+import '../../providers/printer_provider.dart';
 import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/home/user_board.dart';
-import '../../widgets/home/summary_board.dart';
-import '../../widgets/home/parcel_card.dart';
-import '../../widgets/common/section_header.dart';
-import '../../models/operation_model.dart';
-import '../../widgets/common/shimmer_utils.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/staff/parcel_badges.dart';
+import '../../widgets/staff/parcel_number_field.dart';
+import '../../widgets/staff/parcel_search_suggestions.dart';
+import '../../utils/parcel_search.dart';
+import '../../widgets/profile/premium_settings_components.dart';
+import '../../widgets/common/station_header_art.dart';
+import 'bookings_screen.dart';
 
+/// Staff home — Figma "4 Home 1".
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+
+// Role display metadata
+const _kRoleLabels = {'CLERK': 'Station Clerk', 'TRAIN_GUARD': 'Train Guard', 'STATION_MASTER': 'Station Master'};
+
+const _kHeaderArtHeight = 290.0;
+const _kPagePadding = 16.0;
+const _kRecentLimit = 5; // keeps the home page within one screen
+
+class _StaffCard {
+  final String label;
+  final String image;
+  final VoidCallback onTap;
+  const _StaffCard(this.label, this.image, this.onTap);
+}
+
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
   bool _searchLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshData());
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
+  Future<void> _refreshData() async {
+    final parcel = context.read<ParcelProvider>();
+    final auth = context.read<AuthProvider>();
+
+    await Future.wait([parcel.fetchMyParcels(), if (auth.user?.isStaff ?? false) parcel.fetchOperatorStats()]);
+  }
+
+  /// Staff get the parcel details/actions screen (same as after a scan);
+  /// other users keep the booking details page.
+  void _openParcel(ParcelModel parcel) {
+    final isStaff = context.read<AuthProvider>().user?.isStaff ?? false;
+    if (isStaff) {
+      context.push('/operator/scanned-details', extra: parcel);
+    } else {
+      context.push('/bookings/recent/${parcel.id}', extra: parcel);
+    }
+  }
+
   Future<void> _handleSearch(String value) async {
+    if (value.trim().isEmpty) return;
+    _searchFocus.unfocus();
+    // Smart search over loaded parcels first; the server only if nothing matches.
+    final local = searchParcels(context.read<ParcelProvider>().parcels, value);
+    if (local.isNotEmpty) {
+      _openParcel(local.first);
+      return;
+    }
     final query = value.trim().toUpperCase();
-    if (query.isEmpty) return;
 
     setState(() => _searchLoading = true);
     try {
       final results = await ApiService.searchParcel(query);
+      if (!mounted) return;
       if (results.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('No parcel found for "$query"'),
-              backgroundColor: const Color(0xFFEF4444),
-            ),
-          );
-        }
+        MizigoToasts.showError(context, 'No parcel found for "$query"');
       } else {
         final parcelData = results[0]['data'] ?? results[0];
         final parcel = ParcelModel.fromJson(parcelData);
-        if (mounted) {
-          context.push('/bookings/recent/${parcel.id}', extra: parcel);
-        }
+        _openParcel(parcel);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Search error: $e'),
-            backgroundColor: const Color(0xFFEF4444),
-          ),
-        );
-      }
+      if (mounted) MizigoToasts.showError(context, 'Search error: $e');
     } finally {
       if (mounted) setState(() => _searchLoading = false);
     }
   }
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshData();
-    });
-  }
-  Future<void> _refreshData() async {
-    final parcel = context.read<ParcelProvider>();
-    final auth = context.read<AuthProvider>();
-
-    await parcel.fetchMyParcels();
-    if (auth.user?.isStaff ?? false) {
-      await parcel.fetchOperatorStats();
-    }
-  }
-  @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final parcel = context.watch<ParcelProvider>();
     final printer = context.watch<PrinterProvider>();
     final isOperator = auth.user?.isStaff ?? false;
+    final role = auth.user?.role?.toUpperCase() ?? '';
+    final topInset = MediaQuery.of(context).padding.top;
+    final statsLoading = parcel.loading && parcel.operatorStats.isEmpty;
+    final parcelsLoading = parcel.loading && parcel.parcels.isEmpty;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: StaffPalette.of(context).overlayStyle,
       child: Scaffold(
-        body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _refreshData,
-            color: AppTheme.cPrimary,
-            backgroundColor: AppTheme.surface,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // 1. Header with User Info
-                SliverToBoxAdapter(
-                  child: UserBoard(
-                    userName: auth.user?.name ?? 'User',
-                    onTap: () => context.push('/profile'),
-                    printerConnected: printer.isConnected,
-                    isPrinterLoading: printer.isLoading,
-                    onPrinterTap: () => context.push('/profile/printer-settings'),
-                  ),
-                ),
-                // 2. Search & Scanner Row
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildSearchField()),
-                        const SizedBox(width: 12),
-                        _buildScannerButton(),
-                      ],
-                    ),
-                  ),
-                ),
-                // 3. Command Center / Stats (Operator Only)
-                if (isOperator)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: ShimmerLoading(
-                        isLoading: parcel.loading && parcel.operatorStats.isEmpty,
-                        child: parcel.loading && parcel.operatorStats.isEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: const BoxSkeleton(height: 120, borderRadius: 24),
-                              )
-                            : SummaryBoard(
+        backgroundColor: StaffPalette.of(context).background,
+        body: RefreshIndicator(
+          onRefresh: _refreshData,
+          color: AppTheme.tecOrange,
+          backgroundColor: StaffPalette.of(context).background,
+          edgeOffset: topInset,
+          child: Stack(
+            children: [
+              const StationHeaderArt(height: _kHeaderArtHeight),
+              // Fits exactly one screen: recent parcels take the remaining
+              // height and show only as many cards as fit. Not scrollable,
+              // but the pull-down still triggers RefreshIndicator.
+              LayoutBuilder(
+                builder: (context, viewport) {
+                  final compact = viewport.maxHeight < 720;
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+                    child: SizedBox(
+                      height: viewport.maxHeight,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(_kPagePadding, topInset + (compact ? 12 : 20), _kPagePadding, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _Greeting(
+                              name: _shortName(auth.user?.name ?? 'User'),
+                              roleLabel: isOperator ? _kRoleLabels[role] : null,
+                              onProfileTap: () => context.go('/profile'),
+                              printerConnected: printer.isConnected,
+                              printerLoading: printer.isLoading,
+                              onPrinterTap: () => context.push('/profile/printer-settings'),
+                            ),
+                            const Gap(16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  // Live suggestions from loaded parcels; Enter still searches the server.
+                                  child: ParcelSearchSuggestions(
+                                    controller: _searchController,
+                                    focusNode: _searchFocus,
+                                    onParcelSelected: _openParcel,
+                                    fieldBuilder: (_) => _SearchField(
+                                      controller: _searchController,
+                                      focusNode: _searchFocus,
+                                      loading: _searchLoading,
+                                      onSubmitted: _handleSearch,
+                                    ),
+                                  ),
+                                ),
+                                const Gap(6),
+                                _SquareButton(
+                                  color: AppTheme.tecOrange,
+                                  tooltip: 'Scan parcel QR',
+                                  onTap: () => context.push('/scanner', extra: ParcelOperation.view),
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedQrCode,
+                                    color: AppTheme.tecMaroon,
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (isOperator) ...[
+                              Gap(compact ? 36 : 88),
+                              _StatsRow(
+                                loading: statsLoading,
                                 received: parcel.operatorStats['received'] ?? 0,
                                 inTransit: parcel.operatorStats['in_transit'] ?? 0,
                                 delivered: parcel.operatorStats['delivered'] ?? 0,
                               ),
+                              Gap(compact ? 18 : 32),
+                              _SectionTitle(title: _roleActionTitle(role)),
+                              const Gap(12),
+                              _ActionRow(
+                                items: [
+                                  for (final c in _buildStaffCards(role))
+                                    _ActionItem(
+                                      label: c.label,
+                                      icon: Image.asset(c.image, width: 28, height: 28, fit: BoxFit.contain),
+                                      onTap: c.onTap,
+                                    ),
+                                ],
+                              ),
+                            ] else ...[
+                              Gap(compact ? 48 : 120),
+                              const _SectionTitle(title: 'Quick Actions'),
+                              const Gap(12),
+                              _ActionRow(
+                                items: [
+                                  _ActionItem(
+                                    label: 'Track',
+                                    icon: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedSearch01,
+                                      color: StaffPalette.of(context).fg(),
+                                      size: 24,
+                                    ),
+                                    onTap: () => context.go('/track'),
+                                  ),
+                                  _ActionItem(
+                                    label: 'Rates',
+                                    icon: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedMoney02,
+                                      color: StaffPalette.of(context).fg(),
+                                      size: 24,
+                                    ),
+                                    onTap: () => context.push('/rates-calculator'),
+                                  ),
+                                  _ActionItem(
+                                    label: 'Support',
+                                    icon: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedCustomerService,
+                                      color: StaffPalette.of(context).fg(),
+                                      size: 24,
+                                    ),
+                                    onTap: () => context.push('/support'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            Gap(compact ? 20 : 36),
+                            _SectionTitle(
+                              title: _recentSectionTitle(role, isOperator),
+                              actionLabel: 'View All',
+                              // Bookings is a tab for customers; staff don't have it as a
+                              // tab, so open it over Home and keep Home highlighted.
+                              onAction: isOperator
+                                  ? () => Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (_) => const BookingsScreen()),
+                                      )
+                                  : () => context.go('/bookings'),
+                            ),
+                            const Gap(12),
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (context, box) {
+                                  const cardExtent = 68.0 + 10.0;
+                                  final fit = ((box.maxHeight + 10) / cardExtent).floor().clamp(0, _kRecentLimit);
+                                  if (parcelsLoading) {
+                                    return Column(
+                                      children: [
+                                        for (var i = 0; i < fit; i++) ...[
+                                          if (i > 0) const Gap(10),
+                                          const _Skeleton(height: 68, radius: 15),
+                                        ],
+                                      ],
+                                    );
+                                  }
+                                  if (parcel.parcels.isEmpty) {
+                                  return const Center(child: FittedBox(fit: BoxFit.scaleDown, child: _EmptyState()));
+                                }
+                                  final shown = parcel.parcels.take(fit).toList();
+                                  return Column(
+                                    children: [
+                                      for (var i = 0; i < shown.length; i++) ...[
+                                        if (i > 0) const Gap(10),
+                                        _RecentParcelCard(parcel: shown[i], onTap: () => _openParcel(shown[i])),
+                                      ],
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                // 4. Operational Actions Grid (Operator Only)
-                if (isOperator) ...[
-                  const SliverToBoxAdapter(
-                    child: SectionHeader(title: "Staff Actions"),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
-                      ),
-                      delegate: SliverChildListDelegate([
-                        _actionCard(
-                          label: 'Receive',
-                          imagePath: 'assets/images/3d_receive.png',
-                          onTap: () => context.push('/receive-parcel'),
-                        ),
-                        _actionCard(
-                          label: 'Send',
-                          imagePath: 'assets/images/3d_send.png',
-                          onTap: () => context.push('/scanner', extra: ParcelOperation.dispatch),
-                        ),
-                        _actionCard(
-                          label: 'Deliver',
-                          imagePath: 'assets/images/3d_deliver.png',
-                          onTap: () => context.push('/scanner', extra: ParcelOperation.deliver),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ] else ...[
-                  // Consumer/Default Flow (Optional/Static for now)
-                  const SliverToBoxAdapter(
-                    child: SectionHeader(title: "Quick Actions"),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.9,
-                      ),
-                      delegate: SliverChildListDelegate([
-                        _quickAction(
-                          label: 'Track',
-                          icon: HugeIcons.strokeRoundedSearch01,
-                          onTap: () => context.go('/track'),
-                        ),
-                        _quickAction(
-                          label: 'Rates',
-                          icon: HugeIcons.strokeRoundedMoney02,
-                          onTap: () => context.push('/rates-calculator'),
-                        ),
-                        _quickAction(
-                          label: 'Support',
-                          icon: HugeIcons.strokeRoundedCustomerService,
-                          onTap: () => context.push('/support'),
-                        ),
-                      ]),
-                    ),
-                  ),
-                ],
-                // 5. Recent Parcels / Bookings List
-                SliverToBoxAdapter(
-                  child: SectionHeader(
-                    title: isOperator ? "Recent Shipments" : "Track Parcels",
-                    actionLabel: "View all",
-                    onAction: () => context.go('/bookings'),
-                  ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// "Ibrahim Nkya" → "Ibrahim N."
+  String _shortName(String full) {
+    final parts = full.trim().split(RegExp(r'\s+'));
+    if (parts.length < 2 || parts.last.isEmpty) return full;
+    return '${parts.first} ${parts.last[0].toUpperCase()}.';
+  }
+
+  String _roleActionTitle(String role) {
+    switch (role) {
+      case 'TRAIN_GUARD':
+        return 'Train Operations';
+      case 'STATION_MASTER':
+        return 'Station Control';
+      default:
+        return 'Staff Actions';
+    }
+  }
+
+  String _recentSectionTitle(String role, bool isOperator) {
+    if (!isOperator) return 'Track Parcels';
+    switch (role) {
+      case 'TRAIN_GUARD':
+        return 'Transit Parcels';
+      case 'STATION_MASTER':
+        return 'Station Activity';
+      default:
+        return 'Recent Parcels';
+    }
+  }
+
+  List<_StaffCard> _buildStaffCards(String role) {
+    switch (role) {
+      case 'TRAIN_GUARD':
+        return [
+          _StaffCard('Dispatch', 'assets/images/staff_parcel.png', () => context.push('/send-parcel')),
+          _StaffCard('Offload', 'assets/images/staff_receive.png', () => context.push('/offload-parcel')),
+          _StaffCard('Reports', 'assets/images/staff_reports.png', () => context.go('/operator-reports')),
+        ];
+      case 'STATION_MASTER':
+        return [
+          _StaffCard('Receive', 'assets/images/staff_receive.png', () => context.push('/receive-parcel')),
+          _StaffCard('Dispatch', 'assets/images/staff_parcel.png', () => context.push('/send-parcel')),
+          _StaffCard('Reports', 'assets/images/staff_reports.png', () => context.go('/operator-reports')),
+        ];
+      case 'CLERK':
+      default:
+        return [
+          _StaffCard('Receive', 'assets/images/staff_receive.png', () => context.push('/receive-parcel')),
+          _StaffCard('Deliver', 'assets/images/staff_deliver.png', () => context.push('/deliver-parcel')),
+          _StaffCard('Reports', 'assets/images/staff_reports.png', () => context.go('/operator-reports')),
+        ];
+    }
+  }
+}
+
+class _Greeting extends StatelessWidget {
+  const _Greeting({
+    required this.name,
+    required this.roleLabel,
+    required this.onProfileTap,
+    required this.printerConnected,
+    required this.printerLoading,
+    required this.onPrinterTap,
+  });
+
+  final String name;
+  final String? roleLabel;
+  final VoidCallback onProfileTap;
+  final bool printerConnected;
+  final bool printerLoading;
+  final VoidCallback onPrinterTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: onProfileTap,
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome Back 👋',
+                  style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.6)),
                 ),
-                // 6. Recent Bookings List
-                if (parcel.loading && parcel.parcels.isEmpty)
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => ShimmerLoading(
-                        isLoading: true,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          child: const BoxSkeleton(height: 100, borderRadius: 20),
+                const Gap(2),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: StaffPalette.of(context).fg(),
                         ),
                       ),
-                      childCount: 3,
                     ),
-                  )
-                else if (parcel.parcels.isEmpty)
-                  SliverToBoxAdapter(child: _buildEmptyState())
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final booking = parcel.parcels[index];
-                        return ParcelCard(
-                          parcel: booking,
-                          onTap: () => context.push(
-                            '/bookings/recent/${booking.id}',
-                            extra: booking,
+                    if (roleLabel != null) ...[
+                      const Gap(6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: StaffPalette.of(context).surface(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          roleLabel!,
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: StaffPalette.of(context).fg(),
                           ),
-                        );
-                      },
-                      childCount: parcel.parcels.length > 3 ? 3 : parcel.parcels.length,
-                    ),
-                  ),
-                // Bottom Padding
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-  Widget _buildSearchField() {
-    final theme = Theme.of(context);
-    return TextField(
-      controller: _searchController,
-      textCapitalization: TextCapitalization.characters,
-      onSubmitted: _handleSearch,
-      style: GoogleFonts.inter(
-        color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-      ),
-      decoration: InputDecoration(
-        hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(
-          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        filled: true,
-        fillColor: theme.cardTheme.color ?? theme.colorScheme.surface,
-        prefixIcon: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedSearch01,
-            color: theme.textTheme.bodySmall?.color ?? AppTheme.textSecondary,
-            size: 20,
-          ),
-        ),
-        suffixIcon: _searchLoading
-            ? Padding(
-                padding: const EdgeInsets.all(14),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.cPrimary),
+        // Status dot sits on the button's top-right corner: green = connected, gray = not.
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _SquareButton(
+              color: StaffPalette.of(context).surface(0.15),
+              tooltip: printerConnected ? 'Printer connected' : 'Printer not connected',
+              onTap: onPrinterTap,
+              child: printerLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: StaffPalette.of(context).fg()),
+                    )
+                  : HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: StaffPalette.of(context).fg(), size: 22),
+            ),
+            Positioned(
+              top: -3,
+              right: -3,
+              child: IgnorePointer(
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: printerConnected ? AppTheme.success : const Color(0xFF9CA3AF),
+                    border: Border.all(color: StaffPalette.of(context).background, width: 2),
                   ),
                 ),
-              )
-            : null,
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-    );
-  }
-  Widget _buildScannerButton() {
-    return InkWell(
-      onTap: () => context.push('/scanner', extra: ParcelOperation.view),
-      borderRadius: BorderRadius.circular(50),
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: AppTheme.cPrimary,
-          borderRadius: BorderRadius.circular(16), // Changed circular to 16px matching theme
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.cPrimary.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedQrCode01,
-            color: Colors.white,
-            size: 24,
-          ),
-        ),
-      ),
-    );
-  }
-  Widget _actionCard({
-    required String label,
-    required String imagePath,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? AppTheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
               ),
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+class _SquareButton extends StatelessWidget {
+  const _SquareButton({required this.color, required this.child, required this.onTap, required this.tooltip});
+
+  final Color color;
+  final Widget child;
+  final VoidCallback onTap;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(width: 44, height: 44, child: Center(child: child)),
+        ),
       ),
     );
   }
-  Widget _quickAction({required String label, required dynamic icon, required VoidCallback onTap}) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.focusNode,
+    required this.loading,
+    required this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool loading;
+  final ValueChanged<String> onSubmitted;
+
+  @override
+  Widget build(BuildContext context) =>
+      ParcelNumberField(
+        controller: controller,
+        focusNode: focusNode,
+        loading: loading,
+        onSubmitted: onSubmitted,
+        freeText: true,
+      );
+}
+
+class _IconTile extends StatelessWidget {
+  const _IconTile({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 50,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: StaffPalette.of(context).surface(0.15), borderRadius: BorderRadius.circular(12)),
+      child: child,
+    );
+  }
+}
+
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.loading, required this.received, required this.inTransit, required this.delivered});
+
+  final bool loading;
+  final int received;
+  final int inTransit;
+  final int delivered;
+
+  @override
+  Widget build(BuildContext context) {
+    final format = NumberFormat.decimalPattern();
+    Widget stat(dynamic icon, int value, String label) => Expanded(
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.cardTheme.color ?? AppTheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.2)),
-            ),
-            child: HugeIcon(
-              icon: icon,
-              color: theme.iconTheme.color ?? AppTheme.textPrimary,
-              size: 24,
-            ),
+          _IconTile(
+            child: HugeIcon(icon: icon, color: StaffPalette.of(context).fg(), size: 24),
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? AppTheme.textSecondary,
-              fontSize: 12, 
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          const Gap(8),
+          loading
+              ? const _Skeleton(width: 48, height: 22, radius: 6)
+              : Text(
+                  format.format(value),
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: StaffPalette.of(context).fg(),
+                  ),
+                ),
+          Text(label, style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.5))),
         ],
       ),
     );
+
+    return Row(
+      children: [
+        stat(HugeIcons.strokeRoundedPackageReceive, received, 'Received'),
+        stat(HugeIcons.strokeRoundedSpeedTrain01, inTransit, 'In Transit'),
+        stat(HugeIcons.strokeRoundedPackageDelivered, delivered, 'Delivered'),
+      ],
+    );
   }
-  Widget _buildEmptyState() {
-    final theme = Theme.of(context);
+}
+
+class _ActionItem {
+  const _ActionItem({required this.label, required this.icon, required this.onTap});
+
+  final String label;
+  final Widget icon;
+  final VoidCallback onTap;
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.items});
+
+  final List<_ActionItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final item in items)
+          Expanded(
+            child: InkWell(
+              onTap: item.onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  children: [
+                    _IconTile(child: item.icon),
+                    const Gap(8),
+                    Text(item.label, style: GoogleFonts.outfit(fontSize: 15, color: StaffPalette.of(context).fg(0.8))),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, this.actionLabel, this.onAction});
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w500, color: StaffPalette.of(context).fg()),
+          ),
+        ),
+        if (actionLabel != null)
+          GestureDetector(
+            onTap: onAction,
+            child: Text(
+              actionLabel!,
+              style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w600, color: AppTheme.tecOrange),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _RecentParcelCard extends StatelessWidget {
+  const _RecentParcelCard({required this.parcel, required this.onTap});
+
+  final ParcelModel parcel;
+  final VoidCallback onTap;
+
+  static String _city(String address) {
+    final first = address.split(',').first.trim();
+    return first.isEmpty ? '—' : first;
+  }
+
+  bool get _isUrgent {
+    final u = parcel.urgency.toLowerCase();
+    return u.contains('express') || u.contains('urgent') || u == 'mgr';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (parcel.trackingNumber?.isNotEmpty ?? false) ? parcel.trackingNumber! : 'Parcel';
+
+    return Material(
+      color: StaffPalette.of(context).surface(0.10),
+      borderRadius: BorderRadius.circular(15),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Image.asset('assets/images/staff_parcel.png', width: 32, height: 32, fit: BoxFit.contain),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              color: StaffPalette.of(context).fg(),
+                            ),
+                          ),
+                        ),
+                        if (_isUrgent) ...[const Gap(6), const ExpressBadge(small: true)],
+                      ],
+                    ),
+                    const Gap(2),
+                    Text(
+                      '${_city(parcel.fromAddress)}  -  ${_city(parcel.toAddress)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.5)),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ParcelStatusBadge(status: parcel.status, small: true),
+                  const Gap(4),
+                  Text(
+                    DateFormat('h:mm a').format(parcel.updatedAt.toLocal()),
+                    style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.5)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Skeleton extends StatelessWidget {
+  const _Skeleton({this.width, required this.height, required this.radius});
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: StaffPalette.of(context).surface(0.08),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(40.0),
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedPackage01,
-            color: theme.iconTheme.color?.withValues(alpha: 0.2) ?? Colors.black26,
-            size: 64,
-          ),
-          const SizedBox(height: 16),
+          HugeIcon(icon: HugeIcons.strokeRoundedPackage, color: StaffPalette.of(context).fg(0.25), size: 48),
+          const Gap(12),
           Text(
-            'No recent bookings',
-            style: GoogleFonts.inter(
-              color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+            'No recent parcels',
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: StaffPalette.of(context).fg()),
           ),
-          const SizedBox(height: 4),
+          const Gap(4),
           Text(
-            'Start a new shipment to see it here',
-            style: GoogleFonts.inter(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
-              fontSize: 13,
-            ),
+            'Parcels you handle will show up here',
+            style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.5)),
           ),
         ],
       ),

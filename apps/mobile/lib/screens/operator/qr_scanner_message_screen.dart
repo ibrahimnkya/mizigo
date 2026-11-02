@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import '../../providers/scanner_provider.dart';
 import '../../models/operation_model.dart';
 import '../../widgets/common/neo_container.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/common/station_header_art.dart';
 
 class QrScannerMessageScreen extends StatelessWidget {
   final bool success;
@@ -28,7 +30,10 @@ class QrScannerMessageScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
+      body: Stack(
+        children: [
+          const StationHeaderArt(blur: 8),
+          SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -60,7 +65,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: theme.textTheme.bodyLarge?.color ?? Colors.white,
+                  color: theme.textTheme.bodyLarge?.color ?? StaffPalette.of(context).fg(),
                 ),
               ),
               const Gap(12),
@@ -71,7 +76,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? const Color(0xFF64748B),
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? StaffPalette.of(context).fg(0.55),
                 ),
               ),
               const Gap(48),
@@ -128,7 +133,7 @@ class QrScannerMessageScreen extends StatelessWidget {
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: theme.textTheme.bodyLarge?.color ?? Colors.white,
+                          color: theme.textTheme.bodyLarge?.color ?? StaffPalette.of(context).fg(),
                         ),
                       ),
                     ),
@@ -164,6 +169,8 @@ class QrScannerMessageScreen extends StatelessWidget {
           ),
         ),
       ),
+        ],
+      ),
     );
   }
 
@@ -183,7 +190,7 @@ class QrScannerMessageScreen extends StatelessWidget {
               label,
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: theme.textTheme.bodySmall?.color ?? const Color(0xFF64748B),
+                color: theme.textTheme.bodySmall?.color ?? theme.colorScheme.onSurface.withValues(alpha: 0.55),
               ),
             ),
             Text(
@@ -191,7 +198,7 @@ class QrScannerMessageScreen extends StatelessWidget {
               style: GoogleFonts.outfit(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color ?? Colors.white,
+                color: theme.textTheme.bodyLarge?.color ?? theme.colorScheme.onSurface,
               ),
             ),
           ],

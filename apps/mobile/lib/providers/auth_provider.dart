@@ -16,13 +16,37 @@ class AuthProvider extends ChangeNotifier {
   bool _loading = false;
   bool _mustChangeOtp = false;
   
-  // OTP Security
-  int _resendAttempts = 0;
-  DateTime? _lastResendAt;
-  static const int maxResendPerDay = 3;
-  
-  // Progressive intervals in seconds: 60, 180, 600
-  static const List<int> _resendIntervals = [60, 180, 600];
+  // Forgot-PIN SMS limits are enforced by the server (cooldown + hourly/daily
+  // caps per number). We remember the server's "retry after" per number so the
+  // UI can show a countdown, also across app restarts, without spending a request.
+  static const _otpBlockedKey = 'otp_blocked_until';
+  static const _otpCooldown = Duration(seconds: 60); // matches server default
+  final Map<String, DateTime> _otpBlockedUntil = {};
+
+  /// Seconds before another code can be requested for [phone] (0 = now).
+  int otpWaitSeconds(String phone) {
+    final until = _otpBlockedUntil[phone];
+    if (until == null) return 0;
+    final left = until.difference(DateTime.now()).inSeconds;
+    return left > 0 ? left + 1 : 0;
+  }
+
+  Future<void> _blockOtp(String phone, Duration wait) async {
+    _otpBlockedUntil[phone] = DateTime.now().add(wait);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _otpBlockedKey,
+      jsonEncode(_otpBlockedUntil.map((k, v) => MapEntry(k, v.millisecondsSinceEpoch))),
+    );
+  }
+
+  static String _formatWait(int seconds) {
+    if (seconds < 60) return '$seconds second${seconds == 1 ? '' : 's'}';
+    final minutes = (seconds / 60).ceil();
+    if (minutes < 60) return '$minutes minute${minutes == 1 ? '' : 's'}';
+    final hours = (minutes / 60).ceil();
+    return '$hours hour${hours == 1 ? '' : 's'}';
+  }
 
   AuthStatus get status => _status;
   UserModel? get user => _user;
@@ -32,7 +56,47 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
   AuthProvider() {
+    // Session revoked/expired server-side: sign out rather than keep showing a
+    // signed-in app whose requests all fail.
+    ApiService.onSessionExpired = () {
+      if (_status != AuthStatus.authenticated) return;
+      _sessionExpired = true;
+      logout();
+    };
     _checkAuth();
+  }
+
+  bool _sessionExpired = false;
+
+  /// True once after a forced sign-out; the login screen reads and clears it.
+  bool consumeSessionExpired() {
+    final v = _sessionExpired;
+    _sessionExpired = false;
+    return v;
+  }
+
+  /// Fires only when something the router's redirect depends on changes
+  /// (status, first-run, forced PIN change). Using the provider itself as the
+  /// router's refreshListenable would re-run routing on every `loading` toggle,
+  /// which can discard a screen pushed right after an async call finishes.
+  final ChangeNotifier routerRefresh = ChangeNotifier();
+  (AuthStatus, bool, bool)? _lastRouteState;
+
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    final routeState = (_status, _isFirstTime, _mustChangeOtp);
+    if (routeState != _lastRouteState) {
+      _lastRouteState = routeState;
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      routerRefresh.notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    routerRefresh.dispose();
+    super.dispose();
   }
 
   bool _isFirstTime = false;
@@ -42,23 +106,20 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final token = await _storage.read(key: 'jwt_token');
     final userData = await _storage.read(key: 'user_data');
-    await Future.delayed(const Duration(milliseconds: 2500));
 
     _isFirstTime = !(prefs.getBool('has_seen_onboarding') ?? false);
     
-    // Load OTP resend persistence
-    _resendAttempts = prefs.getInt('otp_resend_attempts') ?? 0;
-    final lastResendTs = prefs.getInt('otp_last_resend_ts');
-    if (lastResendTs != null) {
-      _lastResendAt = DateTime.fromMillisecondsSinceEpoch(lastResendTs);
-      
-      // Reset daily attempts if it's a new day
-      final now = DateTime.now();
-      if (now.day != _lastResendAt!.day || now.month != _lastResendAt!.month || now.year != _lastResendAt!.year) {
-        _resendAttempts = 0;
-        await prefs.setInt('otp_resend_attempts', 0);
+    // Restore per-number code-request cooldowns (drop expired ones).
+    try {
+      final raw = prefs.getString(_otpBlockedKey);
+      if (raw != null) {
+        final now = DateTime.now();
+        (jsonDecode(raw) as Map<String, dynamic>).forEach((phone, ms) {
+          final until = DateTime.fromMillisecondsSinceEpoch((ms as num).toInt());
+          if (until.isAfter(now)) _otpBlockedUntil[phone] = until;
+        });
       }
-    }
+    } catch (_) {}
     
     if (token != null && userData != null) {
       _user = UserModel.fromJson(jsonDecode(userData));
@@ -100,37 +161,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final now = DateTime.now();
-      
-      // Reset daily attempts if it's a new day (naive implementation)
-      if (_lastResendAt != null && now.day != _lastResendAt!.day) {
-        _resendAttempts = 0;
-      }
-
-      // Check progressive interval
-      if (_lastResendAt != null) {
-        final intervalIndex = (_resendAttempts - 1).clamp(0, _resendIntervals.length - 1);
-        final requiredInterval = _resendIntervals[intervalIndex];
-        final secondsSinceLast = now.difference(_lastResendAt!).inSeconds;
-        
-        if (secondsSinceLast < requiredInterval) {
-          final waitMore = requiredInterval - secondsSinceLast;
-          _error = "Please wait $waitMore more seconds before requesting another OTP.";
-          return false;
-        }
+      // Known to be blocked: don't spend a request (or an SMS).
+      final wait = otpWaitSeconds(phone);
+      if (wait > 0) {
+        _error = 'Too many code requests. Try again in ${_formatWait(wait)}.';
+        return false;
       }
 
       await ApiService.sendOperatorOtp(phone);
-      
-      _resendAttempts++;
-      _lastResendAt = now;
-      
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('otp_resend_attempts', _resendAttempts);
-      await prefs.setInt('otp_last_resend_ts', now.millisecondsSinceEpoch);
-      
+      await _blockOtp(phone, _otpCooldown);
       return true;
     } on ApiException catch (e) {
+      final retryAfter = e.retryAfterSeconds;
+      if (e.statusCode == 429 && retryAfter != null && retryAfter > 0) {
+        await _blockOtp(phone, Duration(seconds: retryAfter));
+      }
       _error = e.message;
       return false;
     } catch (_) {
@@ -184,88 +229,6 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (_) {
       _error = "Failed to update Safety PIN. Please try again.";
-      return false;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> login(String email, String password) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      await ApiService.login(email, password);
-      return false;
-    } on ApiException catch (e) {
-      _error = e.message;
-      _status = AuthStatus.unauthenticated;
-      return false;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> register({
-    required String name,
-    required String email,
-    required String password,
-    String? phone,
-  }) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      await ApiService.register(
-        name: name, email: email, password: password, phone: phone,
-      );
-      return false;
-    } on ApiException catch (e) {
-      _error = e.message;
-      return false;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<Map<String, dynamic>?> initiateForgotPassword(String identifier, bool isPhone) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      final data = await ApiService.forgotPassword(identifier, isPhone);
-      return data;
-    } on ApiException catch (e) {
-      _error = e.message;
-      return null;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> completePasswordReset({
-    required String identifier,
-    required bool isPhone,
-    required String code,
-    required String newPassword,
-  }) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      await ApiService.resetPassword(
-        identifier: identifier,
-        isPhone: isPhone,
-        code: code,
-        newPassword: newPassword,
-      );
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
       return false;
     } finally {
       _loading = false;
@@ -328,28 +291,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      await ApiService.changePassword(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
-      return false;
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
-
   Future<void> logout() async {
     await ApiService.clearToken();
     await _storage.delete(key: 'user_data');
@@ -370,7 +311,7 @@ class AuthProvider extends ChangeNotifier {
     } else if (token != null) {
       await ApiService.saveToken(token);
     }
-    final userPayload = userJson ??
+    final userPayload = Map<String, dynamic>.from(userJson ??
         {
           'id': (payload['id'] ?? payload['userId'] ?? '').toString(),
           'name': (payload['name'] ?? 'User').toString(),
@@ -381,7 +322,10 @@ class AuthProvider extends ChangeNotifier {
               ? (payload['assignedStation']['name'] ?? '').toString()
               : null,
           'stationId': payload['stationId'] ?? (payload['assignedStation'] is Map<String, dynamic> ? payload['assignedStation']['id'] : null),
-        };
+        });
+    // organizationId may only be present at the top level of the auth
+    // response even when a nested `user` object is returned.
+    userPayload['organizationId'] ??= payload['organizationId'];
 
     _user = UserModel.fromJson(userPayload);
     await _storage.write(key: 'user_data', value: jsonEncode(userPayload));

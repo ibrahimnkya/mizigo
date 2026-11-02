@@ -11,6 +11,7 @@ import '../../widgets/printer_selection_sheet.dart';
 import '../../providers/printer_provider.dart';
 import '../../services/api_service.dart';
 import '../../models/parcel_model.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 class ParcelDetailScreen extends StatefulWidget {
   final ShipmentData shipment;
@@ -111,37 +112,13 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
   }
 
   Future<void> _executePrint(PrinterProvider provider, Map<String, dynamic> packageData) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-            ),
-            const Gap(12),
-            const Text("Printing POS receipt..."),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    MizigoToasts.showInfo(context, "Printing POS receipt...");
 
     final success = await provider.printReceipt(packageData);
     
     if (!mounted) return;
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? "Receipt printed successfully!" : "Printing failed. Try again."),
-        backgroundColor: success ? const Color(0xFF10B981) : Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    success ? MizigoToasts.showSuccess(context, "Receipt printed successfully!") : MizigoToasts.showError(context, "Printing failed. Try again.");
   }
 
   Future<void> _cancelParcel() async {
@@ -204,40 +181,24 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
     if (shouldCancel == true) {
       if (reasonController.text.trim().isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cancellation reason is required'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          MizigoToasts.showError(context, 'Cancellation reason is required');
         }
         return;
       }
 
       setState(() => _isLoading = true);
       try {
-        await ApiService.updateParcelStatus(
+        await ApiService.cancelParcel(
           widget.shipment.id,
-          'Canceled',
-          location: 'Canceled by user. Reason: ${reasonController.text.trim()}',
+          reasonController.text.trim(),
         );
         await _fetchFullParcel();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Parcel canceled successfully ✓'),
-              backgroundColor: Color(0xFF10B981),
-            ),
-          );
+          MizigoToasts.showSuccess(context, 'Parcel canceled successfully ✓');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to cancel parcel: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          MizigoToasts.showError(context, 'Failed to cancel parcel: $e');
         }
       } finally {
         if (mounted) {
@@ -553,7 +514,7 @@ class _ParcelDetailScreenState extends State<ParcelDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Shipment Timeline',
+          'Parcel Timeline',
           style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -650,8 +611,8 @@ class _StatusBadge extends StatelessWidget {
         break;
       case 'intransit':
       case 'dispatched':
-        bg = const Color(0xFF3B82F6).withValues(alpha: 0.15);
-        text = const Color(0xFF3B82F6);
+        bg = const Color(0xFF5C0B19).withValues(alpha: 0.15);
+        text = const Color(0xFF5C0B19);
         break;
       case 'canceled':
         bg = const Color(0xFFEF4444).withValues(alpha: 0.15);

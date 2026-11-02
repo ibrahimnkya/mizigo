@@ -217,8 +217,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
               icon: HugeIcons.strokeRoundedLocation01,
               name: 'Current Location',
               subtitle: 'Using GPS for highest accuracy',
-              iconColor: const Color(0xFF3B82F6),
-              iconBgColor: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+              iconColor: const Color(0xFF5C0B19),
+              iconBgColor: const Color(0xFF5C0B19).withValues(alpha: 0.1),
               onTap: _pickOnMap,
             );
           }
@@ -272,7 +272,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
   }
 
   Widget _buildSearchQueryTile() {
-    const accent = Color(0xFF3B82F6);
+    const accent = Color(0xFF5C0B19);
     return _buildLocationTile(
       icon: HugeIcons.strokeRoundedSearch01,
       name: 'Search "${_searchController.text.trim()}"',
@@ -300,7 +300,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen>
           onTap();
         },
         splashColor: Colors.transparent,
-        highlightColor: const Color(0xFF3B82F6).withValues(alpha: 0.04),
+        highlightColor: const Color(0xFF5C0B19).withValues(alpha: 0.04),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(

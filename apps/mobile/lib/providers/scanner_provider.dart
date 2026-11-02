@@ -39,36 +39,7 @@ class ScannerProvider extends ChangeNotifier {
       final parcel = ParcelModel.fromJson(results.first);
       _scannedParcel = parcel;
 
-      // 3. Perform operation-specific logic if needed
-      // For now, we just fetch it. The actual state change (Dispatch/Offload/Deliver)
-      // will be triggered from the search/scan result.
-      
-      // If the operation is dispatch, we mark it as 'In Transit'
-      // If offload, 'At Warehouse'
-      // If deliver, 'Completed'
-      
-      String? newStatus;
-      switch (_currentOperation) {
-        case ParcelOperation.dispatch:
-          newStatus = 'In Transit';
-          break;
-        case ParcelOperation.offload:
-          newStatus = 'At Warehouse';
-          break;
-        case ParcelOperation.deliver:
-          newStatus = 'Completed';
-          break;
-        default:
-          break;
-      }
-
-      if (newStatus != null) {
-        await ApiService.updateParcelStatus(parcel.id, newStatus);
-        // Refresh scanned parcel with new status
-        final updatedJson = await ApiService.getParcelById(parcel.id);
-        _scannedParcel = ParcelModel.fromJson(updatedJson);
-      }
-
+      // Operation (dispatch/offload/deliver/cancel) is confirmed from the details screen.
       return true;
     } on ApiException catch (e) {
       _error = e.message;

@@ -29,7 +29,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF3B82F6),
+              primary: Color(0xFF5C0B19),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Color(0xFF1E293B),
@@ -52,7 +52,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF3B82F6),
+              primary: Color(0xFF5C0B19),
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Color(0xFF1E293B),
@@ -251,11 +251,11 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                               height: 22,
                               decoration: BoxDecoration(
                                 color: _lastMileDelivery
-                                    ? const Color(0xFF3B82F6)
+                                    ? const Color(0xFF5C0B19)
                                     : Colors.transparent,
                                 border: Border.all(
                                   color: _lastMileDelivery
-                                      ? const Color(0xFF3B82F6)
+                                      ? const Color(0xFF5C0B19)
                                       : AppTheme.border,
                                   width: 2,
                                 ),
@@ -284,7 +284,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF3B82F6),
+                                  color: const Color(0xFF5C0B19),
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -318,7 +318,7 @@ class _SchedulePickupScreenState extends State<SchedulePickupScreen> {
                             });
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: const Color(0xFF5C0B19),
                       disabledBackgroundColor: AppTheme.border,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),

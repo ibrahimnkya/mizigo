@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../services/api_service.dart';
-import '../../models/parcel_model.dart';
-import '../../models/operation_model.dart';
-import '../../widgets/common/shimmer_utils.dart';
-import '../../theme/app_theme.dart';
 
+import '../../models/operation_model.dart';
+import '../../models/parcel_model.dart';
+import '../../services/api_service.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/profile/premium_settings_components.dart';
+import '../../widgets/staff/parcel_cards.dart';
+import '../../widgets/staff/parcel_number_field.dart';
+import '../../widgets/staff/parcel_search_suggestions.dart';
+import '../../utils/parcel_search.dart';
+import '../../providers/parcel_provider.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/staff/staff_settings.dart';
+
+/// Offload Parcels — select in-transit parcels (from the list, a search or a
+/// scan) and offload them together at this station.
 class OffloadParcelScreen extends StatefulWidget {
   const OffloadParcelScreen({super.key});
 
@@ -18,15 +28,13 @@ class OffloadParcelScreen extends StatefulWidget {
 
 class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
   final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
   List<ParcelModel> _transitItems = [];
-  final Set<String> _selectedItems = {};
+  final Set<String> _selected = {};
   bool _loading = true;
   bool _submitting = false;
   bool _searching = false;
   ParcelModel? _foundParcel;
-
-  final List<String> _mockClerks = ['Kassim Majaliwa', 'Neema Shayo', 'Said Mwema'];
-  String? _selectedClerk;
 
   @override
   void initState() {
@@ -34,474 +42,215 @@ class _OffloadParcelScreenState extends State<OffloadParcelScreen> {
     _fetchTransitItems();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  static bool _inTransit(ParcelModel c) =>
+      c.status == ParcelStatus.inTransit || c.status == ParcelStatus.dispatched;
+
   Future<void> _fetchTransitItems() async {
     setState(() => _loading = true);
     try {
       final raw = await ApiService.getParcels();
-      List<ParcelModel> items = raw
-          .map((j) => ParcelModel.fromJson(j))
-          .where((c) => 
-            c.status == ParcelStatus.inTransit || 
-            c.status == ParcelStatus.dispatched ||
-            c.status.name.toUpperCase() == 'IN_TRANSIT' ||
-            c.status.displayLabel.toUpperCase() == 'IN TRANSIT'
-          )
-          .toList();
-      
-      setState(() {
-        _transitItems = items;
-      });
+      final items = raw.map((j) => ParcelModel.fromJson(j)).where(_inTransit).toList();
+      if (mounted) setState(() => _transitItems = items);
     } catch (e) {
-      debugPrint('Error fetching transit items: $e');
+      if (mounted) MizigoToasts.showError(context, 'Couldn’t load parcels in transit');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _search() async {
-    if (_searchController.text.isEmpty) return;
-    
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    // Smart search over parcels already loaded first; the server only if none match.
+    final local = searchParcels([..._transitItems, ...context.read<ParcelProvider>().parcels], query);
+    if (local.isNotEmpty) {
+      _useParcel(local.first);
+      return;
+    }
     setState(() {
       _searching = true;
       _foundParcel = null;
     });
-
     try {
-      final results = await ApiService.searchParcel(_searchController.text);
-      if (results.isNotEmpty) {
-        setState(() {
-          _foundParcel = ParcelModel.fromJson(results.first);
-        });
+      final results = await ApiService.searchParcel(query);
+      if (!mounted) return;
+      if (results.isEmpty) {
+        MizigoToasts.showError(context, 'No parcel found for “$query”');
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No parcel found with this ID'), backgroundColor: Color(0xFFEF4444)),
-          );
-        }
+        final p = ParcelModel.fromJson(results.first);
+        setState(() {
+          _foundParcel = p;
+          if (_inTransit(p)) _selected.add(p.id);
+        });
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
+    } catch (_) {
+      if (mounted) MizigoToasts.showError(context, 'Search failed. Check your connection.');
     } finally {
       if (mounted) setState(() => _searching = false);
     }
   }
 
+  /// Shows [p] as the found parcel (and selects it if it can be acted on).
+  void _useParcel(ParcelModel p) {
+    setState(() {
+      _foundParcel = p;
+      if (_inTransit(p)) _selected.add(p.id);
+    });
+  }
+
+  Future<void> _scan() async {
+    final code = await context.push<String>('/scanner', extra: ParcelOperation.offload);
+    if (code != null && mounted) {
+      _searchController.text = code;
+      _search();
+    }
+  }
+
+  void _toggle(String id) => setState(() => _selected.contains(id) ? _selected.remove(id) : _selected.add(id));
+
   Future<void> _offloadSelected() async {
-    if (_selectedItems.isEmpty || _selectedClerk == null) return;
+    if (_selected.isEmpty) return;
+    final count = _selected.length;
+    final confirmed = await showStaffConfirmSheet(
+      context,
+      title: 'Offload $count parcel${count == 1 ? '' : 's'}?',
+      message: 'They’ll be marked as offloaded at this station and receivers will be notified by SMS.',
+      confirmText: 'Offload',
+    );
+    if (!confirmed || !mounted) return;
 
     setState(() => _submitting = true);
-    try {
-      for (final id in _selectedItems) {
-        await ApiService.updateParcelStatus(id, 'Offloaded', 
-          location: 'Arrived at destination. Received by Clerk: $_selectedClerk');
+    var succeeded = 0;
+    var failed = 0;
+    for (final id in _selected.toList()) {
+      try {
+        await ApiService.offloadParcel(id);
+        succeeded++;
+      } catch (_) {
+        failed++;
       }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_selectedItems.length} items offloaded by $_selectedClerk!'),
-            backgroundColor: const Color(0xFF10B981),
-          ),
-        );
-        context.pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Offload Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
     }
+    if (!mounted) return;
+    setState(() => _submitting = false);
+    if (succeeded > 0) MizigoToasts.showSuccess(context, '$succeeded parcel${succeeded == 1 ? '' : 's'} offloaded');
+    if (failed > 0) MizigoToasts.showError(context, '$failed couldn’t be offloaded. Try again.');
+    if (succeeded > 0) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        title: Text(
-          'Offload Parcel',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(child: _buildSearchField()),
-                const Gap(12),
-                _buildScannerButton(),
-              ],
-            ),
-          ),
-          
-          if (_foundParcel != null)
-             _buildFoundParcelCard(),
+    final palette = StaffPalette.of(context);
+    final found = _foundParcel;
+    final listed = _transitItems.where((p) => p.id != found?.id).toList();
+    final allSelected = _transitItems.isNotEmpty && _transitItems.every((p) => _selected.contains(p.id));
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              children: [
-                const HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: Color(0xFF6366F1), size: 24),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Incoming Shipments',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return StaffSettingsScaffold(
+      title: 'Offload Parcels',
+      onBack: () => context.pop(),
+      onRefresh: _fetchTransitItems,
+      bottom: StaffButton(
+        label: _selected.isEmpty
+            ? 'Select parcels to offload'
+            : 'Offload ${_selected.length} parcel${_selected.length == 1 ? '' : 's'}',
+        icon: HugeIcons.strokeRoundedPackage01,
+        loading: _submitting,
+        onPressed: _selected.isEmpty ? null : _offloadSelected,
+      ),
+      children: [
+        ParcelLookupBar(
+          field: ParcelSearchSuggestions(
+            controller: _searchController,
+            focusNode: _searchFocus,
+            onParcelSelected: _useParcel,
+            fieldBuilder: (_) => ParcelNumberField(
+              controller: _searchController,
+              focusNode: _searchFocus,
+              freeText: true,
+              loading: _searching,
+              onSubmitted: (_) => _search(),
             ),
           ),
-          
-          Expanded(
-            child: _loading 
-              ? ShimmerLoading(
-                  isLoading: true,
-                  child: const ListSkeleton(height: 100, padding: 24),
-                )
-              : _transitItems.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _transitItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _transitItems[index];
-                      final isSelected = _selectedItems.contains(item.id);
-                      
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedItems.remove(item.id);
-                              } else {
-                                _selectedItems.add(item.id);
-                              }
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.surface
-                                  : AppTheme.background,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected ? const Color(0xFF6366F1) : AppTheme.border,
-                                width: isSelected ? 2 : 1,
-                              ),
-                              boxShadow: isSelected ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ] : null,
-                            ),
-                            child: Row(
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  onChanged: (v) {
-                                    setState(() {
-                                      if (v!) {
-                                        _selectedItems.add(item.id);
-                                      } else {
-                                        _selectedItems.remove(item.id);
-                                      }
-                                    });
-                                  },
-                                  activeColor: const Color(0xFF6366F1),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                ),
-                                const Gap(12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '#${item.id.length > 8 ? item.id.substring(0, 8).toUpperCase() : item.id.toUpperCase()}',
-                                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF6366F1)),
-                                      ),
-                                      const Gap(4),
-                                      Text(
-                                        'From: ${item.fromAddress}',
-                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
-                                      ),
-                                      const Gap(2),
-                                      Text(
-                                        'Recipient: ${item.receiverName}',
-                                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const HugeIcon(icon: HugeIcons.strokeRoundedPackage01, color: Color(0xFF94A3B8), size: 24),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+          onScan: _scan,
+        ),
+        if (found != null) ...[
+          const Gap(16),
+          ParcelSummaryCard(
+            parcel: found,
+            selected: _inTransit(found) ? _selected.contains(found.id) : null,
+            onTap: _inTransit(found) ? () => _toggle(found.id) : null,
           ),
-          
-          if (_transitItems.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10)),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildClerkDropdown(),
-                      ),
-                      const Gap(16),
-                      Text(
-                        '${_selectedItems.length} selected',
-                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                  const Gap(24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: FilledButton(
-                      onPressed: (_selectedItems.isEmpty || _selectedClerk == null || _submitting) ? null : _offloadSelected,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
-                        disabledBackgroundColor: const Color(0xFFE2E8F0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: _submitting
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Confirm Offload',
-                              style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 16),
-                            ),
-                    ),
-                  ),
-                ],
+          if (!_inTransit(found))
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4),
+              child: Text(
+                'This parcel is ${found.status.displayLabel.toLowerCase()}, so it can’t be offloaded.',
+                style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFFD97706)),
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildClerkDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedClerk,
-          hint: Text('Select Clerk', style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textMuted)),
-          isExpanded: true,
-          dropdownColor: AppTheme.surface,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
-          items: _mockClerks.map((String clerk) {
-            return DropdownMenuItem<String>(
-              value: clerk,
-              child: Text(clerk, style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textPrimary)),
-            );
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedClerk = val),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      onSubmitted: (_) => _search(),
-      textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: AppTheme.textMuted),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        filled: true,
-        fillColor: AppTheme.background,
-        prefixIcon: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
-        ),
-        suffixIcon: _searching 
-          ? const Padding(
-              padding: EdgeInsets.all(12.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFF6366F1), strokeWidth: 2)),
-            )
-          : IconButton(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Color(0xFF6366F1)),
-              onPressed: _search,
-            ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-    );
-  }
-
-  Widget _buildScannerButton() {
-    return InkWell(
-      onTap: () async {
-        final code = await context.push<String>('/scanner', extra: ParcelOperation.offload);
-        if (code != null) {
-          _searchController.text = code;
-          _search();
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 52, height: 52,
-        decoration: BoxDecoration(
-          color: const Color(0xFF6366F1),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(color: const Color(0xFF6366F1).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: const Center(child: HugeIcon(icon: HugeIcons.strokeRoundedQrCode01, color: Colors.white, size: 24)),
-      ),
-    );
-  }
-
-  Widget _buildFoundParcelCard() {
-    final isSelected = _selectedItems.contains(_foundParcel!.id);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF6366F1), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
+        const Gap(20),
+        Row(
           children: [
-            Row(
+            Text(
+              'In Transit',
+              style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w700, color: palette.fg()),
+            ),
+            const Gap(8),
+            if (!_loading)
+              Text('${_transitItems.length}', style: GoogleFonts.outfit(fontSize: 16, color: palette.fg(0.5))),
+            const Spacer(),
+            if (_transitItems.isNotEmpty)
+              TextButton(
+                onPressed: () => setState(() {
+                  if (allSelected) {
+                    _selected.removeAll(_transitItems.map((p) => p.id));
+                  } else {
+                    _selected.addAll(_transitItems.map((p) => p.id));
+                  }
+                }),
+                child: Text(allSelected ? 'Clear' : 'Select all', style: GoogleFonts.outfit(fontSize: 15)),
+              ),
+          ],
+        ),
+        const Gap(8),
+        if (_loading)
+          for (var i = 0; i < 3; i++)
+            Container(
+              height: 150,
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(color: palette.surface(0.08), borderRadius: BorderRadius.circular(24)),
+            )
+        else if (_transitItems.isEmpty)
+          StaffGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFF6366F1).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: const HugeIcon(icon: HugeIcons.strokeRoundedPackage01, color: Color(0xFF6366F1), size: 24),
-                ),
+                HugeIcon(icon: HugeIcons.strokeRoundedSpeedTrain01, color: palette.fg(0.4), size: 30),
                 const Gap(16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('IDENTIFIED SHIPMENT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF6366F1))),
-                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => setState(() => _foundParcel = null),
-                  icon: const Icon(Icons.close, color: Color(0xFF64748B), size: 20),
-                ),
-              ],
-            ),
-            const Gap(16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Origin', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
-                    Text(_foundParcel!.fromAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                  ],
-                ),
-                SizedBox(
-                  height: 40,
-                  child: FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedItems.remove(_foundParcel!.id);
-                        } else {
-                          _selectedItems.add(_foundParcel!.id);
-                        }
-                      });
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(isSelected ? 'Remove' : 'Select for Offload', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+                  child: Text(
+                    'No parcels are in transit right now. Pull down to refresh.',
+                    style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.7)),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: const Color(0xFFE2E8F0), size: 80),
-          const Gap(24),
-          Text(
-            'No data is available',
-            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-          ),
-          const Gap(8),
-          Text(
-            'There are currently no parcels in transit\nto this station.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textMuted),
-          ),
-        ],
-      ),
+          )
+        else
+          for (final p in listed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: ParcelSummaryCard(parcel: p, selected: _selected.contains(p.id), onTap: () => _toggle(p.id)),
+            ),
+      ],
     );
   }
 }

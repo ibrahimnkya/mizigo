@@ -99,7 +99,7 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                         label: Text('View Receipt', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
                         onPressed: () => context.go('/parcel/${widget.parcelId}/receipt'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
+                          backgroundColor: const Color(0xFF5C0B19),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -108,7 +108,7 @@ class _ParcelStatusScreenState extends State<ParcelStatusScreen> {
                     ),
                   if (status == ParcelStatus.received) ...[
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3B82F6))),
+                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF5C0B19))),
                       const Gap(10),
                       Text('Auto-refreshing every 10s', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                     ]),
@@ -171,9 +171,10 @@ class _StatusIcon extends StatelessWidget {
       case ParcelStatus.received: return AppTheme.warning;
       case ParcelStatus.dispatched:
       case ParcelStatus.offloaded:
-      case ParcelStatus.inTransit: return const Color(0xFF3B82F6);
+      case ParcelStatus.inTransit: return const Color(0xFF5C0B19);
       case ParcelStatus.atStation: return AppTheme.accent;
       case ParcelStatus.delivered: return AppTheme.success;
+      case ParcelStatus.lost:
       case ParcelStatus.canceled: return AppTheme.danger;
     }
   }
@@ -186,6 +187,7 @@ class _StatusIcon extends StatelessWidget {
       case ParcelStatus.inTransit: return Icons.local_shipping_outlined;
       case ParcelStatus.atStation: return Icons.store_outlined;
       case ParcelStatus.delivered: return Icons.check_circle_outline;
+      case ParcelStatus.lost:
       case ParcelStatus.canceled: return Icons.cancel_outlined;
     }
   }
@@ -212,7 +214,7 @@ class _Timeline extends StatelessWidget {
     (ParcelStatus.received, 'Received', 'Package received at station'),
     (ParcelStatus.inTransit, 'In Transit', 'Package is on the way'),
     (ParcelStatus.atStation, 'At Station', 'Ready for delivery'),
-    (ParcelStatus.delivered, 'Delivered', 'Shipment complete'),
+    (ParcelStatus.delivered, 'Delivered', 'Parcel delivered'),
   ];
 
   @override

@@ -9,7 +9,9 @@ class ReceiverScreen extends StatefulWidget {
   final String pickup;
   final String delivery;
   final String vehicle;
+  final int peopleNeeded;
   final int basePrice;
+  final double weight;
   final String parcelDescription;
   final String packageName;
   final String packageValue;
@@ -23,7 +25,9 @@ class ReceiverScreen extends StatefulWidget {
     required this.pickup,
     required this.delivery,
     required this.vehicle,
+    this.peopleNeeded = 0,
     required this.basePrice,
+    this.weight = 0,
     required this.parcelDescription,
     required this.packageName,
     required this.packageValue,
@@ -43,21 +47,15 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
 
   bool _receiverPays = false;
 
-  // Additional services
+  // Additional services requested — sent to the backend as data, not priced
+  // client-side. The tariff quote (widget.basePrice) is the only price shown;
+  // any surcharge for these is determined server-side, not invented here.
   bool _insurance = false;
   bool _fragile = false;
-  bool _express = false;
-  bool _standard = true;
 
   // Pickup type
-  bool _pickupAtStation = true;   // Free – SGR Station
-  bool _deliverToLocation = false; // +15,000
-
-  static const int _insuranceCost = 10000;
-  static const int _fragileCost = 20000;
-  static const int _expressCost = 30000;
-  static const int _standardCost = 10000;
-  static const int _deliveryCost = 15000;
+  bool _pickupAtStation = true;
+  bool _deliverToLocation = false;
 
   @override
   void initState() {
@@ -66,21 +64,9 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
     if (widget.parcelType == 'Fragile Goods') {
       _fragile = true;
     }
-    if (widget.urgency == 'Express') {
-      _express = true;
-      _standard = false;
-    }
   }
 
-  int get _total {
-    int t = widget.basePrice;
-    if (_insurance) t += _insuranceCost;
-    if (_fragile) t += _fragileCost;
-    if (_express) t += _expressCost;
-    if (_standard) t += _standardCost;
-    if (_deliverToLocation) t += _deliveryCost;
-    return t;
-  }
+  int get _total => widget.basePrice;
 
   bool get _isPhoneValid {
     final phone = _phoneCtrl.text.trim();
@@ -210,38 +196,14 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       children: [
                         _ServiceRow(
                           label: 'Insurance',
-                          cost: _insuranceCost,
                           checked: _insurance,
                           onTap: () => setState(() => _insurance = !_insurance),
                           showDivider: true,
                         ),
                         _ServiceRow(
                           label: 'Fragile handling',
-                          cost: _fragileCost,
                           checked: _fragile,
                           onTap: () => setState(() => _fragile = !_fragile),
-                          showDivider: true,
-                        ),
-                        _ServiceRow(
-                          label: 'Express delivery',
-                          cost: _expressCost,
-                          checked: _express,
-                          isRadio: true,
-                          onTap: () => setState(() {
-                            _express = true;
-                            _standard = false;
-                          }),
-                          showDivider: true,
-                        ),
-                        _ServiceRow(
-                          label: 'Standard delivery',
-                          cost: _standardCost,
-                          checked: _standard,
-                          isRadio: true,
-                          onTap: () => setState(() {
-                            _standard = true;
-                            _express = false;
-                          }),
                           showDivider: false,
                         ),
                       ],
@@ -270,7 +232,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                       children: [
                         _PickupRow(
                           label: 'Pickup at SGR Station',
-                          cost: 0,
                           checked: _pickupAtStation,
                           onTap: () => setState(() {
                             _pickupAtStation = true;
@@ -280,7 +241,6 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                         ),
                         _PickupRow(
                           label: 'Deliver to Location',
-                          cost: _deliveryCost,
                           checked: _deliverToLocation,
                           onTap: () => setState(() {
                             _deliverToLocation = true;
@@ -340,14 +300,22 @@ class _ReceiverScreenState extends State<ReceiverScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _nameCtrl.text.isEmpty || !_isPhoneValid ? null : () {
+                      final additionalServices = <String>[
+                        if (_insurance) 'insurance',
+                        if (_fragile) 'fragile handling',
+                      ];
                       context.push('/send-package/confirm', extra: {
                         'pickup': widget.pickup,
                         'delivery': widget.delivery,
                         'vehicle': widget.vehicle,
+                        'peopleNeeded': widget.peopleNeeded,
+                        'weight': widget.weight,
                         'receiverName': _nameCtrl.text,
                         'receiverPhone': _phoneCtrl.text,
                         'total': _total,
                         'receiverPays': _receiverPays,
+                        'additionalServices': additionalServices,
+                        'pickupType': _pickupAtStation ? 'STATION_PICKUP' : 'HOME_DELIVERY',
                         'parcelDescription': widget.parcelDescription,
                         'packageName': widget.packageName,
                         'packageValue': widget.packageValue,
@@ -487,62 +455,18 @@ class _CheckBox extends StatelessWidget {
   }
 }
 
-class _RadioBox extends StatelessWidget {
-  final bool checked;
-  final VoidCallback onTap;
-  const _RadioBox({required this.checked, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 20,
-        height: 20,
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: checked
-                ? theme.colorScheme.primary
-                : theme.colorScheme.outline,
-            width: 1.5,
-          ),
-        ),
-        child: checked
-            ? Center(
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              )
-            : null,
-      ),
-    );
-  }
-}
 
 class _ServiceRow extends StatelessWidget {
   final String label;
-  final int cost;
   final bool checked;
   final VoidCallback onTap;
   final bool showDivider;
-  final bool isRadio;
 
   const _ServiceRow({
     required this.label,
-    required this.cost,
     required this.checked,
     required this.onTap,
     required this.showDivider,
-    this.isRadio = false,
   });
 
   @override
@@ -555,9 +479,7 @@ class _ServiceRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                isRadio
-                    ? _RadioBox(checked: checked, onTap: onTap)
-                    : _CheckBox(checked: checked, onTap: onTap),
+                _CheckBox(checked: checked, onTap: onTap),
                 const Gap(14),
                 Expanded(
                   child: Text(
@@ -567,14 +489,6 @@ class _ServiceRow extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: AppTheme.textPrimary,
                     ),
-                  ),
-                ),
-                Text(
-                  '+ ${cost.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
                   ),
                 ),
               ],
@@ -595,14 +509,12 @@ class _ServiceRow extends StatelessWidget {
 
 class _PickupRow extends StatelessWidget {
   final String label;
-  final int cost;
   final bool checked;
   final VoidCallback onTap;
   final bool showDivider;
 
   const _PickupRow({
     required this.label,
-    required this.cost,
     required this.checked,
     required this.onTap,
     required this.showDivider,
@@ -646,16 +558,6 @@ class _PickupRow extends StatelessWidget {
                             ? theme.colorScheme.primary
                             : AppTheme.textPrimary,
                       ),
-                    ),
-                  ),
-                  Text(
-                    cost == 0 ? '0' : '+ ${cost.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: checked
-                          ? theme.colorScheme.primary
-                          : AppTheme.textSecondary,
                     ),
                   ),
                 ],

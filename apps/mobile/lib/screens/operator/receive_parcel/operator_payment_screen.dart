@@ -5,7 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import '../../../services/api_service.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/staff_palette.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
+import '../../../widgets/staff/staff_settings.dart';
+import '../../../widgets/staff/step_progress.dart';
+import '../../../widgets/staff/parcel_badges.dart';
+import '../../../widgets/staff/parcel_cards.dart';
 
 class OperatorPaymentScreen extends StatefulWidget {
   final Map<String, dynamic> packageData;
@@ -18,63 +23,56 @@ class OperatorPaymentScreen extends StatefulWidget {
 
 class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
   bool _loading = false;
-  double _calculatedPrice = 0.0;
+  bool _pricingLoading = true;
+  bool _pricingError = false;
   bool _hasError = false;
 
-  final double _baseFare = 5000.0;
-  double _weightCharge = 0.0;
-  double _sizeSurcharge = 0.0;
-  double _urgencyPremium = 0.0;
-  double _additionalServicesCost = 0.0;
+  /// Server quote: same engine /parcel/receive charges from.
+  Map<String, dynamic> _quote = const {};
+  double get _calculatedPrice => (_quote['amount'] as num?)?.toDouble() ?? 0;
+
+  Map<String, dynamic> get _d => widget.packageData;
+  List<String> get _services => (_d['additionalServices'] as List?)?.map((e) => '$e').toList() ?? const [];
 
   @override
   void initState() {
     super.initState();
-    _calculatePrice();
+    _loadPricingThenCalculate();
   }
 
-  void _calculatePrice() {
-    final weightStr = widget.packageData['weight']?.toString() ?? '1';
-    final weight = double.tryParse(weightStr) ?? 1.0;
-    _weightCharge = weight * 1000.0;
-
-    final size = widget.packageData['packageSize']?.toString() ?? '';
-    if (size.contains('Size 1')) {
-      _sizeSurcharge = 2000.0;
-    } else if (size.contains('Size 2')) {
-      _sizeSurcharge = 5000.0;
-    } else if (size.contains('Size 3')) {
-      _sizeSurcharge = 10000.0;
-    } else {
-      _sizeSurcharge = 0.0;
-    }
-
-    double subtotal = _baseFare + _weightCharge + _sizeSurcharge;
-
-    final urgency = widget.packageData['urgency']?.toString() ?? '';
-    double multiplier = 1.0;
-    if (urgency == 'Express') {
-      multiplier = 1.5;
-    } else if (urgency == 'MGR') {
-      multiplier = 2.0;
-    }
-
-    _urgencyPremium = subtotal * (multiplier - 1.0);
-
-    // Calculate additional services cost
-    _additionalServicesCost = 0.0;
-    if (widget.packageData['additionalServices'] != null) {
-      final List<dynamic> services = widget.packageData['additionalServices'] as List<dynamic>;
-      for (final serviceId in services) {
-        if (serviceId == 'insurance') _additionalServicesCost += 3000.0;
-        if (serviceId == 'packaging') _additionalServicesCost += 2000.0;
-        if (serviceId == 'fragile') _additionalServicesCost += 2500.0;
+  Future<void> _loadPricingThenCalculate() async {
+    setState(() {
+      _pricingLoading = true;
+      _pricingError = false;
+    });
+    try {
+      final quote = await ApiService.getPriceQuote(
+        weight: double.tryParse('${_d['weight']}') ?? 1,
+        urgency: '${_d['urgency'] ?? 'Standard'}',
+        parcelType: '${_d['parcelType'] ?? 'Parcel'}',
+        packageSize: '${_d['packageSize'] ?? 'Standard'}',
+        condition: _d['condition']?.toString(),
+        declaredValue: double.tryParse('${_d['packageValue'] ?? 0}') ?? 0,
+        packageName: _d['packageName']?.toString(),
+        receivingStationId: _d['originStationId']?.toString(),
+        destinationStationId: _d['destinationStationId']?.toString(),
+        additionalServices: _services,
+      );
+      if (!mounted) return;
+      setState(() {
+        _quote = quote;
+        _pricingLoading = false;
+        _pricingError = quote['amount'] == null;
+      });
+    } catch (e) {
+      debugPrint('[Pricing] /parcel/quote failed: $e');
+      if (mounted) {
+        setState(() {
+          _pricingLoading = false;
+          _pricingError = true;
+        });
       }
     }
-
-    setState(() {
-      _calculatedPrice = (subtotal * multiplier) + _additionalServicesCost;
-    });
   }
 
   Future<void> _submitReception() async {
@@ -119,174 +117,123 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _hasError = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
+        MizigoToasts.showError(context, 'Couldn’t receive the parcel: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Widget _buildBreakdownRow(String label, double amount) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  static final _money = NumberFormat('#,###');
+  String _tsh(num v) => 'TSh ${_money.format(v.round())}';
+
+  static String _city(dynamic v) {
+    final s = '${v ?? ''}'.split(',').first.trim();
+    return s.isEmpty ? '—' : s;
+  }
+
+  /// One line of the breakdown: label (+ optional detail) and amount.
+  Widget _line(String label, num amount, {String? detail}) {
+    final palette = StaffPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: GoogleFonts.outfit(fontSize: 15, color: palette.fg(0.85))),
+                if (detail != null && detail.isNotEmpty)
+                  Text(detail, style: GoogleFonts.outfit(fontSize: 12.5, color: palette.fg(0.5))),
+              ],
+            ),
+          ),
+          Text(
+            '${amount < 0 ? '−' : ''}${_tsh(amount.abs())}',
+            style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: palette.fg()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Label  value" fact in the parcel summary grid.
+  Widget _fact(String label, String value) {
+    final palette = StaffPalette.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(label, style: GoogleFonts.outfit(fontSize: 12.5, color: palette.fg(0.5))),
+        const Gap(2),
         Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppTheme.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          'TZS ${NumberFormat('#,###').format(amount)}',
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: palette.fg()),
         ),
       ],
     );
   }
 
-  void _showPaymentHelp(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.62,
-        minChildSize: 0.4,
-        maxChildSize: 0.88,
-        builder: (ctx, scrollCtrl) => Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border(
-              top: BorderSide(color: AppTheme.border),
-              left: BorderSide(color: AppTheme.border),
-              right: BorderSide(color: AppTheme.border),
-            ),
+  Widget _person(String role, dynamic name, dynamic phone, List<List<dynamic>> icon) {
+    final palette = StaffPalette.of(context);
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: kStaffAccent.withValues(alpha: 0.14), shape: BoxShape.circle),
+          child: Center(
+            child: HugeIcon(icon: icon, color: kStaffAccent, size: 19),
           ),
+        ),
+        const Gap(12),
+        Expanded(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedCreditCard,
-                        color: AppTheme.accent,
-                        size: 22,
-                      ),
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Step 3 — Payment',
-                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-                          ),
-                          Text(
-                            'How payment is collected',
-                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: Icon(Icons.close_rounded, color: AppTheme.textSecondary, size: 22),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  controller: scrollCtrl,
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                  children: [
-                    _helpRow(
-                      HugeIcons.strokeRoundedCoins01,
-                      'Price Calculation',
-                      'Price is calculated based on weight (TZS 1,000/kg), package size surcharge, and delivery priority multiplier (Express ×1.5, MGR ×2.0).',
-                    ),
-                    _helpRow(
-                      HugeIcons.strokeRoundedPrinter,
-                      'Print Receipt',
-                      'Tap "Print Receipt" to register the parcel and print a receipt for the sender. Payment collection will be handled separately.',
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(24, 4, 24, MediaQuery.of(context).padding.bottom + 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.cPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Text(
-                      'Got it',
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 15),
-                    ),
-                  ),
-                ),
+              Text(role, style: GoogleFonts.outfit(fontSize: 12.5, color: palette.fg(0.5))),
+              Text(
+                '${name ?? '—'}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(fontSize: 15.5, fontWeight: FontWeight.w600, color: palette.fg()),
               ),
             ],
           ),
         ),
-      ),
+        if ('${phone ?? ''}'.isNotEmpty)
+          Text('$phone', style: GoogleFonts.outfit(fontSize: 14, color: palette.fg(0.65))),
+      ],
     );
   }
 
-  Widget _helpRow(dynamic icon, String title, String body) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  void _showPaymentHelp(BuildContext context) {
+    showStaffSheet<void>(
+      context,
+      title: 'Payment',
+      builder: (_) => const Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 18),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedCalculator,
+            label: 'Price calculation',
+            subtitle: 'From your tariff: base fare, weight, size, priority and services',
+            onTap: null,
           ),
-          const Gap(14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
-                const Gap(3),
-                Text(body, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
-              ],
-            ),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedMoney02,
+            label: 'Collect payment',
+            subtitle: 'Take the total from the sender before confirming',
+            onTap: null,
+          ),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedPrinter,
+            label: 'Print receipt',
+            subtitle: 'After confirming you can print the receipt and label',
+            onTap: null,
           ),
         ],
       ),
@@ -295,288 +242,234 @@ class _OperatorPaymentScreenState extends State<OperatorPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final appBarTheme = theme.appBarTheme;
-    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
-    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
-    final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
+    final palette = StaffPalette.of(context);
+    final d = _d;
+    final lines = (_quote['lines'] as List?)?.cast<Map>() ?? const [];
+    final services = (_quote['services'] as List?)?.cast<Map>() ?? const [];
+    final fromSgr = _quote['source'] == 'SGR';
+    final distance = (_quote['distanceInKm'] as num?)?.round();
+    final urgency = '${d['urgency'] ?? ''}';
+    final express = urgency.toLowerCase().contains('express') || urgency.toUpperCase() == 'MGR';
+    final value = double.tryParse('${d['packageValue'] ?? ''}') ?? 0;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 14,
-              bottom: 18,
-              left: 20,
-              right: 20,
+    return StaffSettingsScaffold(
+      title: 'Payment',
+      onBack: () => context.pop(),
+      onRefresh: _loadPricingThenCalculate,
+      trailing: IconButton(
+        tooltip: 'Help',
+        onPressed: () => _showPaymentHelp(context),
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: palette.fg(), size: 24),
+      ),
+      bottom: _pricingError
+          ? null
+          : StaffButton(
+              label: _pricingLoading ? 'Calculating price…' : 'Confirm & Receive · ${_tsh(_calculatedPrice)}',
+              icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+              loading: _loading,
+              onPressed: _pricingLoading ? null : _submitReception,
             ),
-            color: appBarBgColor,
-            child: Row(
+      children: [
+        const StepProgress(step: 3, total: 3, label: 'Payment'),
+        const Gap(16),
+
+        // ── Amount to collect + From → To, one orange card ──
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF78A1F), Color(0xFFD9620B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Amount to collect',
+                style: GoogleFonts.outfit(fontSize: 15, color: Colors.white.withValues(alpha: 0.85)),
+              ),
+              const Gap(2),
+              if (_pricingLoading)
+                Container(
+                  height: 38,
+                  width: 170,
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                )
+              else
+                Text(
+                  _pricingError ? '—' : _tsh(_calculatedPrice),
+                  style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+              const Gap(4),
+              Text(
+                _pricingLoading
+                    ? 'Calculating price…'
+                    : _pricingError
+                    ? 'Price unavailable'
+                    : fromSgr
+                    ? 'Live SGR tariff'
+                    : (_quote['estimate'] == true ? 'Estimate from your pricing rules' : 'From your pricing rules'),
+                style: GoogleFonts.outfit(fontSize: 13, color: Colors.white.withValues(alpha: 0.85)),
+              ),
+              const Gap(16),
+              ParcelRouteStrip(from: _city(d['originStation']), to: _city(d['destinationStation']), onColor: true),
+              if (distance != null || express) ...[
+                const Gap(12),
+                Row(
+                  children: [
+                    if (distance != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const HugeIcon(icon: HugeIcons.strokeRoundedRoute01, color: Colors.white, size: 14),
+                            const Gap(5),
+                            Text(
+                              '$distance km by SGR',
+                              style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const Spacer(),
+                    if (express) const ExpressBadge(),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        const Gap(10),
+
+        if (_pricingLoading) ...[
+          for (final h in [220.0])
+            Container(
+              height: h,
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(color: palette.surface(0.08), borderRadius: BorderRadius.circular(28)),
+            ),
+        ] else if (_pricingError)
+          StaffGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: appBarIconColor, size: 24),
+                Text(
+                  'Couldn’t get the price',
+                  style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: palette.fg()),
+                ),
+                const Gap(6),
+                Text(
+                  'The price comes from your pricing rules on the server. Check your connection and try again.',
+                  style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.65)),
                 ),
                 const Gap(16),
-                Text(
-                  'Payment Checkout',
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: appBarTextColor,
+                StaffButton(label: 'Retry', icon: HugeIcons.strokeRoundedRefresh, onPressed: _loadPricingThenCalculate),
+              ],
+            ),
+          )
+        else ...[
+          // ── Cost breakdown ──
+          StaffGlassCard(
+            title: 'Cost breakdown',
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Column(
+              children: [
+                for (final l in lines)
+                  _line('${l['label']}', (l['amount'] as num?) ?? 0, detail: l['detail']?.toString()),
+                if (services.isNotEmpty) ...[
+                  const StaffDivider(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Extra services',
+                        style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: palette.fg(0.55)),
+                      ),
+                    ),
+                  ),
+                  for (final sv in services) _line('${sv['label']}', (sv['amount'] as num?) ?? 0),
+                ],
+                const StaffDivider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Total',
+                          style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: palette.fg()),
+                        ),
+                      ),
+                      Text(
+                        _tsh(_calculatedPrice),
+                        style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w800, color: kStaffAccent),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                // Progress Dots
+              ],
+            ),
+          ),
+          const Gap(10),
+
+          // ── Parcel & people ──
+          StaffGlassCard(
+            title: 'Parcel',
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              children: [
                 Row(
-                  children: List.generate(3, (index) {
-                    final isActive = index == 2; // Step 3
-                    return Container(
-                      margin: const EdgeInsets.only(right: 4),
-                      width: isActive ? 12 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: isActive 
-                          ? (_hasError ? AppTheme.danger : AppTheme.accent) 
-                          : appBarTextColor.withValues(alpha: 0.24),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    );
-                  }),
+                  children: [
+                    Expanded(child: _fact('Item', '${d['packageName'] ?? '—'}')),
+                    Expanded(child: _fact('Type', '${d['parcelType'] ?? '—'}')),
+                  ],
                 ),
                 const Gap(12),
-                GestureDetector(
-                  onTap: () => _showPaymentHelp(context),
-                  child: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: appBarIconColor, size: 22),
+                Row(
+                  children: [
+                    Expanded(child: _fact('Weight', '${d['weight'] ?? '—'} kg')),
+                    Expanded(child: _fact('Size', '${d['packageSize'] ?? '—'}')),
+                  ],
                 ),
+                const Gap(12),
+                Row(
+                  children: [
+                    Expanded(child: _fact('Declared value', value > 0 ? _tsh(value) : '—')),
+                    Expanded(child: _fact('Priority', urgency.isEmpty ? '—' : urgency)),
+                  ],
+                ),
+                const Gap(14),
+                const StaffDivider(),
+                const Gap(12),
+                _person('Sender', d['senderName'], d['senderPhone'], HugeIcons.strokeRoundedUser),
+                const Gap(12),
+                _person('Receiver', d['receiverName'], d['receiverPhone'], HugeIcons.strokeRoundedUserCheck01),
               ],
             ),
           ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppTheme.cPrimary, AppTheme.cPrimary.withValues(alpha: 0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Amount to be Paid',
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const Gap(8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'TZS',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Gap(8),
-                            Text(
-                              NumberFormat('#,###').format(_calculatedPrice),
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 40,
-                                fontWeight: FontWeight.w800,
-                                height: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Gap(20),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Route',
-                                style: GoogleFonts.inter(color: Colors.white70, fontSize: 13),
-                              ),
-                              const Gap(16),
-                              Expanded(
-                                child: Text(
-                                  '${widget.packageData['originStation']} ➔ ${widget.packageData['destinationStation']}',
-                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(20),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.border),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cost Breakdown',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const Gap(16),
-                        _buildBreakdownRow('Base Fare', _baseFare),
-                        const Gap(12),
-                        _buildBreakdownRow('Weight Charge (${widget.packageData['weight'] ?? 1} kg)', _weightCharge),
-                        if (_sizeSurcharge > 0) ...[
-                          const Gap(12),
-                          _buildBreakdownRow('Size Surcharge (${widget.packageData['packageSize'] ?? 'Standard'})', _sizeSurcharge),
-                        ],
-                        if (_urgencyPremium > 0) ...[
-                          const Gap(12),
-                          _buildBreakdownRow('Delivery Priority Premium (${widget.packageData['urgency'] ?? 'Normal'})', _urgencyPremium),
-                        ],
-                        if (widget.packageData['additionalServices'] != null) ...[
-                          ...(widget.packageData['additionalServices'] as List<dynamic>).map((s) {
-                            String name = '';
-                            double price = 0.0;
-                            if (s == 'insurance') { name = 'Cargo Insurance'; price = 3000.0; }
-                            if (s == 'packaging') { name = 'Secure Packaging'; price = 2000.0; }
-                            if (s == 'fragile') { name = 'Special Handling'; price = 2500.0; }
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: _buildBreakdownRow(name, price),
-                            );
-                          }),
-                        ],
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Divider(color: AppTheme.border, height: 1),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Cost',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              'TZS ${NumberFormat('#,###').format(_calculatedPrice)}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF3B82F6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Gap(24),
-                ],
-              ),
+          if (_hasError) ...[
+            const Gap(12),
+            Text(
+              'Receiving failed. Check the details and try again.',
+              style: GoogleFonts.outfit(fontSize: 14, color: kStaffDanger),
             ),
-          ),
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              20, 16, 20, MediaQuery.of(context).padding.bottom + 16,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 58,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _submitReception,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.cPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: _loading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                     : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: Colors.white, size: 20),
-                          const Gap(8),
-                          Text(
-                            'Receive Parcel',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
+          ],
         ],
-      ),
+      ],
     );
   }
 }

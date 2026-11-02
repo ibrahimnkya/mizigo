@@ -12,6 +12,9 @@ import '../../providers/printer_provider.dart';
 import '../../widgets/printer_selection_sheet.dart';
 import '../../utils/receipt_pdf_generator.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/common/station_header_art.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 class ReceiptScreen extends StatefulWidget {
   final String parcelId;
@@ -78,9 +81,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to generate PDF: $e')),
-        );
+        MizigoToasts.showError(context, 'Failed to generate PDF: $e');
       }
     }
   }
@@ -100,24 +101,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   }
 
   Future<void> _executePrint(PrinterProvider provider) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-            ),
-            Gap(12),
-            Text("Printing POS receipt..."),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    MizigoToasts.showInfo(context, "Printing POS receipt...");
 
     // Shape the packageData for printer
     final packageData = {
@@ -134,14 +118,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     final success = await provider.printReceipt(packageData);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? "Receipt printed successfully!" : "Print failed. Try again."),
-        backgroundColor: success ? Colors.green : Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    success ? MizigoToasts.showSuccess(context, "Receipt printed successfully!") : MizigoToasts.showError(context, "Print failed. Try again.");
   }
 
   @override
@@ -154,7 +131,8 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
+        appBar: AppBar(
+        backgroundColor: Colors.transparent,title: const Text('Error')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -184,6 +162,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
         : 'Unknown Date';
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -196,7 +175,15 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Stack(
+        children: [
+          const StationHeaderArt(blur: 8),
+          // Content starts below the see-through app bar.
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: kToolbarHeight),
+              child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
@@ -250,7 +237,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         'Your transaction was successful',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: const Color(0xFF64748B),
+                          color: StaffPalette.of(context).fg(0.55),
                         ),
                       ),
                       const Gap(24),
@@ -370,6 +357,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             const Gap(40),
           ],
         ),
+      ),
+            ),
+          ),
+        ],
       ),
     );
   }

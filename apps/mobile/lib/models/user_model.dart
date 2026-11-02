@@ -7,6 +7,7 @@ class UserModel {
   final String? avatarUrl; // network URL or local file path
   final String? station;
   final String? stationId;
+  final String? organizationId;
 
   UserModel({
     required this.id,
@@ -17,6 +18,7 @@ class UserModel {
     this.avatarUrl,
     this.station,
     this.stationId,
+    this.organizationId,
   });
 
   bool get isStaff {
@@ -41,6 +43,7 @@ class UserModel {
       avatarUrl: json['avatarUrl'],
       station: json['station'],
       stationId: json['stationId'],
+      organizationId: json['organizationId'],
     );
   }
 
@@ -53,6 +56,7 @@ class UserModel {
         'avatarUrl': avatarUrl,
         'station': station,
         'stationId': stationId,
+        'organizationId': organizationId,
       };
 
   UserModel copyWith({
@@ -64,6 +68,7 @@ class UserModel {
     String? avatarUrl,
     String? station,
     String? stationId,
+    String? organizationId,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -74,6 +79,7 @@ class UserModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       station: station ?? this.station,
       stationId: stationId ?? this.stationId,
+      organizationId: organizationId ?? this.organizationId,
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/staff_palette.dart';
 
 class SettingsGroup extends StatelessWidget {
   final String? title;
@@ -226,6 +227,9 @@ class SettingsSwitchTile extends StatelessWidget {
 }
 
 class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
+  /// See-through bar (for screens with header art behind it).
+  final bool transparent;
+
   final String title;
   final List<Widget>? actions;
   final VoidCallback? onBack;
@@ -235,13 +239,14 @@ class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.actions,
     this.onBack,
+    this.transparent = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final appBarTheme = theme.appBarTheme;
-    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
+    final appBarBgColor = transparent ? Colors.transparent : (appBarTheme.backgroundColor ?? theme.primaryColor);
     final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
 
     return AppBar(
@@ -353,156 +358,183 @@ class SettingsCTAButton extends StatelessWidget {
 }
 
 class MizigoToasts {
-  static void showSuccess(BuildContext context, String message) {
-    _show(
-      context,
-      message,
-      const Color(0xFF10B981),
-      HugeIcons.strokeRoundedCheckmarkCircle01,
-      'Success',
-    );
-  }
+  static const _success = Color(0xFF34D399);
+  static const _error = Color(0xFFF87171);
+  static const _info = Color(0xFFE8913A);
+
+  static void showSuccess(BuildContext context, String message) =>
+      _show(context, message, _success, HugeIcons.strokeRoundedCheckmarkCircle02, 'Success');
 
   static void showError(BuildContext context, String message) {
-    final displayMessage = message.toLowerCase().contains('api') 
-        ? 'Server Connection Issue' 
-        : message;
-        
-    _show(
-      context,
-      displayMessage,
-      const Color(0xFFEF4444),
-      HugeIcons.strokeRoundedAlert01,
-      'Error',
-    );
+    final display = message.toLowerCase().contains('api') ? 'Couldn’t reach the server. Try again.' : message;
+    _show(context, display, _error, HugeIcons.strokeRoundedAlert02, 'Error');
   }
 
+  static void showInfo(BuildContext context, String message) =>
+      _show(context, message, _info, HugeIcons.strokeRoundedInformationCircle, 'Info');
+
+  static OverlayEntry? _current;
+  static Timer? _dismissTimer;
+
+  /// Shows the toast as an [OverlayEntry], not a dialog route. A route here
+  /// would be closed with `Navigator.pop()`, and if a screen was pushed in the
+  /// meantime (e.g. "code sent" → open the code screen) that pop would close
+  /// the new screen instead of the toast.
   static void _show(
-    BuildContext context, 
-    String message, 
-    Color statusColor, 
+    BuildContext context,
+    String message,
+    Color statusColor,
     List<List<dynamic>> icon,
     String type,
   ) {
-    late final Timer dismissTimer;
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (dialogContext) {
-        dismissTimer = Timer(const Duration(seconds: 3), () {
-          if (Navigator.of(dialogContext).canPop()) {
-            Navigator.of(dialogContext).pop();
-          }
-        });
+    _remove();
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _ToastBanner(
+        message: message,
+        statusColor: statusColor,
+        icon: icon,
+        type: type,
+        onDismiss: () {
+          if (identical(_current, entry)) _remove();
+        },
+      ),
+    );
+    _current = entry;
+    overlay.insert(entry);
+    _dismissTimer = Timer(const Duration(seconds: 3), () {
+      if (identical(_current, entry)) _remove();
+    });
+  }
 
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: statusColor.withValues(alpha: 0.2),
-                  width: 1.5,
+  static void _remove() {
+    _dismissTimer?.cancel();
+    _dismissTimer = null;
+    _current?.remove();
+    _current = null;
+  }
+}
+
+class _ToastBanner extends StatefulWidget {
+  const _ToastBanner({
+    required this.message,
+    required this.statusColor,
+    required this.icon,
+    required this.type,
+    required this.onDismiss,
+  });
+
+  final String message;
+  final Color statusColor;
+  final List<List<dynamic>> icon;
+  final String type;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_ToastBanner> createState() => _ToastBannerState();
+}
+
+class _ToastBannerState extends State<_ToastBanner> with SingleTickerProviderStateMixin {
+  late final AnimationController _anim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  )..forward();
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = StaffPalette.of(context);
+    final top = MediaQuery.of(context).padding.top + 10;
+    final curved = CurvedAnimation(parent: _anim, curve: Curves.easeOutCubic);
+    final color = widget.statusColor;
+
+    return Positioned(
+      top: top,
+      left: 16,
+      right: 16,
+      child: FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween(begin: const Offset(0, -0.4), end: Offset.zero).animate(curved),
+          child: Semantics(
+            liveRegion: true,
+            label: '${widget.type}: ${widget.message}',
+            child: Dismissible(
+              key: const ValueKey('toast'),
+              direction: DismissDirection.up,
+              onDismissed: (_) => widget.onDismiss(),
+              child: GestureDetector(
+                onTap: widget.onDismiss,
+                child: Material(
+                  color: Colors.transparent,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 16, 12),
+                        decoration: BoxDecoration(
+                          color: palette.navBackground.withValues(alpha: 0.94),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: palette.navBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                              child: Center(child: HugeIcon(icon: widget.icon, color: Colors.white, size: 20)),
+                            ),
+                            const Gap(12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.type,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: palette.fg(),
+                                    ),
+                                  ),
+                                  Text(
+                                    widget.message,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(fontSize: 14, height: 1.3, color: palette.fg(0.7)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                  BoxShadow(
-                    color: statusColor.withValues(alpha: 0.05),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Icon Container
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: statusColor.withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Center(
-                      child: HugeIcon(
-                        icon: icon,
-                        color: statusColor,
-                        size: 32,
-                      ),
-                    ),
-                  ),
-                  const Gap(16),
-                  // Title Type
-                  Text(
-                    type,
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: statusColor,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const Gap(8),
-                  // Message Text
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      height: 1.4,
-                    ),
-                  ),
-                  const Gap(20),
-                  // Action Close Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 44,
-                    child: TextButton(
-                      onPressed: () {
-                        dismissTimer.cancel();
-                        Navigator.of(dialogContext).pop();
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.06),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

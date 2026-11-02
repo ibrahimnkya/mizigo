@@ -49,7 +49,7 @@ class _RatesCalculatorScreenState extends State<RatesCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const primaryBlue = Color(0xFF3B82F6); // Standardized blue
+    const primaryBlue = Color(0xFF5C0B19); // Standardized blue
 
     return Scaffold(
       backgroundColor: AppTheme.background,

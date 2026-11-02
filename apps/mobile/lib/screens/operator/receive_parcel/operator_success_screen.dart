@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'operator_receiver_screen.dart' show ReceiveContactDraft;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,10 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/printer_provider.dart';
 import '../../../widgets/printer_selection_sheet.dart';
+import '../../../theme/staff_palette.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
+import '../../../widgets/staff/parcel_cards.dart';
+import '../../../widgets/staff/staff_settings.dart';
 
 class OperatorSuccessScreen extends StatefulWidget {
   final Map<String, dynamic> packageData;
@@ -23,6 +28,7 @@ class _OperatorSuccessScreenState extends State<OperatorSuccessScreen> {
   @override
   void initState() {
     super.initState();
+    ReceiveContactDraft.clear(); // parcel saved — next one starts empty
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoPrint();
     });
@@ -31,14 +37,14 @@ class _OperatorSuccessScreenState extends State<OperatorSuccessScreen> {
   Future<void> _autoPrint() async {
     if (_autoprintAttempted) return;
     _autoprintAttempted = true;
-    
+
     final provider = context.read<PrinterProvider>();
-    
+
     // Attempt auto-connection if not already connected
     if (!provider.isConnected && provider.lastPrinterMac != null) {
       await provider.connectToLastPrinter();
     }
-    
+
     if (provider.isConnected) {
       if (mounted) {
         await _executePrint(context, provider, false); // false = receipt
@@ -48,13 +54,13 @@ class _OperatorSuccessScreenState extends State<OperatorSuccessScreen> {
 
   Future<void> _handlePrint(BuildContext context, {required bool isSticker}) async {
     final provider = context.read<PrinterProvider>();
-    
+
     // If printer is already connected, print directly
     if (provider.isConnected) {
       _executePrint(context, provider, isSticker);
       return;
     }
-    
+
     // Otherwise, select from the list of connected/available Bluetooth devices
     PrinterSelectionSheet.show(
       context,
@@ -65,225 +71,210 @@ class _OperatorSuccessScreenState extends State<OperatorSuccessScreen> {
   }
 
   Future<void> _executePrint(BuildContext context, PrinterProvider provider, bool isSticker) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-            ),
-            const Gap(12),
-            Text(isSticker ? "Printing thermal label..." : "Printing POS receipt..."),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-
-    final success = isSticker 
-        ? await provider.printLabel(widget.packageData) 
+    MizigoToasts.showSuccess(context, isSticker ? 'Printing label…' : 'Printing receipt…');
+    final ok = isSticker
+        ? await provider.printLabel(widget.packageData)
         : await provider.printReceipt(widget.packageData);
-
     if (!context.mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? (isSticker ? "Label printed successfully!" : "Receipt printed successfully!") : "Print failed. Try again."),
-        backgroundColor: success ? Colors.green : Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    if (ok) {
+      MizigoToasts.showSuccess(context, isSticker ? 'Label printed' : 'Receipt printed');
+    } else {
+      MizigoToasts.showError(context, 'Print failed. Check the printer and try again.');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              
-              // Animated Success Icon (Simulated with static container)
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
+    final palette = StaffPalette.of(context);
+    final d = widget.packageData;
+    final printerReady = context.watch<PrinterProvider>().isConnected;
+    final tracking = (d['trackingId'] ?? '').toString();
+    final item = (d['packageName'] ?? d['description'] ?? 'Parcel').toString();
+
+    return PopScope(
+      // The parcel is saved; going back would re-open the payment step.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) context.go('/operations');
+      },
+      child: StaffSettingsScaffold(
+        title: 'Parcel Received',
+        bottom: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            StaffButton(
+              label: 'Receive Another Parcel',
+              icon: HugeIcons.strokeRoundedPackageReceive,
+              onPressed: () => context.go('/operator-receive/details'),
+            ),
+            const Gap(10),
+            StaffButton(
+              label: 'Back to Operations',
+              color: palette.fg(0.8),
+              outlined: true,
+              onPressed: () => context.go('/operations'),
+            ),
+          ],
+        ),
+        children: [
+          const Gap(8),
+          Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.6, end: 1),
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.easeOutBack,
+              builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+              child: Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(color: kStaffSuccess.withValues(alpha: 0.18), shape: BoxShape.circle),
                 child: Center(
                   child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 48,
-                    ),
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(color: Color(0xFF059669), shape: BoxShape.circle),
+                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 36),
                   ),
                 ),
               ),
-              const Gap(32),
- 
-              Text(
-                'Parcel Received!',
-                style: GoogleFonts.outfit(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E293B),
-                ),
-              ),
-              const Gap(12),
- 
-              Text(
-                'You have successfully registered "${widget.packageData['description'] ?? widget.packageData['packageName'] ?? 'Standard Cargo'}" from ${widget.packageData['senderName']}. It is ready to be dispatched.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  color: const Color(0xFF64748B),
-                  height: 1.5,
-                ),
-              ),
- 
-              const Gap(48),
- 
-              // Actions
-              Container(
+            ),
+          ),
+          const Gap(16),
+          Text(
+            'Parcel registered',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700, color: palette.fg()),
+          ),
+          const Gap(6),
+          Text(
+            '“$item” from ${d['senderName'] ?? 'the sender'} is ready to be dispatched.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.7)),
+          ),
+          if (tracking.isNotEmpty) ...[
+            const Gap(16),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  color: palette.surface(0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: palette.fg(0.15)),
                 ),
                 child: Column(
                   children: [
-                    InkWell(
-                      onTap: () => _handlePrint(context, isSticker: true),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const HugeIcon(icon: HugeIcons.strokeRoundedPrinter, color: Color(0xFF3B82F6), size: 24),
-                            ),
-                            const Gap(16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Print Sticker',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  Text(
-                                    '2x1 inch thermal barcode label',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: const Color(0xFF94A3B8), size: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Divider(height: 1, color: const Color(0xFFE2E8F0)),
-                    InkWell(
-                      onTap: () => _handlePrint(context, isSticker: false),
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const HugeIcon(icon: HugeIcons.strokeRoundedInvoice01, color: Color(0xFF8B5CF6), size: 24),
-                            ),
-                            const Gap(16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Print Receipt',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  Text(
-                                    '58mm receipt for the sender',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: const Color(0xFF94A3B8), size: 20),
-                          ],
-                        ),
+                    Text('Tracking number', style: GoogleFonts.outfit(fontSize: 13, color: palette.fg(0.55))),
+                    SelectableText(
+                      tracking,
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
+                        color: palette.fg(),
                       ),
                     ),
                   ],
                 ),
               ),
- 
-              const Spacer(),
- 
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    // Navigate back to operations hub
-                    context.go('/operations');
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                  child: Text(
-                    'Back to Dashboard',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF3B82F6),
-                    ),
-                  ),
+            ),
+          ],
+          const Gap(20),
+          ParcelRouteStrip(
+            from: (d['originStation'] ?? '—').toString(),
+            to: (d['destinationStation'] ?? '—').toString(),
+          ),
+          const Gap(16),
+          Row(
+            children: [
+              Expanded(
+                child: _PrintTile(
+                  icon: HugeIcons.strokeRoundedLabel,
+                  title: 'Print Sticker',
+                  subtitle: 'Label for the parcel',
+                  ready: printerReady,
+                  onTap: () => _handlePrint(context, isSticker: true),
                 ),
               ),
-              const Gap(16),
+              const Gap(10),
+              Expanded(
+                child: _PrintTile(
+                  icon: HugeIcons.strokeRoundedPrinter,
+                  title: 'Print Receipt',
+                  subtitle: 'Copy for the sender',
+                  ready: printerReady,
+                  onTap: () => _handlePrint(context, isSticker: false),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrintTile extends StatelessWidget {
+  const _PrintTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.ready,
+    required this.onTap,
+  });
+
+  final List<List<dynamic>> icon;
+  final String title;
+  final String subtitle;
+  final bool ready;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = StaffPalette.of(context);
+    return Material(
+      color: palette.surface(0.10),
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(color: kStaffAccent.withValues(alpha: 0.18), shape: BoxShape.circle),
+                child: Center(
+                  child: HugeIcon(icon: icon, color: kStaffAccent, size: 22),
+                ),
+              ),
+              const Gap(12),
+              Text(
+                title,
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: palette.fg()),
+              ),
+              const Gap(2),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(color: ready ? kStaffSuccess : palette.fg(0.35), shape: BoxShape.circle),
+                  ),
+                  const Gap(6),
+                  Flexible(
+                    child: Text(
+                      ready ? subtitle : 'No printer connected',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(fontSize: 13, color: palette.fg(0.6)),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),

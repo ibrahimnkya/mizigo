@@ -1,4 +1,3 @@
-import '../theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,8 +6,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/forgot_pin_screen.dart';
 import '../screens/profile/subscreens/printer_configuration_screen.dart';
-import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/home/track_screen.dart';
 import '../screens/home/live_track_screen.dart';
@@ -41,7 +40,6 @@ import '../screens/profile/subscreens/app_settings_screen.dart';
 import '../screens/profile/subscreens/support_help_screen.dart';
 import '../screens/profile/subscreens/privacy_policy_screen.dart';
 import '../screens/profile/subscreens/terms_conditions_screen.dart';
-import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/subscreens/notifications_settings_screen.dart';
 import '../screens/profile/subscreens/login_security_screen.dart';
 import '../screens/profile/subscreens/privacy_permissions_screen.dart';
@@ -62,19 +60,36 @@ import '../screens/splash/splash_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/verification_screen.dart';
-import '../screens/auth/profile_setup_screen.dart';
-import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/change_pin_screen.dart';
 import '../screens/parcel/availability_checker_screen.dart';
-import '../screens/operator/efficiency_screen.dart';
 import '../screens/profile/subscreens/account_deletion_screen.dart';
+import '../theme/staff_palette.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Clears text focus on navigation so a field (e.g. Home search) doesn't grab
+/// focus — and pop the keyboard — again when you come back to its screen.
+class UnfocusOnNavigate extends NavigatorObserver {
+  void _clear() => FocusManager.instance.primaryFocus?.unfocus();
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _clear();
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    // The revealed screen restores its last focus after this; clear it after.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _clear());
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) => _clear();
+}
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    refreshListenable: authProvider,
+    observers: [UnfocusOnNavigate()],
+    refreshListenable: authProvider.routerRefresh,
     initialLocation: '/',
     redirect: (context, state) {
       final authProvider = context.read<AuthProvider>();
@@ -83,14 +98,16 @@ GoRouter createRouter(AuthProvider authProvider) {
 
       final isLoggingIn = state.matchedLocation == '/login';
       final isVerifying = state.matchedLocation == '/verify';
-      final isForgotMw = state.matchedLocation == '/forgot-password';
-      final isRegistering = state.matchedLocation.startsWith('/register');
+      final isForgotPin = state.matchedLocation == '/forgot-pin';
+      final isPublicLegal = state.matchedLocation.startsWith('/legal/');
       final isWatchingSplash = state.matchedLocation == '/';
       final isOnboarding = state.matchedLocation == '/onboarding';
       final isWelcome = state.matchedLocation == '/welcome';
       final isChangingPin = state.matchedLocation == '/auth/change-pin';
 
       if (status == AuthStatus.unknown) return '/';
+      // The splash plays its animation, then routes itself (see SplashScreen).
+      if (isWatchingSplash) return null;
 
       if (isFirstTime) {
         if (isOnboarding) return null;
@@ -98,7 +115,9 @@ GoRouter createRouter(AuthProvider authProvider) {
       }
 
       if (status == AuthStatus.unauthenticated) {
-        if (isLoggingIn || isRegistering || isWelcome || isVerifying || isForgotMw || isChangingPin) return null;
+        if (isLoggingIn || isWelcome || isVerifying || isForgotPin || isPublicLegal || isChangingPin) {
+          return null;
+        }
         return '/login';
       }
 
@@ -106,7 +125,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         if (authProvider.mustChangeOtp && !isChangingPin) {
           return '/auth/change-pin';
         }
-        if (isLoggingIn || isRegistering || isWelcome || isWatchingSplash || isOnboarding) {
+        if (isLoggingIn || isWelcome || isWatchingSplash || isOnboarding) {
           return '/home';
         }
       }
@@ -119,30 +138,20 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(path: '/welcome', builder: (_, _) => const WelcomeScreen()),
       // Auth
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(
+        path: '/legal/:type',
+        builder: (_, state) => LegalDocumentScreen(
+          type: LegalDocumentScreen.typeFromPath(state.pathParameters['type']),
+        ),
+      ),
+      GoRoute(
+        path: '/forgot-pin',
+        builder: (_, state) => ForgotPinScreen(initialPhone: state.extra as String?),
+      ),
       GoRoute(
         path: '/verify',
         builder: (_, state) =>
             VerificationScreen(phoneNumber: state.extra as String? ?? ''),
-      ),
-      GoRoute(
-        path: '/register/verify',
-        builder: (_, state) =>
-            VerificationScreen(phoneNumber: state.extra as String? ?? ''),
-      ),
-      GoRoute(
-        path: '/register/setup',
-        builder: (_, state) {
-          final data = state.extra as Map<String, dynamic>?;
-          return ProfileSetupScreen(
-            email: data?['email'],
-            phone: data?['phone'],
-          );
-        },
-      ),
-      GoRoute(
-        path: '/forgot-password',
-        builder: (_, _) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: '/auth/change-pin',
@@ -236,11 +245,9 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/profile/legal/:type',
         builder: (_, state) {
-          final type = state.pathParameters['type']!;
-          final title = type == 'terms'
-              ? 'Terms & Conditions'
-              : 'Privacy Policy';
-          return LegalDocumentScreen(title: title);
+          return LegalDocumentScreen(
+            type: LegalDocumentScreen.typeFromPath(state.pathParameters['type']),
+          );
         },
       ),
 
@@ -276,10 +283,6 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (_, _) => const RatesCalculatorScreen(),
       ),
       GoRoute(
-        path: '/efficiency',
-        builder: (_, state) => EfficiencyScreen(metricTitle: state.extra as String? ?? 'Efficiency'),
-      ),
-      GoRoute(
         path: '/send-package',
         builder: (_, _) => const DeliverySpeedScreen(),
       ),
@@ -305,7 +308,7 @@ GoRouter createRouter(AuthProvider authProvider) {
             pickup: data['pickup'] ?? '',
             delivery: data['delivery'] ?? '',
             vehicle: data['vehicle'] ?? '',
-            basePrice: data['price'] as int? ?? 0,
+            peopleNeeded: data['peopleNeeded'] as int? ?? 0,
           );
         },
       ),
@@ -317,7 +320,9 @@ GoRouter createRouter(AuthProvider authProvider) {
             pickup: data['pickup'] ?? '',
             delivery: data['delivery'] ?? '',
             vehicle: data['vehicle'] ?? '',
+            peopleNeeded: data['peopleNeeded'] as int? ?? 0,
             basePrice: data['price'] as int? ?? 0,
+            weight: (data['weight'] as num?)?.toDouble() ?? 0,
             parcelDescription: data['parcelDescription'] ?? '',
             packageName: data['packageName'] ?? '',
             packageValue: data['packageValue'] ?? '',
@@ -336,10 +341,14 @@ GoRouter createRouter(AuthProvider authProvider) {
             pickup: data['pickup'] ?? '',
             delivery: data['delivery'] ?? '',
             vehicle: data['vehicle'] ?? '',
+            peopleNeeded: data['peopleNeeded'] as int? ?? 0,
+            weight: (data['weight'] as num?)?.toDouble() ?? 0,
             receiverName: data['receiverName'] ?? '',
             receiverPhone: data['receiverPhone'] ?? '',
             total: data['total'] as int? ?? 0,
             receiverPays: data['receiverPays'] as bool? ?? false,
+            additionalServices: (data['additionalServices'] as List?)?.cast<String>() ?? const [],
+            pickupType: data['pickupType'] ?? '',
             parcelDescription: data['parcelDescription'] ?? '',
             packageName: data['packageName'] ?? '',
             packageValue: data['packageValue'] ?? '',
@@ -485,10 +494,6 @@ GoRouter createRouter(AuthProvider authProvider) {
           builder: (context, state) => const DeliverParcelScreen(),
         ),
         GoRoute(
-          path: '/operator-reports',
-          builder: (context, state) => const OperatorReportsScreen(),
-        ),
-        GoRoute(
           path: '/operator/kpi-details',
           builder: (context, state) {
             final data = state.extra as Map<String, dynamic>? ?? {};
@@ -501,10 +506,6 @@ GoRouter createRouter(AuthProvider authProvider) {
               initialPeriod: data['initialPeriod'] as ReportPeriod? ?? ReportPeriod.thisMonth,
             );
           },
-        ),
-        GoRoute(
-          path: '/change-password',
-          builder: (context, state) => const ChangePasswordScreen(),
         ),
         GoRoute(
           path: '/profile/support',
@@ -565,11 +566,11 @@ class MainScaffold extends StatelessWidget {
         },
         {
           'label': 'Reports',
-          'icon': HugeIcons.strokeRoundedChartBarLine,
+          'icon': HugeIcons.strokeRoundedAnalytics01,
         },
         {
-          'label': 'Profile',
-          'icon': HugeIcons.strokeRoundedUser,
+          'label': 'You',
+          'icon': HugeIcons.strokeRoundedUserCircle,
         },
       ];
     }
@@ -595,6 +596,7 @@ class MainScaffold extends StatelessWidget {
   }
 
   void _onTap(BuildContext context, int index, bool isOperator) {
+    FocusManager.instance.primaryFocus?.unfocus();
     // Determine the path to navigate to based on the index and role
     // This ensuring we hit the right routes within the branches
     String path;
@@ -613,83 +615,62 @@ class MainScaffold extends StatelessWidget {
     final isOperator = auth.user?.isStaff ?? false;
     final tabs = _getTabs(isOperator);
     final currentIndex = navigationShell.currentIndex;
-    final theme = Theme.of(context);
-    final navTheme = theme.bottomNavigationBarTheme;
-    final navBgColor = navTheme.backgroundColor ?? Colors.white;
-    final activeColor = navTheme.selectedItemColor ?? AppTheme.cPrimary;
-    final unselectedColor = navTheme.unselectedItemColor ?? const Color(0xFF94A3B8);
-    final borderSideColor = theme.dividerColor;
+    // Figma "Bottom Menu" (1px top rule); colors follow the selected theme.
+    final palette = StaffPalette.of(context);
+    final activeColor = palette.fg();
+    final unselectedColor = palette.fg(0.5);
 
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        height: 85,
         decoration: BoxDecoration(
-          color: navBgColor,
-          border: Border(
-            top: BorderSide(
-              color: borderSideColor,
-              width: 1,
-            ),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 30,
-              offset: const Offset(0, -10),
-            ),
-          ],
+          color: palette.navBackground,
+          border: Border(top: BorderSide(color: palette.navBorder, width: 1)),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+          top: false,
+          child: SizedBox(
+            height: 60,
             child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(tabs.length, (index) {
-                    final tab = tabs[index];
-                    final isActive = currentIndex == index;
-                    return GestureDetector(
-                       behavior: HitTestBehavior.opaque,
-                       onTap: () => _onTap(context, index, isOperator),
-                       child: AnimatedContainer(
-                         duration: const Duration(milliseconds: 300),
-                         curve: Curves.easeInOut,
-                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                         decoration: const BoxDecoration(
-                           color: Colors.transparent,
-                         ),
-                         child: Column(
-                           mainAxisSize: MainAxisSize.min,
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             HugeIcon(
-                               icon: tab['icon'],
-                               color: isActive
-                                   ? activeColor
-                                   : unselectedColor,
-                               size: 24,
-                               strokeWidth: isActive ? 2.5 : 1.5,
-                             ),
-                             const Gap(2),
-                             Text(
-                               tab['label'],
-                               style: GoogleFonts.outfit(
-                                 fontSize: 11,
-                                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-                                 color: isActive
-                                     ? activeColor
-                                     : unselectedColor,
-                                 letterSpacing: 0.2,
-                               ),
-                             ),
-                           ],
-                         ),
-                       ),
-                     );
-                  }),
-                ),
-              ),
+              children: List.generate(tabs.length, (index) {
+                final tab = tabs[index];
+                final isActive = currentIndex == index;
+                final color = isActive ? activeColor : unselectedColor;
+                return Expanded(
+                  child: Semantics(
+                    selected: isActive,
+                    button: true,
+                    label: tab['label'] as String,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _onTap(context, index, isOperator),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HugeIcon(
+                            icon: tab['icon'],
+                            color: color,
+                            size: 24,
+                            strokeWidth: isActive ? 2.2 : 1.5,
+                          ),
+                          const Gap(4),
+                          Text(
+                            tab['label'],
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
+          ),
+        ),
       ),
     );
   }

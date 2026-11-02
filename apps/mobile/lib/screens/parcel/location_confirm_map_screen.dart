@@ -117,7 +117,7 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                           child: HugeIcon(
                             icon: HugeIcons.strokeRoundedLocation01, 
                             color: widget.title.contains('Pick-up') 
-                                ? const Color(0xFF3B82F6) 
+                                ? const Color(0xFF5C0B19) 
                                 : const Color(0xFF10B981), 
                             size: 38,
                           ),
@@ -186,7 +186,7 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                         onTap: () => context.pop(),
                         child: HugeIcon(
                           icon: HugeIcons.strokeRoundedSearch01,
-                          color: const Color(0xFF3B82F6),
+                          color: const Color(0xFF5C0B19),
                           size: 24,
                         ),
                       ),
@@ -239,7 +239,7 @@ class _LocationConfirmMapScreenState extends State<LocationConfirmMapScreen> {
                       onPressed: _isMoving ? null : () => context.pop(_currentAddress),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: widget.title.contains('Pick-up') 
-                            ? const Color(0xFF3B82F6) 
+                            ? const Color(0xFF5C0B19) 
                             : const Color(0xFF10B981),
                         foregroundColor: Colors.white,
                         elevation: 0,

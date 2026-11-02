@@ -19,6 +19,16 @@ class ApiService {
     // Production mode — skip local IP resolution
   }
 
+  /// Fire-and-forget ping so the API and its database connection are warm
+  /// before the user's first real request (the first query after the server
+  /// has been idle can take several seconds). `/health` runs a DB query.
+  static void warmUp() {
+    http
+        .get(Uri.parse('$_baseUrl/health'))
+        .timeout(const Duration(seconds: 15))
+        .then((_) {}, onError: (_) {});
+  }
+
   static Future<void> _resolveBaseUrl() async {
     if (_localIpResolved) return;
     _localIpResolved = true;
@@ -211,9 +221,32 @@ class ApiService {
     return response;
   }
 
-  static Future<bool> _refreshAccessToken() async {
+  /// In-flight refresh shared by concurrent 401s. The server rotates refresh
+  /// tokens and treats reuse of an old one as theft (revoking every session),
+  /// so parallel requests must never refresh independently.
+  static Future<bool>? _refreshInFlight;
+
+  /// Called when the session can't be renewed (e.g. revoked) so the app can
+  /// sign out instead of showing empty data. Set by AuthProvider.
+  static void Function()? onSessionExpired;
+
+  static Future<bool> _refreshAccessToken() {
+    return _refreshInFlight ??= _doRefreshAccessToken().then((ok) {
+      // Only a server rejection ends the session — not being offline.
+      if (!ok && _refreshRejected) onSessionExpired?.call();
+      return ok;
+    }).whenComplete(() => _refreshInFlight = null);
+  }
+
+  static bool _refreshRejected = false;
+
+  static Future<bool> _doRefreshAccessToken() async {
+    _refreshRejected = false;
     final refreshToken = await _refreshToken;
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      _refreshRejected = true;
+      return false;
+    }
     final deviceId = await _getOrCreateDeviceId();
 
     try {
@@ -227,6 +260,7 @@ class ApiService {
         },
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        _refreshRejected = response.statusCode >= 400 && response.statusCode < 500;
         return false;
       }
 
@@ -313,45 +347,6 @@ class ApiService {
     return digits;
   }
 
-  static Future<Map<String, dynamic>> login(String email, String password) async {
-    throw ApiException(
-      message: 'Password login is deprecated. Use OTP login flow.',
-      statusCode: 400,
-    );
-  }
-
-  static Future<Map<String, dynamic>> register({
-    required String name,
-    required String email,
-    required String password,
-    String? phone,
-  }) async {
-    throw ApiException(
-      message: 'Self-registration is deprecated. Ask an admin to create your account and use OTP login.',
-      statusCode: 400,
-    );
-  }
-
-  static Future<Map<String, dynamic>> forgotPassword(String identifier, bool isPhone) async {
-    if (_useMocks) {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      return {
-        'message': 'Reset code sent',
-        'code': '1234', // For dev testing
-      };
-    }
-    final res = await _sendRequest(
-      method: 'POST',
-      url: Uri.parse('$_baseUrl/auth/forgot-password'),
-      headers: {'Content-Type': 'application/json'},
-      body: {
-        'identifier': identifier,
-        'isPhone': isPhone,
-      },
-    );
-    return _parseResponse(res);
-  }
-
   static Future<Map<String, dynamic>> checkPhone(String phone) async {
     final normalized = _normalizePhone(phone);
     final res = await _sendRequest(
@@ -388,53 +383,6 @@ class ApiService {
         'phone': normalized,
         'otp': otp,
         'deviceId': deviceId,
-      },
-    );
-    return _parseResponse(res);
-  }
-
-  static Future<Map<String, dynamic>> resetPassword({
-    required String identifier,
-    required bool isPhone,
-    required String code,
-    required String newPassword,
-  }) async {
-    if (_useMocks) {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      if (code != '1234') {
-        throw ApiException(message: 'Invalid reset code', statusCode: 400);
-      }
-      return {'message': 'Password reset successful'};
-    }
-    final res = await _sendRequest(
-      method: 'POST',
-      url: Uri.parse('$_baseUrl/auth/reset-password'),
-      headers: {'Content-Type': 'application/json'},
-      body: {
-        'identifier': identifier,
-        'isPhone': isPhone,
-        'code': code,
-        'newPassword': newPassword,
-      },
-    );
-    return _parseResponse(res);
-  }
-
-  static Future<Map<String, dynamic>> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async {
-    if (_useMocks) {
-      await Future.delayed(const Duration(milliseconds: 1000));
-      return {'message': 'Password changed successfully'};
-    }
-    final res = await _sendWithAutoRefresh(
-      method: 'POST',
-      url: Uri.parse('$_baseUrl/auth/change-password'),
-      headers: await _headers,
-      body: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
       },
     );
     return _parseResponse(res);
@@ -515,6 +463,25 @@ class ApiService {
       }
     }
     return const [];
+  }
+
+  /// Returns the authenticated user's own organization whitelabel branding
+  /// (logo/colors), or null if unavailable/unset. Branding is cosmetic only,
+  /// so failures are swallowed rather than surfaced to the caller.
+  static Future<Map<String, dynamic>?> getOrganizationBranding() async {
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/organizations/branding'),
+        headers: await _headers,
+        bypassMock: true,
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final parsed = _parseResponse(res);
+        return parsed['data'] as Map<String, dynamic>?;
+      }
+    } catch (_) {}
+    return null;
   }
 
   static Future<List<dynamic>> getStations() async {
@@ -677,28 +644,22 @@ class ApiService {
 
   static Future<Map<String, dynamic>> checkUpdate(String currentVersion) async {
     try {
-      final res = await _sendWithAutoRefresh(
-        method: 'GET',
-        url: Uri.parse('$_baseUrl/app-versions/check-update?currentVersion=$currentVersion'),
-        headers: await _headers,
-        bypassMock: true,
+      // Public endpoint — no auth header needed.
+      final res = await http.get(
+        Uri.parse('$_baseUrl/app-versions/check-update?currentVersion=$currentVersion'),
+        headers: {'Content-Type': 'application/json'},
       );
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final decoded = jsonDecode(res.body);
         return decoded['data'] ?? decoded;
       }
-      _parseResponse(res);
-    } catch (e) {
-      if (_useMocks) {
-        // Fall through to default mock response if mock is enabled
-      } else {
-        rethrow;
-      }
+    } catch (_) {
+      // Network error — silently skip update check.
     }
     return {
       'latestVersion': currentVersion,
       'forceUpdate': false,
-      'downloadUrl': '',
+      'downloadUrl': null,
     };
   }
 
@@ -926,7 +887,10 @@ class ApiService {
       headers: await _headers,
       body: data,
     );
-    return _parseResponse(res);
+    final response = _parseResponse(res);
+    return (response['data'] is Map<String, dynamic>)
+        ? response['data'] as Map<String, dynamic>
+        : response;
   }
 
   static Future<Map<String, dynamic>> getParcelById(String id) async {
@@ -1074,6 +1038,62 @@ class ApiService {
   }
 
   /// Operator delivers parcel using OTP verification.
+  static Future<Map<String, dynamic>> dispatchParcel(
+    String parcelId,
+    String vehicleId,
+    DateTime travelDate,
+  ) async {
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/parcel/dispatch'),
+      headers: await _headers,
+      body: {
+        'parcelId': parcelId,
+        'vehicleId': vehicleId,
+        'travelDate': travelDate.toIso8601String(),
+      },
+    );
+    return _parseResponse(res)['data'] ?? _parseResponse(res);
+  }
+
+  /// [receivingClerkId]: the destination clerk the parcel is handed to.
+  static Future<Map<String, dynamic>> offloadParcel(String parcelId, {String? receivingClerkId}) async {
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/parcel/offload'),
+      headers: await _headers,
+      body: {
+        'parcelId': parcelId,
+        if (receivingClerkId != null) 'receivingClerkId': receivingClerkId,
+      },
+    );
+    return _parseResponse(res)['data'] ?? _parseResponse(res);
+  }
+
+  static Future<Map<String, dynamic>> cancelParcel(
+    String id,
+    String reason,
+  ) async {
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/parcel/$id/cancel'),
+      headers: await _headers,
+      body: {'cancellationReason': reason},
+    );
+    return _parseResponse(res)['data'] ?? _parseResponse(res);
+  }
+
+  /// Staff: marks a parcel as lost (closes any open customer lost report).
+  static Future<Map<String, dynamic>> markParcelLost(String id, String reason) async {
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/parcel/$id/mark-lost'),
+      headers: await _headers,
+      body: {'reason': reason},
+    );
+    return _parseResponse(res)['data'] ?? _parseResponse(res);
+  }
+
   static Future<Map<String, dynamic>> deliverParcel(String id, String otp) async {
     if (_useMocks) {
       await Future.delayed(const Duration(milliseconds: 800));
@@ -1129,6 +1149,59 @@ class ApiService {
     return _parseResponse(res);
   }
 
+  /// Authoritative tariff-based price quote from the same engine /parcel/receive
+  /// charges from. Returns {'currency': 'TZS', 'amount': num, 'breakdown': {...}}.
+  static Future<Map<String, dynamic>> getPriceQuote({
+    required double weight,
+    required String urgency,
+    required String parcelType,
+    required String packageSize,
+    String? condition,
+    double? declaredValue,
+    String? packageName,
+    String? receivingStationId,
+    String? destinationStationId,
+    List<String>? additionalServices,
+  }) async {
+    final res = await _sendWithAutoRefresh(
+      method: 'POST',
+      url: Uri.parse('$_baseUrl/parcel/quote'),
+      headers: await _headers,
+      body: {
+        'weight': weight,
+        'urgency': urgency,
+        'parcelType': parcelType,
+        'packageSize': packageSize,
+        if (condition != null) 'condition': condition,
+        if (declaredValue != null) 'declaredValue': declaredValue,
+        if (packageName != null) 'packageName': packageName,
+        if (receivingStationId != null) 'receivingStationId': receivingStationId,
+        if (destinationStationId != null) 'destinationStationId': destinationStationId,
+        if (additionalServices != null) 'additionalServices': additionalServices,
+      },
+    );
+    final parsed = _parseResponse(res);
+    return (parsed['data'] is Map<String, dynamic>)
+        ? parsed['data'] as Map<String, dynamic>
+        : parsed;
+  }
+
+  static Future<List<dynamic>> getPricingRules() async {
+    if (_useMocks) return [];
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/pricing'),
+        headers: await _headers,
+      );
+      final parsed = _parseResponse(res);
+      final data = parsed['data'];
+      return data is List ? data : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
   static Future<List<dynamic>> getVehicles() async {
     if (_useMocks) {
       return [
@@ -1163,6 +1236,21 @@ class ApiService {
     return parsed['data'] is List ? parsed['data'] as List : [];
   }
 
+
+  static Future<Map<String, dynamic>> getPrintConfig() async {
+    if (_useMocks) return {'paperSize': 'thermal80'};
+    try {
+      final res = await _sendWithAutoRefresh(
+        method: 'GET',
+        url: Uri.parse('$_baseUrl/organizations/print-config'),
+        headers: await _headers,
+      );
+      final parsed = _parseResponse(res);
+      return (parsed['data'] as Map<String, dynamic>?) ?? {};
+    } catch (_) {
+      return {};
+    }
+  }
 
   /// Search for parcel by tracking ID or parcel ID (operator use).
   static Future<List<dynamic>> searchParcel(String query) async {
@@ -1529,10 +1617,12 @@ class ApiService {
       return body is Map<String, dynamic> ? body : {'data': body};
     }
     String errorMsg = 'Unknown error';
+    Map<String, dynamic>? details;
     if (body is Map && body.containsKey('error')) {
       final err = body['error'];
       if (err is Map && err.containsKey('message')) {
         errorMsg = err['message'].toString();
+        if (err['details'] is Map) details = Map<String, dynamic>.from(err['details'] as Map);
       } else {
         errorMsg = err.toString();
       }
@@ -1540,6 +1630,7 @@ class ApiService {
     throw ApiException(
       message: errorMsg,
       statusCode: res.statusCode,
+      details: details,
     );
   }
 }
@@ -1547,7 +1638,14 @@ class ApiService {
 class ApiException implements Exception {
   final String message;
   final int statusCode;
-  ApiException({required this.message, required this.statusCode});
+  final Map<String, dynamic>? details;
+  ApiException({required this.message, required this.statusCode, this.details});
+
+  /// Seconds to wait before retrying, from a 429 rate-limit response.
+  int? get retryAfterSeconds {
+    final v = details?['retryAfterSeconds'];
+    return v is num ? v.toInt() : null;
+  }
 
   @override
   String toString() => 'ApiException($statusCode): $message';

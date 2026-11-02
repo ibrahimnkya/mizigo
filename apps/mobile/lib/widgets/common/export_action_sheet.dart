@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 enum ExportPeriod {
   today('Today'),
@@ -82,12 +83,7 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Export failed: $e', style: GoogleFonts.inter(color: Colors.white)),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        MizigoToasts.showError(context, 'Export failed: $e');
       }
     } finally {
       if (mounted) {

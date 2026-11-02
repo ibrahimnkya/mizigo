@@ -77,7 +77,7 @@ class _LiveTrackScreenState extends State<LiveTrackScreen>
         markerId: const MarkerId('truck'),
         position: _currentTruckPos,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: const InfoWindow(title: 'Shipment Location'),
+        infoWindow: const InfoWindow(title: 'Parcel Location'),
       ),
     };
   }
@@ -117,7 +117,7 @@ class _LiveTrackScreenState extends State<LiveTrackScreen>
           markerId: const MarkerId('truck'),
           position: _currentTruckPos,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-          infoWindow: const InfoWindow(title: 'Shipment Location'),
+          infoWindow: const InfoWindow(title: 'Parcel Location'),
         ),
       };
     });

@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../providers/printer_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/profile/premium_settings_components.dart';
 
 class PrinterSelectionSheet extends StatefulWidget {
   final Function(BluetoothInfo device)? onDeviceSelected;
@@ -204,14 +205,7 @@ class _PrinterSelectionSheetState extends State<PrinterSelectionSheet> {
                     }
                     Navigator.pop(context);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Failed to connect to ${device.name}"),
-                        backgroundColor: Colors.red,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    );
+                    MizigoToasts.showError(context, "Failed to connect to ${device.name}");
                   }
                 }
               } else {

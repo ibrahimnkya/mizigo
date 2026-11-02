@@ -1,14 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../theme/app_theme.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../services/api_service.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/common/danger_action_sheet.dart';
+import '../../widgets/common/station_header_art.dart';
+import '../../widgets/staff/staff_settings.dart';
+import '../../theme/staff_palette.dart';
+
+// ── Design tokens (match the maroon glass design) ───────────────────────────
+const _bgMid = Color(0xFF5A1219);
+const _accent = Color(0xFFE8913A); // orange "+" badge
+const _danger = Color(0xFFF87171);
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,27 +29,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _scrollController = ScrollController();
-  bool _showCompactHeader = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    final show = _scrollController.offset > 140;
-    if (show != _showCompactHeader) setState(() => _showCompactHeader = show);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   Future<void> _pickImage(ImageSource source) async {
     Navigator.of(context).pop();
     final auth = context.read<AuthProvider>();
@@ -53,47 +43,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: StaffPalette.of(context).navBackground,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border(
-            top: BorderSide(color: AppTheme.border),
-            left: BorderSide(color: AppTheme.border),
-            right: BorderSide(color: AppTheme.border),
-          ),
+          border: Border.all(color: StaffPalette.of(context).surface(0.12)),
         ),
         padding: const EdgeInsets.fromLTRB(0, 12, 0, 36),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: StaffPalette.of(context).fg(0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const Gap(8),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-              leading: Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: AppTheme.cPrimary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.camera_alt_outlined, color: AppTheme.cPrimary, size: 22),
-              ),
-              title: Text('Camera', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+            _sheetTile(
+              icon: HugeIcons.strokeRoundedCamera01,
+              label: 'Camera',
+              color: StaffPalette.of(context).fg(),
               onTap: () => _pickImage(ImageSource.camera),
             ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-              leading: Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.photo_outlined, color: AppTheme.accent, size: 22),
-              ),
-              title: Text('Gallery', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+            _sheetTile(
+              icon: HugeIcons.strokeRoundedImage01,
+              label: 'Gallery',
+              color: _accent,
               onTap: () => _pickImage(ImageSource.gallery),
             ),
           ],
@@ -102,62 +78,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _confirmLogout(AuthProvider auth) async {
-    await DangerActionBottomSheet.show(
-      context: context,
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out of your account? You will need to log in again to access your data.',
-      confirmText: 'Sign Out',
-      cancelText: 'Cancel',
-      onConfirm: () async {
-        if (mounted) await auth.logout();
-      },
+  Future<void> _confirmLogout() async {
+    final confirmed = await showStaffConfirmSheet(
+      context,
+      title: 'Log out of MiziGO?',
+      message: 'You’ll need your phone number and PIN to sign in again.',
+      confirmText: 'Log Out',
+      danger: true,
     );
+    if (!confirmed || !mounted) return;
+    await context.read<AuthProvider>().logout();
+    if (mounted) context.go('/login');
   }
 
-  Widget _miniAvatar(String name, String? avatarUrl) {
-    Widget child;
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      child = avatarUrl.startsWith('http')
-          ? Image.network(avatarUrl, fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _miniInitial(name))
-          : Image.file(File(avatarUrl), fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _miniInitial(name));
-    } else {
-      child = _miniInitial(name);
-    }
-    return Container(
-      width: 36, height: 36,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: ClipOval(child: child),
-    );
-  }
-
-  Widget _miniInitial(String name) => Center(
-    child: Text(
-      name.isNotEmpty ? name[0].toUpperCase() : '?',
-      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white60),
-    ),
-  );
-
-  Widget _headerIcon({required VoidCallback onTap, required Widget icon, Color? bg}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(
-          color: bg ?? Colors.black.withValues(alpha: 0.05),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        ),
-        child: Center(child: icon),
-      ),
-    );
-  }
+  Widget _sheetTile({
+    required List<List<dynamic>> icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) =>
+      StaffSheetTile(icon: icon, label: label, color: color, onTap: onTap);
 
   @override
   Widget build(BuildContext context) {
@@ -167,128 +107,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final phone = user?.phone ?? 'Not set';
     final avatarUrl = user?.avatarUrl;
 
-    final theme = Theme.of(context);
-    final appBarTheme = theme.appBarTheme;
-    final appBarBg = appBarTheme.backgroundColor ?? theme.primaryColor;
-    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
-    final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
+    // The tab bar sits below the page, so only a normal margin is needed.
+    const bottomPad = 24.0;
 
-    return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // ── Sticky Top Bar ──────────────────────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: appBarBg,
-            automaticallyImplyLeading: false,
-            toolbarHeight: 60,
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            titleSpacing: 16,
-            title: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.25),
-                    end: Offset.zero,
-                  ).animate(anim),
-                  child: child,
-                ),
-              ),
-              child: _showCompactHeader
-                  ? Row(
-                      key: const ValueKey('compact'),
-                      children: [
-                        _miniAvatar(name, avatarUrl),
-                        const Gap(10),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w700, color: appBarTextColor)),
-                            Text(phone, style: GoogleFonts.inter(fontSize: 12, color: appBarTextColor.withValues(alpha: 0.6))),
-                          ],
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(key: ValueKey('empty')),
-            ),
-            actions: [
-              _headerIcon(
-                onTap: () => context.push('/profile/support'),
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedCustomerService, color: appBarIconColor, size: 18),
-              ),
-              const Gap(8),
-              _headerIcon(
-                onTap: () => _confirmLogout(auth),
-                icon: HugeIcon(icon: HugeIcons.strokeRoundedLogout03, color: AppTheme.danger, size: 18),
-              ),
-              const Gap(12),
-            ],
-          ),
-
-          // ── Scrollable Content ──────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: StaffPalette.of(context).overlayStyle,
+      child: Scaffold(
+        backgroundColor: StaffPalette.of(context).background,
+        body: Stack(
+          children: [
+            const StationHeaderArt(blur: 8),
+            SafeArea(
+              bottom: false,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Expanded user card (scrolls away, triggers compact header)
-                  _UserInfoCard(
-                    name: name,
-                    phone: phone,
-                    avatarUrl: avatarUrl,
-                    onAvatarTap: _showImagePickerSheet,
-                  ),
+                  // Sticky header: stays put while the content below scrolls.
                   const Gap(28),
-
-                  _MenuSection(
-                    title: 'Account & Preferences',
-                    items: [
-                      _MenuItem(icon: HugeIcons.strokeRoundedUserList, title: 'Personal Information', onTap: () => context.push('/profile/personal-info')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedSlidersHorizontal, title: 'App Settings', onTap: () => context.push('/profile/app-settings')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedPrinter, title: 'Printer Settings', onTap: () => context.push('/profile/printer-settings')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedNotification01, title: 'Notifications', onTap: () => context.push('/profile/notifications')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedSecurityPassword, title: 'Login & Security', onTap: () => context.push('/profile/security')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedAccess, title: 'Privacy & Permissions', onTap: () => context.push('/profile/privacy')),
-                    ],
+                  Text(
+                    'You',
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: StaffPalette.of(context).fg(),
+                    ),
                   ),
-                  const Gap(20),
-
-                  _MenuSection(
-                    title: 'About & Legal',
-                    items: [
-                      _MenuItem(icon: HugeIcons.strokeRoundedLegalDocument02, title: 'Terms & Conditions', onTap: () => context.push('/profile/legal/terms')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedLegalHammer, title: 'Privacy Policy', onTap: () => context.push('/profile/legal/privacy')),
-                      _MenuItem(
-                        icon: HugeIcons.strokeRoundedSourceCodeSquare,
-                        title: 'App Version',
-                        trailing: Text('1.2.1', style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF64748B), fontWeight: FontWeight.w500)),
-                        onTap: () {},
+                  const Gap(16),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(18, 8, 18, bottomPad),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _UserInfoCard(
+                            name: name,
+                            phone: phone,
+                            avatarUrl: avatarUrl,
+                            onAvatarTap: _showImagePickerSheet,
+                          ),
+                          const Gap(10),
+                          _MenuSection(
+                            title: 'Account & Preferences',
+                            items: [
+                              _MenuItem(icon: HugeIcons.strokeRoundedUserList, title: 'Personal Information', onTap: () => context.push('/profile/personal-info')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedSlidersHorizontal, title: 'App Settings', onTap: () => context.push('/profile/app-settings')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedPrinter, title: 'Printer Settings', onTap: () => context.push('/profile/printer-settings')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedNotification01, title: 'Notifications', onTap: () => context.push('/profile/notifications')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedSecurityPassword, title: 'Login & Security', onTap: () => context.push('/profile/security')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedAccess, title: 'Privacy & Permissions', onTap: () => context.push('/profile/privacy')),
+                            ],
+                          ),
+                          const Gap(10),
+                          _MenuSection(
+                            title: 'About & Legal',
+                            items: [
+                              _MenuItem(icon: HugeIcons.strokeRoundedLegalDocument02, title: 'Terms & Conditions', onTap: () => context.push('/profile/legal/terms')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedLegalHammer, title: 'Privacy Policy', onTap: () => context.push('/profile/legal/privacy')),
+                            ],
+                          ),
+                          const Gap(10),
+                          _MenuSection(
+                            title: 'Support & Account',
+                            items: [
+                              _MenuItem(icon: HugeIcons.strokeRoundedHelpCircle, title: 'Support & Help', onTap: () => context.push('/profile/support')),
+                              _MenuItem(icon: HugeIcons.strokeRoundedLogout03, title: 'Log Out', danger: true, onTap: _confirmLogout),
+                              _MenuItem(icon: HugeIcons.strokeRoundedDelete01, title: 'Delete Account', danger: true, onTap: () => context.push('/profile/delete-account')),
+                            ],
+                          ),
+                          const Gap(10),
+                          // App version sits in its own card at the very bottom.
+                          _GlassCard(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            child: const _AppVersionTile(),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  const Gap(20),
-
-                  _MenuSection(
-                    title: 'Support & Account',
-                    items: [
-                      _MenuItem(icon: HugeIcons.strokeRoundedHelpCircle, title: 'Support & Help', onTap: () => context.push('/profile/support')),
-                      _MenuItem(icon: HugeIcons.strokeRoundedDelete01, title: 'Delete Account', iconColor: AppTheme.danger, onTap: () => context.push('/profile/delete-account')),
-                    ],
-                  ),
-                  const Gap(40),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Frosted-glass container used by the user card and the menu sections.
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  const _GlassCard({required this.child, this.padding = EdgeInsets.zero});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: StaffPalette.of(context).surface(0.12),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: StaffPalette.of(context).surface(0.12)),
+      ),
+      child: child,
     );
   }
 }
@@ -306,72 +228,60 @@ class _UserInfoCard extends StatelessWidget {
     required this.onAvatarTap,
   });
 
+  bool get _hasAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar
-            GestureDetector(
-              onTap: onAvatarTap,
+    return _GlassCard(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: onAvatarTap,
+            child: SizedBox(
+              width: 104,
+              height: 104,
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: AppTheme.background,
+                    width: 100,
+                    height: 100,
+                    decoration: const BoxDecoration(
+                      color: Colors.white, // avatar placeholder stays white in every theme
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: ClipOval(
-                      child: avatarUrl != null && avatarUrl!.isNotEmpty
-                          ? avatarUrl!.startsWith('http')
-                                ? Image.network(
-                                    avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        _buildPlaceholder(context),
-                                  )
-                                : Image.file(
-                                    File(avatarUrl!),
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        _buildPlaceholder(context),
-                                  )
-                          : _buildPlaceholder(context),
+                      child: _hasAvatar
+                          ? (avatarUrl!.startsWith('http')
+                          ? Image.network(
+                        avatarUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _placeholder(),
+                      )
+                          : Image.file(
+                        File(avatarUrl!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _placeholder(),
+                      ))
+                          : _placeholder(),
                     ),
                   ),
                   Positioned(
-                    bottom: 2,
-                    right: 2,
+                    bottom: 0,
+                    right: 0,
                     child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: theme.cardTheme.color ?? const Color(0xFF1E293B), width: 2.5),
-                      ),
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(color: _accent, shape: BoxShape.circle),
                       child: Center(
                         child: HugeIcon(
-                          icon: avatarUrl != null && avatarUrl!.isNotEmpty
+                          icon: _hasAvatar
                               ? HugeIcons.strokeRoundedPencilEdit01
                               : HugeIcons.strokeRoundedPlusSign,
-                          color: Colors.white,
-                          size: 14,
+                          color: StaffPalette.of(context).fg(),
+                          size: 18,
                         ),
                       ),
                     ),
@@ -379,110 +289,73 @@ class _UserInfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Gap(16),
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
-                letterSpacing: -0.5,
-              ),
+          ),
+          const Gap(14),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: StaffPalette.of(context).fg(),
             ),
-            const Gap(4),
-            Text(
-              phone,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppTheme.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+          ),
+          const Gap(2),
+          Text(
+            phone,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: StaffPalette.of(context).fg(0.55),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPlaceholder(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Text(
-        name.isNotEmpty ? name[0].toUpperCase() : '?',
-        style: GoogleFonts.outfit(
-          fontSize: 48,
-          fontWeight: FontWeight.w700,
-          color: theme.textTheme.headlineMedium?.color?.withValues(alpha: 0.5),
-        ),
+  Widget _placeholder() => Center(
+    child: Text(
+      name.isNotEmpty ? name[0].toUpperCase() : '?',
+      style: GoogleFonts.outfit(
+        fontSize: 44,
+        fontWeight: FontWeight.w700,
+        color: _bgMid,
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _MenuSection extends StatelessWidget {
   final String title;
   final List<_MenuItem> items;
 
-  const _MenuSection({
-    required this.title,
-    required this.items,
-  });
+  const _MenuSection({required this.title, required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: AppTheme.surface,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: BorderSide(
-            color: AppTheme.border,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-              child: Text(
-                title.toUpperCase(),
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF64748B),
-                  letterSpacing: 1.2,
-                ),
+    return _GlassCard(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+                color: StaffPalette.of(context).fg(),
               ),
             ),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              padding: const EdgeInsets.only(bottom: 16, top: 0),
-              separatorBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.only(left: 64, right: 20),
-                child: Divider(
-                  height: 1,
-                  color: AppTheme.border,
-                ),
-              ),
-              itemBuilder: (context, index) => items[index],
-            ),
+          ),
+          for (final item in items) ...[
+            Divider(height: 1, thickness: 1, color: StaffPalette.of(context).surface(0.10)),
+            item,
           ],
-        ),
+        ],
       ),
     );
   }
@@ -491,57 +364,118 @@ class _MenuSection extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   final List<List<dynamic>> icon;
   final String title;
-  final Color iconColor;
+  final bool danger;
   final Widget? trailing;
-  final bool showTrailing;
   final VoidCallback onTap;
 
   const _MenuItem({
     required this.icon,
     required this.title,
-    this.iconColor = Colors.white,
+    this.danger = false,
     this.trailing,
     required this.onTap,
-  }) : showTrailing = true;
+  });
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIconColor = iconColor == Colors.white
-        ? AppTheme.textSecondary
-        : iconColor;
+    final color = danger ? _danger : StaffPalette.of(context).fg();
 
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppTheme.background,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: HugeIcon(icon: icon, color: effectiveIconColor, size: 20),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 52,
+        child: Row(
+          children: [
+            HugeIcon(icon: icon, color: color, size: 22),
+            const Gap(20),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w400,
+                  color: color,
+                ),
+              ),
+            ),
+            trailing ??
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  color: color,
+                  size: 20,
+                ),
+          ],
         ),
-        title: Text(
-          title,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: iconColor == AppTheme.danger ? AppTheme.danger : AppTheme.textPrimary,
-          ),
-        ),
-        trailing: !showTrailing
-            ? null
-            : trailing ??
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: AppTheme.textMuted,
-                    size: 18,
-                  ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 }
 
+/// Shows the installed version and, on tap, asks the backend whether a newer
+/// one is available (same endpoint as the start-up update check).
+class _AppVersionTile extends StatefulWidget {
+  const _AppVersionTile();
+
+  @override
+  State<_AppVersionTile> createState() => _AppVersionTileState();
+}
+
+class _AppVersionTileState extends State<_AppVersionTile> {
+  String _version = '…';
+  bool _checking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _version = '${info.version} (${info.buildNumber})');
+    });
+  }
+
+  static bool _isNewer(String latest, String current) {
+    final a = latest.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    final b = current.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    for (var i = 0; i < 3; i++) {
+      final x = i < a.length ? a[i] : 0;
+      final y = i < b.length ? b[i] : 0;
+      if (x != y) return x > y;
+    }
+    return false;
+  }
+
+  Future<void> _check() async {
+    if (_checking) return;
+    setState(() => _checking = true);
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final res = await ApiService.checkUpdate(info.version);
+      if (!mounted) return;
+      final latest = res['latestVersion']?.toString() ?? info.version;
+      final url = res['downloadUrl']?.toString() ?? '';
+      if (_isNewer(latest, info.version)) {
+        MizigoToasts.showInfo(context, 'Version $latest is available');
+        if (url.isNotEmpty) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        MizigoToasts.showSuccess(context, 'You have the latest version');
+      }
+    } catch (_) {
+      if (mounted) MizigoToasts.showError(context, 'Couldn’t check for updates');
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = StaffPalette.of(context);
+    return _MenuItem(
+      icon: HugeIcons.strokeRoundedSourceCodeSquare,
+      title: 'App Version',
+      trailing: _checking
+          ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: palette.fg(0.6)))
+          : Text(_version, style: GoogleFonts.outfit(fontSize: 15, color: palette.fg(0.6))),
+      onTap: _check,
+    );
+  }
+}

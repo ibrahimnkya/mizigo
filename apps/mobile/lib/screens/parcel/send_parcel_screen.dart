@@ -5,6 +5,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/parcel_provider.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 
 const _services = [
   {'name': 'Bodaboda', 'icon': Icons.two_wheeler, 'size': '0.4×0.4×0.4m', 'weight': '20kg'},
@@ -254,7 +255,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle('Review your shipment'),
+        const _SectionTitle('Review your parcel'),
         const Gap(16),
         _InfoTile('From', _fromCtrl.text),
         _InfoTile('To', _toCtrl.text),
@@ -313,9 +314,7 @@ class _SendParcelScreenState extends State<SendParcelScreen> {
     if (parcel != null && mounted) {
       context.go('/parcel/${parcel.id}/status');
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.error ?? 'Failed to submit'), backgroundColor: AppTheme.danger),
-      );
+      MizigoToasts.showError(context, provider.error ?? 'Failed to submit');
     }
   }
 

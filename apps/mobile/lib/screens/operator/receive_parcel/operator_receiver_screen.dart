@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../../widgets/common/country_selector.dart';
 import 'package:flutter/services.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/staff_palette.dart';
+import '../../../widgets/profile/premium_settings_components.dart';
+import '../../../widgets/staff/staff_settings.dart';
+import '../../../widgets/staff/step_progress.dart';
 
 class OperatorReceiverScreen extends StatefulWidget {
   final Map<String, dynamic> packageData;
@@ -16,19 +19,46 @@ class OperatorReceiverScreen extends StatefulWidget {
   State<OperatorReceiverScreen> createState() => _OperatorReceiverScreenState();
 }
 
-class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
-  final _senderNameCtrl = TextEditingController();
-  final _senderPhoneCtrl = TextEditingController();
-  
-  final _receiverNameCtrl = TextEditingController();
-  final _receiverPhoneCtrl = TextEditingController();
+/// Contact details typed during the current receive flow. Kept outside the
+/// widget so going back to Package Details and forward again keeps them;
+/// cleared once the parcel is saved.
+class ReceiveContactDraft {
+  static String senderName = '';
+  static String senderPhone = '';
+  static String receiverName = '';
+  static String receiverPhone = '';
+  static Country? senderCountry;
+  static Country? receiverCountry;
 
-  Country _senderCountry = countries.first;
-  Country _receiverCountry = countries.first;
+  static void clear() {
+    senderName = senderPhone = receiverName = receiverPhone = '';
+    senderCountry = receiverCountry = null;
+  }
+}
+
+class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
+  final _senderNameCtrl = TextEditingController(text: ReceiveContactDraft.senderName);
+  final _senderPhoneCtrl = TextEditingController(text: ReceiveContactDraft.senderPhone);
+
+  final _receiverNameCtrl = TextEditingController(text: ReceiveContactDraft.receiverName);
+  final _receiverPhoneCtrl = TextEditingController(text: ReceiveContactDraft.receiverPhone);
+
+  Country _senderCountry = ReceiveContactDraft.senderCountry ?? countries.first;
+  Country _receiverCountry = ReceiveContactDraft.receiverCountry ?? countries.first;
   bool _hasError = false; // Track validation error for dots
+
+  void _saveDraft() {
+    ReceiveContactDraft.senderName = _senderNameCtrl.text;
+    ReceiveContactDraft.senderPhone = _senderPhoneCtrl.text;
+    ReceiveContactDraft.receiverName = _receiverNameCtrl.text;
+    ReceiveContactDraft.receiverPhone = _receiverPhoneCtrl.text;
+    ReceiveContactDraft.senderCountry = _senderCountry;
+    ReceiveContactDraft.receiverCountry = _receiverCountry;
+  }
 
   @override
   void dispose() {
+    _saveDraft();
     _senderNameCtrl.dispose();
     _senderPhoneCtrl.dispose();
     _receiverNameCtrl.dispose();
@@ -75,493 +105,218 @@ class _OperatorReceiverScreenState extends State<OperatorReceiverScreen> {
     }
   }
 
-  void _showStepHelp(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.55,
-        minChildSize: 0.4,
-        maxChildSize: 0.85,
-        builder: (ctx, scrollCtrl) => Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border(
-              top: BorderSide(color: AppTheme.border),
-              left: BorderSide(color: AppTheme.border),
-              right: BorderSide(color: AppTheme.border),
-            ),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)))),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: AppTheme.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedUserMultiple, color: AppTheme.accent, size: 22),
-                    ),
-                    const Gap(12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Step 2 — Contact Info', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary)),
-                        Text('Sender and receiver details', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView(
-                  controller: scrollCtrl,
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                  children: [
-                    _helpRow(HugeIcons.strokeRoundedUser, 'Sender Name', 'Enter the full name of the person dropping off the parcel at the station.'),
-                    _helpRow(HugeIcons.strokeRoundedCall, 'Sender Phone', 'Select the sender\'s country dial code and enter their phone number without leading zero.'),
-                    _helpRow(HugeIcons.strokeRoundedUserAdd01, 'Receiver Name', 'Enter the full name of the person who will collect the parcel at the destination.'),
-                    _helpRow(HugeIcons.strokeRoundedSmartPhone01, 'Receiver Phone', 'Select the receiver\'s country code and enter their number. Used for delivery notifications.'),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(24, 8, 24, MediaQuery.of(context).padding.bottom + 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.cPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    child: Text('Got it', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 15)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  List<String> get _missing => [
+    if (_senderNameCtrl.text.trim().isEmpty) 'sender name',
+    if (_senderPhoneCtrl.text.length < 9) 'sender phone',
+    if (_receiverNameCtrl.text.trim().isEmpty) 'receiver name',
+    if (_receiverPhoneCtrl.text.length < 9) 'receiver phone',
+  ];
+
+  void _submit() {
+    if (_missing.isNotEmpty) {
+      setState(() => _hasError = true);
+      MizigoToasts.showError(context, 'Please add: ${_missing.join(', ')}');
+      return;
+    }
+    _onNext();
   }
 
-  Widget _helpRow(dynamic icon, String title, String body) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  void _showStepHelp(BuildContext context) {
+    showStaffSheet<void>(
+      context,
+      title: 'Sender & receiver',
+      builder: (_) => const Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 18),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedUser,
+            label: 'Sender',
+            subtitle: 'The person handing over the parcel today',
+            onTap: null,
           ),
-          const Gap(14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textPrimary)),
-                const Gap(3),
-                Text(body, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary, height: 1.5)),
-              ],
-            ),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedUserCheck01,
+            label: 'Receiver',
+            subtitle: 'Gets SMS updates and the delivery code',
+            onTap: null,
+          ),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedSmartPhone01,
+            label: 'Phone numbers',
+            subtitle: '9 digits without the leading 0, e.g. 712 345 678',
+            onTap: null,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPhoneField({
-    required TextEditingController controller,
-    required String label,
-    required Country selectedCountry,
-    required VoidCallback onSelectCountry,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    final palette = StaffPalette.of(context);
+    return StaffSettingsScaffold(
+      title: 'Contact Details',
+      onBack: () => context.pop(),
+      trailing: IconButton(
+        tooltip: 'Help',
+        onPressed: () => _showStepHelp(context),
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: palette.fg(), size: 24),
+      ),
+      // Shown only once every required detail is filled in.
+      bottom: _missing.isEmpty
+          ? StaffButton(
+              label: 'Continue to Payment',
+              icon: HugeIcons.strokeRoundedArrowRight02,
+              iconAfter: true,
+              onPressed: _submit,
+            )
+          : null,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        const Gap(10),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.border,
-            ),
-          ),
-          child: Row(
+        const StepProgress(step: 2, total: 3, label: 'Contacts'),
+        const Gap(16),
+        StaffGlassCard(
+          title: 'Sender',
+          child: Column(
             children: [
-              GestureDetector(
-                onTap: onSelectCountry,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border(
-                      right: BorderSide(
-                        color: AppTheme.border,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(selectedCountry.flag, style: const TextStyle(fontSize: 20)),
-                      const Gap(8),
-                      Text(
-                        selectedCountry.dialCode,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              StaffTextField(
+                label: 'Full name',
+                hint: 'e.g. Amina Saleh',
+                controller: _senderNameCtrl,
+                icon: HugeIcons.strokeRoundedUser,
+                keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => setState(() {}),
               ),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(9),
-                  ],
-                  onChanged: (v) => setState(() {}),
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                    letterSpacing: 1,
-                  ),
-                  cursorColor: AppTheme.cPrimary,
-                  decoration: InputDecoration(
-                    hintText: '712 345 678',
-                    hintStyle: GoogleFonts.inter(
-                      fontSize: 15,
-                      color: AppTheme.textMuted,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                ),
+              const Gap(14),
+              _PhoneField(
+                label: 'Phone number',
+                controller: _senderPhoneCtrl,
+                country: _senderCountry,
+                onPickCountry: () => _showCountryPicker(true),
+                onChanged: () => setState(() {}),
               ),
             ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType type = TextInputType.text,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
         const Gap(10),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.border,
-            ),
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: type,
-            onChanged: (v) => setState(() {}),
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textPrimary,
-            ),
-            cursorColor: AppTheme.cPrimary,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: GoogleFonts.inter(
-                fontSize: 15,
-                color: AppTheme.textMuted,
+        StaffGlassCard(
+          title: 'Receiver',
+          child: Column(
+            children: [
+              StaffTextField(
+                label: 'Full name',
+                hint: 'e.g. Jacob Ibrahim',
+                controller: _receiverNameCtrl,
+                icon: HugeIcons.strokeRoundedUserCheck01,
+                keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => setState(() {}),
               ),
-              prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 20),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            ),
+              const Gap(14),
+              _PhoneField(
+                label: 'Phone number',
+                controller: _receiverPhoneCtrl,
+                country: _receiverCountry,
+                onPickCountry: () => _showCountryPicker(false),
+                onChanged: () => setState(() {}),
+              ),
+            ],
           ),
         ),
+        if (_hasError && _missing.isNotEmpty) ...[
+          const Gap(12),
+          Text('Still needed: ${_missing.join(', ')}.', style: GoogleFonts.outfit(fontSize: 14, color: kStaffDanger)),
+        ],
       ],
     );
   }
+}
+
+/// Phone input: tappable flag + dial code prefix, 9 local digits (a typed
+/// leading 0 is dropped automatically).
+class _PhoneField extends StatelessWidget {
+  const _PhoneField({
+    required this.label,
+    required this.controller,
+    required this.country,
+    required this.onPickCountry,
+    required this.onChanged,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final Country country;
+  final VoidCallback onPickCountry;
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final appBarTheme = theme.appBarTheme;
-    final appBarBgColor = appBarTheme.backgroundColor ?? theme.primaryColor;
-    final appBarTextColor = appBarTheme.titleTextStyle?.color ?? Colors.white;
-    final appBarIconColor = appBarTheme.iconTheme?.color ?? Colors.white;
-
-    final canProceed = _senderNameCtrl.text.isNotEmpty &&
-        _senderPhoneCtrl.text.isNotEmpty &&
-        _receiverNameCtrl.text.isNotEmpty &&
-        _receiverPhoneCtrl.text.isNotEmpty;
-
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: Column(
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 14,
-                bottom: 18,
-                left: 20,
-                right: 20,
-              ),
-              color: appBarBgColor,
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: appBarIconColor, size: 24),
-                  ),
-                  const Gap(16),
-                  Text(
-                    'Sender & Receiver',
-                    style: GoogleFonts.outfit(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: appBarTextColor,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Progress Dots
-                  Row(
-                    children: List.generate(3, (index) {
-                      final isActive = index == 1; // Step 2
-                      return Container(
-                        margin: const EdgeInsets.only(right: 4),
-                        width: isActive ? 12 : 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: isActive 
-                            ? (_hasError ? AppTheme.danger : AppTheme.accent) 
-                            : appBarTextColor.withValues(alpha: 0.24),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      );
-                    }),
-                  ),
-                  const Gap(12),
-                  GestureDetector(
-                    onTap: () => _showStepHelp(context),
-                    child: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: appBarIconColor, size: 22),
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final palette = StaffPalette.of(context);
+    OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: c, width: w),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label, style: GoogleFonts.outfit(fontSize: 14, color: palette.fg(0.7))),
+        ),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            _DropLeadingZero(),
+            LengthLimitingTextInputFormatter(9),
+          ],
+          onChanged: (_) => onChanged(),
+          cursorColor: kStaffAccent,
+          style: GoogleFonts.outfit(fontSize: 16, letterSpacing: 1, color: palette.fg()),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: palette.surface(0.06),
+            hintText: '712 345 678',
+            hintStyle: GoogleFonts.outfit(fontSize: 16, color: palette.fg(0.45)),
+            prefixIcon: GestureDetector(
+              onTap: onPickCountry,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 14, right: 10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppTheme.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppTheme.cPrimary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const HugeIcon(
-                              icon: HugeIcons.strokeRoundedUserGroup,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          const Gap(16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Who is sending and receiving?',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                const Gap(4),
-                                Text(
-                                  'Enter precise contact details.',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Gap(32),
-
+                    Text(country.flag, style: const TextStyle(fontSize: 20)),
+                    const Gap(6),
                     Text(
-                      'Sender Information',
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
+                      country.dialCode,
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: palette.fg()),
                     ),
-                    const Gap(16),
-                    _buildField(
-                      controller: _senderNameCtrl,
-                      label: 'Full Name',
-                      hint: 'e.g. John Doe',
-                      icon: Icons.person_outline,
-                    ),
-                    const Gap(16),
-                    _buildPhoneField(
-                      controller: _senderPhoneCtrl,
-                      label: 'Phone Number',
-                      selectedCountry: _senderCountry,
-                      onSelectCountry: () => _showCountryPicker(true),
-                    ),
-
-                    const Gap(40),
-
-                    Text(
-                      'Receiver Information',
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    const Gap(16),
-                    _buildField(
-                      controller: _receiverNameCtrl,
-                      label: 'Full Name',
-                      hint: 'e.g. Jane Smith',
-                      icon: Icons.person_outline,
-                    ),
-                    const Gap(16),
-                    _buildPhoneField(
-                      controller: _receiverPhoneCtrl,
-                      label: 'Phone Number',
-                      selectedCountry: _receiverCountry,
-                      onSelectCountry: () => _showCountryPicker(false),
-                    ),
+                    HugeIcon(icon: HugeIcons.strokeRoundedArrowDown01, color: palette.fg(0.6), size: 16),
                   ],
                 ),
               ),
             ),
-            
-            // Bottom Bar
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                20, 14, 20, MediaQuery.of(context).padding.bottom + 14,
-              ),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 58,
-                child: ElevatedButton(
-                  onPressed: canProceed ? _onNext : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.cPrimary,
-                    disabledBackgroundColor: const Color(0xFFE2E8F0),
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: AppTheme.textMuted,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Proceed to Payment',
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const Gap(8),
-                      const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.white, size: 20),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+            border: border(palette.fg(0.25)),
+            enabledBorder: border(palette.fg(0.25)),
+            focusedBorder: border(kStaffAccent, 1.5),
+          ),
         ),
-      ),
+      ],
+    );
+  }
+}
+
+class _DropLeadingZero extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (!newValue.text.startsWith('0')) return newValue;
+    final text = newValue.text.replaceFirst(RegExp(r'^0+'), '');
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }

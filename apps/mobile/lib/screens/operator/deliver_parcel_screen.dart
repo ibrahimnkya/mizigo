@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:go_router/go_router.dart';
-import '../../models/parcel_model.dart';
-import '../../models/operation_model.dart';
-import '../../services/api_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/common/shimmer_utils.dart';
 
+import '../../models/operation_model.dart';
+import '../../models/parcel_model.dart';
+import '../../services/api_service.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/auth/clerk_auth_widgets.dart';
+import '../../widgets/profile/premium_settings_components.dart';
+import '../../widgets/staff/parcel_cards.dart';
+import '../../widgets/staff/parcel_number_field.dart';
+import '../../widgets/staff/parcel_search_suggestions.dart';
+import '../../utils/parcel_search.dart';
+import '../../providers/parcel_provider.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/staff/staff_settings.dart';
+
+/// Deliver Parcel — find the parcel (search or scan), check it's at the
+/// station, then verify the receiver's 6-digit delivery code.
 class DeliverParcelScreen extends StatefulWidget {
   const DeliverParcelScreen({super.key});
 
@@ -18,453 +29,276 @@ class DeliverParcelScreen extends StatefulWidget {
 
 class _DeliverParcelScreenState extends State<DeliverParcelScreen> {
   final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
   ParcelModel? _foundParcel;
+
+  /// Text that produced [_foundParcel]; "Find Parcel" shows only when the
+  /// field differs from it (i.e. there's a new query to look up).
+  String _lastLookup = '';
   bool _searching = false;
   bool _delivering = false;
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
   Future<void> _search() async {
-    if (_searchController.text.isEmpty) return;
-    
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    // Smart search over parcels already loaded first; the server only if none match.
+    final local = searchParcels(context.read<ParcelProvider>().parcels, query);
+    if (local.isNotEmpty) {
+      _useParcel(local.first);
+      return;
+    }
     setState(() {
       _searching = true;
       _foundParcel = null;
     });
-
     try {
-      final results = await ApiService.searchParcel(_searchController.text);
-      if (results.isNotEmpty) {
+      final results = await ApiService.searchParcel(query);
+      if (!mounted) return;
+      if (results.isEmpty) {
+        MizigoToasts.showError(context, 'No parcel found for “$query”');
+      } else {
         setState(() {
           _foundParcel = ParcelModel.fromJson(results.first);
+          _lastLookup = query;
         });
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No parcel found with this ID'), backgroundColor: Color(0xFFEF4444)),
-          );
-        }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
+      if (mounted) MizigoToasts.showError(context, 'Search failed. Check your connection.');
     } finally {
       if (mounted) setState(() => _searching = false);
     }
   }
 
-  Future<void> _showOtpDialog() async {
-    final otpController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        title: Text('Enter Handover Code', style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Ask the recipient for the 4-digit code sent to their phone.',
-              style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 13)),
-            const Gap(20),
-            TextField(
-              controller: otpController,
-              keyboardType: TextInputType.number,
-              maxLength: 4,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8),
-              decoration: InputDecoration(
-                counterText: '',
-                filled: true,
-                fillColor: AppTheme.background,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final otp = otpController.text;
-              Navigator.pop(context);
-              _finalizeDelivery(otp);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: const Text('Verify & Deliver', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
+  /// Shows [p] as the found parcel.
+  void _useParcel(ParcelModel p) {
+    setState(() {
+      _foundParcel = p;
+      _lastLookup = _searchController.text.trim();
+    });
   }
 
-  Future<void> _finalizeDelivery(String otp) async {
-    if (_foundParcel == null) return;
+  Future<void> _scan() async {
+    final code = await context.push<String>('/scanner', extra: ParcelOperation.deliver);
+    if (code != null && mounted) {
+      _searchController.text = code;
+      _search();
+    }
+  }
 
-    setState(() => _delivering = true);
-    try {
-      await ApiService.deliverParcel(_foundParcel!.id, otp);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Parcel successfully delivered!'),
-            backgroundColor: Color(0xFF10B981),
+  Future<void> _verify() async {
+    final codeController = TextEditingController();
+    final code = await showStaffSheet<String>(
+      context,
+      title: 'Verify Delivery',
+      builder: (sheetContext) {
+        final palette = StaffPalette.of(sheetContext);
+        void submit() {
+          if (codeController.text.length == 6) Navigator.pop(sheetContext, codeController.text);
+        }
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(24, 4, 24, 8 + MediaQuery.of(sheetContext).viewInsets.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Ask the receiver for the 6-digit delivery code sent to their phone.',
+                style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.7)),
+              ),
+              const Gap(18),
+              ClerkCodeField(controller: codeController, onCompleted: (_) => submit()),
+              const Gap(24),
+              ListenableBuilder(
+                listenable: codeController,
+                builder: (_, _) => StaffButton(
+                  label: 'Confirm Delivery',
+                  icon: HugeIcons.strokeRoundedPackageDelivered,
+                  color: const Color(0xFF10B981),
+                  onPressed: codeController.text.length == 6 ? submit : null,
+                ),
+              ),
+            ],
           ),
         );
-        context.pop();
-      }
+      },
+    );
+    // Dispose after the sheet's close animation, which still reads it.
+    Future.delayed(const Duration(milliseconds: 500), codeController.dispose);
+    if (code != null) _finalize(code);
+  }
+
+  Future<void> _finalize(String code) async {
+    final parcel = _foundParcel;
+    if (parcel == null) return;
+    setState(() => _delivering = true);
+    try {
+      await ApiService.deliverParcel(parcel.id, code);
+      if (!mounted) return;
+      MizigoToasts.showSuccess(context, 'Parcel delivered');
+      context.pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
+      if (mounted) MizigoToasts.showError(context, 'Delivery failed: $e');
     } finally {
       if (mounted) setState(() => _delivering = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        title: Text(
-          'Deliver Parcel',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _showHelp(context),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedHelpCircle,
-              color: Colors.white,
-              size: 22,
-            ),
+  void _showHelp() {
+    showStaffSheet<void>(
+      context,
+      title: 'How to deliver',
+      builder: (_) => const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedQrCode,
+            label: 'Find the parcel',
+            subtitle: 'Scan its QR code or type the parcel number',
+            onTap: null,
           ),
-          const Gap(8),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedUserCheck01,
+            label: 'Check the receiver',
+            subtitle: 'Confirm their name and phone match the parcel',
+            onTap: null,
+          ),
+          StaffSheetTile(
+            icon: HugeIcons.strokeRoundedSecurityPassword,
+            label: 'Enter their code',
+            subtitle: 'The 6-digit code they received by SMS',
+            onTap: null,
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Row(
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = StaffPalette.of(context);
+    final parcel = _foundParcel;
+    final ready = parcel?.status == ParcelStatus.atStation || parcel?.status == ParcelStatus.offloaded;
+
+    return StaffSettingsScaffold(
+      title: 'Deliver Parcel',
+      onBack: () => context.pop(),
+      trailing: IconButton(
+        tooltip: 'Help',
+        onPressed: _showHelp,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: palette.fg(), size: 24),
+      ),
+      children: [
+        ParcelLookupBar(
+          field: ParcelSearchSuggestions(
+            controller: _searchController,
+            focusNode: _searchFocus,
+            onParcelSelected: _useParcel,
+            fieldBuilder: (_) => ParcelNumberField(
+              controller: _searchController,
+              focusNode: _searchFocus,
+              freeText: true,
+              loading: _searching,
+              onSubmitted: (_) => _search(),
+            ),
+          ),
+          onScan: _scan,
+        ),
+        // Only once something has been typed.
+        ListenableBuilder(
+          listenable: _searchController,
+          builder: (_, _) {
+            final text = _searchController.text.trim();
+            return text.isEmpty || (_foundParcel != null && text == _lastLookup)
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: StaffButton(
+                      label: 'Find Parcel',
+                      icon: HugeIcons.strokeRoundedSearch01,
+                      loading: _searching,
+                      onPressed: _search,
+                    ),
+                  );
+          },
+        ),
+        const Gap(16),
+        if (parcel == null && !_searching)
+          StaffGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Expanded(child: _buildSearchField()),
-                const Gap(12),
-                _buildScannerButton(),
+                const HugeIcon(icon: HugeIcons.strokeRoundedPackageDelivered, color: Color(0xFF10B981), size: 32),
+                const Gap(16),
+                Expanded(
+                  child: Text(
+                    'Scan the parcel QR code or enter its number to start a delivery.',
+                    style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.75)),
+                  ),
+                ),
               ],
             ),
-            
-            if (_searching)
-              const Padding(
-                padding: EdgeInsets.only(top: 32),
-                child: ShimmerLoading(
-                  isLoading: true,
-                  child: BoxSkeleton(height: 180, borderRadius: 24),
-                ),
-              )
-            else if (_foundParcel != null) ...[
-              const Gap(32),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: const Color(0xFF3B82F6),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'IDENTIFIED SHIPMENT',
-                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF3B82F6)),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => setState(() => _foundParcel = null),
-                          icon: const Icon(Icons.close, color: Color(0xFF64748B), size: 20),
-                        ),
-                      ],
-                    ),
-                    const Gap(16),
-                    Text(
-                      _foundParcel!.receiverName,
-                      style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                    ),
-                    Text(
-                      _foundParcel!.receiverPhone,
-                      style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textSecondary),
-                    ),
-                    const Gap(16),
-                    Divider(color: AppTheme.border),
-                    const Gap(16),
-                    _buildDetailRow(HugeIcons.strokeRoundedPackage, 'Description', _foundParcel!.description),
-                    const Gap(12),
-                    _buildDetailRow(HugeIcons.strokeRoundedLocation01, 'Destination', _foundParcel!.toAddress),
-                    const Gap(12),
-                    _buildDetailRow(HugeIcons.strokeRoundedCircleArrowDownDouble, 'Status', _foundParcel!.status.displayLabel),
-                    
-                    const Gap(32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: FilledButton(
-                        onPressed: _delivering ? null : _showOtpDialog,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: _delivering
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(
-                                'Mark as Delivered',
-                                style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 16),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      onSubmitted: (_) => _search(),
-      textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: AppTheme.textMuted),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: AppTheme.background,
-        prefixIcon: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
-        ),
-        suffixIcon: _searching 
-          ? Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppTheme.cPrimary, strokeWidth: 2)),
-            )
-          : IconButton(
-              icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: AppTheme.cPrimary),
-              onPressed: _search,
-            ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-    );
-  }
-
-  Widget _buildScannerButton() {
-    return InkWell(
-      onTap: () async {
-        final code = await context.push<String>('/scanner', extra: ParcelOperation.deliver);
-        if (code != null) {
-          _searchController.text = code;
-          _search();
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: AppTheme.cPrimary,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.cPrimary.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: HugeIcon(
-            icon: HugeIcons.strokeRoundedQrCode01,
-            color: Colors.white,
-            size: 24,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(List<List<dynamic>> icon, String label, String value) {
-    return Row(
-      children: [
-        HugeIcon(icon: icon, color: const Color(0xFF64748B), size: 18),
-        const Gap(12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B), fontWeight: FontWeight.w600)),
-            Text(value, style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textPrimary, fontWeight: FontWeight.w500)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  void _showHelp(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border.all(color: AppTheme.border),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Gap(8),
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.border, borderRadius: BorderRadius.circular(2)))),
-            const Gap(24),
-            Text(
-              'Delivery Guide',
-              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+        if (parcel != null) ...[
+          ParcelSummaryCard(
+            parcel: parcel,
+            footer: Row(
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedUser, color: palette.fg(0.55), size: 16),
+                const Gap(6),
+                Expanded(
+                  child: Text(
+                    [parcel.receiverName, parcel.receiverPhone].where((x) => x.isNotEmpty).join(' • '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(fontSize: 14, color: palette.fg(0.75)),
+                  ),
+                ),
+              ],
             ),
-            const Gap(8),
-            Text(
-              'Follow these steps to ensure secure parcel handover.',
-              style: GoogleFonts.inter(color: AppTheme.textSecondary, fontSize: 14),
-            ),
-            const Gap(32),
-            Expanded(
-              child: ListView(
+          ),
+          const Gap(16),
+          if (ready)
+            StaffButton(
+              label: 'Verify & Deliver',
+              icon: HugeIcons.strokeRoundedSecurityCheck,
+              color: const Color(0xFF10B981),
+              loading: _delivering,
+              onPressed: _verify,
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD97706).withValues(alpha: 0.5)),
+              ),
+              child: Row(
                 children: [
-                  _helpItem(
-                    'Search & Verify',
-                    'Enter the Tracking ID or scan the QR code to find the exact parcel in the system.',
-                    HugeIcons.strokeRoundedSearch01,
-                  ),
-                  _helpItem(
-                    'Identity Check',
-                    'Always ask for a National ID or Driving License to verify the receiver\'s identity.',
-                    HugeIcons.strokeRoundedUser,
-                  ),
-                  _helpItem(
-                    'Payment Status',
-                    'For "Receiver Pays" parcels, ensure the amount is paid in full before releasing the package.',
-                    HugeIcons.strokeRoundedCoins01,
-                  ),
-                  _helpItem(
-                    'Finalize Handover',
-                    'Click "Mark as Delivered" to complete the process. Both parties will be notified via SMS.',
-                    HugeIcons.strokeRoundedCheckmarkBadge01,
+                  const HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: Color(0xFFD97706), size: 22),
+                  const Gap(12),
+                  Expanded(
+                    child: Text(
+                      parcel.status == ParcelStatus.delivered
+                          ? 'This parcel has already been delivered.'
+                          : 'This parcel isn’t at the station yet (${parcel.status.displayLabel}).',
+                      style: GoogleFonts.outfit(fontSize: 14, height: 1.35, color: palette.fg(0.85)),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Gap(16),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.cPrimary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text('Got it', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _helpItem(String title, String desc, dynamic icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.background,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: HugeIcon(icon: icon, color: AppTheme.cPrimary, size: 22),
-          ),
-          const Gap(16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                ),
-                const Gap(4),
-                Text(
-                  desc,
-                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary, height: 1.5),
-                ),
-              ],
-            ),
-          ),
         ],
-      ),
+      ],
     );
   }
 }

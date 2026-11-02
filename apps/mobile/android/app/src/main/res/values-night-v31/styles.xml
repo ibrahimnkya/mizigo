@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ system splash: background follows the app theme the user picked
+     (MainActivity calls setSplashScreenTheme with one of these on Android 13+). -->
+<resources>
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_background</item>
+        <!-- No icon: the animated Flutter splash is the only splash users see. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_none</item>
+    </style>
+    <style name="LaunchTheme.Midnight">
+        <item name="android:windowBackground">@drawable/launch_background_midnight</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_background_midnight</item>
+    </style>
+    <style name="LaunchTheme.Daylight">
+        <item name="android:windowBackground">@drawable/launch_background_daylight</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_background_daylight</item>
+    </style>
+</resources>

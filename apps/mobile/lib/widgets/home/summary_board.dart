@@ -25,7 +25,7 @@ class SummaryBoard extends StatelessWidget {
               label: 'Received',
               count: received,
               icon: HugeIcons.strokeRoundedPackageReceive,
-              color: const Color(0xFF3B82F6),
+              color: const Color(0xFF5C0B19),
             ),
           ),
           const Gap(12),

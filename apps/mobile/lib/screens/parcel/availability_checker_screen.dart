@@ -180,7 +180,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                                     }
                                   },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3B82F6),
+                          backgroundColor: const Color(0xFF5C0B19),
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: Colors.black12,
                           disabledForegroundColor: AppTheme.textMuted,
@@ -259,7 +259,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                            color: const Color(0xFF5C0B19).withValues(alpha: 0.1),
                             width: 8,
                           ),
                         ),
@@ -267,7 +267,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                           value: _progress,
                           strokeWidth: 8,
                           backgroundColor: Colors.transparent,
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5C0B19)),
                         ),
                       ),
                     ),
@@ -281,7 +281,7 @@ class _AvailabilityCheckerScreenState extends State<AvailabilityCheckerScreen>
                   style: GoogleFonts.outfit(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF3B82F6),
+                    color: const Color(0xFF5C0B19),
                   ),
                 ),
                 const Gap(8),

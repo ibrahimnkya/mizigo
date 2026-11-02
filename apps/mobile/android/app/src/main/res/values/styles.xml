@@ -15,4 +15,11 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <!-- Theme-specific launch styles; MainActivity picks one from the saved app theme. -->
+    <style name="LaunchTheme.Midnight">
+        <item name="android:windowBackground">@drawable/launch_background_midnight</item>
+    </style>
+    <style name="LaunchTheme.Daylight">
+        <item name="android:windowBackground">@drawable/launch_background_daylight</item>
+    </style>
 </resources>

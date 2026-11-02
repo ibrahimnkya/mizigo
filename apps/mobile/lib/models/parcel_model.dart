@@ -5,7 +5,8 @@ enum ParcelStatus {
   inTransit,
   atStation,
   delivered,
-  canceled;
+  canceled,
+  lost;
 
   static ParcelStatus fromString(String value) {
     switch (value.toUpperCase()) {
@@ -24,6 +25,7 @@ enum ParcelStatus {
       case 'CANCELED':
       case 'CANCELLED':
       case 'REJECTED': return ParcelStatus.canceled;
+      case 'LOST': return ParcelStatus.lost;
       default: return ParcelStatus.received;
     }
   }
@@ -37,6 +39,7 @@ enum ParcelStatus {
       case ParcelStatus.atStation: return 'At Station';
       case ParcelStatus.delivered: return 'Delivered';
       case ParcelStatus.canceled: return 'Canceled';
+      case ParcelStatus.lost: return 'Lost';
     }
   }
 }

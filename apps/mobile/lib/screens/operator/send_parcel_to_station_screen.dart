@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../services/api_service.dart';
-import '../../models/parcel_model.dart';
-import '../../models/operation_model.dart';
-import '../../widgets/common/shimmer_utils.dart';
-import '../../theme/app_theme.dart';
+import 'package:intl/intl.dart';
 
+import '../../models/operation_model.dart';
+import '../../models/parcel_model.dart';
+import '../../services/api_service.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/profile/premium_settings_components.dart';
+import '../../widgets/staff/parcel_cards.dart';
+import '../../widgets/staff/parcel_number_field.dart';
+import '../../widgets/staff/parcel_search_suggestions.dart';
+import '../../utils/parcel_search.dart';
+import '../../providers/parcel_provider.dart';
+import 'package:provider/provider.dart';
+import '../../widgets/staff/staff_settings.dart';
+
+/// Dispatch Parcels — choose a wagon and travel date, select received parcels
+/// (from the list, a search or a scan) and dispatch them together.
 class SendParcelToStationScreen extends StatefulWidget {
   const SendParcelToStationScreen({super.key});
 
@@ -18,20 +29,18 @@ class SendParcelToStationScreen extends StatefulWidget {
 
 class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
   final _searchController = TextEditingController();
-  List<ParcelModel> _warehouseItems = [];
-  final Set<String> _selectedItems = {};
+  final _searchFocus = FocusNode();
+  List<ParcelModel> _readyItems = [];
+  final Set<String> _selected = {};
   bool _loading = true;
   bool _submitting = false;
   bool _searching = false;
   ParcelModel? _foundParcel;
-  String? _selectedTrain;
-  String? _selectedGuard;
 
-  final List<String> _mockTrains = ['SGR Express 01', 'Cargo Liner 402', 'LRT Shuttle 09'];
-  final List<String> _mockGuards = ['Juma Kapuya', 'Sarah Mwasame', 'Bakari Jenge'];
-
-  List<String> _trains = [];
-  List<String> _guards = [];
+  /// Train wagons: {id, plateNumber}
+  List<Map<String, String>> _wagons = [];
+  Map<String, String>? _wagon;
+  DateTime _travelDate = DateTime.now();
 
   @override
   void initState() {
@@ -39,528 +48,290 @@ class _SendParcelToStationScreenState extends State<SendParcelToStationScreen> {
     _fetchItems();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  static bool _ready(ParcelModel c) => c.status == ParcelStatus.received;
+
   Future<void> _fetchItems() async {
     setState(() => _loading = true);
     try {
-      final results = await Future.wait([
-        ApiService.getParcels(),
-        ApiService.getVehicles(),
-        ApiService.getOperators(),
-      ]);
-
-      final rawParcels = results[0] as List;
-      final rawVehicles = results[1] as List;
-      final rawOperators = results[2] as List;
-
-      List<ParcelModel> items = rawParcels
-          .map((j) => ParcelModel.fromJson(j))
-          .where((c) => 
-            c.status == ParcelStatus.received || 
-            c.status.name.toUpperCase() == 'RECEIVED' ||
-            c.status.displayLabel.toUpperCase() == 'RECEIVED'
-          )
+      final results = await Future.wait([ApiService.getParcels(), ApiService.getVehicles()]);
+      final parcels = results[0].map((j) => ParcelModel.fromJson(j)).where(_ready).toList();
+      final wagons = results[1]
+          .where((v) => v['id'] != null && v['plateNumber'] != null)
+          .map((v) => {'id': v['id'].toString(), 'plateNumber': v['plateNumber'].toString()})
           .toList();
-
-      final List<String> loadedTrains = rawVehicles
-          .map((v) => v['plateNumber']?.toString() ?? '')
-          .where((s) => s.isNotEmpty)
-          .toList();
-
-      final List<String> loadedGuards = rawOperators
-          .where((u) {
-            final roleObj = u['role'];
-            final roleName = roleObj is Map ? roleObj['name']?.toString() : u['role']?.toString();
-            return roleName?.toUpperCase() == 'TRAIN_GUARD';
-          })
-          .map((u) => u['name']?.toString() ?? '')
-          .where((s) => s.isNotEmpty)
-          .toList();
-      
-      setState(() {
-        _warehouseItems = items;
-        _trains = loadedTrains.isNotEmpty ? loadedTrains : _mockTrains;
-        _guards = loadedGuards.isNotEmpty ? loadedGuards : _mockGuards;
-      });
-    } catch (e) {
-      debugPrint('Error fetching warehouse items: $e');
-      setState(() {
-        _trains = _mockTrains;
-        _guards = _mockGuards;
-      });
+      if (mounted) {
+        setState(() {
+          _readyItems = parcels;
+          _wagons = wagons;
+        });
+      }
+    } catch (_) {
+      if (mounted) MizigoToasts.showError(context, 'Couldn’t load parcels and wagons');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _search() async {
-    if (_searchController.text.isEmpty) return;
-    
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    // Smart search over parcels already loaded first; the server only if none match.
+    final local = searchParcels([..._readyItems, ...context.read<ParcelProvider>().parcels], query);
+    if (local.isNotEmpty) {
+      _useParcel(local.first);
+      return;
+    }
     setState(() {
       _searching = true;
       _foundParcel = null;
     });
-
     try {
-      final results = await ApiService.searchParcel(_searchController.text);
-      if (results.isNotEmpty) {
-        setState(() {
-          _foundParcel = ParcelModel.fromJson(results.first);
-        });
+      final results = await ApiService.searchParcel(query);
+      if (!mounted) return;
+      if (results.isEmpty) {
+        MizigoToasts.showError(context, 'No parcel found for “$query”');
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No parcel found with this ID'), backgroundColor: Color(0xFFEF4444)),
-          );
-        }
+        final p = ParcelModel.fromJson(results.first);
+        setState(() {
+          _foundParcel = p;
+          if (_ready(p)) _selected.add(p.id);
+        });
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
+    } catch (_) {
+      if (mounted) MizigoToasts.showError(context, 'Search failed. Check your connection.');
     } finally {
       if (mounted) setState(() => _searching = false);
     }
   }
 
+  /// Shows [p] as the found parcel (and selects it if it can be acted on).
+  void _useParcel(ParcelModel p) {
+    setState(() {
+      _foundParcel = p;
+      if (_ready(p)) _selected.add(p.id);
+    });
+  }
+
+  Future<void> _scan() async {
+    final code = await context.push<String>('/scanner', extra: ParcelOperation.dispatch);
+    if (code != null && mounted) {
+      _searchController.text = code;
+      _search();
+    }
+  }
+
+  void _toggle(String id) => setState(() => _selected.contains(id) ? _selected.remove(id) : _selected.add(id));
+
+  void _pickWagon() {
+    showStaffSheet<void>(
+      context,
+      title: 'Choose wagon / train',
+      builder: (sheetContext) => _wagons.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              child: Text(
+                'No wagons available. Pull down on the page to refresh.',
+                style: GoogleFonts.outfit(fontSize: 15, color: StaffPalette.of(sheetContext).fg(0.6)),
+              ),
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                for (final w in _wagons)
+                  StaffSheetTile(
+                    icon: HugeIcons.strokeRoundedSpeedTrain01,
+                    label: w['plateNumber']!,
+                    selected: _wagon?['id'] == w['id'],
+                    onTap: () {
+                      setState(() => _wagon = w);
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
+              ],
+            ),
+    );
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _travelDate,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 30)),
+    );
+    if (picked != null) setState(() => _travelDate = picked);
+  }
+
   Future<void> _dispatchSelected() async {
-    if (_selectedItems.isEmpty || _selectedTrain == null || _selectedGuard == null) return;
+    final wagon = _wagon;
+    if (_selected.isEmpty || wagon == null) return;
+    final count = _selected.length;
+    final confirmed = await showStaffConfirmSheet(
+      context,
+      title: 'Dispatch $count parcel${count == 1 ? '' : 's'}?',
+      message: 'On ${wagon['plateNumber']}, travelling ${DateFormat('EEE d MMM').format(_travelDate)}.',
+      confirmText: 'Dispatch',
+    );
+    if (!confirmed || !mounted) return;
 
     setState(() => _submitting = true);
-    try {
-      for (final id in _selectedItems) {
-        await ApiService.updateParcelStatus(id, 'In Transit', 
-          location: 'Loaded on $_selectedTrain (Guard: $_selectedGuard)');
+    var succeeded = 0;
+    var failed = 0;
+    for (final id in _selected.toList()) {
+      try {
+        await ApiService.dispatchParcel(id, wagon['id']!, _travelDate);
+        succeeded++;
+      } catch (_) {
+        failed++;
       }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_selectedItems.length} items dispatched via $_selectedTrain!'),
-            backgroundColor: const Color(0xFF10B981),
-          ),
-        );
-        context.pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dispatch Error: $e'), backgroundColor: const Color(0xFFEF4444)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
     }
+    if (!mounted) return;
+    setState(() => _submitting = false);
+    if (succeeded > 0) MizigoToasts.showSuccess(context, '$succeeded parcel${succeeded == 1 ? '' : 's'} dispatched');
+    if (failed > 0) MizigoToasts.showError(context, '$failed couldn’t be dispatched. Try again.');
+    if (succeeded > 0) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        title: Text(
-          'Dispatch Parcel',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        leading: IconButton(
-          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.white, size: 20),
-          onPressed: () => context.pop(),
-        ),
+    final palette = StaffPalette.of(context);
+    final found = _foundParcel;
+    final listed = _readyItems.where((p) => p.id != found?.id).toList();
+    final allSelected = _readyItems.isNotEmpty && _readyItems.every((p) => _selected.contains(p.id));
+    final count = _selected.length;
+
+    return StaffSettingsScaffold(
+      title: 'Dispatch Parcels',
+      onBack: () => context.pop(),
+      onRefresh: _fetchItems,
+      bottom: StaffButton(
+        label: count == 0
+            ? 'Select parcels to dispatch'
+            : _wagon == null
+                ? 'Choose a wagon'
+                : 'Dispatch $count parcel${count == 1 ? '' : 's'}',
+        icon: HugeIcons.strokeRoundedDeliveryTruck01,
+        loading: _submitting,
+        onPressed: count == 0 ? null : (_wagon == null ? _pickWagon : _dispatchSelected),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(child: _buildSearchField()),
-                const Gap(12),
-                _buildScannerButton(),
-              ],
+      children: [
+        ParcelLookupBar(
+          field: ParcelSearchSuggestions(
+            controller: _searchController,
+            focusNode: _searchFocus,
+            onParcelSelected: _useParcel,
+            fieldBuilder: (_) => ParcelNumberField(
+              controller: _searchController,
+              focusNode: _searchFocus,
+              freeText: true,
+              loading: _searching,
+              onSubmitted: (_) => _search(),
             ),
           ),
-          
-          if (_foundParcel != null)
-             _buildFoundParcelCard(),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              children: [
-                const HugeIcon(icon: HugeIcons.strokeRoundedSpeedTrain02, color: Color(0xFF3B82F6), size: 24),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Station Inventory',
-                        style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          onScan: _scan,
+        ),
+        if (found != null) ...[
+          const Gap(16),
+          ParcelSummaryCard(
+            parcel: found,
+            selected: _ready(found) ? _selected.contains(found.id) : null,
+            onTap: _ready(found) ? () => _toggle(found.id) : null,
           ),
-
-          Expanded(
-            child: _loading 
-              ? ShimmerLoading(
-                  isLoading: true,
-                  child: const ListSkeleton(height: 100, padding: 24),
-                )
-              : _warehouseItems.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _warehouseItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _warehouseItems[index];
-                      final isSelected = _selectedItems.contains(item.id);
-                      
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedItems.remove(item.id);
-                              } else {
-                                _selectedItems.add(item.id);
-                              }
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.surface
-                                  : AppTheme.background,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected ? const Color(0xFF3B82F6) : AppTheme.border,
-                                width: isSelected ? 2 : 1,
-                              ),
-                              boxShadow: isSelected ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ] : null,
-                            ),
-                            child: Row(
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  onChanged: (v) {
-                                    setState(() {
-                                      if (v!) {
-                                        _selectedItems.add(item.id);
-                                      } else {
-                                        _selectedItems.remove(item.id);
-                                      }
-                                    });
-                                  },
-                                  activeColor: const Color(0xFF3B82F6),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                ),
-                                const Gap(12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '#${item.id.length > 8 ? item.id.substring(0, 8).toUpperCase() : item.id.toUpperCase()}',
-                                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6)),
-                                      ),
-                                      const Gap(4),
-                                      Text(
-                                        item.toAddress,
-                                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
-                                      ),
-                                      const Gap(2),
-                                      Text(
-                                        'Recipient: ${item.receiverName}',
-                                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const HugeIcon(icon: HugeIcons.strokeRoundedPackage, color: Color(0xFF94A3B8), size: 24),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-          
-          if (_warehouseItems.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10)),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildSelectionContainer(
-                          hint: 'Select Train',
-                          value: _selectedTrain,
-                          items: _trains,
-                          onChanged: (val) => setState(() => _selectedTrain = val),
-                          icon: Icons.speed,
-                        ),
-                      ),
-                      const Gap(12),
-                      Expanded(
-                        child: _buildSelectionContainer(
-                          hint: 'Select Guard',
-                          value: _selectedGuard,
-                          items: _guards,
-                          onChanged: (val) => setState(() => _selectedGuard = val),
-                          icon: Icons.person,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Gap(24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: FilledButton(
-                      onPressed: (_selectedItems.isEmpty || _selectedTrain == null || _selectedGuard == null || _submitting) ? null : _dispatchSelected,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        disabledBackgroundColor: const Color(0xFFE2E8F0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: _submitting
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Dispatch Selected',
-                              style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 16),
-                            ),
-                    ),
-                  ),
-                ],
+          if (!_ready(found))
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4),
+              child: Text(
+                'This parcel is ${found.status.displayLabel.toLowerCase()}, so it can’t be dispatched.',
+                style: GoogleFonts.outfit(fontSize: 14, color: const Color(0xFFD97706)),
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      onSubmitted: (_) => _search(),
-      textCapitalization: TextCapitalization.characters,
-      style: GoogleFonts.inter(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-      decoration: InputDecoration(
-        hintText: 'enter Parcel number',
-        hintStyle: GoogleFonts.inter(color: AppTheme.textMuted),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        filled: true,
-        fillColor: AppTheme.background,
-        prefixIcon: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Color(0xFF94A3B8), size: 20),
+        const Gap(16),
+        StaffGlassCard(
+          title: 'Train & Date',
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+          child: Column(
+            children: [
+              StaffSettingsTile(
+                icon: HugeIcons.strokeRoundedSpeedTrain01,
+                title: 'Wagon',
+                value: _wagon?['plateNumber'] ?? 'Choose',
+                onTap: _pickWagon,
+              ),
+              const StaffDivider(),
+              StaffSettingsTile(
+                icon: HugeIcons.strokeRoundedCalendar03,
+                title: 'Travel date',
+                value: DateFormat('EEE d MMM').format(_travelDate),
+                onTap: _pickDate,
+              ),
+            ],
+          ),
         ),
-        suffixIcon: _searching 
-          ? const Padding(
-              padding: EdgeInsets.all(12.0),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFF3B82F6), strokeWidth: 2)),
-            )
-          : IconButton(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Color(0xFF3B82F6)),
-              onPressed: _search,
-            ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-    );
-  }
-
-  Widget _buildScannerButton() {
-    return InkWell(
-      onTap: () async {
-        final code = await context.push<String>('/scanner', extra: ParcelOperation.dispatch);
-        if (code != null) {
-          _searchController.text = code;
-          _search();
-        }
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 52, height: 52,
-        decoration: BoxDecoration(
-          color: const Color(0xFF3B82F6),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(color: const Color(0xFF3B82F6).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: const Center(child: HugeIcon(icon: HugeIcons.strokeRoundedQrCode01, color: Colors.white, size: 24)),
-      ),
-    );
-  }
-
-  Widget _buildFoundParcelCard() {
-    final isSelected = _selectedItems.contains(_foundParcel!.id);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF3B82F6), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
+        const Gap(20),
+        Row(
           children: [
-            Row(
+            Text(
+              'Ready to Dispatch',
+              style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w700, color: palette.fg()),
+            ),
+            const Gap(8),
+            if (!_loading)
+              Text('${_readyItems.length}', style: GoogleFonts.outfit(fontSize: 16, color: palette.fg(0.5))),
+            const Spacer(),
+            if (_readyItems.isNotEmpty)
+              TextButton(
+                onPressed: () => setState(() {
+                  if (allSelected) {
+                    _selected.removeAll(_readyItems.map((p) => p.id));
+                  } else {
+                    _selected.addAll(_readyItems.map((p) => p.id));
+                  }
+                }),
+                child: Text(allSelected ? 'Clear' : 'Select all', style: GoogleFonts.outfit(fontSize: 15)),
+              ),
+          ],
+        ),
+        const Gap(8),
+        if (_loading)
+          for (var i = 0; i < 3; i++)
+            Container(
+              height: 150,
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(color: palette.surface(0.08), borderRadius: BorderRadius.circular(24)),
+            )
+        else if (_readyItems.isEmpty)
+          StaffGlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: const Color(0xFF3B82F6).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                  child: const HugeIcon(icon: HugeIcons.strokeRoundedPackage01, color: Color(0xFF3B82F6), size: 24),
-                ),
+                HugeIcon(icon: HugeIcons.strokeRoundedPackageReceive, color: palette.fg(0.4), size: 30),
                 const Gap(16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('IDENTIFIED SHIPMENT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF3B82F6))),
-                      Text('#${_foundParcel!.id.toUpperCase()}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => setState(() => _foundParcel = null),
-                  icon: const Icon(Icons.close, color: Color(0xFF64748B), size: 20),
-                ),
-              ],
-            ),
-            const Gap(16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Destination', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B))),
-                    Text(_foundParcel!.toAddress, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                  ],
-                ),
-                SizedBox(
-                  height: 40,
-                  child: FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedItems.remove(_foundParcel!.id);
-                        } else {
-                          _selectedItems.add(_foundParcel!.id);
-                        }
-                      });
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: isSelected ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(isSelected ? 'Remove' : 'Select for Dispatch', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+                  child: Text(
+                    'No received parcels are waiting for dispatch. Pull down to refresh.',
+                    style: GoogleFonts.outfit(fontSize: 15, height: 1.4, color: palette.fg(0.7)),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HugeIcon(icon: HugeIcons.strokeRoundedDeliveryTruck01, color: const Color(0xFFE2E8F0), size: 80),
-          const Gap(24),
-          Text(
-            'No data is available',
-            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-          ),
-          const Gap(8),
-          Text(
-            'There are currently no "Received" parcels\nwaiting at this station.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textMuted),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelectionContainer({
-    required String hint,
-    required String? value,
-    required List<String> items,
-    required Function(String?) onChanged,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF64748B), size: 18),
-          const Gap(8),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                hint: Text(hint, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
-                isExpanded: true,
-                dropdownColor: AppTheme.surface,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B), size: 20),
-                items: items.map((String item) {
-                  return DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(item, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary)),
-                  );
-                }).toList(),
-                onChanged: onChanged,
-              ),
+          )
+        else
+          for (final p in listed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: ParcelSummaryCard(parcel: p, selected: _selected.contains(p.id), onTap: () => _toggle(p.id)),
             ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

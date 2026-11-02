@@ -70,7 +70,7 @@ class WelcomeScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {}, // Link to website
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: const Color(0xFF5C0B19),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -182,7 +182,6 @@ class WelcomeScreen extends StatelessWidget {
                               child: Image.asset(
                                 'assets/images/logo_text.png',
                                 fit: BoxFit.contain,
-                                color: Colors.white,
                               ),
                             ),
                             
@@ -191,7 +190,7 @@ class WelcomeScreen extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 48.0),
                               child: Text(
-                                'Start booking, tracking, and managing your shipments in seconds.',
+                                'Start booking, tracking, and managing your parcels in seconds.',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.inter(
                                   fontSize: 15,
@@ -221,7 +220,7 @@ class WelcomeScreen extends StatelessWidget {
                   _AuthButton(
                     text: 'Get Started',
                     icon: HugeIcons.strokeRoundedArrowRight01,
-                    backgroundColor: const Color(0xFF3B82F6),
+                    backgroundColor: const Color(0xFF5C0B19),
                     textColor: Colors.white,
                     iconColor: Colors.white,
                     onPressed: () => context.push('/login'),
@@ -243,7 +242,7 @@ class WelcomeScreen extends StatelessWidget {
                           TextSpan(
                             text: 'Terms of Service',
                             style: const TextStyle(
-                              color: Color(0xFF3B82F6),
+                              color: Color(0xFF5C0B19),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -251,7 +250,7 @@ class WelcomeScreen extends StatelessWidget {
                           TextSpan(
                             text: 'Privacy Policy',
                             style: const TextStyle(
-                              color: Color(0xFF3B82F6),
+                              color: Color(0xFF5C0B19),
                               fontWeight: FontWeight.w600,
                             ),
                           ),

@@ -9,10 +9,14 @@ class ConfirmOrderScreen extends StatefulWidget {
   final String pickup;
   final String delivery;
   final String vehicle;
+  final int peopleNeeded;
+  final double weight;
   final String receiverName;
   final String receiverPhone;
   final int total;
   final bool receiverPays;
+  final List<String> additionalServices;
+  final String pickupType;
   final String parcelDescription;
   final String packageName;
   final String packageValue;
@@ -26,10 +30,14 @@ class ConfirmOrderScreen extends StatefulWidget {
     required this.pickup,
     required this.delivery,
     required this.vehicle,
+    this.peopleNeeded = 0,
+    this.weight = 0,
     required this.receiverName,
     required this.receiverPhone,
     required this.total,
     this.receiverPays = false,
+    this.additionalServices = const [],
+    this.pickupType = '',
     required this.parcelDescription,
     required this.packageName,
     required this.packageValue,
@@ -368,10 +376,14 @@ class _ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                                 'pickup': widget.pickup,
                                 'delivery': widget.delivery,
                                 'vehicle': widget.vehicle,
+                                'peopleNeeded': widget.peopleNeeded,
+                                'weight': widget.weight,
                                 'receiverName': widget.receiverName,
                                 'receiverPhone': widget.receiverPhone,
                                 'total': widget.total,
                                 'receiverPays': widget.receiverPays,
+                                'additionalServices': widget.additionalServices,
+                                'pickupType': widget.pickupType,
                                 'packageName': widget.packageName,
                                 'packageValue': widget.packageValue,
                                 'condition': widget.condition,
@@ -532,7 +544,7 @@ class _RouteBar extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.surface,
-                border: Border.all(color: const Color(0xFF3B82F6), width: 4.5),
+                border: Border.all(color: const Color(0xFF5C0B19), width: 4.5),
               ),
             ),
             Expanded(
@@ -540,7 +552,7 @@ class _RouteBar extends StatelessWidget {
                 height: 3,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF10B981)],
+                    colors: [Color(0xFF5C0B19), Color(0xFF10B981)],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),

@@ -1,15 +1,20 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/common/country_selector.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/auth/clerk_auth_widgets.dart';
+import '../../widgets/profile/premium_settings_components.dart';
 import '../../theme/app_theme.dart';
 
+/// Station Clerk Login — Figma "2 On-Boarding 11–14".
+///
+/// Phone number + 6-digit Safety PIN on one screen; signs in through the
+/// existing operator PIN login ([AuthProvider.verifyOtp]).
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,92 +23,87 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const _rememberedPhoneKey = 'login_remembered_phone';
+  static const _pinLength = 6;
+
   final _phoneController = TextEditingController();
-  
-  Country _selectedCountry = countries.first;
-  
-  // Real-time validation state
-  bool? _isAvailable; // null = initial, true = success, false = error
-  String? _foundName;
-  bool _isChecking = false;
-  Timer? _debounce;
-  final FocusNode _phoneFocusNode = FocusNode();
-  bool _isFocused = false;
+  final _pinController = TextEditingController();
+  final _phoneFocus = FocusNode();
+  final _pinFocus = FocusNode();
+
+  bool _rememberMe = true;
 
   @override
   void initState() {
     super.initState();
-    _phoneController.addListener(_onPhoneChanged);
-    _phoneFocusNode.addListener(() {
-      setState(() {
-        _isFocused = _phoneFocusNode.hasFocus;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && context.read<AuthProvider>().consumeSessionExpired()) {
+        MizigoToasts.showError(context, 'Your session expired. Please sign in again.');
+      }
     });
+    _phoneController.addListener(_refresh);
+    _pinController.addListener(_refresh);
+    _loadRememberedPhone();
   }
+
+  void _refresh() => setState(() {});
+
+  bool get _canSubmit => clerkPhoneE164(_phoneController.text) != null && _pinController.text.length == _pinLength;
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _phoneFocusNode.dispose();
-    _debounce?.cancel();
+    _pinController.dispose();
+    _phoneFocus.dispose();
+    _pinFocus.dispose();
     super.dispose();
   }
 
-  void _onPhoneChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    
-    String val = _phoneController.text.trim();
-    // Normalize: Handle leading '0'
-    if (val.startsWith('0')) {
-      val = val.substring(1);
-    }
+  Future<void> _loadRememberedPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_rememberedPhoneKey);
+    if (saved == null || !mounted) return;
+    _phoneController.text = clerkPhoneFieldText(saved);
+  }
 
-    if (val.length < 9) {
-      if (_isAvailable != null || _isChecking) {
-        setState(() {
-          _isAvailable = null;
-          _foundName = null;
-          _isChecking = false;
-        });
-      }
+  Future<void> _signIn() async {
+    final auth = context.read<AuthProvider>();
+    if (auth.loading) return;
+
+    final phone = clerkPhoneE164(_phoneController.text);
+    if (phone == null) {
+      MizigoToasts.showError(context, 'Enter a valid phone number');
+      _phoneFocus.requestFocus();
+      return;
+    }
+    if (_pinController.text.length != _pinLength) {
+      MizigoToasts.showError(context, 'Enter your 6-digit PIN');
+      _pinFocus.requestFocus();
       return;
     }
 
-    setState(() {
-      _isChecking = true;
-      _isAvailable = null;
-      _foundName = null;
-    });
-    _debounce = Timer(const Duration(milliseconds: 600), () async {
-      final auth = context.read<AuthProvider>();
-      // Use the normalized 9-digit sequence
-      final normalizedVal = val.length > 9 ? val.substring(0, 9) : val;
-      final result = await auth.checkPhoneNumberAvailability('${_selectedCountry.dialCode}$normalizedVal');
-      if (mounted) {
-        setState(() {
-          _isAvailable = result?['available'] as bool? ?? false;
-          _foundName = result?['name'] as String?;
-          _isChecking = false;
-        });
-      }
-    });
+    FocusScope.of(context).unfocus();
+
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString(_rememberedPhoneKey, phone);
+    } else {
+      await prefs.remove(_rememberedPhoneKey);
+    }
+
+    final ok = await auth.verifyOtp(phone, _pinController.text);
+    if (!mounted) return;
+    if (ok) {
+      context.go('/home'); // Router redirects to PIN change when required
+    } else {
+      MizigoToasts.showError(context, auth.error ?? 'Sign in failed');
+      _pinController.clear();
+      _pinFocus.requestFocus();
+    }
   }
 
-  Future<void> _handleNext() async {
-    if (_isAvailable != true) return;
-
-    // Phone Flow
-    String val = _phoneController.text.trim();
-    if (val.startsWith('0')) val = val.substring(1);
-    
-    if (val.length < 9) return;
-    
-    final fullPhone = '${_selectedCountry.dialCode}$val';
-    
-    // Unfocus keyboard
-    FocusScope.of(context).unfocus();
-    
-    context.push('/verify', extra: fullPhone);
+  void _openForgotPin() {
+    context.push('/forgot-pin', extra: clerkPhoneE164(_phoneController.text));
   }
 
   void _showHelpModal() {
@@ -114,9 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          color: StaffPalette.of(context).navBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -126,23 +125,23 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Staff Login Help',
+                  'Station Clerk Help',
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
+                    color: StaffPalette.of(context).fg(),
                   ),
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon: Icon(Icons.close_rounded, color: StaffPalette.of(context).fg(0.6)),
                 ),
               ],
             ),
             const Gap(8),
             Text(
               'Follow these instructions for a smooth login experience.',
-              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 14),
+              style: GoogleFonts.inter(color: StaffPalette.of(context).fg(0.6), fontSize: 14),
             ),
             const Gap(24),
             Expanded(
@@ -154,14 +153,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     HugeIcons.strokeRoundedUserAdd01,
                   ),
                   _helpItem(
-                    'Account Recovery',
-                    'If you forgotten your access credentials, please contact your administrative supervisor for a reset.',
+                    'Forgot your PIN?',
+                    'Tap "Forgot PIN?" to get a temporary PIN by SMS, then set a new one.',
                     HugeIcons.strokeRoundedShield01,
                   ),
                   _helpItem(
-                    'OTP Not Received?',
-                    'Ensure your network signal is strong. If issues persist, your admin can trigger a manual OTP reset for your account.',
-                    HugeIcons.strokeRoundedMessageNotification01,
+                    'First sign in',
+                    'Use the temporary PIN your admin gave you. You will be asked to set your own PIN right after.',
+                    HugeIcons.strokeRoundedLockPassword,
                   ),
                 ],
               ),
@@ -169,17 +168,17 @@ class _LoginScreenState extends State<LoginScreen> {
             const Gap(16),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 52,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3B82F6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: AppTheme.tecOrange,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
                 child: Text(
-                  'Got it, Close Help',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white),
+                  'Got it',
+                  style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ),
             ),
@@ -198,10 +197,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+              color: AppTheme.tecOrange.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: HugeIcon(icon: icon, color: const Color(0xFF3B82F6), size: 22),
+            child: HugeIcon(icon: icon, color: AppTheme.tecOrange, size: 22),
           ),
           const Gap(16),
           Expanded(
@@ -210,12 +209,12 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: StaffPalette.of(context).fg()),
                 ),
                 const Gap(4),
                 Text(
                   desc,
-                  style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF64748B), height: 1.5),
+                  style: GoogleFonts.inter(fontSize: 14, color: StaffPalette.of(context).fg(0.6), height: 1.5),
                 ),
               ],
             ),
@@ -225,314 +224,83 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showCountryPicker() async {
-    final result = await showModalBottomSheet<Country>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const CountryPickerSheet(),
-    );
-    if (result != null) {
-      setState(() {
-        _selectedCountry = result;
-        _phoneController.clear();
-        _isAvailable = null;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final theme = Theme.of(context);
+    final loading = context.watch<AuthProvider>().loading;
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        body: SafeArea(
-            child: Column(
-              children: [
-                // ── Header Area ──────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedArrowLeft01, 
-                          color: theme.iconTheme.color ?? AppTheme.textPrimary,
-                          size: 28,
-                        ),
-                        onPressed: () => context.pop(),
-                      ),
-                      IconButton(
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedInformationCircle,
-                          color: theme.iconTheme.color ?? AppTheme.textPrimary, 
-                          size: 28,
-                        ),
-                        onPressed: _showHelpModal,
-                      ),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Gap(24),
-
-                        // ── Big Emoji / Status Indicator ──
-                        Center(
-                          child: _isChecking
-                            ? const SizedBox(
-                                width: 80,
-                                height: 80,
-                                child: CircularProgressIndicator(strokeWidth: 4, color: Color(0xFF3B82F6)),
-                              )
-                            : AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: Text(
-                                  _isAvailable == null ? '🤩' : (_isAvailable! ? '😊' : '😕'),
-                                  key: ValueKey(_isAvailable),
-                                  style: const TextStyle(fontSize: 80),
-                                ),
-                              ),
-                        ),
-
-                        const Gap(24),
-                        
-                        // Centered Title & Dynamic Greeting
-                        Column(
-                          children: [
-                            Text(
-                              'Staff Login',
-                              style: GoogleFonts.outfit(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const Gap(8),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: Text(
-                                _isAvailable == null 
-                                  ? 'Welcome back, sign in to continue' 
-                                  : (_isAvailable! ? 'Account confirmed! Welcome back, ${_foundName ?? "Team"}! 👋' : 'Account not found, please check number'),
-                                key: ValueKey(_isAvailable),
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: _isAvailable == false 
-                                      ? Colors.redAccent 
-                                      : (theme.textTheme.bodyMedium?.color ?? AppTheme.textSecondary),
-                                  fontWeight: _isAvailable == true ? FontWeight.w600 : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const Gap(40),
-
-                        // Form Content
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _inputLabel('Phone Number'),
-                            const Gap(8),
-                            _phoneInputField(auth),
-                          ],
-                        ),
-
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Bottom CTA & Security Text
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 58,
-                        child: AnimatedBuilder(
-                          animation: _phoneController,
-                          builder: (context, _) {
-                            final phoneVal = _phoneController.text.trim();
-                            final normalizedPhone = phoneVal.startsWith('0') ? phoneVal.substring(1) : phoneVal;
-                            final bool isValid = normalizedPhone.length == 9;
-
-                            return FilledButton(
-                              onPressed: (auth.loading || !isValid || _isAvailable != true) ? null : _handleNext,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary,
-                                disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                elevation: 0,
-                              ),
-                              child: auth.loading
-                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Continue',
-                                        style: TextStyle(
-                                          fontSize: 16, 
-                                          fontWeight: FontWeight.bold,
-                                          color: (auth.loading || !isValid || _isAvailable != true) ? Colors.white54 : Colors.white,
-                                        ),
-                                      ),
-                                      const Gap(8),
-                                      HugeIcon(
-                                        icon: HugeIcons.strokeRoundedArrowRight01, 
-                                        color: (auth.loading || !isValid || _isAvailable != true) ? Colors.white54 : Colors.white, 
-                                        size: 20
-                                      ),
-                                    ],
-                                  ),
-                            );
-                          }
-                        ),
-                      ),
-                      const Gap(16),
-                      Center(
-                        child: Text(
-                          'Secured by MiziGO Guard 🛡️',
-                          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8), letterSpacing: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-    );
-  }
-
-  Widget _inputLabel(String label) {
-    final theme = Theme.of(context);
-    return Text(
-      label,
-      style: GoogleFonts.inter(
-        fontSize: 13, 
-        fontWeight: FontWeight.w600, 
-        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8) ?? const Color(0xFF475569),
+    return ClerkAuthScaffold(
+      title: 'Station Clerk Login',
+      footerLead: 'By signing in, you agree to our',
+      description: 'Sign in to manage parcels and station operations.',
+      leading: IconButton(
+        onPressed: _showHelpModal,
+        tooltip: 'Help',
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHelpCircle, color: StaffPalette.of(context).fg(), size: 24),
       ),
-    );
-  }
-
-  Widget _phoneInputField(AuthProvider auth) {
-    final theme = Theme.of(context);
-    Color borderColor = theme.colorScheme.outline.withValues(alpha: 0.5);
-    if (_isAvailable == false) {
-      borderColor = Colors.redAccent.withValues(alpha: 0.5);
-    } else if (_isAvailable == true) {
-      borderColor = const Color(0xFF10B981).withValues(alpha: 0.5);
-    } else if (_isFocused) {
-      borderColor = theme.colorScheme.primary;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color ?? theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: borderColor,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-              if (_isAvailable == true)
-                BoxShadow(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                )
-              else if (_isFocused)
-                BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-            ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClerkPhoneField(
+            controller: _phoneController,
+            focusNode: _phoneFocus,
+            onSubmitted: (_) => _pinFocus.requestFocus(),
           ),
-          child: Row(
+          const Gap(10),
+          ClerkPinField(
+            controller: _pinController,
+            focusNode: _pinFocus,
+            length: _pinLength,
+            onSubmitted: (_) => _signIn(),
+          ),
+          const Gap(14),
+          Row(
             children: [
-              GestureDetector(
-                onTap: _showCountryPicker,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border(right: BorderSide(color: theme.colorScheme.outline.withValues(alpha: 0.5), width: 1.5)),
-                  ),
+              InkWell(
+                onTap: () => setState(() => _rememberMe = !_rememberMe),
+                borderRadius: BorderRadius.circular(6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                   child: Row(
                     children: [
-                      Text(_selectedCountry.flag, style: const TextStyle(fontSize: 20)),
-                      const Gap(8),
-                      Text(
-                        _selectedCountry.dialCode,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700, 
-                          color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary,
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: _rememberMe ? AppTheme.tecOrange : Colors.transparent,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: _rememberMe ? AppTheme.tecOrange : StaffPalette.of(context).fg(0.5),
+                            width: 1.5,
+                          ),
                         ),
+                        child: _rememberMe ? const Icon(Icons.check_rounded, size: 14, color: Colors.white) : null,
+                      ),
+                      const Gap(10),
+                      Text(
+                        'Remember Me',
+                        style: GoogleFonts.outfit(fontSize: 14, color: StaffPalette.of(context).fg(0.85)),
                       ),
                     ],
                   ),
                 ),
               ),
-              Expanded(
-                child: TextField(
-                  controller: _phoneController,
-                  focusNode: _phoneFocusNode,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(9),
-                  ],
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: theme.textTheme.bodyLarge?.color ?? AppTheme.textPrimary, 
-                    letterSpacing: 1,
-                  ),
-                  cursorColor: theme.colorScheme.primary,
-                  decoration: InputDecoration(
-                    hintText: '712 345 678',
-                    hintStyle: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5) ?? AppTheme.textMuted,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
+              const Spacer(),
+              TextButton(
+                onPressed: _openForgotPin,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.tecOrange,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  minimumSize: const Size(0, 36),
                 ),
+                child: Text('Forgot PIN?', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
-        ),
-      ],
+          const Gap(28),
+          ClerkPrimaryButton(label: 'Sign In', loading: loading, visible: _canSubmit, onPressed: _signIn),
+        ],
+      ),
     );
   }
 }

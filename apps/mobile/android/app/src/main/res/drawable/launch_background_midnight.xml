@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch background for the Midnight theme (see MainActivity.kt) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launch_background_midnight" />
+</layer-list>

@@ -259,28 +259,29 @@ class ReceiptPdfGenerator {
               // BARCODE & QR CODE
               pw.Divider(thickness: 1, color: PdfColors.grey300),
               pw.SizedBox(height: 15),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('Scan to trace this parcel:', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                      pw.SizedBox(height: 6),
-                      pw.BarcodeWidget(
-                        barcode: pw.Barcode.code128(),
-                        data: trackingId,
-                        width: 180,
-                        height: 40,
-                      ),
-                    ],
+                  pw.Text('Scan barcode to track:', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                  pw.SizedBox(height: 6),
+                  pw.Center(
+                    child: pw.BarcodeWidget(
+                      barcode: pw.Barcode.code128(),
+                      data: trackingId,
+                      width: 300,
+                      height: 45,
+                    ),
                   ),
-                  pw.BarcodeWidget(
-                    barcode: pw.Barcode.qrCode(),
-                    data: 'https://mizigo.app/track/$trackingId',
-                    width: 65,
-                    height: 65,
+                  pw.SizedBox(height: 16),
+                  pw.Text('Scan QR code to track online:', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                  pw.SizedBox(height: 8),
+                  pw.Center(
+                    child: pw.BarcodeWidget(
+                      barcode: pw.Barcode.qrCode(),
+                      data: 'https://mizigo.app/track/$trackingId',
+                      width: 180,
+                      height: 180,
+                    ),
                   ),
                 ],
               ),

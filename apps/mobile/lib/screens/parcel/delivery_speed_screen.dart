@@ -154,11 +154,11 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                               height: 22,
                               decoration: BoxDecoration(
                                 color: _lastMileDelivery
-                                    ? const Color(0xFF3B82F6)
+                                    ? const Color(0xFF5C0B19)
                                     : Colors.transparent,
                                 border: Border.all(
                                   color: _lastMileDelivery
-                                      ? const Color(0xFF3B82F6)
+                                      ? const Color(0xFF5C0B19)
                                       : AppTheme.border,
                                   width: 2,
                                 ),
@@ -187,7 +187,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF3B82F6),
+                                  color: const Color(0xFF5C0B19),
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -215,7 +215,7 @@ class _DeliverySpeedScreenState extends State<DeliverySpeedScreen> {
                             });
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
+                      backgroundColor: const Color(0xFF5C0B19),
                       disabledBackgroundColor: AppTheme.border,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -287,7 +287,7 @@ class _SpeedOptionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF3B82F6)
+                ? const Color(0xFF5C0B19)
                 : AppTheme.border,
             width: 2,
           ),
@@ -346,7 +346,7 @@ class _SpeedOptionCard extends StatelessWidget {
                 width: 24,
                 height: 24,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF3B82F6),
+                  color: Color(0xFF5C0B19),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

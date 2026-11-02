@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../widgets/home/premium_ui_components.dart';
+import '../../theme/staff_palette.dart';
+import '../../widgets/common/station_header_art.dart';
 
 enum DeliveryStatus { arrived, delivered }
 
@@ -21,7 +23,10 @@ class DeliveryStatusScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
+      body: Stack(
+        children: [
+          const StationHeaderArt(blur: 8),
+          SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -40,6 +45,8 @@ class DeliveryStatusScreen extends StatelessWidget {
             _buildBottomActions(context),
           ],
         ),
+      ),
+        ],
       ),
     );
   }
@@ -91,13 +98,13 @@ class DeliveryStatusScreen extends StatelessWidget {
         ),
         const Gap(8),
         Text(
-          'Confirm receipt of your shipment before\nthe driver leaves.',
+          'Confirm receipt of your parcel before\nthe driver leaves.',
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 15,
             color: theme.brightness == Brightness.dark
-                ? const Color(0xFF94A3B8)
-                : const Color(0xFF64748B),
+                ? StaffPalette.of(context).fg(0.5)
+                : StaffPalette.of(context).fg(0.55),
             height: 1.5,
           ),
         ),
@@ -116,7 +123,7 @@ class DeliveryStatusScreen extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6),
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
@@ -161,7 +168,7 @@ class DeliveryStatusScreen extends StatelessWidget {
             _ActionButton(
               label: 'Scan QR to Receive',
               icon: HugeIcons.strokeRoundedQrCode01,
-              backgroundColor: const Color(0xFF3B82F6),
+              backgroundColor: const Color(0xFF5C0B19),
               textColor: Colors.white,
               onPressed: () => _showConfirmation(context),
             ),
@@ -170,14 +177,14 @@ class DeliveryStatusScreen extends StatelessWidget {
               label: 'Delivery Code',
               icon: HugeIcons.strokeRoundedCirclePassword,
               backgroundColor: theme.cardColor,
-              textColor: theme.textTheme.titleLarge?.color ?? const Color(0xFF1E293B),
+              textColor: theme.textTheme.titleLarge?.color ?? Theme.of(context).cardColor,
               onPressed: () {},
             ),
             const Gap(12),
             _ActionButton(
               label: 'Refuse Delivery',
               icon: HugeIcons.strokeRoundedAlertCircle,
-              backgroundColor: const Color(0xFFFFF1F2),
+              backgroundColor: const Color(0xFFE11D48).withValues(alpha: 0.15),
               textColor: const Color(0xFFE11D48),
               onPressed: () {},
             ),
@@ -194,7 +201,7 @@ class DeliveryStatusScreen extends StatelessWidget {
                 onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(56),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  side: BorderSide(color: StaffPalette.of(context).fg(0.15)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
                 child: Text(
@@ -212,7 +219,7 @@ class DeliveryStatusScreen extends StatelessWidget {
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(56),
-                  backgroundColor: const Color(0xFF3B82F6),
+                  backgroundColor: const Color(0xFF5C0B19),
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
@@ -297,7 +304,7 @@ class _ParcelStatsCard extends StatelessWidget {
                       trackingId,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF94A3B8),
+                        color: StaffPalette.of(context).fg(0.5),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -327,7 +334,7 @@ class _ParcelStatsCard extends StatelessWidget {
                     status == DeliveryStatus.arrived ? '11:47 AM' : '1:58 PM',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: const Color(0xFF94A3B8),
+                      color: StaffPalette.of(context).fg(0.5),
                     ),
                   ),
                 ],
@@ -355,12 +362,12 @@ class _ParcelStatsCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                  border: Border.all(color: StaffPalette.of(context).surface(0.08)),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const HugeIcon(
+                child: HugeIcon(
                   icon: HugeIcons.strokeRoundedQrCode01,
-                  color: Color(0xFF1E293B),
+                  color: Theme.of(context).cardColor,
                   size: 64,
                 ),
               ),
@@ -387,7 +394,7 @@ class _StatItem extends StatelessWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF94A3B8),
+            color: StaffPalette.of(context).fg(0.5),
           ),
         ),
         const Spacer(),
@@ -398,7 +405,7 @@ class _StatItem extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1E293B),
+              color: Theme.of(context).cardColor,
             ),
           ),
         ),
