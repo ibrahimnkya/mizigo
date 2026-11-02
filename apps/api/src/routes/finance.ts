@@ -10,10 +10,10 @@ router.use(authenticate, requireTenantContext);
 
 router.get("/summary", async (req: Request, res: Response) => {
   try {
-    const where =
-      req.user?.role === "SUPER_ADMIN"
-        ? {}
-        : { organizationId: req.user?.organizationId || "" };
+    const isSuperAdmin = req.user?.role === "SUPER_ADMIN";
+    const where = isSuperAdmin
+      ? {}
+      : { organizationId: req.user?.organizationId || "" };
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -86,19 +86,32 @@ router.get("/summary", async (req: Request, res: Response) => {
       }
     }
 
+    const grossRevenue = totalAmount._sum.amount || 0;
     const platformCommission = totalAmount._sum.commission || 0;
     const systemFeeRevenue = totalAmount._sum.systemFee || 0;
-    const totalPlatformEarnings = platformCommission + additionalServicesRevenue + systemFeeRevenue;
+    // What's left for the requester's own scope after platform fees/commission
+    // are taken out — this is what an Organization Admin actually keeps.
+    const netRevenue = grossRevenue - platformCommission - systemFeeRevenue;
 
     return sendSuccess(res, {
       totalTransactions: totalCount,
       successfulTransactions: successCount,
       failedTransactions: failedCount,
-      totalRevenue: totalAmount._sum.amount || 0,
+      totalRevenue: grossRevenue,
       platformCommission,
       additionalServicesRevenue,
       systemFeeRevenue,
-      totalPlatformEarnings,
+      netRevenue,
+      // Only meaningful when `where` spans every organization (Super Admin);
+      // for an org-scoped request this would just be "platform's cut of MY
+      // org's transactions" mislabeled as "platform earnings", so it's
+      // omitted rather than shipped under a misleading name.
+      ...(isSuperAdmin
+        ? {
+            totalPlatformEarnings:
+              platformCommission + additionalServicesRevenue + systemFeeRevenue,
+          }
+        : {}),
       revenueGrowth: growth,
     });
   } catch (error: any) {

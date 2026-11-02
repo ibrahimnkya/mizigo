@@ -7,6 +7,7 @@ export type ApiErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "TOO_MANY_REQUESTS"
   | "PAYMENT_GATEWAY_ERROR"
   | "INTERNAL_SERVER_ERROR";
 

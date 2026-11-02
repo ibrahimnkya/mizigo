@@ -78,9 +78,24 @@ const computePrice = async (input: {
     if (rule.type === "SGR_TARIFF") continue;
     let isMatch = true;
     if (rule.condition) {
+      const recognizedKeys = new Set([
+        "urgency",
+        "parcel_type",
+        "package_size",
+        "condition",
+      ]);
       const conditions = rule.condition.split("&");
       for (const cond of conditions) {
-        const [key, val] = cond.split("=");
+        const parts = cond.split("=");
+        const key = parts[0];
+        const val = parts[1];
+        // Unparseable or unrecognized conditions must never fall back to
+        // "match everything" — that would silently apply the rule to every
+        // parcel instead of the intended scoped subset.
+        if (parts.length !== 2 || !key || !recognizedKeys.has(key)) {
+          isMatch = false;
+          continue;
+        }
         if (key === "urgency" && input.urgency !== val) isMatch = false;
         if (key === "parcel_type" && input.parcelType !== val) isMatch = false;
         if (key === "package_size" && input.parcelSize !== val) isMatch = false;
@@ -119,6 +134,90 @@ const computePrice = async (input: {
       totalMultiplier,
     },
   };
+};
+
+// ── Extra services ────────────────────────────────────────────────────────
+// Each service's fee comes from an active FIXED pricing rule whose condition
+// is "service=<id>" (org rule wins over global); otherwise these defaults.
+// computePrice() ignores such rules (unrecognised condition key), so they
+// only ever apply here.
+const SERVICE_DEFAULTS: Record<string, { label: string; fee: number }> = {
+  insurance: { label: "Cargo insurance", fee: 3000 },
+  packaging: { label: "Secure packaging", fee: 2000 },
+  fragile: { label: "Special handling", fee: 2500 },
+};
+
+const computeServiceFees = async (services: unknown, organizationId?: string | null) => {
+  const ids = Array.isArray(services)
+    ? [...new Set(services.filter((x): x is string => typeof x === "string" && x in SERVICE_DEFAULTS))]
+    : [];
+  if (ids.length === 0) return { total: 0, lines: [] as { id: string; label: string; amount: number }[] };
+
+  const rules = await prisma.pricingRule.findMany({
+    where: {
+      isActive: true,
+      deletedAt: null,
+      type: "FIXED",
+      condition: { in: ids.map((id) => `service=${id}`) },
+      OR: [{ organizationId: null }, { organizationId: organizationId || undefined }],
+    },
+    orderBy: [{ organizationId: "desc" }],
+  });
+
+  const lines = ids.map((id) => {
+    const rule = rules.find((r) => r.condition === `service=${id}`);
+    return { id, label: SERVICE_DEFAULTS[id].label, amount: rule ? rule.value : SERVICE_DEFAULTS[id].fee };
+  });
+  return { total: lines.reduce((sum, l) => sum + l.amount, 0), lines };
+};
+
+/// Picks the SGR tariff purely by weight: the tariff with the smallest weight
+/// limit that can still carry the parcel (e.g. ≤ 0.5 kg → envelope tariff,
+/// above that → other parcels, including anything over 5 kg). Parcel type and
+/// size don't affect the choice. Returns null only when no tariff exists.
+const tariffMeta = (rule: { condition: string | null }) => {
+  try {
+    const meta = JSON.parse(rule.condition || "{}");
+    const category = meta.parcelCategory ?? {};
+    return {
+      sgrId: meta.sgrId as string | undefined,
+      mode: String(category.chargingMode || "Fixed_Amount"),
+      maxKg: Number(category.maxWeightInKg) || null,
+    };
+  } catch (_) {
+    return { sgrId: undefined, mode: "Fixed_Amount", maxKg: null };
+  }
+};
+
+const findSgrTariff = async (input: { weight?: number | null; organizationId?: string | null }) => {
+  const rules = await prisma.pricingRule.findMany({
+    where: {
+      type: "SGR_TARIFF",
+      isActive: true,
+      deletedAt: null,
+      OR: [{ organizationId: null }, { organizationId: input.organizationId ?? undefined }],
+    },
+    orderBy: [{ organizationId: "desc" }, { createdAt: "asc" }],
+  });
+  const weight = Number(input.weight) || 0;
+  const sorted = rules
+    .map((rule) => ({ rule, maxKg: tariffMeta(rule).maxKg }))
+    .sort((a, b) => (a.maxKg ?? Infinity) - (b.maxKg ?? Infinity));
+  // Heavier than every limit → the largest tariff (other parcels) still applies.
+  return (sorted.find((t) => t.maxKg == null || weight <= t.maxKg) ?? sorted[sorted.length - 1])?.rule ?? null;
+};
+
+/// Local charge for a tariff: Fixed_Amount → the rule value;
+/// Percentage_Wise → value% of the declared parcel value.
+const tariffCharge = (rule: { value: number; name: string; condition: string | null }, declaredValue: number) => {
+  const { mode } = tariffMeta(rule);
+  if (mode === "Percentage_Wise") {
+    return {
+      amount: Math.ceil(((Number(rule.value) || 0) / 100) * (Number(declaredValue) || 0)),
+      detail: `${+Number(rule.value)}% of declared value TSh ${(Number(declaredValue) || 0).toLocaleString("en-US")}`,
+    };
+  }
+  return { amount: Math.ceil(Number(rule.value) || 0), detail: `${rule.name} · fixed` };
 };
 
 function generateTracking(index: number) {
@@ -181,7 +280,13 @@ const formatParcelResponse = (parcel: any) => {
     createdAt: parcel.createdAt,
     updatedAt: parcel.updatedAt,
     organization: parcel.organization
-      ? { id: parcel.organization.id, name: parcel.organization.name }
+      ? {
+          id: parcel.organization.id,
+          name: parcel.organization.name,
+          logoUrl: parcel.organization.logoUrl ?? null,
+          primaryColor: parcel.organization.primaryColor ?? null,
+          secondaryColor: parcel.organization.secondaryColor ?? null,
+        }
       : parcel.organizationId ? { id: parcel.organizationId } : null,
     origin: parcel.origin
       ? { id: parcel.origin.id, name: parcel.origin.name, code: parcel.origin.code }
@@ -219,6 +324,7 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       paymentMethod,
       userId,
       paymentMode = "PAY_AS_YOU_GO",
+      additionalServices: extraServices,
     } = req.body;
 
     if (
@@ -243,30 +349,15 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       where: { id: destinationStationId },
     });
 
-    // Look up tariff by parcelType first (maps SGR category to local rule),
-    // then fall back to any active SGR tariff. packageName is the item name, not the tariff.
-    const tariffRule =
-      (await prisma.pricingRule.findFirst({
-        where: {
-          name: String(parcelType || ""),
-          type: "SGR_TARIFF",
-          isActive: true,
-          OR: [
-            { organizationId: null },
-            { organizationId: req.user?.organizationId ?? undefined },
-          ],
-        },
-      })) ??
-      (await prisma.pricingRule.findFirst({
-        where: {
-          type: "SGR_TARIFF",
-          isActive: true,
-          OR: [
-            { organizationId: null },
-            { organizationId: req.user?.organizationId ?? undefined },
-          ],
-        },
-      }));
+    if (Number(weight) > 0.5 && !(Number(declaredValue) > 0)) {
+      return sendError(res, "VALIDATION_ERROR", "Declared value is required for parcels over 0.5 kg", 400);
+    }
+
+    // Same tariff selection as /quote (by weight).
+    const tariffRule = await findSgrTariff({
+      weight: Number(weight),
+      organizationId: req.user?.organizationId ?? null,
+    });
 
     let totalPriceVal = 0;
     let trackingNumberVal = "";
@@ -277,13 +368,11 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       try {
         // Resolve tariff fields from the local rule if found, otherwise use safe defaults
         let sgrTariffId = tariffRule?.id ?? "default";
-        let sgrTariffCode = "TRCPN";
         let sgrTariffName = tariffRule?.name ?? String(packageName || "Standard");
         if (tariffRule?.condition) {
           try {
             const meta = JSON.parse(tariffRule.condition);
             if (meta.sgrId) sgrTariffId = meta.sgrId;
-            if (meta.parcelCategory?.code) sgrTariffCode = meta.parcelCategory.code;
           } catch (_) {}
         }
 
@@ -292,14 +381,21 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
           originStation: {
             id: originStation.id,
             name: originStation.name,
-            code: originStation.code,
           },
           destinationStation: {
             id: destinationStation.id,
             name: destinationStation.name,
-            code: destinationStation.code,
           },
           weightInKg: Number(weight || 0.1),
+          tariffId: {
+            id: sgrTariffId,
+            name: sgrTariffName,
+          },
+          declaration: {
+            itemName: String(packageName || parcelType || "Parcel"),
+            currency: "TZS",
+            declaredPrice: Number(declaredValue || 0),
+          },
         });
 
         if (sgrCost && sgrCost.totalCharge) {
@@ -310,25 +406,35 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
         const sgrBooking = await bookSgrParcel({
           sourceRef: `MZG-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`,
           senderName: String(senderName || "Sender"),
+          senderAddress: originStation.name,
           senderPhoneNumber: String(senderPhone || ""),
+          sameAsSender: false,
+          receiverName: String(receiverName || "Receiver"),
+          receiverAddress: destinationStation.name,
+          receiverPhoneNumber: String(receiverPhone || ""),
           parcelName: String(parcelType || "Parcel"),
           parcelDescription: String(description || "No description"),
+          totalItems: 1,
+          declaredWeightInKg: Number(weight || 0),
+          declaredLengthInCm: 0,
+          declaredWidthInCm: 0,
+          declaredHeightInCm: 0,
+          declaredCubicVolume: 0,
           originStation: {
             id: originStation.id,
             name: originStation.name,
-            code: originStation.code,
           },
           destinationStation: {
             id: destinationStation.id,
             name: destinationStation.name,
-            code: destinationStation.code,
           },
           tariff: {
             id: sgrTariffId,
             name: sgrTariffName,
-            code: sgrTariffCode,
           },
           declaration: {
+            itemName: String(packageName || parcelType || "Parcel"),
+            currency: "TZS",
             declaredPrice: Number(declaredValue || 0),
           },
         });
@@ -342,7 +448,12 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       }
     }
 
-    if (!isSgrBookingSuccess) {
+    if (!isSgrBookingSuccess && totalPriceVal <= 0 && tariffRule) {
+      // SGR gave no price: charge the matched tariff (fixed or % of value).
+      const charge = tariffCharge(tariffRule, Number(declaredValue || 0));
+      totalPriceVal = charge.amount;
+      breakdownVal = { tariff: tariffRule.name, detail: charge.detail, transport: charge.amount };
+    } else if (!isSgrBookingSuccess && totalPriceVal <= 0) {
       const { totalPrice, breakdown } = await computePrice({
         weight: Number(weight),
         declaredValue: Number(declaredValue),
@@ -354,10 +465,17 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       });
       totalPriceVal = totalPrice;
       breakdownVal = breakdown;
+    }
 
+    if (!isSgrBookingSuccess) {
       const parcelCount = await (prisma as any).parcel.count();
       trackingNumberVal = generateTracking(parcelCount);
     }
+
+    // Extra services are charged on top of the transport price.
+    const serviceFees = await computeServiceFees(extraServices, req.user?.organizationId ?? null);
+    totalPriceVal += serviceFees.total;
+    breakdownVal = { ...breakdownVal, services: serviceFees.lines, servicesTotal: serviceFees.total };
 
     const deliveryOtpValue = createDeliveryOtp();
 
@@ -403,6 +521,10 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
           senderPhone: String(senderPhone || ""),
           paymentMode,
           paymentStatus: isPaid ? "PAID" : "PENDING",
+          // Extra services picked at the counter (e.g. insurance, packaging, fragile).
+          services: Array.isArray(extraServices)
+            ? extraServices.filter((x: unknown) => typeof x === "string").slice(0, 10)
+            : [],
         },
       },
       include: {
@@ -435,13 +557,22 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       },
     });
 
+    // req.user only carries ids/role from the token, so load the clerk's
+    // name and phone for the tracking note and the receipt SMS.
+    const clerk = req.user?.id
+      ? await prisma.user.findUnique({
+          where: { id: String(req.user.id) },
+          select: { name: true, phone: true },
+        })
+      : null;
+
     // Create Tracking entry
     await (prisma as any).parcelTracking.create({
       data: {
         parcelId: parcel.id,
         status: "RECEIVED",
         location: String(receivingStationId),
-        description: `Parcel received at station by ${(req.user as any)?.name}`,
+        description: `Parcel received at station by ${clerk?.name || "clerk"}`,
       },
     });
 
@@ -456,8 +587,9 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       destinationName: destinationStation?.name || String(destinationStationId),
       packageName: String(packageName || "Parcel"),
       stationName: originStation?.name || String(receivingStationId),
-      agentName: (req.user as any)?.name || "Agent",
-      agentPhone: (req.user as any)?.phone || "",
+      agentName: clerk?.name || "Karani",
+      agentPhone: clerk?.phone || "",
+      orgName: (parcel as any).organization?.name || undefined,
       organizationId: req.user?.organizationId,
     }).catch((e) => console.error("Receipt SMS fail", e));
 
@@ -478,6 +610,119 @@ router.post("/receive", ...secure, async (req: Request, res: Response) => {
       },
       201,
     );
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
+// Customer self-service parcel request. Unlike /receive (operator-mediated,
+// station-to-station, requires org/station tenant context), this is a
+// door-to-door request submitted by any authenticated user — including
+// plain customers with no organizationId — left in PENDING status for an
+// admin to review, price, and assign to stations/organization/vehicle.
+router.post("/", authenticate, async (req: Request, res: Response) => {
+  try {
+    const {
+      fromAddress,
+      toAddress,
+      pickup,
+      delivery,
+      pickupType,
+      serviceType,
+      vehicle,
+      peopleNeeded,
+      parcelType,
+      parcelSize,
+      packageSize,
+      receiverName,
+      receiverPhone,
+      receiverPays,
+      additionalServices,
+      weight,
+      condition,
+      urgency,
+      packageName,
+      packageValue,
+      parcelDescription,
+      total,
+    } = req.body;
+
+    const resolvedFromAddress = fromAddress || pickup;
+    const resolvedToAddress = toAddress || delivery;
+    const resolvedServiceType = serviceType || vehicle;
+    const resolvedParcelSize = parcelSize || packageSize;
+
+    if (
+      !resolvedFromAddress ||
+      !resolvedToAddress ||
+      !receiverName ||
+      !receiverPhone ||
+      !parcelType ||
+      !resolvedParcelSize
+    ) {
+      return sendError(
+        res,
+        "VALIDATION_ERROR",
+        "Missing required fields for parcel request",
+        400,
+      );
+    }
+
+    const noteParts: string[] = [];
+    if (packageName) noteParts.push(`Package: ${packageName}`);
+    if (packageValue) noteParts.push(`Declared value: ${packageValue}`);
+    if (typeof total === "number") noteParts.push(`Customer-estimated total: ${total}`);
+    if (parcelDescription) noteParts.push(String(parcelDescription));
+
+    const parcelCount = await (prisma as any).parcel.count();
+
+    const parcel = await (prisma as any).parcel.create({
+      data: {
+        userId: req.user?.id,
+        organizationId: req.user?.organizationId ?? null,
+        trackingNumber: generateTracking(parcelCount),
+        fromAddress: String(resolvedFromAddress),
+        toAddress: String(resolvedToAddress),
+        pickupType: String(pickupType || "DOOR_PICKUP"),
+        serviceType: String(resolvedServiceType || "Standard"),
+        peopleNeeded: Number(peopleNeeded || 0),
+        parcelType: String(parcelType),
+        parcelSize: String(resolvedParcelSize),
+        receiverName: String(receiverName),
+        receiverPhone: String(receiverPhone),
+        receiverPays: Boolean(receiverPays || false),
+        condition: condition ? String(condition) : null,
+        urgency: urgency ? String(urgency) : "Normal",
+        weight: Number(weight || 0),
+        specialInstructions: noteParts.length ? noteParts.join(" | ") : null,
+        // Extra services requested (packaging/insurance/etc) — kept as a
+        // plain array here, distinct from /receive's use of this same JSON
+        // column to store sender/payment metadata (readParcelMeta() already
+        // guards on Array.isArray so the two usages never collide).
+        additionalServices: Array.isArray(additionalServices) ? additionalServices : [],
+        // No authoritative price yet — the client's estimate is never
+        // trusted as a charge. An admin sets/confirms amount on review.
+        amount: null,
+        status: "PENDING",
+      },
+    });
+
+    await (prisma as any).parcelTracking.create({
+      data: {
+        parcelId: parcel.id,
+        status: "PENDING",
+        description: "Parcel request submitted by customer, pending admin review",
+      },
+    });
+
+    await logAudit({
+      userId: req.user?.id,
+      action: "CREATE",
+      resource: "parcel.request",
+      details: { id: parcel.id, trackingNumber: parcel.trackingNumber },
+    });
+
+    return sendSuccess(res, formatParcelResponse(parcel), 201);
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
   }
@@ -718,6 +963,156 @@ router.get("/parcel-parameters", authenticate, async (req: Request, res: Respons
   }
 });
 
+// Pre-submission price quote using the same tariff engine (computePrice())
+// that /receive charges from — so a quote shown to a customer before they
+// submit a request always matches what an operator/admin would actually
+// charge for the same inputs. No org/station required, so plain customers
+// (no organizationId) can get a quote too.
+router.post("/quote", authenticate, async (req: Request, res: Response) => {
+  try {
+    const {
+      weight,
+      declaredValue,
+      urgency,
+      parcelType,
+      packageSize,
+      condition,
+      packageName,
+      receivingStationId,
+      destinationStationId,
+      additionalServices,
+    } = req.body;
+
+    if (!weight || !urgency || !parcelType || !packageSize) {
+      return sendError(
+        res,
+        "VALIDATION_ERROR",
+        "weight, urgency, parcelType and packageSize are required for a price quote",
+        400,
+      );
+    }
+
+    if (Number(weight) > 0.5 && !(Number(declaredValue) > 0)) {
+      return sendError(res, "VALIDATION_ERROR", "Declared value is required for parcels over 0.5 kg", 400);
+    }
+
+    const orgId = req.user?.organizationId ?? null;
+    const lines: { label: string; detail?: string; amount: number }[] = [];
+    let transport = 0;
+    let source: "SGR" | "TARIFF" = "TARIFF";
+    let distanceInKm: number | null = null;
+    let tariff: Awaited<ReturnType<typeof findSgrTariff>> = null;
+
+    // Same order as /receive: live SGR cost when both stations are known…
+    if (receivingStationId && destinationStationId) {
+      const [origin, destination] = await Promise.all([
+        prisma.station.findUnique({ where: { id: String(receivingStationId) } }),
+        prisma.station.findUnique({ where: { id: String(destinationStationId) } }),
+      ]);
+      if (origin && destination) {
+        try {
+          tariff = await findSgrTariff({
+            weight: Number(weight),
+            organizationId: orgId,
+          });
+          let tariffId = tariff?.id ?? "default";
+          if (tariff?.condition) {
+            try {
+              const meta = JSON.parse(tariff.condition);
+              if (meta.sgrId) tariffId = meta.sgrId;
+            } catch (_) {}
+          }
+          const sgr = await calculateSgrCost({
+            originStation: { id: origin.id, name: origin.name },
+            destinationStation: { id: destination.id, name: destination.name },
+            weightInKg: Number(weight || 0.1),
+            tariffId: { id: tariffId, name: tariff?.name ?? String(packageName || "Standard") },
+            declaration: {
+              itemName: String(packageName || parcelType || "Parcel"),
+              currency: "TZS",
+              declaredPrice: Number(declaredValue || 0),
+            },
+          });
+          if (sgr?.totalCharge) {
+            source = "SGR";
+            transport = sgr.totalCharge;
+            distanceInKm = sgr.distanceInKm ?? null;
+            lines.push({
+              label: "Transport",
+              detail: `${tariff?.name ?? "SGR"} tariff${sgr.distanceInKm ? ` · ${sgr.distanceInKm} km` : ""}`,
+              amount: sgr.parcelCharge,
+            });
+            if (sgr.taxedAmount) lines.push({ label: "Tax", amount: sgr.taxedAmount });
+          }
+        } catch (_) {
+          // Fall through to the tariff engine, exactly like /receive.
+        }
+      }
+    }
+
+    // SGR gave no price: charge the weight-matched tariff locally.
+    if (source === "TARIFF" && !tariff) {
+      tariff = await findSgrTariff({ weight: Number(weight), organizationId: orgId });
+    }
+    if (source === "TARIFF" && tariff) {
+      const charge = tariffCharge(tariff, Number(declaredValue || 0));
+      transport = charge.amount;
+      lines.push({ label: "Transport", detail: charge.detail, amount: charge.amount });
+    } else if (source === "TARIFF") {
+      // …and only when no tariff can carry the weight, the general pricing rules.
+      const { totalPrice, breakdown } = await computePrice({
+        weight: Number(weight),
+        declaredValue: Number(declaredValue || 0),
+        urgency: String(urgency),
+        parcelType: String(parcelType),
+        parcelSize: String(packageSize),
+        condition: String(condition || ""),
+        organizationId: orgId,
+      });
+      transport = totalPrice;
+      lines.push({ label: "Base fee", amount: breakdown.baseFee });
+      if (breakdown.weightFee) {
+        lines.push({
+          label: "Weight",
+          detail: `${Number(weight)} kg × TSh ${breakdown.weightFeeRate.toLocaleString("en-US")}`,
+          amount: breakdown.weightFee,
+        });
+      }
+      if (breakdown.valueFee) {
+        lines.push({
+          label: "Declared value",
+          detail: `${+(breakdown.valueFeeRate * 100).toFixed(2)}% of value`,
+          amount: breakdown.valueFee,
+        });
+      }
+      if (breakdown.additionalFixedFees) lines.push({ label: "Other fees", amount: breakdown.additionalFixedFees });
+      const adjustment = totalPrice - breakdown.subTotal;
+      if (Math.abs(adjustment) >= 1) {
+        lines.push({
+          label: breakdown.totalMultiplier !== 1 ? "Priority & type adjustment" : "Rounding",
+          detail: breakdown.totalMultiplier !== 1 ? `× ${+breakdown.totalMultiplier.toFixed(2)}` : undefined,
+          amount: adjustment,
+        });
+      }
+    }
+
+    const services = await computeServiceFees(additionalServices, orgId);
+
+    return sendSuccess(res, {
+      currency: "TZS",
+      source,
+      distanceInKm,
+      transport,
+      lines,
+      services: services.lines,
+      servicesTotal: services.total,
+      amount: transport + services.total,
+    });
+  } catch (error: any) {
+    return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+  }
+});
+
 router.get("/", ...secure, async (req: Request, res: Response) => {
   try {
     const { status, trackingNumber } = req.query;
@@ -861,7 +1256,8 @@ router.post("/dispatch", ...secure, async (req: Request, res: Response) => {
 });
 
 router.post("/offload", ...secure, async (req: Request, res: Response) => {
-  const { parcelId } = req.body;
+  // receivingClerkId (optional): the destination clerk the parcel is handed to.
+  const { parcelId, receivingClerkId } = req.body;
   const userId = req.user?.id!;
 
   try {
@@ -895,6 +1291,28 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
       );
     }
 
+    let receivingClerk: { id: string; name: string | null } | null = null;
+    if (receivingClerkId) {
+      receivingClerk = await prisma.user.findFirst({
+        where: {
+          id: String(receivingClerkId),
+          role: { name: "CLERK" },
+          ...(req.user?.organizationId
+            ? { organizationId: req.user.organizationId }
+            : {}),
+        },
+        select: { id: true, name: true },
+      });
+      if (!receivingClerk) {
+        return sendError(
+          res,
+          "VALIDATION_ERROR",
+          "Receiving clerk not found in your organization",
+          400,
+        );
+      }
+    }
+
     const updatedParcel = await (prisma as any).parcel.update({
       where: { id: parcelId },
       data: {
@@ -914,7 +1332,9 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
         parcelId: parcelId,
         status: "OFFLOADED",
         location: updatedParcel.destination?.name || "Station",
-        description: `Offloaded by ${(req.user as any)?.name} at ${updatedParcel.destination?.name || "Station"}`,
+        description:
+          `Offloaded by ${(req.user as any)?.name} at ${updatedParcel.destination?.name || "Station"}` +
+          (receivingClerk ? `, handed to ${receivingClerk.name ?? "clerk"}` : ""),
       },
     });
 
@@ -936,7 +1356,11 @@ router.post("/offload", ...secure, async (req: Request, res: Response) => {
       userId: userId,
       action: "UPDATE",
       resource: "parcel.offload",
-      details: { parcelId, trackingNumber: parcel.trackingNumber },
+      details: {
+        parcelId,
+        trackingNumber: parcel.trackingNumber,
+        receivingClerkId: receivingClerk?.id ?? null,
+      },
     });
 
     return sendSuccess(res, formatParcelResponse(updatedParcel));

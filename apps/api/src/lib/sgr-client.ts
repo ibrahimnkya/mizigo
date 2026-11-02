@@ -43,6 +43,8 @@ export const loadSgrConfig = async () => {
 
   const config = (integration?.config || {}) as Record<string, any>;
   return {
+    // Non-secret structural config: DB override takes precedence, since it's
+    // meant to be admin-editable via the Integrations UI without a redeploy.
     baseUrl:
       config.baseUrl ||
       process.env.SGR_BASE_URL ||
@@ -53,43 +55,14 @@ export const loadSgrConfig = async () => {
       config.headerService ||
       process.env.SGR_HEADER_SERVICE ||
       "ANONYMOUS_SERVICE",
-    clientRef:
-      config.clientRef || process.env.SGR_CLIENT_REF || "XCNT202606830874",
-    privateKey:
-      config.privateKey ||
-      process.env.SGR_PRIVATE_KEY ||
-      `-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDEYigO1boZbS0f
-uODIf4yfz3u0Ey0OCUq+164FxduncYZFXzsT1TcWO2xgq0eJ9097Stb4g56j9zG/
-Q621LS4hupriwz8j82skvnEGLkJ7dsi1egk/OOD8RbNbJm9iaTZuGipW4o/ELQZC
-6LoJyYdxDXIu2Zj1QojvRqPnn3OXRzTqCXL/g6RlMl3DxY2iX40fNtGCUKbzwa5w
-lYkKvK7GznG/toMES+r0FV6WLDB3e8s+5Hf1ELtIvr3oGmTHb2deJusQKXESe0FS
-bHpWXYl2IZ++k8jns3IoOTLrM5Ug01/UyPT3L94BMKz4oZRYFMdfE17zb0Om3VP7
-THXRBegJAgMBAAECggEADh9k9BQoqvVv/k0EVUbe7Qs1wTBz2AORDYJjMGUXM8Z1
-On3ruLRnnsCtPZJztZdEbwBlzz9f5Di9qhyK3HGgVKqfwtj5rHMv7FeJt0ESZOCY
-9HwPOC21+E5m5JIyBmi8klRtYQwv/JKkVaF454VHqTinUnkxh8m+IT76QIj1/hXv
-lTUmRtvsB4YvEfIqiQ6HS6zYWHXuN99IAIFF+vazEzGWnJUBcC+vL7n0n8uSF4Hi
-hazkEk25NCcycMnh94YYTK6L7F1vKEWlcGJVrlB13LFMR3tKsnfCe0Y7ZvbVftIq
-LYTK5I4UQwq2qQB+d3hzC4Gy0hoUwIu6qg3/uC3ltQKBgQDldS6zIMGE5r1VNkgj
-qeoXjVYmb1XSNkToX8Mn8w5wCAm799EH2/8JPwcJ2XxtSqIi6sz3pSW3ztfdu/SI
-jMF5VMyrMwtTD1YT+fTXvyTioALmxdiU0+1ATOPlPu2ZHCrs2vyyk2yFxTkv2Por
-q0I9c9obUzlU9IIb/wpZZQqAZwKBgQDbGY+MGtKyLqcVCetTvhBM3+y5xxUxTvpP
-HwnB0dhkxgLOUsDskApuQnAHnoeSxhUGfDXTBxbEJfWCXcbfI+q4mZMkRmunnYb3
-Bq1MMKlaBc1pBxgvlPi2jaycGOVvycvBe3TJBlaAbEG0AAhXPbFSkkPWnumRx3W2
-4jQ3yc9ODwKBgQCCwzkN1Aj0mBolyX1q9ZX2PhFubdxWo565Xnl09sqvhaUmfZ+d
-/v1kY4q7Tjnefr3PcEfGiVLpYPMb5dUBTFWls3G/zqMRfpfrYnLp0IBQtidxJCa9
-CdkW37qwFiCJNMgxmsqPafxab36biedno31oT/FnyRHPHFhZZAqdzzsg2QKBgQCW
-odcoCtTqfdqPQ1eQJm7Me3MkMnQmh1beCMfLgjsU5XHOaeSLf2g8b97Xzi0FQrv3
-znOu1wPW7QYCj/iHNwlLywH3gZbIESxWLzf71sTHyI91ctQ0+mWYFIUkeJVdKs60
-Ae3Du2DDQCpX12HkoNyFmVucdXq9p/UNPC2MYWnuDwKBgHAoaoB090z9qoDaXJdo
-BIW8VhqgRAIBJCKGRYZdENOnrXpSpWRsd2yufCf11i+3SOOGwULQwu9yTxYtewQ4
-Y7D0YJ9J3KpXMVZNNS5VaT+k7D81FDb951dyeLHlrZKz4eeEAQJeHzv7DESe3K2k
-Xxl1aX27xQqfkVYHvccMiSR1
------END PRIVATE KEY-----`,
-    publicKey:
-      config.publicKey ||
-      process.env.SGR_PUBLIC_KEY ||
-      "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCpNs5Vm1uwxrA0EEwbCACylnqzwf4kJaENxn/vbklopzyTxZjnv0eSumA7oytlwzHwQuadMS44zx0dc2xno+jNrGDYRf8Cd5iN0V1xPRhwOJeyhQhuiziw57YuUhu70gEGklb2SAFxM3DWtzecJnR17lrsCYwZ8q/0cXjbTCQUYQIDAQAB",
+    // Credentials: env vars take precedence over the DB row. The DB's
+    // sgr-portal-default-integration row currently holds an unregistered
+    // clientRef/publicKey with no privateKey at all — env is the intended
+    // source of truth for real TRC-issued credentials so they can be
+    // rotated by redeploy without editing DB rows.
+    clientRef: process.env.SGR_CLIENT_REF || config.clientRef || "",
+    privateKey: process.env.SGR_PRIVATE_KEY || config.privateKey || "",
+    publicKey: process.env.SGR_PUBLIC_KEY || config.publicKey || "",
   };
 };
 
@@ -229,25 +202,37 @@ export const fetchSgrTariffs = async (): Promise<SgrTariffExternal[]> => {
 export interface SgrBookingInput {
   sourceRef: string;
   senderName: string;
+  senderAddress: string;
   senderPhoneNumber: string;
+  senderEmail?: string | null;
+  sameAsSender: boolean;
+  receiverName: string;
+  receiverAddress: string;
+  receiverPhoneNumber: string;
+  receiverEmail?: string | null;
   parcelName: string;
   parcelDescription: string;
+  totalItems: number;
+  declaredWeightInKg: number;
+  declaredLengthInCm: number;
+  declaredWidthInCm: number;
+  declaredHeightInCm: number;
+  declaredCubicVolume: number;
   originStation: {
     id: string;
     name: string;
-    code: string;
   };
   destinationStation: {
     id: string;
     name: string;
-    code: string;
   };
   tariff: {
     id: string;
     name: string;
-    code: string;
   };
   declaration: {
+    itemName: string;
+    currency: string;
     declaredPrice: number;
   };
 }
@@ -259,7 +244,7 @@ export const bookSgrParcel = async (data: SgrBookingInput) => {
   try {
     const config = await loadSgrConfig();
     const timestamp = Date.now().toString();
-    const body = { data };
+    const body = { clientRef: config.clientRef, data };
     const payload = `${timestamp}.${JSON.stringify(body)}`;
     const signature = signPayload(payload, config.privateKey);
 
@@ -275,7 +260,7 @@ export const bookSgrParcel = async (data: SgrBookingInput) => {
 
     let baseUrl = config.baseUrl.trim();
     if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-    const url = `${baseUrl}/sec/trc/sgr-parcel/v1/manage/parcel-booking`;
+    const url = `${baseUrl}/sec/trc/sgr-parcel/manage/parcel-booking`;
     logger.info("booking_sgr_parcel", { url, sourceRef: data.sourceRef });
 
     const response = await fetch(url, {
@@ -317,14 +302,16 @@ export const bookSgrParcel = async (data: SgrBookingInput) => {
  * Calculate SGR Parcel cost dynamically from TRC SGR Portal
  */
 export const calculateSgrCost = async (input: {
-  originStation: { id: string; name: string; code: string };
-  destinationStation: { id: string; name: string; code: string };
+  originStation: { id: string; name: string };
+  destinationStation: { id: string; name: string };
   weightInKg: number;
+  tariffId: { id: string; name: string };
+  declaration: { itemName: string; currency: string; declaredPrice: number };
 }) => {
   try {
     const config = await loadSgrConfig();
     const timestamp = Date.now().toString();
-    const body = { data: input };
+    const body = { clientRef: config.clientRef, data: input };
     const payload = `${timestamp}.${JSON.stringify(body)}`;
     const signature = signPayload(payload, config.privateKey);
 
@@ -340,7 +327,7 @@ export const calculateSgrCost = async (input: {
 
     let baseUrl = config.baseUrl.trim();
     if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-    const url = `${baseUrl}/sec/trc/sgr-parcel/get/parcelcost`;
+    const url = `${baseUrl}/sec/trc/sgr-parcel/get/parcel-cost`;
     logger.info("calculating_sgr_cost", { url });
 
     const response = await fetch(url, {

@@ -18,6 +18,11 @@ model Organization {
   commissionRate  Float?
   deletedAt       DateTime?
   supportUrl      String?
+  slug            String?        @unique
+  logoUrl         String?
+  faviconUrl      String?
+  primaryColor    String?
+  secondaryColor  String?
   stations        Station[]
   users           User[]
   vehicles        Vehicle[]
@@ -258,10 +263,11 @@ model AuditLog {
 
 model AppVersion {
   id                  String    @id @default(cuid())
-  version             String
+  version             String    @unique
   minSupportedVersion String
   forceUpdate         Boolean   @default(false)
   downloadUrl         String?
+  releaseNotes        String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   deletedAt           DateTime?

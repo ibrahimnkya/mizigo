@@ -37,6 +37,21 @@ export const publicTrackingLimit = rateLimit({
 });
 
 /**
+ * Public Organization Branding Rate Limit
+ */
+export const publicBrandingLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  message: {
+    success: false,
+    error: {
+      code: "TOO_MANY_REQUESTS",
+      message: "Branding lookup rate limit exceeded. Please try again later.",
+    },
+  },
+});
+
+/**
  * Authentication Rate Limit
  */
 export const authLimit = rateLimit({

@@ -67,43 +67,48 @@ router.get("/parcel", async (req: Request, res: Response) => {
       }
     }
     const where = buildParcelWhere(req);
-    const [parcels, total, pending, inTransit, delivered, cancelled, revenue] =
-      await Promise.all([
-        (prisma as any).parcel.findMany({
-          where,
-          take: 50,
-          orderBy: { createdAt: "desc" },
-          include: {
-            origin: true,
-            destination: true,
-          },
-        }),
-        (prisma as any).parcel.count({ where }),
-        (prisma as any).parcel.count({
-          where: { ...where, status: "PENDING" },
-        }),
-        (prisma as any).parcel.count({
-          where: { ...where, status: "IN_TRANSIT" },
-        }),
-        (prisma as any).parcel.count({
-          where: { ...where, status: "DELIVERED" },
-        }),
-        (prisma as any).parcel.count({
-          where: { ...where, status: "CANCELLED" },
-        }),
-        (prisma as any).parcel.aggregate({
-          where: { ...where, paymentStatus: "PAID" },
-          _sum: { totalPrice: true },
-        }),
-      ]);
+    const [rawParcels, total, pending, inTransit, delivered] = await Promise.all([
+      (prisma as any).parcel.findMany({
+        where,
+        take: 100,
+        orderBy: { createdAt: "desc" },
+        include: {
+          origin: { select: { name: true, code: true } },
+          destination: { select: { name: true, code: true } },
+          user: { select: { name: true, phone: true } },
+          payment: { select: { status: true, amount: true, paymentMethod: true } },
+        },
+      }),
+      (prisma as any).parcel.count({ where }),
+      (prisma as any).parcel.count({ where: { ...where, status: "PENDING" } }),
+      (prisma as any).parcel.count({ where: { ...where, status: "IN_TRANSIT" } }),
+      (prisma as any).parcel.count({ where: { ...where, status: "DELIVERED" } }),
+    ]);
+
+    // Normalize field names for the frontend
+    const parcel = rawParcels.map((p: any) => ({
+      ...p,
+      trackingId: p.trackingNumber,
+      senderName: p.user?.name || "Unknown",
+      senderPhone: p.user?.phone || "",
+      fromStation: p.origin?.name || p.fromAddress || "",
+      toStation: p.destination?.name || p.toAddress || "",
+      totalPrice: p.amount || p.payment?.amount || 0,
+      paymentStatus: p.payment?.status || "UNPAID",
+    }));
+
+    const totalRevenue = rawParcels.reduce((sum: number, p: any) =>
+      p.payment?.status === "SUCCESS" ? sum + (p.payment.amount || 0) : sum, 0);
 
     return sendSuccess(res, {
-      parcels,
+      parcel,
       stats: {
         totalItems: total,
-        totalWeight: 0, // Placeholder if weight is not in parcel yet
-        totalRevenue: revenue._sum?.totalPrice || 0,
+        totalWeight: rawParcels.reduce((s: number, p: any) => s + (p.weight || 0), 0),
+        totalRevenue,
         pendingCount: pending,
+        inTransitCount: inTransit,
+        deliveredCount: delivered,
       },
     });
   } catch (error: any) {
@@ -269,15 +274,14 @@ router.get("/stations/:id", async (req: Request, res: Response) => {
 
 router.get("/operators", async (req: Request, res: Response) => {
   try {
+    // Show all active staff — don't filter by role.name since names vary per org.
+    // For SUPER_ADMIN show everyone; for others scope to their org.
     const where: any = {
-      role: {
-        name: {
-          in: ["OPERATOR", "STATION_OPERATOR", "AGENT", "CLERK"],
-        },
-      },
+      isActive: true,
+      deletedAt: null,
     };
-    if (req.user?.role !== "SUPER_ADMIN") {
-      where.organizationId = req.user?.organizationId ?? "";
+    if (req.user?.role !== "SUPER_ADMIN" && req.user?.organizationId) {
+      where.organizationId = req.user.organizationId;
     }
 
     const operators = await prisma.user.findMany({
@@ -285,11 +289,10 @@ router.get("/operators", async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
       include: {
         _count: {
-          select: {
-            parcelRequests: true,
-          },
+          select: { parcelRequests: true },
         },
-        station: true,
+        station: { select: { name: true } },
+        role: { select: { name: true } },
       },
     });
 
@@ -297,23 +300,25 @@ router.get("/operators", async (req: Request, res: Response) => {
       id: o.id,
       name: o.name,
       email: o.email,
+      phone: o.phone,
       createdAt: o.createdAt,
-      stationName: o.station?.name,
+      stationName: (o as any).station?.name,
+      roleName: (o as any).role?.name,
       parcelCount: (o._count as any).parcelRequests || 0,
       avgTime: "12m",
-      isActive: true,
+      isActive: o.isActive,
     }));
+
+    // Sort by parcel count to determine top performer
+    const sorted = [...operatorList].sort((a, b) => b.parcelCount - a.parcelCount);
 
     return sendSuccess(res, {
       operators: operatorList,
       summary: {
         totalOperators: operatorList.length,
         avgProcessingTime: "12m",
-        totalOperations: operatorList.reduce(
-          (acc, curr) => acc + curr.parcelCount,
-          0,
-        ),
-        topPerformer: operatorList[0]?.name || "N/A",
+        totalOperations: operatorList.reduce((acc, curr) => acc + curr.parcelCount, 0),
+        topPerformer: sorted[0]?.name || "N/A",
       },
     });
   } catch (error: any) {
@@ -323,43 +328,41 @@ router.get("/operators", async (req: Request, res: Response) => {
 
 router.get("/admin/overview", async (req: Request, res: Response) => {
   try {
-    const where =
-      req.user?.role === "SUPER_ADMIN"
-        ? {}
-        : { organizationId: req.user?.organizationId || "" };
-    const [organizations, stations, users, parcel, revenue] = await Promise.all(
-      [
-        prisma.organization.count({
-          where:
-            req.user?.role === "SUPER_ADMIN"
-              ? {}
-              : { id: req.user?.organizationId || "" },
-        }),
-        prisma.station.count({ where }),
-        prisma.user.count({
-          where:
-            req.user?.role === "SUPER_ADMIN"
-              ? {}
-              : { organizationId: req.user?.organizationId || "" },
-        }),
-        (prisma as any).parcel.count({
-          where:
-            req.user?.role === "SUPER_ADMIN"
-              ? {}
-              : { user: { organizationId: req.user?.organizationId || "" } },
-        }),
-        (prisma as any).payment.aggregate({
-          where: { ...where, status: "SUCCESS" },
-          _sum: { amount: true },
-        }),
-      ],
-    );
+    const isSuperAdmin = req.user?.role === "SUPER_ADMIN";
+    const orgId = req.user?.organizationId;
+
+    // Build scoped where clauses per entity (payment.organizationId is often null —
+    // fall back to filtering via parcel.organizationId relation instead).
+    const stationWhere = isSuperAdmin ? {} : { organizationId: orgId || "" };
+    const userWhere = isSuperAdmin ? {} : { organizationId: orgId || "" };
+    const parcelWhere = isSuperAdmin ? {} : { organizationId: orgId || "" };
+    const paymentWhere: any = { status: "SUCCESS" };
+    if (!isSuperAdmin && orgId) {
+      paymentWhere.OR = [
+        { organizationId: orgId },
+        { parcel: { organizationId: orgId } },
+      ];
+    }
+
+    const [organizations, stations, users, parcel, revenue] = await Promise.all([
+      prisma.organization.count({
+        where: isSuperAdmin ? {} : { id: orgId || "" },
+      }),
+      prisma.station.count({ where: stationWhere }),
+      prisma.user.count({ where: { ...userWhere, isActive: true, deletedAt: null } }),
+      (prisma as any).parcel.count({ where: parcelWhere }),
+      (prisma as any).payment.aggregate({
+        where: paymentWhere,
+        _sum: { amount: true },
+      }),
+    ]);
 
     return sendSuccess(res, {
-      totalRevenue: revenue._sum.amount || 0,
+      totalRevenue: revenue._sum?.amount || 0,
       totalOrganizations: organizations,
       totalStations: stations,
       totalParcel: parcel,
+      totalUsers: users,
     });
   } catch (error: any) {
     return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
@@ -430,11 +433,14 @@ router.get("/operator/overview", async (req: Request, res: Response) => {
 
 router.get("/revenue", async (req: Request, res: Response) => {
   try {
-    const where: any = {};
+    // payment.organizationId is often null — filter via parcel.organizationId instead.
+    const where: any = { status: "SUCCESS" };
     if (req.user?.role !== "SUPER_ADMIN" && req.user?.organizationId) {
-      where.organizationId = req.user.organizationId;
+      where.OR = [
+        { organizationId: req.user.organizationId },
+        { parcel: { organizationId: req.user.organizationId } },
+      ];
     }
-    where.status = "SUCCESS";
 
     const payments = await prisma.payment.findMany({
       where,

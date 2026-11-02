@@ -26,9 +26,11 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
         where: { name: { in: ["ADMIN", "ORG_ADMIN"] } },
       });
       whereClause.roleId = { in: adminRoles.map((r) => r.id) };
-    } else if (roleFilter === "OPERATOR") {
+    } else if (roleFilter === "OPERATOR" || roleFilter === "CLERK") {
       const operatorRoles = await prisma.role.findMany({
-        where: { name: { in: ["OPERATOR", "STATION_OPERATOR"] } },
+        where: {
+          name: { in: ["CLERK", "TRAIN_GUARD", "STATION_MASTER", "AGENT", "OPERATOR", "STATION_OPERATOR"] },
+        },
       });
       whereClause.roleId = { in: operatorRoles.map((r) => r.id) };
     } else if (roleFilter) {

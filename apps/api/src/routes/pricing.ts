@@ -91,13 +91,10 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const organizationId = req.query.organizationId as string | undefined;
 
-    // 1) Sync tariffs from TRC SGR API
+    // 1) Sync tariffs from TRC SGR API.
+    // SGR tariffs are TRC regulatory rates that apply across all organisations,
+    // so they are stored with organizationId: null (global/shared).
     try {
-      const trcOrg = await prisma.organization.findUnique({
-        where: { name: "Tanzania Railways Corporation" },
-      });
-      const trcOrgId = trcOrg?.id ?? null;
-
       const sgrTariffs = await fetchSgrTariffs();
       for (const t of sgrTariffs) {
         await prisma.pricingRule.upsert({
@@ -105,7 +102,7 @@ router.get("/", async (req: Request, res: Response) => {
           update: {
             type: "SGR_TARIFF",
             value: t.minimumCharge,
-            organizationId: trcOrgId,
+            organizationId: null,
             condition: JSON.stringify({
               description: t.description,
               distanceRate: t.distanceRate,
@@ -119,7 +116,7 @@ router.get("/", async (req: Request, res: Response) => {
             name: t.name,
             type: "SGR_TARIFF",
             value: t.minimumCharge,
-            organizationId: trcOrgId,
+            organizationId: null,
             condition: JSON.stringify({
               description: t.description,
               distanceRate: t.distanceRate,
@@ -135,12 +132,14 @@ router.get("/", async (req: Request, res: Response) => {
       console.error("[Pricing Sync] SGR tariff sync failed:", sgrErr.message);
     }
 
-    // 2) Return pricing rules, scoping by organizationId if supplied
+    // 2) Return pricing rules, scoping by organizationId if supplied.
+    // SGR_TARIFF rules are always global and visible to every user regardless of org.
     const where: any = { deletedAt: null };
     if (req.user?.role !== "SUPER_ADMIN") {
       where.OR = [
         { organizationId: null },
         { organizationId: req.user?.organizationId || "" },
+        { type: "SGR_TARIFF" },
       ];
     } else if (organizationId !== undefined) {
       where.organizationId = organizationId === "null" || organizationId === "" ? null : organizationId;

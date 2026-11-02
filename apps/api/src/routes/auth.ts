@@ -13,11 +13,19 @@ const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "mizigo_super_secret_key_123";
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || "15m";
 const REFRESH_TOKEN_TTL_DAYS = Number(process.env.REFRESH_TOKEN_TTL_DAYS || 30);
-const OTP_RESET_LIMIT_WINDOW_HOURS = Number(
-  process.env.OTP_RESET_LIMIT_WINDOW_HOURS || 24,
+// Forgot-PIN SMS limits, per phone number (each send costs an SMS).
+const OTP_RESET_COOLDOWN_SECONDS = Number(
+  process.env.OTP_RESET_COOLDOWN_SECONDS || 60,
 );
-const OTP_RESET_LIMIT_MAX_ATTEMPTS = Number(
-  process.env.OTP_RESET_LIMIT_MAX_ATTEMPTS || 3,
+const OTP_RESET_MAX_PER_HOUR = Number(
+  process.env.OTP_RESET_MAX_PER_HOUR || 3,
+);
+const OTP_RESET_MAX_PER_DAY = Number(
+  process.env.OTP_RESET_MAX_PER_DAY || process.env.OTP_RESET_LIMIT_MAX_ATTEMPTS || 5,
+);
+// Per-IP cap on the same endpoint; stations can share one IP, so keep it loose.
+const OTP_RESET_MAX_PER_IP_PER_HOUR = Number(
+  process.env.OTP_RESET_MAX_PER_IP_PER_HOUR || 10,
 );
 
 const hashOtp = (otp: string) => {
@@ -144,17 +152,57 @@ const buildUserClaims = async (userId: string) => {
   };
 };
 
-const exceededResetLimit = async (phone?: string, email?: string) => {
-  const windowStart = new Date(
-    Date.now() - OTP_RESET_LIMIT_WINDOW_HOURS * 60 * 60 * 1000,
-  );
-  const count = await prisma.passwordReset.count({
-    where: {
-      createdAt: { gte: windowStart },
-      OR: [{ phone: phone || undefined }, { email: email || undefined }],
-    },
+/**
+ * Seconds until this phone/email may receive another reset code, or 0 if a
+ * send is allowed now. Checks the cooldown, hourly and daily caps against
+ * PasswordReset rows (used codes are expired in place, not deleted, so they
+ * still count).
+ */
+const resetRetryAfterSeconds = async (
+  phone?: string,
+  email?: string,
+): Promise<number> => {
+  // Only match on identifiers we actually have — an `{ email: undefined }`
+  // clause would match every row.
+  const or: any[] = [];
+  if (phone) or.push({ phone });
+  if (email) or.push({ email });
+  if (or.length === 0) return 0;
+
+  const now = Date.now();
+  const dayAgo = new Date(now - 24 * 60 * 60 * 1000);
+  const recent = await prisma.passwordReset.findMany({
+    where: { OR: or, createdAt: { gte: dayAgo } },
+    select: { createdAt: true },
+    orderBy: { createdAt: "desc" },
   });
-  return count >= OTP_RESET_LIMIT_MAX_ATTEMPTS;
+
+  const waits: number[] = [0];
+  const ageMs = (i: number) => now - recent[i].createdAt.getTime();
+
+  if (recent.length > 0) {
+    waits.push(OTP_RESET_COOLDOWN_SECONDS * 1000 - ageMs(0));
+  }
+  const hourMs = 60 * 60 * 1000;
+  const inLastHour = recent.filter((r) => now - r.createdAt.getTime() < hourMs);
+  if (inLastHour.length >= OTP_RESET_MAX_PER_HOUR) {
+    // Oldest send that still counts toward the hourly cap must age out.
+    const idx = OTP_RESET_MAX_PER_HOUR - 1;
+    waits.push(hourMs - ageMs(idx));
+  }
+  if (recent.length >= OTP_RESET_MAX_PER_DAY) {
+    const idx = OTP_RESET_MAX_PER_DAY - 1;
+    waits.push(24 * hourMs - ageMs(idx));
+  }
+  return Math.max(0, Math.ceil(Math.max(...waits) / 1000));
+};
+
+const formatWait = (seconds: number) => {
+  if (seconds < 60) return `${seconds} second${seconds === 1 ? "" : "s"}`;
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} hour${hours === 1 ? "" : "s"}`;
 };
 
 router.post(
@@ -700,9 +748,11 @@ router.post(
         if (resetRecord && resetRecord.expiresAt >= new Date()) {
           otpIsValid = true;
 
-          // Consume the reset record
-          await prisma.passwordReset.delete({
+          // Consume the reset record. Expire it rather than delete it so it
+          // still counts toward the reset-SMS rate limits.
+          await prisma.passwordReset.update({
             where: { id: resetRecord.id },
+            data: { expiresAt: new Date(0) },
           });
 
           // Mark user as needing to change password/OTP
@@ -740,7 +790,19 @@ router.post(
 
 router.post(
   "/operator/reset-otp",
-  rateLimit({ windowMs: 60 * 60 * 1000, limit: 5 }),
+  rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: OTP_RESET_MAX_PER_IP_PER_HOUR,
+    message: {
+      success: false,
+      data: null,
+      error: {
+        code: "TOO_MANY_REQUESTS",
+        message: "Too many code requests from this network. Try again later.",
+        details: { retryAfterSeconds: 60 * 60 },
+      },
+    },
+  }),
   async (req: Request, res: Response) => {
     try {
       const { phone, email } = req.body;
@@ -772,12 +834,18 @@ router.post(
         );
       }
 
-      if (await exceededResetLimit(normalizedPhone || undefined, email)) {
+      const retryAfterSeconds = await resetRetryAfterSeconds(
+        normalizedPhone || undefined,
+        email,
+      );
+      if (retryAfterSeconds > 0) {
+        res.setHeader("Retry-After", String(retryAfterSeconds));
         return sendError(
           res,
-          "FORBIDDEN",
-          `OTP reset limit exceeded (max ${OTP_RESET_LIMIT_MAX_ATTEMPTS} in ${OTP_RESET_LIMIT_WINDOW_HOURS}h)`,
-          403,
+          "TOO_MANY_REQUESTS",
+          `Too many code requests. Try again in ${formatWait(retryAfterSeconds)}.`,
+          429,
+          { retryAfterSeconds },
         );
       }
 

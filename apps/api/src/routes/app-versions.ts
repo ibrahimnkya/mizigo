@@ -80,10 +80,9 @@ router.get(
   },
 );
 
+// Public — no auth required; mobile calls this before the user logs in.
 router.get(
   "/check-update",
-  authenticate,
-  requireTenantContext,
   async (req: Request, res: Response) => {
     const currentVersion = String(req.query.currentVersion || "");
     if (!currentVersion) {
@@ -98,7 +97,12 @@ router.get(
       where: { deletedAt: null },
     });
     if (!versions.length) {
-      return sendError(res, "NOT_FOUND", "No app versions found", 404);
+      // No versions published yet — tell the client it is up to date.
+      return sendSuccess(res, {
+        latestVersion: currentVersion,
+        forceUpdate: false,
+        downloadUrl: null,
+      });
     }
     const latest = [...versions].sort((a, b) =>
       compareVersions(b.version, a.version),
@@ -110,6 +114,7 @@ router.get(
       latestVersion: latest.version,
       forceUpdate,
       downloadUrl: latest.downloadUrl,
+      releaseNotes: latest.releaseNotes ?? null,
     });
   },
 );
@@ -124,6 +129,51 @@ router.get(
     });
     if (!item) return sendError(res, "NOT_FOUND", "App version not found", 404);
     return sendSuccess(res, item);
+  },
+);
+
+router.put(
+  "/:id",
+  authenticate,
+  requireTenantContext,
+  requirePermission("app_versions:create"),
+  async (req: Request, res: Response) => {
+    try {
+      const { version, minSupportedVersion, forceUpdate, downloadUrl, releaseNotes } = req.body;
+      const item = await prisma.appVersion.update({
+        where: { id: req.params.id },
+        data: {
+          ...(version !== undefined && { version: String(version) }),
+          ...(minSupportedVersion !== undefined && { minSupportedVersion: String(minSupportedVersion) }),
+          ...(forceUpdate !== undefined && { forceUpdate: Boolean(forceUpdate) }),
+          ...(downloadUrl !== undefined && { downloadUrl: String(downloadUrl) }),
+          ...(releaseNotes !== undefined && { releaseNotes: releaseNotes ? String(releaseNotes) : null }),
+        },
+      });
+      return sendSuccess(res, item);
+    } catch (error: any) {
+      if (error.code === "P2025") return sendError(res, "NOT_FOUND", "App version not found", 404);
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
+  },
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  requireTenantContext,
+  requirePermission("app_versions:create"),
+  async (req: Request, res: Response) => {
+    try {
+      await prisma.appVersion.update({
+        where: { id: req.params.id },
+        data: { deletedAt: new Date() },
+      });
+      return sendSuccess(res, { deleted: true });
+    } catch (error: any) {
+      if (error.code === "P2025") return sendError(res, "NOT_FOUND", "App version not found", 404);
+      return sendError(res, "INTERNAL_SERVER_ERROR", error.message, 500);
+    }
   },
 );
 

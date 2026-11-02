@@ -15,7 +15,7 @@ router.use(authenticate, requireTenantContext);
 const getOperatorRoleId = async () => {
   const role = await prisma.role.findFirst({
     where: {
-      OR: [{ name: "OPERATOR" }, { name: "STATION_OPERATOR" }],
+      OR: [{ name: "CLERK" }, { name: "OPERATOR" }, { name: "STATION_OPERATOR" }],
     },
   });
   return role?.id;
@@ -44,13 +44,15 @@ router.post(
         );
       }
 
-      const roleName = requestedRoleName || "OPERATOR";
+      const roleName = requestedRoleName || "CLERK";
       const allowedRoles = [
-        "OPERATOR",
-        "STATION_OPERATOR",
         "CLERK",
         "TRAIN_GUARD",
         "STATION_MASTER",
+        "AGENT",
+        // Backwards compatibility for legacy data
+        "OPERATOR",
+        "STATION_OPERATOR",
       ];
       if (!allowedRoles.includes(roleName)) {
         return sendError(
@@ -245,11 +247,13 @@ router.get("/", async (req: Request, res: Response) => {
       where: {
         name: {
           in: [
-            "OPERATOR",
-            "STATION_OPERATOR",
             "CLERK",
             "TRAIN_GUARD",
             "STATION_MASTER",
+            "AGENT",
+            // Backwards compatibility for existing records
+            "OPERATOR",
+            "STATION_OPERATOR",
           ],
         },
       },
