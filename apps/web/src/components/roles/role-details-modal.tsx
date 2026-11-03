@@ -62,7 +62,7 @@ export function RoleDetailsModal({
         {/* Content Section */}
         <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
           {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               {
                 label: "Security Level",

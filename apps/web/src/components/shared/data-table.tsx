@@ -127,8 +127,60 @@ export function DataTable<T>({
         </div>
       ) : null}
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Phones: each row as a card (first column as the title, the rest as label/value) */}
+      <div className="md:hidden">
+        {isLoading ? (
+          <div className="space-y-3 p-4">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-28 animate-pulse rounded-[20px] bg-slate-100" />
+            ))}
+          </div>
+        ) : paginatedData.length === 0 ? (
+          <p className="px-6 py-12 text-center text-[14px] text-slate-400">{emptyMessage}</p>
+        ) : (
+          <ul className="space-y-3 p-4">
+            {paginatedData.map((item, rowIdx) => {
+              const render = (col: Column<T>) =>
+                typeof col.accessor === "function" ? col.accessor(item) : (item[col.accessor as keyof T] as React.ReactNode);
+              const [first, ...rest] = columns;
+              const fields = rest.filter((c) => c.header);
+              const actions = rest.filter((c) => !c.header);
+              return (
+                <li
+                  key={rowIdx}
+                  onClick={() => onRowClick?.(item)}
+                  className={cn(
+                    "rounded-[20px] border border-[#E2E2E2] bg-white p-4",
+                    onRowClick && "cursor-pointer active:bg-orange-50/40",
+                  )}
+                >
+                  {first && <div className="min-w-0">{render(first)}</div>}
+                  {fields.length > 0 && (
+                    <dl className="mt-3 divide-y divide-slate-100 border-t border-slate-100">
+                      {fields.map((col, i) => (
+                        <div key={i} className="flex items-start justify-between gap-3 py-2">
+                          <dt className="shrink-0 text-[12px] text-slate-500">{col.header}</dt>
+                          <dd className="min-w-0 text-right text-[13px] [&>*]:ml-auto">{render(col)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  {actions.length > 0 && (
+                    <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3" onClick={(e) => e.stopPropagation()}>
+                      {actions.map((col, i) => (
+                        <div key={i}>{render(col)}</div>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Table (tablet and up) */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-[#F7F5F4]">

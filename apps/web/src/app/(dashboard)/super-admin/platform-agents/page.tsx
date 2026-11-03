@@ -416,7 +416,7 @@ function PlatformAgentsPageInner() {
                     <ShieldCheck className="h-6 w-6 text-orange-300" />
                   </span>
                   <p className="mt-5 text-[14px] text-white/70">Waiting for KYC review</p>
-                  <p className="text-[44px] font-semibold leading-none tabular-nums">{pendingKyc}</p>
+                  <p className="text-[30px] sm:text-[44px] font-semibold leading-none tabular-nums">{pendingKyc}</p>
                   <p className="mt-2 text-[14px] text-white/70">
                     {pendingKyc
                       ? "Check their documents so they can start taking parcels."

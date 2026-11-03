@@ -56,7 +56,7 @@ export function PaymentDetailSheet({ payment, onClose }: { payment: any | null; 
               </div>
               <SheetTitle className="mt-5 text-[13px] font-normal text-white/70">Amount</SheetTitle>
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-[36px] font-semibold leading-none tabular-nums text-white">{tsh(payment.amount)}</p>
+                <p className="text-[28px] sm:text-[36px] font-semibold leading-none tabular-nums text-white">{tsh(payment.amount)}</p>
                 <span className={cn("rounded-full px-3 py-1 text-[12px] font-semibold", st.tone)}>{st.label}</span>
               </div>
               <SheetDescription className="mt-2 text-[13px] text-white/60">

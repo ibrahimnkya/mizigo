@@ -86,7 +86,7 @@ export function StationsOverview({ stations: stationsProp, onViewAll }: { statio
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[14px] text-white/70">Stations</p>
-            <p className="text-[40px] font-semibold leading-none tabular-nums">{num(total)}</p>
+            <p className="text-[30px] sm:text-[40px] font-semibold leading-none tabular-nums">{num(total)}</p>
             <p className="mt-1.5 text-[13px] text-white/60">
               {num(active)} open · {num(total - active)} closed
             </p>

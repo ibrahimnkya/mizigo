@@ -163,7 +163,7 @@ export default function AdminOverviewPage() {
               <div className="mt-2 h-10 w-60 animate-pulse rounded-xl bg-white/15" />
             ) : (
               <div className="mt-1 flex flex-wrap items-center gap-3">
-                <p className="text-[38px] font-semibold leading-none tabular-nums">TSh {fmt(revenue)}</p>
+                <p className="text-[30px] sm:text-[38px] font-semibold leading-none tabular-nums">TSh {fmt(revenue)}</p>
                 <Trend now={overview.totalRevenue} before={overview.previous?.totalRevenue} />
               </div>
             )}

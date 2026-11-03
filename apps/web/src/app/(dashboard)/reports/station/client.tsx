@@ -270,8 +270,8 @@ export function StationReportClient({
   return (
     <div className="flex flex-col gap-8 p-6 md:p-10 bg-white max-w-[1440px] mx-auto min-h-[85vh] shadow-[0_0_80px_-20px_rgba(0,0,0,0.08)] rounded-[20px] my-8 border border-slate-100/50 relative overflow-hidden">
       {/* Background Decoration */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50/20 rounded-full blur-3xl -mr-64 -mt-64 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-50/30 rounded-full blur-3xl -ml-48 -mb-48 pointer-events-none" />
+      <div className="absolute top-0 right-0 hidden md:block w-[500px] h-[500px] bg-blue-50/20 rounded-full blur-3xl -mr-64 -mt-64 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 hidden md:block w-[400px] h-[400px] bg-slate-50/30 rounded-full blur-3xl -ml-48 -mb-48 pointer-events-none" />
 
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2 relative z-10 border-b border-slate-50 pb-6">

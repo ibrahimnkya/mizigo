@@ -276,7 +276,7 @@ export function UpdateStationModal({
                   <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-left">
                     Operations Performance
                   </h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <StatBox
                       icon={<PackageCheck className="w-5 h-5 text-blue-500" />}
                       bg="bg-blue-50"
@@ -303,7 +303,7 @@ export function UpdateStationModal({
                   <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.05em] text-left">
                     Workforce Registry
                   </h3>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <StatBox
                       icon={<Users className="w-5 h-5 text-indigo-500" />}
                       bg="bg-indigo-50"

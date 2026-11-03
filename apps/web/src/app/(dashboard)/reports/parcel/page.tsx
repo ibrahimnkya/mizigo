@@ -302,7 +302,7 @@ export default function ParcelReportPage() {
             {isLoading ? (
               <div className="mt-1 h-10 w-24 animate-pulse rounded-xl bg-white/15" />
             ) : (
-              <p className="text-[40px] font-semibold leading-none tabular-nums">{(stats.totalItems ?? 0).toLocaleString("en-US")}</p>
+              <p className="text-[30px] sm:text-[40px] font-semibold leading-none tabular-nums">{(stats.totalItems ?? 0).toLocaleString("en-US")}</p>
             )}
           </div>
           <div className="flex flex-wrap gap-6 text-right">

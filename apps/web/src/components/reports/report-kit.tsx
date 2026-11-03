@@ -443,7 +443,7 @@ export function ReportSummary({
       {loading ? (
         <div className="mt-1 h-10 w-48 animate-pulse rounded-xl bg-white/15" />
       ) : (
-        <p className="text-[38px] font-semibold leading-none tabular-nums">{value}</p>
+        <p className="text-[30px] sm:text-[38px] font-semibold leading-none tabular-nums">{value}</p>
       )}
       {note && !loading && <p className="mt-1.5 text-[13px] text-white/60">{note}</p>}
       <div className={cn("mt-5 grid grid-cols-2 gap-3", chips.length >= 4 ? "md:grid-cols-4" : "md:grid-cols-3")}>

@@ -34,6 +34,7 @@ export function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const user = session?.user as any;
   const role: string | undefined = user?.role;
@@ -59,14 +60,17 @@ export function Topbar() {
   const lookup = useTrackParcel();
   const track = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (await lookup.track(query)) setQuery("");
+    if (await lookup.track(query)) {
+      setQuery("");
+      setSearchOpen(false);
+    }
   };
 
   const iconBtn =
     "relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E2E2] bg-white text-slate-500 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600";
 
   return (
-    <header className="sticky top-0 z-30 flex h-[72px] shrink-0 items-center gap-4 border-b border-[#E2E2E2] bg-[#F3F3F3]/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-[64px] shrink-0 items-center gap-2 border-b sm:h-[72px] sm:gap-4 border-[#E2E2E2] bg-[#F3F3F3]/85 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
       {/* Left: menu + where am I */}
       <button onClick={toggleSidebar} aria-label="Open menu" className={`${iconBtn} lg:hidden`}>
         <Menu size={18} />
@@ -100,7 +104,10 @@ export function Topbar() {
       </form>
 
       {/* Right */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <button onClick={() => setSearchOpen((v) => !v)} aria-label="Track a parcel" className={`${iconBtn} md:hidden`}>
+          <Search size={17} />
+        </button>
         <ThemeSwitcher />
 
         <Link href="/notifications" aria-label={unread ? `${unread} unread notifications` : "Notifications"} className={iconBtn}>
@@ -158,6 +165,28 @@ export function Topbar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {searchOpen && (
+        <form
+          onSubmit={track}
+          className="absolute inset-x-0 top-full border-b border-[#E2E2E2] bg-[#F3F3F3] px-4 py-3 md:hidden"
+        >
+          <div className="relative">
+            {lookup.loading ? (
+              <Loader2 size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 animate-spin text-orange-500" />
+            ) : (
+              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            )}
+            <input
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Track a parcel number"
+              aria-label="Track a parcel number"
+              className="h-11 w-full rounded-full border border-[#E2E2E2] bg-white pl-11 pr-4 text-[15px] uppercase tracking-wide text-slate-700 outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 focus:border-orange-500"
+            />
+          </div>
+        </form>
+      )}
       {lookup.sheet}
     </header>
   );

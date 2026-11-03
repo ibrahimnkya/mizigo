@@ -457,7 +457,31 @@ export function PaymentList({
               {recent.length === 0 ? (
                 <p className="px-6 py-12 text-center text-[14px] text-slate-400">No payments in this period.</p>
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                <ul className="divide-y divide-slate-100 md:hidden">
+                  {recent.map((p: any) => {
+                    const st = paymentStatus(p.status);
+                    return (
+                      <li key={p.id}>
+                        <button type="button" onClick={() => setSelectedPayment(p)} className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-orange-50/40">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[14px] font-semibold tracking-wide text-[#1C1C1E]">{p.parcel?.trackingNumber ?? "Payment"}</p>
+                            <p className="truncate text-[12px] text-slate-500">
+                              {[p.parcel?.origin?.name, p.createdAt ? new Date(p.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null]
+                                .filter(Boolean)
+                                .join(" · ")}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-[14px] font-semibold tabular-nums text-[#1C1C1E]">{formatAmount(p.amount || 0)}</p>
+                            <span className={"mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold " + st.tone}>{st.label}</span>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className="hidden overflow-x-auto md:block">
                   <table className="w-full min-w-[720px] text-left">
                     <thead>
                       <tr className="bg-[#F7F5F4] text-[12px] font-semibold text-slate-500">
@@ -498,6 +522,7 @@ export function PaymentList({
                     </tbody>
                   </table>
                 </div>
+                </>
               )}
             </section>
 

@@ -104,7 +104,7 @@ export async function ParcelStatusPage(props: ParcelStatusPageProps) {
             </div>
             <div>
               <p className="text-[14px] text-white/70">{props.headline}</p>
-              <p className="text-[40px] font-semibold leading-none tabular-nums">{s.count.toLocaleString("en-US")}</p>
+              <p className="text-[30px] sm:text-[40px] font-semibold leading-none tabular-nums">{s.count.toLocaleString("en-US")}</p>
             </div>
           </div>
           {props.isQueue && s.count > 0 && oldDays >= 2 && (

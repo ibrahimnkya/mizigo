@@ -293,7 +293,7 @@ export default function ReceiveParcelPage() {
         />
 
         {/* Progress Indicators - Unified Design */}
-        <div className="grid grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           {[
             { icon: Box, label: "Package" },
             { icon: User, label: "Details" },
